@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import {
   Table,
   TableBody,
@@ -29,41 +29,25 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Plus, Pencil, Trash2, ShoppingBag } from "lucide-react"
+import api from "@/services/api"
 
-type Product = {
-  id: string
-  name: string
-  price: string
-  ingredients: string
-  type: "Comida" | "Bebida" | "Sobremesa"
+type ProductType = {
+  id: number
+  descricao: string
 }
 
-const initialProducts: Product[] = [
-  {
-    id: "PROD-001",
-    name: "Hambúrguer Clássico",
-    price: "R$ 35,00",
-    ingredients: "Pão, carne, queijo, alface, tomate",
-    type: "Comida",
-  },
-  {
-    id: "PROD-002",
-    name: "Refrigerante Lata",
-    price: "R$ 6,00",
-    ingredients: "",
-    type: "Bebida",
-  },
-  {
-    id: "PROD-003",
-    name: "Pudim de Leite",
-    price: "R$ 12,00",
-    ingredients: "Leite condensado, ovos, leite",
-    type: "Sobremesa",
-  },
-]
+type Product = {
+  id: number
+  nome: string
+  preco: number
+  ingredientes: string
+  tipoProdutoId: number
+  tipoProduto?: ProductType
+}
 
 export default function ProductsPage() {
-  const [products, setProducts] = useState<Product[]>(initialProducts)
+  const [products, setProducts] = useState<Product[]>([])
+  const [productTypes, setProductTypes] = useState<ProductType[]>([])
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [currentProduct, setCurrentProduct] = useState<Product | null>(null)
@@ -72,48 +56,87 @@ export default function ProductsPage() {
   const [name, setName] = useState("")
   const [price, setPrice] = useState("")
   const [ingredients, setIngredients] = useState("")
-  const [type, setType] = useState<"Comida" | "Bebida" | "Sobremesa">("Comida")
+  const [typeId, setTypeId] = useState<string>("")
 
-  const handleAddProduct = (e: React.FormEvent) => {
-    e.preventDefault()
-    const newProduct: Product = {
-      id: `PROD-${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`,
-      name,
-      price,
-      ingredients,
-      type,
+  useEffect(() => {
+    fetchProducts()
+    fetchTypes()
+  }, [])
+
+  const fetchProducts = async () => {
+    try {
+      const response = await api.get("/produtos")
+      setProducts(response.data)
+    } catch (error) {
+      console.error("Error fetching products", error)
     }
-    setProducts([...products, newProduct])
-    setIsAddDialogOpen(false)
-    resetForm()
+  }
+
+  const fetchTypes = async () => {
+    try {
+      const response = await api.get("/tipos")
+      setProductTypes(response.data)
+    } catch (error) {
+      console.error("Error fetching types", error)
+    }
+  }
+
+  const handleAddProduct = async (e: React.FormEvent) => {
+    e.preventDefault()
+    try {
+      await api.post("/produtos", {
+        nome: name,
+        preco: parseFloat(price.replace("R$", "").replace(",", ".").trim()),
+        ingredientes: ingredients,
+        tipoProdutoId: parseInt(typeId),
+      })
+      fetchProducts()
+      setIsAddDialogOpen(false)
+      resetForm()
+    } catch (error) {
+      console.error("Error creating product", error)
+      alert("Erro ao criar produto")
+    }
   }
 
   const handleEditClick = (product: Product) => {
     setCurrentProduct(product)
-    setName(product.name)
-    setPrice(product.price)
-    setIngredients(product.ingredients)
-    setType(product.type)
+    setName(product.nome)
+    setPrice(product.preco.toString())
+    setIngredients(product.ingredientes)
+    setTypeId(product.tipoProdutoId.toString())
     setIsEditDialogOpen(true)
   }
 
-  const handleUpdateProduct = (e: React.FormEvent) => {
+  const handleUpdateProduct = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!currentProduct) return
 
-    const updatedProducts = products.map((prod) =>
-      prod.id === currentProduct.id
-        ? { ...prod, name, price, ingredients, type }
-        : prod
-    )
-    setProducts(updatedProducts)
-    setIsEditDialogOpen(false)
-    resetForm()
+    try {
+      await api.put(`/produtos/${currentProduct.id}`, {
+        nome: name,
+        preco: parseFloat(price.replace("R$", "").replace(",", ".").trim()),
+        ingredientes: ingredients,
+        tipoProdutoId: parseInt(typeId),
+      })
+      fetchProducts()
+      setIsEditDialogOpen(false)
+      resetForm()
+    } catch (error) {
+      console.error("Error updating product", error)
+      alert("Erro ao atualizar produto")
+    }
   }
 
-  const handleDeleteProduct = (id: string) => {
+  const handleDeleteProduct = async (id: number) => {
     if (confirm("Tem certeza que deseja excluir este produto?")) {
-      setProducts(products.filter((prod) => prod.id !== id))
+      try {
+        await api.delete(`/produtos/${id}`)
+        fetchProducts()
+      } catch (error) {
+        console.error("Error deleting product", error)
+        alert("Erro ao excluir produto")
+      }
     }
   }
 
@@ -121,8 +144,13 @@ export default function ProductsPage() {
     setName("")
     setPrice("")
     setIngredients("")
-    setType("Comida")
+    setTypeId("")
     setCurrentProduct(null)
+  }
+
+  const getTypeName = (id: number) => {
+    const type = productTypes.find(t => t.id === id)
+    return type ? type.descricao : "Desconhecido"
   }
 
   return (
@@ -161,20 +189,22 @@ export default function ProductsPage() {
                   id="price"
                   value={price}
                   onChange={(e) => setPrice(e.target.value)}
-                  placeholder="R$ 0,00"
+                  placeholder="0.00"
                   required
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="type">Tipo</Label>
-                <Select value={type} onValueChange={(value: any) => setType(value)}>
+                <Select value={typeId} onValueChange={setTypeId}>
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione o tipo" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Comida">Comida</SelectItem>
-                    <SelectItem value="Bebida">Bebida</SelectItem>
-                    <SelectItem value="Sobremesa">Sobremesa</SelectItem>
+                    {productTypes.map((type) => (
+                      <SelectItem key={type.id} value={type.id.toString()}>
+                        {type.descricao}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -215,17 +245,15 @@ export default function ProductsPage() {
               {products.map((product) => (
                 <TableRow key={product.id}>
                   <TableCell className="font-medium">{product.id}</TableCell>
-                  <TableCell>{product.name}</TableCell>
+                  <TableCell>{product.nome}</TableCell>
                   <TableCell>
-                    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium
-                      ${product.type === 'Comida' ? 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300' : 
-                        product.type === 'Bebida' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300' :
-                        'bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-300'
-                      }`}>
-                      {product.type}
+                    <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-secondary text-secondary-foreground">
+                      {getTypeName(product.tipoProdutoId)}
                     </span>
                   </TableCell>
-                  <TableCell className="text-right">{product.price}</TableCell>
+                  <TableCell className="text-right">
+                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(product.preco)}
+                  </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
                       <Button
@@ -282,14 +310,16 @@ export default function ProductsPage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="edit-type">Tipo</Label>
-              <Select value={type} onValueChange={(value: any) => setType(value)}>
+              <Select value={typeId} onValueChange={setTypeId}>
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione o tipo" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Comida">Comida</SelectItem>
-                  <SelectItem value="Bebida">Bebida</SelectItem>
-                  <SelectItem value="Sobremesa">Sobremesa</SelectItem>
+                  {productTypes.map((type) => (
+                    <SelectItem key={type.id} value={type.id.toString()}>
+                      {type.descricao}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>

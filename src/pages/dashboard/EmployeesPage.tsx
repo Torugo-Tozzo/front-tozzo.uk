@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import {
   Table,
   TableBody,
@@ -21,109 +21,118 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { Plus, Pencil, Trash2, Users } from "lucide-react"
+import api from "@/services/api"
 
 type Employee = {
-  id: string
-  name: string
-  phone: string
+  id: number
+  nome: string
   email: string
-  role: "Dono" | "Funcionário"
+  cargo: string
 }
 
-const initialEmployees: Employee[] = [
-  {
-    id: "1",
-    name: "Victor Tozzo",
-    phone: "(11) 99999-9999",
-    email: "victor@tozzo.uk",
-    role: "Dono",
-  },
-  {
-    id: "2",
-    name: "João Silva",
-    phone: "(11) 98888-8888",
-    email: "joao@email.com",
-    role: "Funcionário",
-  },
-  {
-    id: "3",
-    name: "Maria Oliveira",
-    phone: "(11) 97777-7777",
-    email: "maria@email.com",
-    role: "Funcionário",
-  },
-]
-
 export default function EmployeesPage() {
-  const [employees, setEmployees] = useState<Employee[]>(initialEmployees)
+  const [employees, setEmployees] = useState<Employee[]>([])
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [currentEmployee, setCurrentEmployee] = useState<Employee | null>(null)
 
   // Form states
   const [name, setName] = useState("")
-  const [phone, setPhone] = useState("")
   const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("") // Just for UI, not storing in mock
+  const [password, setPassword] = useState("")
+  const [role, setRole] = useState("Funcionário")
 
-  const handleAddEmployee = (e: React.FormEvent) => {
-    e.preventDefault()
-    const newEmployee: Employee = {
-      id: Math.random().toString(36).substr(2, 9),
-      name,
-      phone,
-      email,
-      role: "Funcionário",
+  useEffect(() => {
+    fetchEmployees()
+  }, [])
+
+  const fetchEmployees = async () => {
+    try {
+      const response = await api.get("/usuarios")
+      setEmployees(response.data)
+    } catch (error) {
+      console.error("Error fetching employees", error)
     }
-    setEmployees([...employees, newEmployee])
-    setIsAddDialogOpen(false)
-    resetForm()
+  }
+
+  const handleAddEmployee = async (e: React.FormEvent) => {
+    e.preventDefault()
+    try {
+      await api.post("/usuarios", {
+        nome: name,
+        email,
+        senha: password,
+        cargo: role
+      })
+      fetchEmployees()
+      setIsAddDialogOpen(false)
+      resetForm()
+    } catch (error) {
+      console.error("Error creating employee", error)
+      alert("Erro ao criar funcionário")
+    }
   }
 
   const handleEditClick = (employee: Employee) => {
     setCurrentEmployee(employee)
-    setName(employee.name)
-    setPhone(employee.phone)
+    setName(employee.nome)
     setEmail(employee.email)
+    setRole(employee.cargo || "Funcionário")
     setPassword("") // Reset password field
     setIsEditDialogOpen(true)
   }
 
-  const handleUpdateEmployee = (e: React.FormEvent) => {
+  const handleUpdateEmployee = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!currentEmployee) return
 
-    const updatedEmployees = employees.map((emp) =>
-      emp.id === currentEmployee.id
-        ? { ...emp, name, phone, email }
-        : emp
-    )
-    setEmployees(updatedEmployees)
-    setIsEditDialogOpen(false)
-    resetForm()
+    try {
+      const payload: any = {
+        nome: name,
+        email,
+        cargo: role
+      }
+      if (password) {
+        payload.senha = password
+      }
+
+      await api.put(`/usuarios/${currentEmployee.id}`, payload)
+      fetchEmployees()
+      setIsEditDialogOpen(false)
+      resetForm()
+    } catch (error) {
+      console.error("Error updating employee", error)
+      alert("Erro ao atualizar funcionário")
+    }
   }
 
-  const handleDeleteEmployee = (id: string) => {
+  const handleDeleteEmployee = async (id: number) => {
     if (confirm("Tem certeza que deseja excluir este funcionário?")) {
-      setEmployees(employees.filter((emp) => emp.id !== id))
+      try {
+        await api.delete(`/usuarios/${id}`)
+        fetchEmployees()
+      } catch (error) {
+        console.error("Error deleting employee", error)
+        alert("Erro ao excluir funcionário")
+      }
     }
   }
 
   const resetForm = () => {
     setName("")
-    setPhone("")
     setEmail("")
     setPassword("")
+    setRole("Funcionário")
     setCurrentEmployee(null)
   }
-
-  // Sort employees: Owner first, then alphabetical
-  const sortedEmployees = [...employees].sort((a, b) => {
-    if (a.role === "Dono") return -1
-    if (b.role === "Dono") return 1
-    return a.name.localeCompare(b.name)
-  })
 
   return (
     <div className="space-y-6">
@@ -142,7 +151,7 @@ export default function EmployeesPage() {
             <DialogHeader>
               <DialogTitle>Adicionar Funcionário</DialogTitle>
               <DialogDescription>
-                Preencha os dados para cadastrar um novo funcionário.
+                Cadastre um novo funcionário para acessar o sistema.
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleAddEmployee} className="space-y-4">
@@ -156,15 +165,6 @@ export default function EmployeesPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="phone">Celular</Label>
-                <Input
-                  id="phone"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
@@ -173,6 +173,19 @@ export default function EmployeesPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   required
                 />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="role">Cargo</Label>
+                <Select value={role} onValueChange={setRole}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o cargo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Dono">Dono</SelectItem>
+                    <SelectItem value="Gerente">Gerente</SelectItem>
+                    <SelectItem value="Funcionário">Funcionário</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="password">Senha</Label>
@@ -198,31 +211,25 @@ export default function EmployeesPage() {
         </CardHeader>
         <CardContent>
           <Table>
-            <TableCaption>Lista de todos os funcionários cadastrados.</TableCaption>
+            <TableCaption>Lista de usuários do sistema.</TableCaption>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-[100px]">ID</TableHead>
                 <TableHead>Nome</TableHead>
-                <TableHead>Celular</TableHead>
                 <TableHead>Email</TableHead>
-                <TableHead>Função</TableHead>
+                <TableHead>Cargo</TableHead>
                 <TableHead className="text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {sortedEmployees.map((employee) => (
+              {employees.map((employee) => (
                 <TableRow key={employee.id}>
-                  <TableCell className="font-medium">{employee.name}</TableCell>
-                  <TableCell>{employee.phone}</TableCell>
+                  <TableCell className="font-medium">{employee.id}</TableCell>
+                  <TableCell>{employee.nome}</TableCell>
                   <TableCell>{employee.email}</TableCell>
                   <TableCell>
-                    <span
-                      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                        employee.role === "Dono"
-                          ? "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300"
-                          : "bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300"
-                      }`}
-                    >
-                      {employee.role}
+                    <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-primary/10 text-primary">
+                      {employee.cargo || "N/A"}
                     </span>
                   </TableCell>
                   <TableCell className="text-right">
@@ -234,16 +241,14 @@ export default function EmployeesPage() {
                       >
                         <Pencil className="h-4 w-4" />
                       </Button>
-                      {employee.role !== "Dono" && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="text-destructive hover:text-destructive"
-                          onClick={() => handleDeleteEmployee(employee.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      )}
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-destructive hover:text-destructive"
+                        onClick={() => handleDeleteEmployee(employee.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -273,15 +278,6 @@ export default function EmployeesPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="edit-phone">Celular</Label>
-              <Input
-                id="edit-phone"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                required
-              />
-            </div>
-            <div className="space-y-2">
               <Label htmlFor="edit-email">Email</Label>
               <Input
                 id="edit-email"
@@ -290,6 +286,19 @@ export default function EmployeesPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
               />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-role">Cargo</Label>
+              <Select value={role} onValueChange={setRole}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o cargo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Dono">Dono</SelectItem>
+                  <SelectItem value="Gerente">Gerente</SelectItem>
+                  <SelectItem value="Funcionário">Funcionário</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-2">
               <Label htmlFor="edit-password">Nova Senha (opcional)</Label>

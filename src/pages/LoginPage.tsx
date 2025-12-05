@@ -13,29 +13,63 @@ import {
 } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import logo from "@/assets/images/logo.png"
+import api from "@/services/api"
+import { useAuth } from "@/contexts/AuthContext"
 
 export default function LoginPage() {
   const navigate = useNavigate()
+  const { login } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
 
-  const handleLogin = (e: React.FormEvent) => {
+  // Login States
+  const [loginEmail, setLoginEmail] = useState("")
+  const [loginPassword, setLoginPassword] = useState("")
+
+  // Register States
+  const [registerName, setRegisterName] = useState("") // Nome do usuário (dono)
+  const [registerEstablishment, setRegisterEstablishment] = useState("") // Nome Fantasia
+  const [registerEmail, setRegisterEmail] = useState("")
+  const [registerPassword, setRegisterPassword] = useState("")
+  const [registrationKey, setRegistrationKey] = useState("")
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false)
+    try {
+      const response = await api.post("/auth/login", {
+        email: loginEmail,
+        senha: loginPassword,
+      })
+      login(response.data.token)
       navigate("/dashboard")
-    }, 1000)
+    } catch (error) {
+      console.error("Login failed", error)
+      alert("Falha no login. Verifique suas credenciais.")
+    } finally {
+      setIsLoading(false)
+    }
   }
 
-  const handleRegister = (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      // Assuming the API expects 'nome' for user name and 'nomeFantasia' for establishment
+      await api.post("/auth/register", {
+        nome: registerName,
+        email: registerEmail,
+        senha: registerPassword,
+        nomeFantasia: registerEstablishment,
+        registrationKey: registrationKey
+      })
+      alert("Cadastro realizado com sucesso! Faça login para continuar.")
+      // Switch to login tab or just let user login
+    } catch (error) {
+      console.error("Registration failed", error)
+      alert("Falha no cadastro. Verifique os dados.")
+    } finally {
       setIsLoading(false)
-      navigate("/dashboard")
-    }, 1000)
+    }
   }
 
   return (
@@ -69,11 +103,24 @@ export default function LoginPage() {
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="email">Email</Label>
-                    <Input id="email" type="email" placeholder="seu@email.com" required />
+                    <Input 
+                      id="email" 
+                      type="email" 
+                      placeholder="seu@email.com" 
+                      required 
+                      value={loginEmail}
+                      onChange={(e) => setLoginEmail(e.target.value)}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="password">Senha</Label>
-                    <Input id="password" type="password" required />
+                    <Input 
+                      id="password" 
+                      type="password" 
+                      required 
+                      value={loginPassword}
+                      onChange={(e) => setLoginPassword(e.target.value)}
+                    />
                   </div>
                 </CardContent>
                 <CardFooter>
@@ -96,20 +143,55 @@ export default function LoginPage() {
               <form onSubmit={handleRegister}>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="name">Nome do Estabelecimento</Label>
-                    <Input id="name" placeholder="Bar do Zé" required />
+                    <Label htmlFor="register-name">Nome do Responsável</Label>
+                    <Input 
+                      id="register-name" 
+                      placeholder="Seu nome" 
+                      required 
+                      value={registerName}
+                      onChange={(e) => setRegisterName(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="establishment-name">Nome do Estabelecimento</Label>
+                    <Input 
+                      id="establishment-name" 
+                      placeholder="Bar do Zé" 
+                      required 
+                      value={registerEstablishment}
+                      onChange={(e) => setRegisterEstablishment(e.target.value)}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="register-email">Email</Label>
-                    <Input id="register-email" type="email" placeholder="seu@email.com" required />
+                    <Input 
+                      id="register-email" 
+                      type="email" 
+                      placeholder="seu@email.com" 
+                      required 
+                      value={registerEmail}
+                      onChange={(e) => setRegisterEmail(e.target.value)}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="register-password">Senha</Label>
-                    <Input id="register-password" type="password" required />
+                    <Input 
+                      id="register-password" 
+                      type="password" 
+                      required 
+                      value={registerPassword}
+                      onChange={(e) => setRegisterPassword(e.target.value)}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="registration-key">Chave de Registro</Label>
-                    <Input id="registration-key" placeholder="Chave de acesso" required />
+                    <Input 
+                      id="registration-key" 
+                      placeholder="Chave de acesso" 
+                      required 
+                      value={registrationKey}
+                      onChange={(e) => setRegistrationKey(e.target.value)}
+                    />
                   </div>
                 </CardContent>
                 <CardFooter>

@@ -1,4 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { AuthProvider } from './contexts/AuthContext'
+import ProtectedRoute from './components/ProtectedRoute'
 import LandingPage from './pages/LandingPage'
 import LoginPage from './pages/LoginPage'
 import DashboardLayout from './layouts/DashboardLayout'
@@ -13,24 +15,29 @@ import ChartsPage from './pages/dashboard/ChartsPage'
 
 function App() {
   return (
-    <Router>
-      <Routes>
-        <Route element={<MainLayout />}>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/login" element={<LoginPage />} />
-        </Route>
-        <Route path="/dashboard" element={<DashboardLayout />}>
-          <Route index element={<OrdersPage />} />
-          <Route path="orders" element={<OrdersPage />} />
-          <Route path="sales" element={<SalesPage />} />
-          <Route path="products" element={<ProductsPage />} />
-          <Route path="employees" element={<EmployeesPage />} />
-          <Route path="charts" element={<ChartsPage />} />
-          <Route path="history" element={<HistoryPage />} />
-          <Route path="settings" element={<SettingsPage />} />
-        </Route>
-      </Routes>
-    </Router>
+    <AuthProvider>
+      <Router>
+        <Routes>
+          <Route element={<MainLayout />}>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/login" element={<LoginPage />} />
+          </Route>
+          
+          <Route element={<ProtectedRoute />}>
+            <Route path="/dashboard" element={<DashboardLayout />}>
+              <Route index element={<OrdersPage />} />
+              <Route path="orders" element={<OrdersPage />} />
+              <Route path="sales" element={<SalesPage />} />
+              <Route path="products" element={<ProductsPage />} />
+              <Route path="employees" element={<EmployeesPage />} />
+              <Route path="charts" element={<ChartsPage />} />
+              <Route path="history" element={<HistoryPage />} />
+              <Route path="settings" element={<SettingsPage />} />
+            </Route>
+          </Route>
+        </Routes>
+      </Router>
+    </AuthProvider>
   )
 }
 

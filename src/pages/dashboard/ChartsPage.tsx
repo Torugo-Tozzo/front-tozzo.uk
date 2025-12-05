@@ -112,7 +112,7 @@ export default function ChartsPage() {
                 dataKey="revenue"
                 nameKey="name"
               >
-                {filteredData.map((entry, index) => (
+                {filteredData.map((_, index) => (
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>

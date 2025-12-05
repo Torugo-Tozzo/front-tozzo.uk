@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react"
 import {
   Table,
   TableBody,
@@ -9,49 +10,114 @@ import {
 } from "@/components/ui/table"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Plus } from "lucide-react"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import { Plus, DollarSign } from "lucide-react"
+import api from "@/services/api"
 
-const salesData = [
-  {
-    id: "VEN-001",
-    customer: "João Silva",
-    total: "R$ 150,00",
-    date: "05/12/2025 14:30",
-  },
-  {
-    id: "VEN-002",
-    customer: "Maria Oliveira",
-    total: "R$ 85,50",
-    date: "05/12/2025 14:45",
-  },
-  {
-    id: "VEN-003",
-    customer: "Mesa 05",
-    total: "R$ 210,00",
-    date: "05/12/2025 15:00",
-  },
-  {
-    id: "VEN-004",
-    customer: "Carlos Santos",
-    total: "R$ 45,00",
-    date: "05/12/2025 13:15",
-  },
-  {
-    id: "VEN-005",
-    customer: "Ana Costa",
-    total: "R$ 120,00",
-    date: "05/12/2025 12:00",
-  },
-]
+type Sale = {
+  id: number
+  cliente: string
+  total: number
+  dataCriacao: string
+}
 
 export default function SalesPage() {
+  const [sales, setSales] = useState<Sale[]>([])
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
+  const [customer, setCustomer] = useState("")
+  const [total, setTotal] = useState("")
+
+  useEffect(() => {
+    fetchSales()
+  }, [])
+
+  const fetchSales = async () => {
+    try {
+      const response = await api.get("/vendas")
+      setSales(response.data)
+    } catch (error) {
+      console.error("Error fetching sales", error)
+    }
+  }
+
+  const handleAddSale = async (e: React.FormEvent) => {
+    e.preventDefault()
+    try {
+      await api.post("/vendas", {
+        cliente: customer,
+        total: parseFloat(total.replace("R$", "").replace(",", ".").trim())
+      })
+      fetchSales()
+      setIsAddDialogOpen(false)
+      resetForm()
+    } catch (error) {
+      console.error("Error creating sale", error)
+      alert("Erro ao criar venda")
+    }
+  }
+
+  const resetForm = () => {
+    setCustomer("")
+    setTotal("")
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold tracking-tight">Vendas</h1>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" /> Nova Venda
-        </Button>
+        <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
+          <DollarSign className="h-8 w-8" />
+          Vendas
+        </h1>
+        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+          <DialogTrigger asChild>
+            <Button onClick={resetForm}>
+              <Plus className="mr-2 h-4 w-4" /> Nova Venda
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Nova Venda</DialogTitle>
+              <DialogDescription>
+                Registre uma nova venda manualmente.
+              </DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleAddSale} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="customer">Cliente / Mesa</Label>
+                <Input
+                  id="customer"
+                  value={customer}
+                  onChange={(e) => setCustomer(e.target.value)}
+                  placeholder="Ex: João Silva ou Mesa 05"
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="total">Total</Label>
+                <Input
+                  id="total"
+                  value={total}
+                  onChange={(e) => setTotal(e.target.value)}
+                  placeholder="0.00"
+                  required
+                />
+              </div>
+              <DialogFooter>
+                <Button type="submit">Registrar Venda</Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
 
       <Card>
@@ -70,12 +136,14 @@ export default function SalesPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {salesData.map((sale) => (
+              {sales.map((sale) => (
                 <TableRow key={sale.id}>
                   <TableCell className="font-medium">{sale.id}</TableCell>
-                  <TableCell>{sale.customer}</TableCell>
-                  <TableCell>{sale.date}</TableCell>
-                  <TableCell className="text-right">{sale.total}</TableCell>
+                  <TableCell>{sale.cliente}</TableCell>
+                  <TableCell>{new Date(sale.dataCriacao).toLocaleString()}</TableCell>
+                  <TableCell className="text-right">
+                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(sale.total)}
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
