@@ -17,9 +17,11 @@ import { Button } from "@/components/ui/button"
 import { ModeToggle } from "@/components/mode-toggle"
 import { Footer } from "@/components/Footer"
 import logo from "@/assets/images/logo.png"
+import { useAuth } from "@/contexts/AuthContext"
 
 export default function DashboardLayout() {
   const location = useLocation()
+  const { logout } = useAuth()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   const navItems = [
@@ -61,12 +63,14 @@ export default function DashboardLayout() {
       </nav>
 
       <div className="p-4 border-t shrink-0">
-        <Link to="/">
-          <Button variant="ghost" className="w-full justify-start gap-3 text-muted-foreground hover:text-destructive">
-            <LogOut className="h-5 w-5" />
-            Sair
-          </Button>
-        </Link>
+        <Button 
+          variant="ghost" 
+          className="w-full justify-start gap-3 text-muted-foreground hover:text-destructive"
+          onClick={logout}
+        >
+          <LogOut className="h-5 w-5" />
+          Sair
+        </Button>
       </div>
     </>
   )

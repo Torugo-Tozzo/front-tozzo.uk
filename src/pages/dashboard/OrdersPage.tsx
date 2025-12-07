@@ -10,26 +10,9 @@ import {
 } from "@/components/ui/table"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import { Plus, Pencil, Trash2, ShoppingCart } from "lucide-react"
 import api from "@/services/api"
+import { ProductSelectionModal } from "@/components/ProductSelectionModal"
 
 type Order = {
   id: number
@@ -41,13 +24,8 @@ type Order = {
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([])
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+  const [isModalOpen, setIsModalOpen] = useState(false)
   const [currentOrder, setCurrentOrder] = useState<Order | null>(null)
-
-  // Form states
-  const [customer, setCustomer] = useState("")
-  const [status, setStatus] = useState("Aberto")
 
   useEffect(() => {
     fetchOrders()
@@ -62,64 +40,54 @@ export default function OrdersPage() {
     }
   }
 
-  const handleAddOrder = async (e: React.FormEvent) => {
-    e.preventDefault()
-    try {
-      await api.post("/pedidos", {
-        cliente: customer,
-        status: "Aberto",
-        total: 0 // Initial total
-      })
-      fetchOrders()
-      setIsAddDialogOpen(false)
-      resetForm()
-    } catch (error) {
-      console.error("Error creating order", error)
-      alert("Erro ao criar pedido")
-    }
+  const handleOpenCreateModal = () => {
+    setCurrentOrder(null)
+    setIsModalOpen(true)
   }
 
   const handleEditClick = (order: Order) => {
     setCurrentOrder(order)
-    setCustomer(order.cliente)
-    setStatus(order.status)
-    setIsEditDialogOpen(true)
+    setIsModalOpen(true)
   }
 
-  const handleUpdateOrder = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!currentOrder) return
-
+  const handleModalConfirm = async (cliente: string, itens: { produtoId: number; quantidade: number }[]) => {
     try {
-      await api.put(`/pedidos/${currentOrder.id}`, {
-        cliente: customer,
-        status
-      })
+      if (currentOrder) {
+        // Edit Mode
+        // 1. Update Client Name if changed
+        if (cliente !== currentOrder.cliente) {
+          await api.put(`/pedidos/${currentOrder.id}`, { cliente })
+        }
+        
+        // 2. Add new items if any
+        if (itens.length > 0) {
+          await api.post(`/pedidos/${currentOrder.id}/itens`, { itens })
+        }
+      } else {
+        // Create Mode
+        await api.post("/pedidos", {
+          cliente,
+          itens
+        })
+      }
+      
       fetchOrders()
-      setIsEditDialogOpen(false)
-      resetForm()
+      setIsModalOpen(false)
     } catch (error) {
-      console.error("Error updating order", error)
-      alert("Erro ao atualizar pedido")
+      console.error("Error saving order", error)
+      alert("Erro ao salvar pedido")
     }
   }
 
   const handleDeleteOrder = async (id: number) => {
-    if (confirm("Tem certeza que deseja excluir este pedido?")) {
-      try {
-        await api.delete(`/pedidos/${id}`)
-        fetchOrders()
-      } catch (error) {
-        console.error("Error deleting order", error)
-        alert("Erro ao excluir pedido")
-      }
+    if (!confirm("Tem certeza que deseja excluir este pedido?")) return
+    try {
+      await api.delete(`/pedidos/${id}`)
+      fetchOrders()
+    } catch (error) {
+      console.error("Error deleting order", error)
+      alert("Erro ao excluir pedido")
     }
-  }
-
-  const resetForm = () => {
-    setCustomer("")
-    setStatus("Aberto")
-    setCurrentOrder(null)
   }
 
   return (
@@ -129,37 +97,19 @@ export default function OrdersPage() {
           <ShoppingCart className="h-8 w-8" />
           Pedidos
         </h1>
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={resetForm}>
-              <Plus className="mr-2 h-4 w-4" /> Novo Pedido
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Novo Pedido</DialogTitle>
-              <DialogDescription>
-                Inicie um novo pedido para um cliente ou mesa.
-              </DialogDescription>
-            </DialogHeader>
-            <form onSubmit={handleAddOrder} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="customer">Cliente / Mesa</Label>
-                <Input
-                  id="customer"
-                  value={customer}
-                  onChange={(e) => setCustomer(e.target.value)}
-                  placeholder="Ex: João Silva ou Mesa 05"
-                  required
-                />
-              </div>
-              <DialogFooter>
-                <Button type="submit">Criar Pedido</Button>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
+        <Button onClick={handleOpenCreateModal}>
+          <Plus className="mr-2 h-4 w-4" /> Novo Pedido
+        </Button>
       </div>
+
+      <ProductSelectionModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onConfirm={handleModalConfirm}
+        title={currentOrder ? "Editar Pedido (Adicionar Itens)" : "Novo Pedido"}
+        initialClientName={currentOrder?.cliente || ""}
+        isEditing={!!currentOrder}
+      />
 
       <Card>
         <CardHeader>
@@ -182,7 +132,7 @@ export default function OrdersPage() {
               {orders.map((order) => (
                 <TableRow key={order.id}>
                   <TableCell className="font-medium">{order.id}</TableCell>
-                  <TableCell>{order.cliente}</TableCell>
+                  <TableCell>{order.cliente || "Não Informado"}</TableCell>
                   <TableCell>
                     <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium
                       ${order.status === 'Concluído' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' : 
@@ -222,46 +172,6 @@ export default function OrdersPage() {
           </Table>
         </CardContent>
       </Card>
-
-      {/* Edit Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Editar Pedido</DialogTitle>
-            <DialogDescription>
-              Atualize o status ou dados do pedido.
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleUpdateOrder} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="edit-customer">Cliente / Mesa</Label>
-              <Input
-                id="edit-customer"
-                value={customer}
-                onChange={(e) => setCustomer(e.target.value)}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="edit-status">Status</Label>
-              <Select value={status} onValueChange={setStatus}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Aberto">Aberto</SelectItem>
-                  <SelectItem value="Em preparo">Em preparo</SelectItem>
-                  <SelectItem value="Concluído">Concluído</SelectItem>
-                  <SelectItem value="Cancelado">Cancelado</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <DialogFooter>
-              <Button type="submit">Salvar Alterações</Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
     </div>
   )
 }
