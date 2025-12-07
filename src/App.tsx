@@ -3,6 +3,8 @@ import { AuthProvider } from './contexts/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import LandingPage from './pages/LandingPage'
 import LoginPage from './pages/LoginPage'
+import PlanSelectionPage from './pages/PlanSelectionPage'
+import PaymentSuccessPage from './pages/PaymentSuccessPage'
 import DashboardLayout from './layouts/DashboardLayout'
 import MainLayout from './layouts/MainLayout'
 import SalesPage from './pages/dashboard/SalesPage'
@@ -23,6 +25,13 @@ function App() {
             <Route path="/login" element={<LoginPage />} />
           </Route>
           
+          {/* Rotas que exigem autenticação mas permitem status PENDENTE_PAGAMENTO */}
+          <Route element={<ProtectedRoute allowPending={true} />}>
+            <Route path="/plans" element={<PlanSelectionPage />} />
+            <Route path="/payment/success" element={<PaymentSuccessPage />} />
+          </Route>
+
+          {/* Rotas do Dashboard (exigem status ATIVO) */}
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<DashboardLayout />}>
               <Route index element={<OrdersPage />} />

@@ -31,6 +31,7 @@ export default function LoginPage() {
   const [registerEmail, setRegisterEmail] = useState("")
   const [registerPassword, setRegisterPassword] = useState("")
   const [registrationKey, setRegistrationKey] = useState("")
+  const [hasKey, setHasKey] = useState(false)
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -40,10 +41,21 @@ export default function LoginPage() {
         email: loginEmail,
         senha: loginPassword,
       })
-      login(response.data.token)
+      await login(response.data.token)
       navigate("/dashboard")
-    } catch (error) {
+    } catch (error: any) {
       console.error("Login failed", error)
+      
+      if (error.response && error.response.status === 402) {
+        // Se o erro for 402, verifica se o token veio na resposta de erro
+        const token = error.response.data?.token;
+        if (token) {
+          await login(token);
+          navigate("/plans");
+          return;
+        }
+      }
+
       alert("Falha no login. Verifique suas credenciais.")
     } finally {
       setIsLoading(false)
@@ -54,16 +66,22 @@ export default function LoginPage() {
     e.preventDefault()
     setIsLoading(true)
     try {
-      // Assuming the API expects 'nome' for user name and 'nomeFantasia' for establishment
-      await api.post("/auth/register", {
+      const payload = {
         nome: registerName,
         email: registerEmail,
         senha: registerPassword,
         nomeFantasia: registerEstablishment,
-        registrationKey: registrationKey
-      })
-      alert("Cadastro realizado com sucesso! Faça login para continuar.")
-      // Switch to login tab or just let user login
+        registrationKey: hasKey ? registrationKey : ""
+      }
+
+      const response = await api.post("/auth/register", payload)
+      
+      if (response.data.token) {
+        await login(response.data.token)
+        navigate("/dashboard")
+      } else {
+        alert("Cadastro realizado com sucesso! Faça login para continuar.")
+      }
     } catch (error) {
       console.error("Registration failed", error)
       alert("Falha no cadastro. Verifique os dados.")
@@ -152,6 +170,7 @@ export default function LoginPage() {
                       onChange={(e) => setRegisterName(e.target.value)}
                     />
                   </div>
+                  
                   <div className="space-y-2">
                     <Label htmlFor="establishment-name">Nome do Estabelecimento</Label>
                     <Input 
@@ -162,6 +181,7 @@ export default function LoginPage() {
                       onChange={(e) => setRegisterEstablishment(e.target.value)}
                     />
                   </div>
+
                   <div className="space-y-2">
                     <Label htmlFor="register-email">Email</Label>
                     <Input 
@@ -183,20 +203,36 @@ export default function LoginPage() {
                       onChange={(e) => setRegisterPassword(e.target.value)}
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="registration-key">Chave de Registro</Label>
-                    <Input 
-                      id="registration-key" 
-                      placeholder="Chave de acesso" 
-                      required 
-                      value={registrationKey}
-                      onChange={(e) => setRegistrationKey(e.target.value)}
+
+                  <div className="flex items-center space-x-2 py-2">
+                    <input
+                      type="checkbox"
+                      id="has-key"
+                      checked={hasKey}
+                      onChange={(e) => setHasKey(e.target.checked)}
+                      className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
                     />
+                    <Label htmlFor="has-key" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                      Possuo chave de registro (Acesso Gratuito)
+                    </Label>
                   </div>
+
+                  {hasKey && (
+                    <div className="space-y-2">
+                      <Label htmlFor="registration-key">Chave de Registro</Label>
+                      <Input 
+                        id="registration-key" 
+                        placeholder="Chave de acesso" 
+                        required={hasKey}
+                        value={registrationKey}
+                        onChange={(e) => setRegistrationKey(e.target.value)}
+                      />
+                    </div>
+                  )}
                 </CardContent>
                 <CardFooter>
                   <Button className="w-full" type="submit" disabled={isLoading}>
-                    {isLoading ? "Criando conta..." : "Criar conta"}
+                    {isLoading ? "Criando conta..." : (hasKey ? "Criar conta" : "Criar e Assinar")}
                   </Button>
                 </CardFooter>
               </form>

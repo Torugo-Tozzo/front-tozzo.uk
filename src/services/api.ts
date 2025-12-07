@@ -21,6 +21,8 @@ api.interceptors.response.use(
       window.dispatchEvent(new Event('auth:logout'));
       window.location.href = '/login';
     }
+    // Se receber 402 (Payment Required), não faz logout, mas permite que o frontend trate
+    // para redirecionar para a página de pagamento.
     return Promise.reject(error);
   }
 );
