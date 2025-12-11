@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button"
 import { Plus, DollarSign } from "lucide-react"
 import api from "@/services/api"
 import { ProductSelectionModal } from "@/components/ProductSelectionModal"
+import { Pagination } from "@/components/Pagination"
 
 type Sale = {
   id: number
@@ -24,15 +25,42 @@ type Sale = {
 export default function SalesPage() {
   const [sales, setSales] = useState<Sale[]>([])
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [page, setPage] = useState(1)
+  const [limit, setLimit] = useState(10)
+  const [totalPages, setTotalPages] = useState(0)
+  const [totalItems, setTotalItems] = useState(0)
+  const [hasMore, setHasMore] = useState(false)
 
   useEffect(() => {
     fetchSales()
-  }, [])
+  }, [page, limit])
 
   const fetchSales = async () => {
     try {
-      const response = await api.get("/vendas")
-      setSales(response.data)
+      const response = await api.get(`/vendas?page=${page}&limit=${limit}`)
+      
+      let data = []
+      let total = 0
+
+      if (response.data.data) {
+        data = response.data.data
+        total = response.data.total || response.data.count || 0
+      } else if (Array.isArray(response.data)) {
+        data = response.data
+        const totalHeader = response.headers['x-total-count']
+        total = totalHeader ? parseInt(totalHeader) : 0
+      }
+
+      setSales(data)
+      setTotalItems(total)
+
+      if (total > 0) {
+        setTotalPages(Math.ceil(total / limit))
+        setHasMore(page < Math.ceil(total / limit))
+      } else {
+        setTotalPages(0)
+        setHasMore(data.length === limit)
+      }
     } catch (error) {
       console.error("Error fetching sales", error)
     }
@@ -77,10 +105,14 @@ export default function SalesPage() {
           <CardTitle>Vendas Recentes</CardTitle>
         </CardHeader>
         <CardContent>
+          <div className="mb-4 text-sm text-muted-foreground">
+            Total de registros: {totalItems}
+          </div>
           <Table>
             <TableCaption>Lista das últimas vendas realizadas.</TableCaption>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-[50px]">#</TableHead>
                 <TableHead className="w-[100px]">ID</TableHead>
                 <TableHead>Cliente / Mesa</TableHead>
                 <TableHead>Data</TableHead>
@@ -88,8 +120,9 @@ export default function SalesPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {sales.map((sale) => (
+              {sales.map((sale, index) => (
                 <TableRow key={sale.id}>
+                  <TableCell>{(page - 1) * limit + index + 1}</TableCell>
                   <TableCell className="font-medium">{sale.id}</TableCell>
                   <TableCell>{sale.cliente || "Não Informado"}</TableCell>
                   <TableCell>
@@ -102,6 +135,17 @@ export default function SalesPage() {
               ))}
             </TableBody>
           </Table>
+          <Pagination
+            currentPage={page}
+            totalPages={totalPages}
+            hasMore={hasMore}
+            onPageChange={setPage}
+            pageSize={limit}
+            onPageSizeChange={(newLimit) => {
+              setLimit(newLimit)
+              setPage(1)
+            }}
+          />
         </CardContent>
       </Card>
     </div>

@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button"
 import { Plus, Pencil, Trash2, ShoppingCart } from "lucide-react"
 import api from "@/services/api"
 import { ProductSelectionModal } from "@/components/ProductSelectionModal"
+import { Pagination } from "@/components/Pagination"
 
 type Order = {
   id: number
@@ -26,15 +27,42 @@ export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([])
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [currentOrder, setCurrentOrder] = useState<Order | null>(null)
+  const [page, setPage] = useState(1)
+  const [limit, setLimit] = useState(10)
+  const [totalPages, setTotalPages] = useState(0)
+  const [totalItems, setTotalItems] = useState(0)
+  const [hasMore, setHasMore] = useState(false)
 
   useEffect(() => {
     fetchOrders()
-  }, [])
+  }, [page, limit])
 
   const fetchOrders = async () => {
     try {
-      const response = await api.get("/pedidos")
-      setOrders(response.data)
+      const response = await api.get(`/pedidos?page=${page}&limit=${limit}`)
+      
+      let data = []
+      let total = 0
+
+      if (response.data.data) {
+        data = response.data.data
+        total = response.data.total || response.data.count || 0
+      } else if (Array.isArray(response.data)) {
+        data = response.data
+        const totalHeader = response.headers['x-total-count']
+        total = totalHeader ? parseInt(totalHeader) : 0
+      }
+
+      setOrders(data)
+      setTotalItems(total)
+
+      if (total > 0) {
+        setTotalPages(Math.ceil(total / limit))
+        setHasMore(page < Math.ceil(total / limit))
+      } else {
+        setTotalPages(0)
+        setHasMore(data.length === limit)
+      }
     } catch (error) {
       console.error("Error fetching orders", error)
     }
@@ -116,10 +144,14 @@ export default function OrdersPage() {
           <CardTitle>Pedidos Recentes</CardTitle>
         </CardHeader>
         <CardContent>
+          <div className="mb-4 text-sm text-muted-foreground">
+            Total de registros: {totalItems}
+          </div>
           <Table>
             <TableCaption>Lista dos últimos pedidos realizados.</TableCaption>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-[50px]">#</TableHead>
                 <TableHead className="w-[100px]">ID</TableHead>
                 <TableHead>Cliente / Mesa</TableHead>
                 <TableHead>Status</TableHead>
@@ -129,8 +161,9 @@ export default function OrdersPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {orders.map((order) => (
+              {orders.map((order, index) => (
                 <TableRow key={order.id}>
+                  <TableCell>{(page - 1) * limit + index + 1}</TableCell>
                   <TableCell className="font-medium">{order.id}</TableCell>
                   <TableCell>{order.cliente || "Não Informado"}</TableCell>
                   <TableCell>
@@ -170,6 +203,17 @@ export default function OrdersPage() {
               ))}
             </TableBody>
           </Table>
+          <Pagination
+            currentPage={page}
+            totalPages={totalPages}
+            hasMore={hasMore}
+            onPageChange={setPage}
+            pageSize={limit}
+            onPageSizeChange={(newLimit) => {
+              setLimit(newLimit)
+              setPage(1)
+            }}
+          />
         </CardContent>
       </Card>
     </div>
