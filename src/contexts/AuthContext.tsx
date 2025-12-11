@@ -51,13 +51,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           email: decoded.email || '',
           estabelecimento: undefined
         };
+
+        try {
+          const userResponse = await api.get('/usuarios/me');
+          if (userResponse.data) {
+            userData.nome = userResponse.data.nome || userData.nome;
+            userData.email = userResponse.data.email || userData.email;
+          }
+        } catch (error) {
+          console.warn('Não foi possível buscar dados detalhados do usuário', error);
+        }
       } catch (e) {
         console.error('Erro ao decodificar token', e);
       }
 
       if (!userData) return;
 
-      // Buscar dados do estabelecimento para confirmar o status
       try {
         const estResponse = await api.get('/estabelecimentos');
         // A API pode retornar um array ou um objeto único

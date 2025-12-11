@@ -1,11 +1,23 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '@/services/api';
+import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Check } from "lucide-react";
+import { Navbar } from "@/components/Navbar";
+import { Footer } from "@/components/Footer";
 
 export default function PlanSelectionPage() {
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+  const { user } = useAuth();
+
+  useEffect(() => {
+    if (user?.estabelecimento?.status === 'ATIVO') {
+      navigate('/dashboard');
+    }
+  }, [user, navigate]);
 
   const handleCheckout = async (type: 'monthly' | 'annual') => {
     setLoading(true);
@@ -31,12 +43,16 @@ export default function PlanSelectionPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-      <div className="max-w-4xl w-full space-y-8">
-        <div className="text-center">
-          <h1 className="text-4xl font-bold tracking-tight text-gray-900">Escolha seu Plano</h1>
-          <p className="mt-4 text-lg text-gray-600">
-            Para continuar acessando o sistema, selecione uma das opções abaixo.
+    <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-muted/40">
+      <Navbar />
+      <main className="flex-1 flex items-center justify-center p-4">
+        <div className="max-w-4xl w-full space-y-8">
+          <div className="text-center">
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-foreground">
+            Parece que você ainda não possui um plano ou sua assinatura não renovou
+          </h1>
+          <p className="mt-4 text-lg text-gray-600 dark:text-muted-foreground">
+            Escolha um dos planos abaixo para melhorar a gestão do seu restaurante.
           </p>
         </div>
 
@@ -50,9 +66,9 @@ export default function PlanSelectionPage() {
             <CardContent className="flex-1">
               <div className="mb-4">
                 <span className="text-4xl font-bold">R$ 6,90</span>
-                <span className="text-gray-500">/mês</span>
+                <span className="text-gray-500 dark:text-muted-foreground">/mês</span>
               </div>
-              <ul className="space-y-2 text-sm text-gray-600">
+              <ul className="space-y-2 text-sm text-gray-600 dark:text-muted-foreground">
                 <li className="flex items-center"><Check className="h-4 w-4 mr-2 text-green-500" /> Acesso completo ao sistema</li>
                 <li className="flex items-center"><Check className="h-4 w-4 mr-2 text-green-500" /> Suporte prioritário</li>
                 <li className="flex items-center"><Check className="h-4 w-4 mr-2 text-green-500" /> Cancele quando quiser</li>
@@ -81,10 +97,10 @@ export default function PlanSelectionPage() {
             <CardContent className="flex-1">
               <div className="mb-4">
                 <span className="text-4xl font-bold">R$ 60,91</span>
-                <span className="text-gray-500">/ano</span>
+                <span className="text-gray-500 dark:text-muted-foreground">/ano</span>
               </div>
               <p className="text-sm text-green-600 font-medium mb-4">Equivalente a R$ 5,07/mês</p>
-              <ul className="space-y-2 text-sm text-gray-600">
+              <ul className="space-y-2 text-sm text-gray-600 dark:text-muted-foreground">
                 <li className="flex items-center"><Check className="h-4 w-4 mr-2 text-green-500" /> Tudo do plano mensal</li>
                 <li className="flex items-center"><Check className="h-4 w-4 mr-2 text-green-500" /> Desconto de ~27%</li>
                 <li className="flex items-center"><Check className="h-4 w-4 mr-2 text-green-500" /> Cobrança anual</li>
@@ -101,7 +117,9 @@ export default function PlanSelectionPage() {
             </CardFooter>
           </Card>
         </div>
-      </div>
+        </div>
+      </main>
+      <Footer />
     </div>
   );
 }

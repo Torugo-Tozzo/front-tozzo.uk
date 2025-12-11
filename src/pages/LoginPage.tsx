@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -18,8 +18,18 @@ import { useAuth } from "@/contexts/AuthContext"
 
 export default function LoginPage() {
   const navigate = useNavigate()
-  const { login } = useAuth()
+  const { login, isAuthenticated, user } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      if (user?.estabelecimento?.status === 'ATIVO') {
+        navigate('/dashboard')
+      } else {
+        navigate('/plan')
+      }
+    }
+  }, [isAuthenticated, user, navigate])
 
   // Login States
   const [loginEmail, setLoginEmail] = useState("")
@@ -51,7 +61,7 @@ export default function LoginPage() {
         const token = error.response.data?.token;
         if (token) {
           await login(token);
-          navigate("/plans");
+          navigate("/plan");
           return;
         }
       }
@@ -78,7 +88,11 @@ export default function LoginPage() {
       
       if (response.data.token) {
         await login(response.data.token)
-        navigate("/dashboard")
+        if (hasKey) {
+          navigate("/dashboard")
+        } else {
+          navigate("/plan")
+        }
       } else {
         alert("Cadastro realizado com sucesso! Faça login para continuar.")
       }
@@ -91,7 +105,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex-1 flex items-center justify-center bg-muted/40 p-4">
+    <div className="flex-1 flex items-center justify-center bg-muted/40 p-4 min-h-[calc(100vh-10rem)]">
       <div className="w-full max-w-md space-y-6">
         <div className="flex flex-col items-center space-y-2 text-center">
           <div className="flex items-center gap-2 font-bold text-2xl">

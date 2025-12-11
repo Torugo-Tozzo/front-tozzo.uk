@@ -14,6 +14,7 @@ import SettingsPage from './pages/dashboard/SettingsPage'
 import OrdersPage from './pages/dashboard/OrdersPage'
 import EmployeesPage from './pages/dashboard/EmployeesPage'
 import ChartsPage from './pages/dashboard/ChartsPage'
+import NotFoundPage from './pages/NotFoundPage'
 
 function App() {
   return (
@@ -27,7 +28,7 @@ function App() {
           
           {/* Rotas que exigem autenticação mas permitem status PENDENTE_PAGAMENTO */}
           <Route element={<ProtectedRoute allowPending={true} />}>
-            <Route path="/plans" element={<PlanSelectionPage />} />
+            <Route path="/plan" element={<PlanSelectionPage />} />
             <Route path="/payment/success" element={<PaymentSuccessPage />} />
           </Route>
 
@@ -44,6 +45,9 @@ function App() {
               <Route path="settings" element={<SettingsPage />} />
             </Route>
           </Route>
+
+          {/* Rota 404 */}
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </Router>
     </AuthProvider>

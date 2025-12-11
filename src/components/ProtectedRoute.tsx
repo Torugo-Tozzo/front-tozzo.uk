@@ -24,7 +24,7 @@ export default function ProtectedRoute({ allowPending = false }: ProtectedRouteP
   if (!allowPending) {
     // Se tiver estabelecimento e não estiver ATIVO, bloqueia
     if (user?.estabelecimento && status !== 'ATIVO') {
-      return <Navigate to="/plans" replace />;
+      return <Navigate to="/plan" replace />;
     }
     // Se NÃO tiver estabelecimento, pode ser um erro de carga ou usuário sem vínculo
     // Nesse caso, talvez devêssemos bloquear ou redirecionar para um setup?
