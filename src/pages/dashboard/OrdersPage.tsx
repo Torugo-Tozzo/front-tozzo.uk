@@ -10,10 +10,18 @@ import {
 } from "@/components/ui/table"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Plus, Pencil, Trash2, ShoppingCart } from "lucide-react"
+import { Plus, Pencil, Trash2, ShoppingCart, CheckCircle } from "lucide-react"
 import api from "@/services/api"
 import { ProductSelectionModal } from "@/components/ProductSelectionModal"
 import { Pagination } from "@/components/Pagination"
+import { Input } from "@/components/ui/input"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 type Order = {
   id: number
@@ -25,21 +33,24 @@ type Order = {
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([])
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [currentOrder, setCurrentOrder] = useState<Order | null>(null)
   const [page, setPage] = useState(1)
   const [limit, setLimit] = useState(10)
   const [totalPages, setTotalPages] = useState(0)
   const [totalItems, setTotalItems] = useState(0)
   const [hasMore, setHasMore] = useState(false)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [currentOrder, setCurrentOrder] = useState<Order | null>(null)
+  
+  const [statusFilter, setStatusFilter] = useState("ABERTO")
+  const [dateFilter, setDateFilter] = useState(new Date().toISOString().split('T')[0])
 
   useEffect(() => {
     fetchOrders()
-  }, [page, limit])
+  }, [page, limit, statusFilter, dateFilter])
 
   const fetchOrders = async () => {
     try {
-      const response = await api.get(`/pedidos?page=${page}&limit=${limit}`)
+      const response = await api.get(`/pedidos?page=${page}&limit=${limit}&status=${statusFilter}&data=${dateFilter}`)
       
       let data = []
       let total = 0
@@ -118,6 +129,17 @@ export default function OrdersPage() {
     }
   }
 
+  const handleCloseOrder = async (id: number) => {
+    if (!confirm("Tem certeza que deseja fechar este pedido? Ele será transformado em venda.")) return
+    try {
+      await api.post(`/pedidos/${id}/fechar`)
+      fetchOrders()
+    } catch (error) {
+      console.error("Error closing order", error)
+      alert("Erro ao fechar pedido")
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -128,6 +150,27 @@ export default function OrdersPage() {
         <Button onClick={handleOpenCreateModal}>
           <Plus className="mr-2 h-4 w-4" /> Novo Pedido
         </Button>
+      </div>
+
+      <div className="flex gap-4 items-center">
+        <div className="w-[200px]">
+          <Input
+            type="date"
+            value={dateFilter}
+            onChange={(e) => setDateFilter(e.target.value)}
+          />
+        </div>
+        <div className="w-[200px]">
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger>
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ABERTO">Aberto</SelectItem>
+              <SelectItem value="FECHADO">Fechado</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       <ProductSelectionModal
@@ -144,15 +187,11 @@ export default function OrdersPage() {
           <CardTitle>Pedidos Recentes</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="mb-4 text-sm text-muted-foreground">
-            Total de registros: {totalItems}
-          </div>
           <Table>
-            <TableCaption>Lista dos últimos pedidos realizados.</TableCaption>
             <TableHeader>
               <TableRow>
                 <TableHead className="w-[50px]">#</TableHead>
-                <TableHead className="w-[100px]">ID</TableHead>
+                <TableHead className="w-[80px]">ID</TableHead>
                 <TableHead>Cliente / Mesa</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Data</TableHead>
@@ -168,10 +207,9 @@ export default function OrdersPage() {
                   <TableCell>{order.cliente || "Não Informado"}</TableCell>
                   <TableCell>
                     <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium
-                      ${order.status === 'Concluído' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' : 
-                        order.status === 'Em preparo' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300' :
-                        order.status === 'Aberto' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300' :
-                        'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'
+                      ${order.status === 'FECHADO' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' : 
+                        order.status === 'ABERTO' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300' :
+                        'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300'
                       }`}>
                       {order.status}
                     </span>
@@ -182,6 +220,17 @@ export default function OrdersPage() {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
+                      {order.status === 'ABERTO' && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-green-600 hover:text-green-700 hover:bg-green-100"
+                          title="Fechar Pedido"
+                          onClick={() => handleCloseOrder(order.id)}
+                        >
+                          <CheckCircle className="h-4 w-4" />
+                        </Button>
+                      )}
                       <Button
                         variant="ghost"
                         size="icon"

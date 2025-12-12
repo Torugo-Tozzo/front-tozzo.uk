@@ -61,7 +61,6 @@ export function ProductSelectionModal({
   const fetchProducts = async () => {
     try {
       const response = await api.get("/produtos");
-      console.log("Products fetched:", response.data);
       // Ensure preco is a number
       const data = response.data.map((p: any) => ({
         ...p,

@@ -28,7 +28,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Plus, Pencil, Trash2, ShoppingBag } from "lucide-react"
+import { Plus, Pencil, Trash2, ShoppingBag, Search } from "lucide-react"
 import api from "@/services/api"
 import { Pagination } from "@/components/Pagination"
 
@@ -57,6 +57,7 @@ export default function ProductsPage() {
   const [totalPages, setTotalPages] = useState(0)
   const [totalItems, setTotalItems] = useState(0)
   const [hasMore, setHasMore] = useState(false)
+  const [search, setSearch] = useState("")
 
   // Form states
   const [name, setName] = useState("")
@@ -65,13 +66,20 @@ export default function ProductsPage() {
   const [typeId, setTypeId] = useState<string>("")
 
   useEffect(() => {
-    fetchProducts()
     fetchTypes()
-  }, [page, limit])
+  }, [])
+
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+      fetchProducts()
+    }, 300)
+
+    return () => clearTimeout(delayDebounceFn)
+  }, [page, limit, search])
 
   const fetchProducts = async () => {
     try {
-      const response = await api.get(`/produtos?page=${page}&limit=${limit}`)
+      const response = await api.get(`/produtos?page=${page}&limit=${limit}&search=${search}`)
       
       let data = []
       let total = 0
@@ -109,12 +117,24 @@ export default function ProductsPage() {
     }
   }
 
+  const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const rawValue = e.target.value.replace(/\D/g, "")
+    const numberValue = parseInt(rawValue || "0") / 100
+    setPrice(numberValue.toFixed(2))
+  }
+
   const handleAddProduct = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    if (!typeId) {
+      alert("Por favor, selecione um tipo de produto.")
+      return
+    }
+
     try {
       await api.post("/produtos", {
         nome: name,
-        preco: parseFloat(price.replace("R$", "").replace(",", ".").trim()),
+        preco: parseFloat(price),
         ingredientes: ingredients,
         tipoProdutoId: parseInt(typeId),
       })
@@ -130,9 +150,16 @@ export default function ProductsPage() {
   const handleEditClick = (product: Product) => {
     setCurrentProduct(product)
     setName(product.nome)
-    setPrice(product.preco.toString())
+    setPrice(Number(product.preco).toFixed(2))
     setIngredients(product.ingredientes)
-    setTypeId(product.tipoProdutoId.toString())
+    
+    let currentTypeId = product.tipoProdutoId?.toString() || ""
+    if (!currentTypeId) {
+      const outroType = productTypes.find(t => t.descricao.toLowerCase() === 'outro')
+      if (outroType) currentTypeId = outroType.id.toString()
+    }
+    
+    setTypeId(currentTypeId)
     setIsEditDialogOpen(true)
   }
 
@@ -140,10 +167,15 @@ export default function ProductsPage() {
     e.preventDefault()
     if (!currentProduct) return
 
+    if (!typeId) {
+      alert("Por favor, selecione um tipo de produto.")
+      return
+    }
+
     try {
       await api.put(`/produtos/${currentProduct.id}`, {
         nome: name,
-        preco: parseFloat(price.replace("R$", "").replace(",", ".").trim()),
+        preco: parseFloat(price),
         ingredientes: ingredients,
         tipoProdutoId: parseInt(typeId),
       })
@@ -189,12 +221,12 @@ export default function ProductsPage() {
           Produtos
         </h1>
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={resetForm}>
-              <Plus className="mr-2 h-4 w-4" /> Novo Produto
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
+            <DialogTrigger asChild>
+              <Button onClick={resetForm}>
+                <Plus className="mr-2 h-4 w-4" /> Novo Produto
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
             <DialogHeader>
               <DialogTitle>Adicionar Produto</DialogTitle>
               <DialogDescription>
@@ -216,7 +248,7 @@ export default function ProductsPage() {
                 <Input
                   id="price"
                   value={price}
-                  onChange={(e) => setPrice(e.target.value)}
+                  onChange={handlePriceChange}
                   placeholder="0.00"
                   required
                 />
@@ -254,8 +286,17 @@ export default function ProductsPage() {
       </div>
 
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-7">
           <CardTitle>Cardápio</CardTitle>
+          <div className="relative w-[250px]">
+            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar produtos..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-8"
+            />
+          </div>
         </CardHeader>
         <CardContent>
           <div className="mb-4 text-sm text-muted-foreground">
@@ -348,7 +389,7 @@ export default function ProductsPage() {
               <Input
                 id="edit-price"
                 value={price}
-                onChange={(e) => setPrice(e.target.value)}
+                onChange={handlePriceChange}
                 required
               />
             </div>
