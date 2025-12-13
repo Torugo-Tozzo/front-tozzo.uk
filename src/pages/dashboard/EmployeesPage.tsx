@@ -214,7 +214,7 @@ export default function EmployeesPage() {
             <TableCaption>Lista de usuários do sistema.</TableCaption>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[100px]">ID</TableHead>
+                <TableHead className="w-[50px]">#</TableHead>
                 <TableHead>Nome</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Cargo</TableHead>
@@ -222,9 +222,9 @@ export default function EmployeesPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {employees.map((employee) => (
+              {employees.map((employee, index) => (
                 <TableRow key={employee.id}>
-                  <TableCell className="font-medium">{employee.id}</TableCell>
+                  <TableCell className="font-medium">{index + 1}</TableCell>
                   <TableCell>{employee.nome}</TableCell>
                   <TableCell>{employee.email}</TableCell>
                   <TableCell>
