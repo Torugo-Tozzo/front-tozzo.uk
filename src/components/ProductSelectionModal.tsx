@@ -19,7 +19,7 @@ type Product = {
   preco: number;
 };
 
-type SelectedItem = {
+export type SelectedItem = {
   produtoId: number;
   quantidade: number;
   nome: string;
@@ -32,8 +32,13 @@ interface ProductSelectionModalProps {
   onConfirm: (cliente: string, itens: { produtoId: number; quantidade: number }[]) => Promise<void>;
   title: string;
   initialClientName?: string;
+  initialOrderItems?: { produtoId: number; quantidade: number }[];
   isEditing?: boolean; // If editing, we might handle things differently
+  onCloseOrder?: () => Promise<void>;
+  readOnly?: boolean;
 }
+
+const DEFAULT_ITEMS: { produtoId: number; quantidade: number }[] = [];
 
 export function ProductSelectionModal({
   isOpen,
@@ -41,7 +46,10 @@ export function ProductSelectionModal({
   onConfirm,
   title,
   initialClientName = "",
+  initialOrderItems = DEFAULT_ITEMS,
   isEditing = false,
+  onCloseOrder,
+  readOnly = false,
 }: ProductSelectionModalProps) {
   const [products, setProducts] = useState<Product[]>([]);
   const [selectedItems, setSelectedItems] = useState<SelectedItem[]>([]);
@@ -53,10 +61,31 @@ export function ProductSelectionModal({
     if (isOpen) {
       fetchProducts();
       setClientName(initialClientName);
-      setSelectedItems([]);
       setSearchTerm("");
     }
   }, [isOpen, initialClientName]);
+
+  useEffect(() => {
+    if (isOpen && products.length > 0) {
+      if (initialOrderItems && initialOrderItems.length > 0) {
+        const hydratedItems = initialOrderItems.map((item) => {
+          const product = products.find((p) => p.id === item.produtoId);
+          if (product) {
+            return {
+              produtoId: item.produtoId,
+              quantidade: item.quantidade,
+              nome: product.nome,
+              preco: product.preco,
+            };
+          }
+          return null;
+        }).filter((item): item is SelectedItem => item !== null);
+        setSelectedItems(hydratedItems);
+      } else {
+        setSelectedItems([]);
+      }
+    }
+  }, [isOpen, products, initialOrderItems]);
 
   const fetchProducts = async () => {
     try {
@@ -152,84 +181,93 @@ export function ProductSelectionModal({
               placeholder="Ex: Mesa 10 ou João"
               value={clientName}
               onChange={(e) => setClientName(e.target.value)}
+              disabled={readOnly}
             />
           </div>
 
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className={`grid ${readOnly ? 'grid-cols-1' : 'md:grid-cols-2'} gap-6`}>
             {/* Product List */}
-            <div className="space-y-4 border rounded-lg p-4">
-              <h3 className="font-semibold">Produtos Disponíveis</h3>
-              <Input 
-                placeholder="Buscar produto..." 
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-              <div className="h-[300px] overflow-y-auto space-y-2">
-                {filteredProducts.map((product) => (
-                  <div
-                    key={product.id}
-                    className="flex items-center justify-between p-2 border rounded hover:bg-gray-50 cursor-pointer"
-                    onClick={() => handleAddItem(product)}
-                  >
-                    <div>
-                      <p className="font-medium">{product.nome}</p>
-                      <p className="text-sm text-gray-500">R$ {Number(product.preco || 0).toFixed(2)}</p>
+            {!readOnly && (
+              <div className="space-y-4 border rounded-lg p-4">
+                <h3 className="font-semibold">Produtos Disponíveis</h3>
+                <Input 
+                  placeholder="Buscar produto..." 
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+                <div className="h-[300px] overflow-y-auto space-y-2">
+                  {filteredProducts.map((product) => (
+                    <div
+                      key={product.id}
+                      className="flex items-center justify-between p-2 border rounded hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer"
+                      onClick={() => handleAddItem(product)}
+                    >
+                      <div>
+                        <p className="font-medium">{product.nome}</p>
+                        <p className="text-sm text-gray-500">R$ {Number(product.preco || 0).toFixed(2)}</p>
+                      </div>
+                      <Button size="sm" variant="ghost">
+                        <Plus className="h-4 w-4" />
+                      </Button>
                     </div>
-                    <Button size="sm" variant="ghost">
-                      <Plus className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Selected Items */}
-            <div className="space-y-4 border rounded-lg p-4 bg-gray-50">
+            <div className="space-y-4 border rounded-lg p-4 bg-gray-50 dark:bg-gray-900/50">
               <h3 className="font-semibold">Itens Selecionados</h3>
               <div className="h-[300px] overflow-y-auto space-y-2">
                 {selectedItems.length === 0 ? (
-                  <p className="text-gray-500 text-center py-8">Nenhum item selecionado</p>
+                  <p className="text-gray-500 dark:text-gray-400 text-center py-8">Nenhum item selecionado</p>
                 ) : (
                   selectedItems.map((item) => (
-                    <div key={item.produtoId} className="flex items-center justify-between p-2 bg-white rounded shadow-sm">
+                    <div key={item.produtoId} className="flex items-center justify-between p-2 bg-white dark:bg-gray-800 rounded shadow-sm border dark:border-gray-700">
                       <div className="flex-1">
                         <p className="font-medium">{item.nome}</p>
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
                           {item.quantidade} x R$ {Number(item.preco || 0).toFixed(2)}
                         </p>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Button
-                          size="icon"
-                          variant="outline"
-                          className="h-6 w-6"
-                          onClick={() => handleUpdateQuantity(item.produtoId, -1)}
-                        >
-                          <Minus className="h-3 w-3" />
-                        </Button>
-                        <span className="w-4 text-center">{item.quantidade}</span>
-                        <Button
-                          size="icon"
-                          variant="outline"
-                          className="h-6 w-6"
-                          onClick={() => handleUpdateQuantity(item.produtoId, 1)}
-                        >
-                          <Plus className="h-3 w-3" />
-                        </Button>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="h-6 w-6 text-red-500"
-                          onClick={() => handleRemoveItem(item.produtoId)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        {!readOnly ? (
+                          <>
+                            <Button
+                              size="icon"
+                              variant="outline"
+                              className="h-6 w-6"
+                              onClick={() => handleUpdateQuantity(item.produtoId, -1)}
+                            >
+                              <Minus className="h-3 w-3" />
+                            </Button>
+                            <span className="w-4 text-center">{item.quantidade}</span>
+                            <Button
+                              size="icon"
+                              variant="outline"
+                              className="h-6 w-6"
+                              onClick={() => handleUpdateQuantity(item.produtoId, 1)}
+                            >
+                              <Plus className="h-3 w-3" />
+                            </Button>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="h-6 w-6 text-red-500"
+                              onClick={() => handleRemoveItem(item.produtoId)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </>
+                        ) : (
+                          <span className="font-bold px-4">{item.quantidade} un</span>
+                        )}
                       </div>
                     </div>
                   ))
                 )}
               </div>
-              <div className="pt-4 border-t flex justify-between items-center font-bold text-lg">
+              <div className="pt-4 border-t flex justify-between items-center font-bold text-lg text-gray-900 dark:text-gray-100">
                 <span>Total:</span>
                 <span>R$ {total.toFixed(2)}</span>
               </div>
@@ -237,13 +275,28 @@ export function ProductSelectionModal({
           </div>
         </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
-            Cancelar
-          </Button>
-          <Button onClick={handleConfirm} disabled={isLoading}>
-            {isLoading ? "Salvando..." : "Confirmar"}
-          </Button>
+        <DialogFooter className="flex justify-between sm:justify-between">
+          {isEditing && onCloseOrder && !readOnly && (
+            <Button 
+              onClick={async () => {
+                await onCloseOrder();
+                onClose();
+              }}
+              className="mr-auto bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              Fechar Pedido (Venda)
+            </Button>
+          )}
+          <div className="flex gap-2 ml-auto">
+            <Button variant="outline" onClick={onClose}>
+              {readOnly ? "Fechar" : "Cancelar"}
+            </Button>
+            {!readOnly && (
+              <Button onClick={handleConfirm} disabled={isLoading}>
+                {isLoading ? "Salvando..." : "Confirmar"}
+              </Button>
+            )}
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>

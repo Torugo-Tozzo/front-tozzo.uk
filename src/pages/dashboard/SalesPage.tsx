@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/table"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Plus, DollarSign } from "lucide-react"
+import { Plus, DollarSign, Info } from "lucide-react"
 import api from "@/services/api"
 import { ProductSelectionModal } from "@/components/ProductSelectionModal"
 import { Pagination } from "@/components/Pagination"
@@ -30,6 +30,10 @@ export default function SalesPage() {
   const [totalPages, setTotalPages] = useState(0)
   const [totalItems, setTotalItems] = useState(0)
   const [hasMore, setHasMore] = useState(false)
+  
+  const [currentSaleItems, setCurrentSaleItems] = useState<{ produtoId: number; quantidade: number }[]>([])
+  const [currentSaleClient, setCurrentSaleClient] = useState("")
+  const [isReadOnlyModal, setIsReadOnlyModal] = useState(false)
 
   useEffect(() => {
     fetchSales()
@@ -80,6 +84,52 @@ export default function SalesPage() {
     }
   }
 
+  const handleInfoClick = async (sale: Sale) => {
+    try {
+      // Try to fetch details if needed, or use what we have if the list returns items
+      // Assuming we need to fetch details similar to orders
+      // If the API doesn't support GET /vendas/{id}, we might need to rely on the list or another way.
+      // Let's try to fetch from list with filter if possible or just assume we need to fetch.
+      // Based on previous context, let's try to get details.
+      // If GET /vendas/{id} is not available, we might need to check if the list response already has items.
+      // Let's assume for now we can get it via query param like orders or just use the sale object if it has items (it might not).
+      
+      // Strategy: Fetch /vendas with id param to get details including items
+      const response = await api.get(`/vendas`, { params: { id: sale.id } })
+      
+      let saleData = null
+      if (response.data.data && Array.isArray(response.data.data)) {
+        saleData = response.data.data[0]
+      } else if (Array.isArray(response.data)) {
+        saleData = response.data[0]
+      }
+
+      if (saleData && saleData.itens) {
+         const items = saleData.itens.map((item: any) => ({
+          produtoId: item.produtoId || (item.produto ? item.produto.id : 0),
+          quantidade: item.quantidade
+        })).filter((i: any) => i.produtoId > 0)
+        setCurrentSaleItems(items)
+      } else {
+        setCurrentSaleItems([])
+      }
+      
+      setCurrentSaleClient(sale.cliente)
+      setIsReadOnlyModal(true)
+      setIsModalOpen(true)
+    } catch (error) {
+      console.error("Error fetching sale details", error)
+      alert("Erro ao carregar detalhes da venda")
+    }
+  }
+
+  const handleNewSaleClick = () => {
+    setCurrentSaleClient("")
+    setCurrentSaleItems([])
+    setIsReadOnlyModal(false)
+    setIsModalOpen(true)
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -87,7 +137,7 @@ export default function SalesPage() {
           <DollarSign className="h-8 w-8" />
           Vendas
         </h1>
-        <Button onClick={() => setIsModalOpen(true)}>
+        <Button onClick={handleNewSaleClick}>
           <Plus className="mr-2 h-4 w-4" /> Nova Venda
         </Button>
       </div>
@@ -96,8 +146,10 @@ export default function SalesPage() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onConfirm={handleModalConfirm}
-        title="Nova Venda"
-        initialClientName=""
+        title={isReadOnlyModal ? "Detalhes da Venda" : "Nova Venda"}
+        initialClientName={currentSaleClient}
+        initialOrderItems={currentSaleItems}
+        readOnly={isReadOnlyModal}
       />
 
       <Card>
@@ -113,7 +165,7 @@ export default function SalesPage() {
             <TableHeader>
               <TableRow>
                 <TableHead className="w-[50px]">#</TableHead>
-                <TableHead className="w-[100px]">ID</TableHead>
+                <TableHead className="w-[100px]">Info</TableHead>
                 <TableHead>Cliente / Mesa</TableHead>
                 <TableHead>Data</TableHead>
                 <TableHead className="text-right">Total</TableHead>
@@ -123,7 +175,11 @@ export default function SalesPage() {
               {sales.map((sale, index) => (
                 <TableRow key={sale.id}>
                   <TableCell>{(page - 1) * limit + index + 1}</TableCell>
-                  <TableCell className="font-medium">{sale.id}</TableCell>
+                  <TableCell>
+                    <Button variant="outline" size="icon" onClick={() => handleInfoClick(sale)}>
+                      <Info className="h-4 w-4" />
+                    </Button>
+                  </TableCell>
                   <TableCell>{sale.cliente || "Não Informado"}</TableCell>
                   <TableCell>
                     {sale.horario ? new Date(sale.horario).toLocaleString() : "-"}

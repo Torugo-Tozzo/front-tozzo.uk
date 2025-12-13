@@ -7,4 +7,4 @@ Frontend do tozzo.uk
 - Integrar produtos na hora de fazer pedidos/vendas. (só ta o nome da mesa/cliente e o valor kk)
 - A tela de graficos (não mais irá puxar dados ficticios)
 
-#PRIO MAXIMA => ARRUMAR A TELA DE PEDIDOS E VENDAS
+TODO filtro datas em venda

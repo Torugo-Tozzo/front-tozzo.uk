@@ -2,7 +2,6 @@ import { useState, useEffect } from "react"
 import {
   Table,
   TableBody,
-  TableCaption,
   TableCell,
   TableHead,
   TableHeader,
@@ -29,6 +28,7 @@ type Order = {
   total: number
   status: string
   dataCriacao: string
+  updatedAt: string
 }
 
 export default function OrdersPage() {
@@ -36,10 +36,10 @@ export default function OrdersPage() {
   const [page, setPage] = useState(1)
   const [limit, setLimit] = useState(10)
   const [totalPages, setTotalPages] = useState(0)
-  const [totalItems, setTotalItems] = useState(0)
   const [hasMore, setHasMore] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [currentOrder, setCurrentOrder] = useState<Order | null>(null)
+  const [currentOrderItems, setCurrentOrderItems] = useState<{ produtoId: number; quantidade: number }[]>([])
   
   const [statusFilter, setStatusFilter] = useState("ABERTO")
   const [dateFilter, setDateFilter] = useState(new Date().toISOString().split('T')[0])
@@ -65,7 +65,6 @@ export default function OrdersPage() {
       }
 
       setOrders(data)
-      setTotalItems(total)
 
       if (total > 0) {
         setTotalPages(Math.ceil(total / limit))
@@ -81,27 +80,46 @@ export default function OrdersPage() {
 
   const handleOpenCreateModal = () => {
     setCurrentOrder(null)
+    setCurrentOrderItems([])
     setIsModalOpen(true)
   }
 
-  const handleEditClick = (order: Order) => {
+  const handleEditClick = async (order: Order) => {
     setCurrentOrder(order)
+    try {
+      const response = await api.get(`/pedidos`, { params: { id: order.id } })
+      
+      let orderData = null
+      if (response.data.data && Array.isArray(response.data.data)) {
+        orderData = response.data.data[0]
+      } else if (Array.isArray(response.data)) {
+        orderData = response.data[0]
+      }
+
+      if (orderData && orderData.itens) {
+        const items = orderData.itens.map((item: any) => ({
+          produtoId: item.produtoId || (item.produto ? item.produto.id : 0),
+          quantidade: item.quantidade
+        })).filter((i: any) => i.produtoId > 0)
+        setCurrentOrderItems(items)
+      } else {
+        setCurrentOrderItems([])
+      }
+    } catch (error) {
+      console.error("Error fetching order details", error)
+      setCurrentOrderItems([])
+    }
     setIsModalOpen(true)
   }
 
   const handleModalConfirm = async (cliente: string, itens: { produtoId: number; quantidade: number }[]) => {
     try {
       if (currentOrder) {
-        // Edit Mode
-        // 1. Update Client Name if changed
-        if (cliente !== currentOrder.cliente) {
-          await api.put(`/pedidos/${currentOrder.id}`, { cliente })
-        }
-        
-        // 2. Add new items if any
-        if (itens.length > 0) {
-          await api.post(`/pedidos/${currentOrder.id}/itens`, { itens })
-        }
+        // Edit Mode - Full Update via PUT
+        await api.put(`/pedidos/${currentOrder.id}`, {
+          cliente,
+          itens
+        })
       } else {
         // Create Mode
         await api.post("/pedidos", {
@@ -179,7 +197,9 @@ export default function OrdersPage() {
         onConfirm={handleModalConfirm}
         title={currentOrder ? "Editar Pedido (Adicionar Itens)" : "Novo Pedido"}
         initialClientName={currentOrder?.cliente || ""}
+        initialOrderItems={currentOrderItems}
         isEditing={!!currentOrder}
+        onCloseOrder={currentOrder ? () => handleCloseOrder(currentOrder.id) : undefined}
       />
 
       <Card>
@@ -214,7 +234,7 @@ export default function OrdersPage() {
                       {order.status}
                     </span>
                   </TableCell>
-                  <TableCell>{new Date(order.dataCriacao).toLocaleString()}</TableCell>
+                  <TableCell>{new Date(order.updatedAt || order.dataCriacao).toLocaleString()}</TableCell>
                   <TableCell className="text-right">
                     {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(order.total)}
                   </TableCell>

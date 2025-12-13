@@ -9,7 +9,6 @@ import DashboardLayout from './layouts/DashboardLayout'
 import MainLayout from './layouts/MainLayout'
 import SalesPage from './pages/dashboard/SalesPage'
 import ProductsPage from './pages/dashboard/ProductsPage'
-import HistoryPage from './pages/dashboard/HistoryPage'
 import SettingsPage from './pages/dashboard/SettingsPage'
 import OrdersPage from './pages/dashboard/OrdersPage'
 import EmployeesPage from './pages/dashboard/EmployeesPage'
@@ -41,7 +40,6 @@ function App() {
               <Route path="products" element={<ProductsPage />} />
               <Route path="employees" element={<EmployeesPage />} />
               <Route path="charts" element={<ChartsPage />} />
-              <Route path="history" element={<HistoryPage />} />
               <Route path="settings" element={<SettingsPage />} />
             </Route>
           </Route>

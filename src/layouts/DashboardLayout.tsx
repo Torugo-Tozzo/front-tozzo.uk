@@ -3,7 +3,6 @@ import { Link, Outlet, useLocation } from "react-router-dom"
 import { 
   LayoutDashboard, 
   ShoppingBag, 
-  History, 
   Settings, 
   LogOut,
   ClipboardList,
@@ -30,7 +29,6 @@ export default function DashboardLayout() {
     { href: "/dashboard/products", label: "Produtos", icon: ShoppingBag },
     { href: "/dashboard/employees", label: "Funcionários", icon: Users },
     { href: "/dashboard/charts", label: "Relatórios", icon: BarChart3 },
-    { href: "/dashboard/history", label: "Histórico", icon: History },
     { href: "/dashboard/settings", label: "Configurações", icon: Settings },
   ]
 
