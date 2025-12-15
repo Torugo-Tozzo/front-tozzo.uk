@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/table"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Plus, Pencil, Trash2, ShoppingCart, CheckCircle } from "lucide-react"
+import { Plus, Pencil, Trash2, ShoppingCart, CheckCircle, Loader2 } from "lucide-react"
 import api from "@/services/api"
 import { ProductSelectionModal } from "@/components/ProductSelectionModal"
 import { Pagination } from "@/components/Pagination"
@@ -40,6 +40,8 @@ export default function OrdersPage() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [currentOrder, setCurrentOrder] = useState<Order | null>(null)
   const [currentOrderItems, setCurrentOrderItems] = useState<{ produtoId: number; quantidade: number }[]>([])
+  const [deletingId, setDeletingId] = useState<number | null>(null)
+  const [closingId, setClosingId] = useState<number | null>(null)
   
   const [statusFilter, setStatusFilter] = useState("ABERTO")
   const [dateFilter, setDateFilter] = useState(new Date().toISOString().split('T')[0])
@@ -138,23 +140,29 @@ export default function OrdersPage() {
 
   const handleDeleteOrder = async (id: number) => {
     if (!confirm("Tem certeza que deseja excluir este pedido?")) return
+    setDeletingId(id)
     try {
       await api.delete(`/pedidos/${id}`)
       fetchOrders()
     } catch (error) {
       console.error("Error deleting order", error)
       alert("Erro ao excluir pedido")
+    } finally {
+      setDeletingId(null)
     }
   }
 
   const handleCloseOrder = async (id: number) => {
     if (!confirm("Tem certeza que deseja fechar este pedido? Ele será transformado em venda.")) return
+    setClosingId(id)
     try {
       await api.post(`/pedidos/${id}/fechar`)
       fetchOrders()
     } catch (error) {
       console.error("Error closing order", error)
       alert("Erro ao fechar pedido")
+    } finally {
+      setClosingId(null)
     }
   }
 
@@ -247,8 +255,13 @@ export default function OrdersPage() {
                           className="text-green-600 hover:text-green-700 hover:bg-green-100"
                           title="Fechar Pedido"
                           onClick={() => handleCloseOrder(order.id)}
+                          disabled={closingId === order.id}
                         >
-                          <CheckCircle className="h-4 w-4" />
+                          {closingId === order.id ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <CheckCircle className="h-4 w-4" />
+                          )}
                         </Button>
                       )}
                       <Button
@@ -263,8 +276,13 @@ export default function OrdersPage() {
                         size="icon"
                         className="text-destructive hover:text-destructive"
                         onClick={() => handleDeleteOrder(order.id)}
+                        disabled={deletingId === order.id}
                       >
-                        <Trash2 className="h-4 w-4" />
+                        {deletingId === order.id ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Trash2 className="h-4 w-4" />
+                        )}
                       </Button>
                     </div>
                   </TableCell>

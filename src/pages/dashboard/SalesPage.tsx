@@ -12,7 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Plus, DollarSign, Info, Search } from "lucide-react"
+import { Plus, DollarSign, Info, Search, Loader2 } from "lucide-react"
 import api from "@/services/api"
 import { ProductSelectionModal } from "@/components/ProductSelectionModal"
 import { Pagination } from "@/components/Pagination"
@@ -37,6 +37,9 @@ export default function SalesPage() {
   const [currentSaleClient, setCurrentSaleClient] = useState("")
   const [isReadOnlyModal, setIsReadOnlyModal] = useState(false)
 
+  const [isLoading, setIsLoading] = useState(false)
+  const [isLoadingDetails, setIsLoadingDetails] = useState(false)
+
   const getTodayDate = () => {
     const today = new Date()
     const yyyy = today.getFullYear()
@@ -52,7 +55,8 @@ export default function SalesPage() {
   const [periodTotal, setPeriodTotal] = useState(0)
 
   useEffect(() => {
-    fetchSales()
+    setIsLoading(true)
+    fetchSales().finally(() => setIsLoading(false))
   }, [page, limit])
 
   const fetchSales = async () => {
@@ -109,20 +113,24 @@ export default function SalesPage() {
   }
 
   const handleModalConfirm = async (cliente: string, itens: { produtoId: number; quantidade: number }[]) => {
+    setIsLoading(true)
     try {
       await api.post("/vendas", {
         cliente,
         itens
       })
-      fetchSales()
+      await fetchSales()
       setIsModalOpen(false)
     } catch (error) {
       console.error("Error creating sale", error)
       alert("Erro ao criar venda")
+    } finally {
+      setIsLoading(false)
     }
   }
 
   const handleInfoClick = async (sale: Sale) => {
+    setIsLoadingDetails(true)
     try {
       // Try to fetch details if needed, or use what we have if the list returns items
       // Assuming we need to fetch details similar to orders
@@ -158,6 +166,8 @@ export default function SalesPage() {
     } catch (error) {
       console.error("Error fetching sale details", error)
       alert("Erro ao carregar detalhes da venda")
+    } finally {
+      setIsLoadingDetails(false)
     }
   }
 
@@ -170,6 +180,11 @@ export default function SalesPage() {
 
   return (
     <div className="space-y-6">
+      {(isLoading || isLoadingDetails) && (
+        <div className="flex justify-center items-center py-8">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      )}
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
           <DollarSign className="h-8 w-8" />

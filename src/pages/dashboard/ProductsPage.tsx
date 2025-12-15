@@ -29,7 +29,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Plus, Pencil, Trash2, ShoppingBag, Search } from "lucide-react"
+import { Plus, Pencil, Trash2, ShoppingBag, Search, Loader2 } from "lucide-react"
 import api from "@/services/api"
 import { Pagination } from "@/components/Pagination"
 
@@ -60,12 +60,20 @@ export default function ProductsPage() {
   const [totalItems, setTotalItems] = useState(0)
   const [hasMore, setHasMore] = useState(false)
   const [search, setSearch] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
+  const [deletingId, setDeletingId] = useState<number | null>(null)
 
   // Form states
   const [name, setName] = useState("")
   const [price, setPrice] = useState("")
   const [ingredients, setIngredients] = useState("")
   const [typeId, setTypeId] = useState<string>("")
+
+  // Type dialogs/forms
+  const [isAddTypeDialogOpen, setIsAddTypeDialogOpen] = useState(false)
+  const [isEditTypeDialogOpen, setIsEditTypeDialogOpen] = useState(false)
+  const [typeName, setTypeName] = useState("")
+  const [currentType, setCurrentType] = useState<ProductType | null>(null)
 
   useEffect(() => {
     fetchTypes()
@@ -75,7 +83,6 @@ export default function ProductsPage() {
     const delayDebounceFn = setTimeout(() => {
       fetchProducts()
     }, 300)
-
     return () => clearTimeout(delayDebounceFn)
   }, [page, limit, search])
 
@@ -127,12 +134,11 @@ export default function ProductsPage() {
 
   const handleAddProduct = async (e: React.FormEvent) => {
     e.preventDefault()
-    
     if (!typeId) {
       alert("Por favor, selecione um tipo de produto.")
       return
     }
-
+    setIsLoading(true)
     try {
       await api.post("/produtos", {
         nome: name,
@@ -146,6 +152,8 @@ export default function ProductsPage() {
     } catch (error) {
       console.error("Error creating product", error)
       alert("Erro ao criar produto")
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -154,26 +162,18 @@ export default function ProductsPage() {
     setName(product.nome)
     setPrice(Number(product.preco).toFixed(2))
     setIngredients(product.ingredientes)
-    
-    let currentTypeId = product.tipoProdutoId?.toString() || ""
-    if (!currentTypeId) {
-      const outroType = productTypes.find(t => t.descricao.toLowerCase() === 'outro')
-      if (outroType) currentTypeId = outroType.id.toString()
-    }
-    
-    setTypeId(currentTypeId)
+    setTypeId(product.tipoProdutoId?.toString() || "")
     setIsEditDialogOpen(true)
   }
 
   const handleUpdateProduct = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!currentProduct) return
-
     if (!typeId) {
       alert("Por favor, selecione um tipo de produto.")
       return
     }
-
+    setIsLoading(true)
     try {
       await api.put(`/produtos/${currentProduct.id}`, {
         nome: name,
@@ -187,20 +187,26 @@ export default function ProductsPage() {
     } catch (error) {
       console.error("Error updating product", error)
       alert("Erro ao atualizar produto")
+    } finally {
+      setIsLoading(false)
     }
   }
 
   const handleDeleteProduct = async (id: number) => {
     if (confirm("Tem certeza que deseja excluir este produto?")) {
+      setDeletingId(id)
       try {
         await api.delete(`/produtos/${id}`)
         fetchProducts()
       } catch (error) {
         console.error("Error deleting product", error)
         alert("Erro ao excluir produto")
+      } finally {
+        setDeletingId(null)
       }
     }
   }
+
 
   const resetForm = () => {
     setName("")
@@ -212,17 +218,12 @@ export default function ProductsPage() {
 
   const getTypeName = (id: number) => {
     const type = productTypes.find(t => t.id === id)
-    return type ? type.descricao : "Desconhecido"
+    return type ? type.descricao : "-"
   }
-
-  // Type Management Logic
-  const [isAddTypeDialogOpen, setIsAddTypeDialogOpen] = useState(false)
-  const [isEditTypeDialogOpen, setIsEditTypeDialogOpen] = useState(false)
-  const [currentType, setCurrentType] = useState<ProductType | null>(null)
-  const [typeName, setTypeName] = useState("")
 
   const handleAddType = async (e: React.FormEvent) => {
     e.preventDefault()
+    setIsLoading(true)
     try {
       await api.post("/tipos", { descricao: typeName })
       fetchTypes()
@@ -231,6 +232,8 @@ export default function ProductsPage() {
     } catch (error) {
       console.error("Error creating type", error)
       alert("Erro ao criar tipo")
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -243,7 +246,7 @@ export default function ProductsPage() {
   const handleUpdateType = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!currentType) return
-
+    setIsLoading(true)
     try {
       await api.put(`/tipos/${currentType.id}`, { descricao: typeName })
       fetchTypes()
@@ -252,17 +255,22 @@ export default function ProductsPage() {
     } catch (error) {
       console.error("Error updating type", error)
       alert("Erro ao atualizar tipo")
+    } finally {
+      setIsLoading(false)
     }
   }
 
   const handleDeleteType = async (id: number) => {
     if (confirm("Tem certeza que deseja excluir este tipo?")) {
+      setDeletingId(id)
       try {
         await api.delete(`/tipos/${id}`)
         fetchTypes()
       } catch (error) {
         console.error("Error deleting type", error)
         alert("Erro ao excluir tipo. Verifique se não há produtos vinculados.")
+      } finally {
+        setDeletingId(null)
       }
     }
   }
@@ -346,7 +354,10 @@ export default function ProductsPage() {
                       />
                     </div>
                     <DialogFooter>
-                      <Button type="submit">Salvar</Button>
+                      <Button type="submit" disabled={isLoading}>
+                        {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        Salvar
+                      </Button>
                     </DialogFooter>
                   </form>
                 </DialogContent>
@@ -378,7 +389,10 @@ export default function ProductsPage() {
                       />
                     </div>
                     <DialogFooter>
-                      <Button type="submit">Salvar</Button>
+                      <Button type="submit" disabled={isLoading}>
+                        {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        Salvar
+                      </Button>
                     </DialogFooter>
                   </form>
                 </DialogContent>
@@ -445,8 +459,13 @@ export default function ProductsPage() {
                             size="icon"
                             className="text-destructive hover:text-destructive"
                             onClick={() => handleDeleteProduct(product.id)}
+                            disabled={deletingId === product.id}
                           >
-                            <Trash2 className="h-4 w-4" />
+                            {deletingId === product.id ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <Trash2 className="h-4 w-4" />
+                            )}
                           </Button>
                         </div>
                       </TableCell>
@@ -504,8 +523,13 @@ export default function ProductsPage() {
                               size="icon"
                               className="text-destructive hover:text-destructive"
                               onClick={() => handleDeleteType(type.id)}
+                              disabled={deletingId === type.id}
                             >
-                              <Trash2 className="h-4 w-4" />
+                              {deletingId === type.id ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <Trash2 className="h-4 w-4" />
+                              )}
                             </Button>
                           </div>
                         )}
@@ -572,7 +596,10 @@ export default function ProductsPage() {
               />
             </div>
             <DialogFooter>
-              <Button type="submit">Salvar Alterações</Button>
+              <Button type="submit" disabled={isLoading}>
+                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Salvar Alterações
+              </Button>
             </DialogFooter>
           </form>
         </DialogContent>
@@ -598,7 +625,10 @@ export default function ProductsPage() {
               />
             </div>
             <DialogFooter>
-              <Button type="submit">Salvar Alterações</Button>
+              <Button type="submit" disabled={isLoading}>
+                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Salvar Alterações
+              </Button>
             </DialogFooter>
           </form>
         </DialogContent>

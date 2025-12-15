@@ -28,7 +28,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Plus, Pencil, Trash2, Users } from "lucide-react"
+import { Plus, Pencil, Trash2, Users, Loader2 } from "lucide-react"
 import api from "@/services/api"
 
 type Employee = {
@@ -44,6 +44,8 @@ export default function EmployeesPage() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [currentEmployee, setCurrentEmployee] = useState<Employee | null>(null)
 
+  const [isLoading, setIsLoading] = useState(false)
+
   // Form states
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
@@ -51,7 +53,8 @@ export default function EmployeesPage() {
   const [role, setRole] = useState("Funcionário")
 
   useEffect(() => {
-    fetchEmployees()
+    setIsLoading(true)
+    fetchEmployees().finally(() => setIsLoading(false))
   }, [])
 
   const fetchEmployees = async () => {
@@ -64,6 +67,7 @@ export default function EmployeesPage() {
   }
 
   const handleAddEmployee = async (e: React.FormEvent) => {
+    setIsLoading(true)
     e.preventDefault()
     try {
       await api.post("/usuarios", {
@@ -72,12 +76,14 @@ export default function EmployeesPage() {
         senha: password,
         cargo: role
       })
-      fetchEmployees()
+      await fetchEmployees()
       setIsAddDialogOpen(false)
       resetForm()
     } catch (error) {
       console.error("Error creating employee", error)
       alert("Erro ao criar funcionário")
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -91,6 +97,7 @@ export default function EmployeesPage() {
   }
 
   const handleUpdateEmployee = async (e: React.FormEvent) => {
+    setIsLoading(true)
     e.preventDefault()
     if (!currentEmployee) return
 
@@ -105,24 +112,29 @@ export default function EmployeesPage() {
       }
 
       await api.put(`/usuarios/${currentEmployee.id}`, payload)
-      fetchEmployees()
+      await fetchEmployees()
       setIsEditDialogOpen(false)
       resetForm()
     } catch (error) {
       console.error("Error updating employee", error)
       alert("Erro ao atualizar funcionário")
+    } finally {
+      setIsLoading(false)
     }
   }
 
   const handleDeleteEmployee = async (id: number) => {
     if (confirm("Tem certeza que deseja excluir este funcionário?")) {
-      try {
-        await api.delete(`/usuarios/${id}`)
-        fetchEmployees()
-      } catch (error) {
-        console.error("Error deleting employee", error)
-        alert("Erro ao excluir funcionário")
-      }
+        setIsLoading(true)
+        try {
+          await api.delete(`/usuarios/${id}`)
+          await fetchEmployees()
+        } catch (error) {
+          console.error("Error deleting employee", error)
+          alert("Erro ao excluir funcionário")
+        } finally {
+          setIsLoading(false)
+        }
     }
   }
 
@@ -136,6 +148,11 @@ export default function EmployeesPage() {
 
   return (
     <div className="space-y-6">
+      {isLoading && (
+        <div className="flex justify-center items-center py-8">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      )}
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
           <Users className="h-8 w-8" />
@@ -143,7 +160,7 @@ export default function EmployeesPage() {
         </h1>
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
-            <Button onClick={resetForm}>
+            <Button onClick={resetForm} disabled={isLoading}>
               <Plus className="mr-2 h-4 w-4" /> Novo Funcionário
             </Button>
           </DialogTrigger>
@@ -162,6 +179,7 @@ export default function EmployeesPage() {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required
+                  disabled={isLoading}
                 />
               </div>
               <div className="space-y-2">
@@ -172,12 +190,13 @@ export default function EmployeesPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
+                  disabled={isLoading}
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="role">Cargo</Label>
                 <Select value={role} onValueChange={setRole}>
-                  <SelectTrigger>
+                  <SelectTrigger disabled={isLoading}>
                     <SelectValue placeholder="Selecione o cargo" />
                   </SelectTrigger>
                   <SelectContent>
@@ -195,10 +214,20 @@ export default function EmployeesPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
+                  disabled={isLoading}
                 />
               </div>
               <DialogFooter>
-                <Button type="submit">Salvar</Button>
+                <Button type="submit" disabled={isLoading}>
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Salvar
+                    </>
+                  ) : (
+                    "Salvar"
+                  )}
+                </Button>
               </DialogFooter>
             </form>
           </DialogContent>
@@ -234,21 +263,27 @@ export default function EmployeesPage() {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleEditClick(employee)}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="text-destructive hover:text-destructive"
-                        onClick={() => handleDeleteEmployee(employee.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleEditClick(employee)}
+                          disabled={isLoading}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-destructive hover:text-destructive"
+                          onClick={() => handleDeleteEmployee(employee.id)}
+                          disabled={isLoading}
+                        >
+                          {isLoading ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Trash2 className="h-4 w-4" />
+                          )}
+                        </Button>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -275,6 +310,7 @@ export default function EmployeesPage() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
+                disabled={isLoading}
               />
             </div>
             <div className="space-y-2">
@@ -285,12 +321,13 @@ export default function EmployeesPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                disabled={isLoading}
               />
             </div>
             <div className="space-y-2">
               <Label htmlFor="edit-role">Cargo</Label>
               <Select value={role} onValueChange={setRole}>
-                <SelectTrigger>
+                <SelectTrigger disabled={isLoading}>
                   <SelectValue placeholder="Selecione o cargo" />
                 </SelectTrigger>
                 <SelectContent>
@@ -308,10 +345,20 @@ export default function EmployeesPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Deixe em branco para manter"
+                disabled={isLoading}
               />
             </div>
             <DialogFooter>
-              <Button type="submit">Salvar Alterações</Button>
+              <Button type="submit" disabled={isLoading}>
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Salvar Alterações
+                  </>
+                ) : (
+                  "Salvar Alterações"
+                )}
+              </Button>
             </DialogFooter>
           </form>
         </DialogContent>

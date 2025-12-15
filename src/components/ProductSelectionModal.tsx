@@ -10,7 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, Minus, Trash2 } from "lucide-react";
+import { Plus, Minus, Trash2, Loader2 } from "lucide-react";
 import api from "@/services/api";
 
 type Product = {
@@ -55,6 +55,7 @@ export function ProductSelectionModal({
   const [selectedItems, setSelectedItems] = useState<SelectedItem[]>([]);
   const [clientName, setClientName] = useState(initialClientName);
   const [isLoading, setIsLoading] = useState(false);
+  const [isClosingOrder, setIsClosingOrder] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
@@ -274,26 +275,45 @@ export function ProductSelectionModal({
             </div>
           </div>
         </div>
-
         <DialogFooter className="flex justify-between sm:justify-between">
           {isEditing && onCloseOrder && !readOnly && (
             <Button 
               onClick={async () => {
-                await onCloseOrder();
-                onClose();
+                setIsClosingOrder(true);
+                try {
+                  await onCloseOrder();
+                  onClose();
+                } finally {
+                  setIsClosingOrder(false);
+                }
               }}
               className="mr-auto bg-blue-600 hover:bg-blue-700 text-white"
+              disabled={isClosingOrder || isLoading}
             >
-              Fechar Pedido (Venda)
+              {isClosingOrder ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Fechando...
+                </>
+              ) : (
+                "Fechar Pedido (Venda)"
+              )}
             </Button>
           )}
           <div className="flex gap-2 ml-auto">
-            <Button variant="outline" onClick={onClose}>
+            <Button variant="outline" onClick={onClose} disabled={isLoading || isClosingOrder}>
               {readOnly ? "Fechar" : "Cancelar"}
             </Button>
             {!readOnly && (
-              <Button onClick={handleConfirm} disabled={isLoading}>
-                {isLoading ? "Salvando..." : "Confirmar"}
+              <Button onClick={handleConfirm} disabled={isLoading || isClosingOrder}>
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Salvando...
+                  </>
+                ) : (
+                  "Confirmar"
+                )}
               </Button>
             )}
           </div>
