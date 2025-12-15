@@ -187,48 +187,50 @@ export default function ChartsPage() {
   }
 
   const renderChart = () => {
+    const tooltipStyle = { backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #e2e8f0', color: '#0f172a' }
+
     switch (chartType) {
-      case "bar": // Horizontal Bar
+      case "bar": // Faturamento
         return (
           <ResponsiveContainer width="100%" height={400}>
             <BarChart layout="vertical" data={chartData} margin={{ top: 20, right: 30, left: 40, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis type="number" />
               <YAxis dataKey="name" type="category" width={100} />
-              <Tooltip formatter={(value) => `R$ ${value}`} />
+              <Tooltip formatter={(value) => `R$ ${value}`} contentStyle={tooltipStyle} />
               <Legend />
               <Bar dataKey="revenue" name="Receita" fill="#8884d8" />
             </BarChart>
           </ResponsiveContainer>
         )
-      case "column": // Vertical Bar
+      case "column": // № de Vendas
         return (
           <ResponsiveContainer width="100%" height={400}>
             <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="name" />
               <YAxis />
-              <Tooltip formatter={(value) => `R$ ${value}`} />
+              <Tooltip contentStyle={tooltipStyle} />
               <Legend />
-              <Bar dataKey="revenue" name="Receita" fill="#82ca9d" />
+              <Bar dataKey="sales" name="Vendas" fill="#82ca9d" />
             </BarChart>
           </ResponsiveContainer>
         )
-      case "line":
+      case "line": // Faturamento e Vendas
         return (
           <ResponsiveContainer width="100%" height={400}>
             <LineChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="name" />
               <YAxis />
-              <Tooltip formatter={(value) => `R$ ${value}`} />
+              <Tooltip formatter={(value, name) => name === 'Receita' ? `R$ ${value}` : value} contentStyle={tooltipStyle} />
               <Legend />
               <Line type="monotone" dataKey="revenue" name="Receita" stroke="#8884d8" activeDot={{ r: 8 }} />
               <Line type="monotone" dataKey="sales" name="Vendas (Qtd)" stroke="#82ca9d" />
             </LineChart>
           </ResponsiveContainer>
         )
-      case "pie":
+      case "pie": // № de Vendas (Pizza)
         return (
           <ResponsiveContainer width="100%" height={400}>
             <PieChart>
@@ -240,14 +242,14 @@ export default function ChartsPage() {
                 label={(entry: any) => `${entry.name} ${((entry.percent ?? 0) * 100).toFixed(0)}%`}
                 outerRadius={150}
                 fill="#8884d8"
-                dataKey="revenue"
+                dataKey="sales"
                 nameKey="name"
               >
                 {chartData.map((_, index) => (
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
-              <Tooltip formatter={(value) => `R$ ${value}`} />
+              <Tooltip contentStyle={tooltipStyle} />
               <Legend />
             </PieChart>
           </ResponsiveContainer>
@@ -338,10 +340,10 @@ export default function ChartsPage() {
                 <SelectValue placeholder="Selecione o gráfico" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="bar">Barras (Horizontal)</SelectItem>
-                <SelectItem value="column">Colunas (Vertical)</SelectItem>
-                <SelectItem value="line">Linhas</SelectItem>
-                <SelectItem value="pie">Pizza</SelectItem>
+                <SelectItem value="bar">Faturamento</SelectItem>
+                <SelectItem value="column">№ de Vendas</SelectItem>
+                <SelectItem value="line">Faturamento e Vendas</SelectItem>
+                <SelectItem value="pie">№ de Vendas (Pizza)</SelectItem>
               </SelectContent>
             </Select>
           </div>
