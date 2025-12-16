@@ -29,7 +29,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Plus, Pencil, Trash2, ShoppingBag, Search, Loader2 } from "lucide-react"
+import { Plus, Pencil, Trash2, ShoppingBag, Search, Loader2, Power } from "lucide-react"
 import api from "@/services/api"
 import { Pagination } from "@/components/Pagination"
 
@@ -122,7 +122,7 @@ export default function ProductsPage() {
 
   const fetchTypes = async () => {
     try {
-      const response = await api.get("/tipos")
+      const response = await api.get("/tipos?all=true")
       // normalize types to ensure `cor` and `ativo` exist
       const types: ProductType[] = response.data.map((t: any) => ({
         id: t.id,
@@ -279,8 +279,8 @@ export default function ProductsPage() {
     if (confirm(`Tem certeza que deseja ${action} este tipo?`)) {
       setDeletingId(id)
       try {
-        // toggle ativo via PATCH endpoint
-        await api.patch(`/tipos/${id}/ativo`)
+        // toggle ativo via PATCH endpoint, API expects { ativo: boolean }
+        await api.patch(`/tipos/${id}/ativo`, { ativo: !currentlyActive })
         // refresh types and products because inactive types hide their products
         await fetchTypes()
         await fetchProducts()
@@ -570,8 +570,8 @@ export default function ProductsPage() {
                         </div>
                       </TableCell>
                       <TableCell className="text-right">
-                        {type.isEditable && (
-                          <div className="flex justify-end gap-2">
+                        <div className="flex justify-end gap-2">
+                          {type.isEditable && (
                             <Button
                               variant="ghost"
                               size="icon"
@@ -580,21 +580,24 @@ export default function ProductsPage() {
                             >
                               <Pencil className="h-4 w-4" />
                             </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="text-destructive hover:text-destructive"
-                              onClick={() => handleDeleteType(type.id)}
-                              disabled={deletingId === type.id}
-                            >
-                              {deletingId === type.id ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                              ) : (
-                                <Trash2 className="h-4 w-4" />
-                              )}
-                            </Button>
-                          </div>
-                        )}
+                          )}
+
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleDeleteType(type.id)}
+                            disabled={deletingId === type.id}
+                            aria-label={type.ativo === false ? 'Ativar tipo' : 'Inativar tipo'}
+                          >
+                            {deletingId === type.id ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <Power
+                                className={`h-4 w-4 ${type.ativo === false ? 'text-muted-foreground' : 'text-emerald-600'}`}
+                              />
+                            )}
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
