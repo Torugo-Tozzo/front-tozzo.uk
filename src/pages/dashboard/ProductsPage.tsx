@@ -37,6 +37,8 @@ type ProductType = {
   id: number
   descricao: string
   isEditable?: boolean
+  cor?: string
+  ativo?: boolean
 }
 
 type Product = {
@@ -51,6 +53,7 @@ type Product = {
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([])
   const [productTypes, setProductTypes] = useState<ProductType[]>([])
+  const [typeColor, setTypeColor] = useState<string>("#000000")
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [currentProduct, setCurrentProduct] = useState<Product | null>(null)
@@ -120,7 +123,15 @@ export default function ProductsPage() {
   const fetchTypes = async () => {
     try {
       const response = await api.get("/tipos")
-      setProductTypes(response.data)
+      // normalize types to ensure `cor` and `ativo` exist
+      const types: ProductType[] = response.data.map((t: any) => ({
+        id: t.id,
+        descricao: t.descricao,
+        isEditable: t.isEditable ?? t.editavel ?? true,
+        cor: t.cor ?? t.color ?? "#111827",
+        ativo: typeof t.ativo === "boolean" ? t.ativo : (t.ativo === 0 ? false : true),
+      }))
+      setProductTypes(types)
     } catch (error) {
       console.error("Error fetching types", error)
     }
@@ -225,7 +236,7 @@ export default function ProductsPage() {
     e.preventDefault()
     setIsLoading(true)
     try {
-      await api.post("/tipos", { descricao: typeName })
+      await api.post("/tipos", { descricao: typeName, cor: typeColor })
       fetchTypes()
       setIsAddTypeDialogOpen(false)
       resetTypeForm()
@@ -240,6 +251,7 @@ export default function ProductsPage() {
   const handleEditTypeClick = (type: ProductType) => {
     setCurrentType(type)
     setTypeName(type.descricao)
+    setTypeColor(type.cor ?? "#000000")
     setIsEditTypeDialogOpen(true)
   }
 
@@ -248,7 +260,7 @@ export default function ProductsPage() {
     if (!currentType) return
     setIsLoading(true)
     try {
-      await api.put(`/tipos/${currentType.id}`, { descricao: typeName })
+      await api.put(`/tipos/${currentType.id}`, { descricao: typeName, cor: typeColor })
       fetchTypes()
       setIsEditTypeDialogOpen(false)
       resetTypeForm()
@@ -261,14 +273,20 @@ export default function ProductsPage() {
   }
 
   const handleDeleteType = async (id: number) => {
-    if (confirm("Tem certeza que deseja excluir este tipo?")) {
+    const type = productTypes.find(t => t.id === id)
+    const currentlyActive = type?.ativo ?? true
+    const action = currentlyActive ? 'inativar' : 'ativar'
+    if (confirm(`Tem certeza que deseja ${action} este tipo?`)) {
       setDeletingId(id)
       try {
-        await api.delete(`/tipos/${id}`)
-        fetchTypes()
+        // toggle ativo via PATCH endpoint
+        await api.patch(`/tipos/${id}/ativo`)
+        // refresh types and products because inactive types hide their products
+        await fetchTypes()
+        await fetchProducts()
       } catch (error) {
-        console.error("Error deleting type", error)
-        alert("Erro ao excluir tipo. Verifique se não há produtos vinculados.")
+        console.error("Error toggling type active", error)
+        alert("Erro ao atualizar status do tipo. Verifique se não há produtos vinculados.")
       } finally {
         setDeletingId(null)
       }
@@ -278,6 +296,11 @@ export default function ProductsPage() {
   const resetTypeForm = () => {
     setTypeName("")
     setCurrentType(null)
+    setTypeColor("#000000")
+  }
+
+  const getType = (id: number) => {
+    return productTypes.find(t => t.id === id) || null
   }
 
   return (
@@ -388,6 +411,15 @@ export default function ProductsPage() {
                         required
                       />
                     </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="typeColor">Cor</Label>
+                      <Input
+                        id="typeColor"
+                        type="color"
+                        value={typeColor}
+                        onChange={(e) => setTypeColor(e.target.value)}
+                      />
+                    </div>
                     <DialogFooter>
                       <Button type="submit" disabled={isLoading}>
                         {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -432,15 +464,36 @@ export default function ProductsPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {products.map((product, index) => (
+                  {products
+                    .filter((product) => {
+                      const t = getType(product.tipoProdutoId)
+                      // hide products whose type is explicitly inactive
+                      return t ? (t.ativo !== false) : true
+                    })
+                    .map((product, index) => (
                     <TableRow key={product.id}>
                       <TableCell>{(page - 1) * limit + index + 1}</TableCell>
                       <TableCell className="font-medium">{product.id}</TableCell>
                       <TableCell>{product.nome}</TableCell>
                       <TableCell>
-                        <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-secondary text-secondary-foreground">
-                          {getTypeName(product.tipoProdutoId)}
-                        </span>
+                        {(() => {
+                          const t = getType(product.tipoProdutoId)
+                          if (t) {
+                            return (
+                              <span
+                                className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
+                                style={{ backgroundColor: t.cor ?? '#111827', color: '#fff' }}
+                              >
+                                {t.descricao}
+                              </span>
+                            )
+                          }
+                          return (
+                            <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-secondary text-secondary-foreground">
+                              {getTypeName(product.tipoProdutoId)}
+                            </span>
+                          )
+                        })()}
                       </TableCell>
                       <TableCell className="text-right">
                         {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(product.preco)}
@@ -505,9 +558,17 @@ export default function ProductsPage() {
                 </TableHeader>
                 <TableBody>
                   {productTypes.map((type) => (
-                    <TableRow key={type.id}>
+                    <TableRow key={type.id} className={type.ativo === false ? 'opacity-60' : ''}>
                       <TableCell className="font-medium">{type.id}</TableCell>
-                      <TableCell>{type.descricao}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <span
+                            className="inline-block h-3 w-3 rounded-full"
+                            style={{ backgroundColor: type.cor ?? '#111827' }}
+                          />
+                          <span>{type.descricao}{type.ativo === false ? ' (Inativo)' : ''}</span>
+                        </div>
+                      </TableCell>
                       <TableCell className="text-right">
                         {type.isEditable && (
                           <div className="flex justify-end gap-2">
@@ -515,6 +576,7 @@ export default function ProductsPage() {
                               variant="ghost"
                               size="icon"
                               onClick={() => handleEditTypeClick(type)}
+                              disabled={deletingId === type.id}
                             >
                               <Pencil className="h-4 w-4" />
                             </Button>
@@ -624,6 +686,15 @@ export default function ProductsPage() {
                 required
               />
             </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-typeColor">Cor</Label>
+                <Input
+                  id="edit-typeColor"
+                  type="color"
+                  value={typeColor}
+                  onChange={(e) => setTypeColor(e.target.value)}
+                />
+              </div>
             <DialogFooter>
               <Button type="submit" disabled={isLoading}>
                 {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
