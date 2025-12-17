@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react"
+import { useAuth } from "@/contexts/AuthContext"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -46,6 +47,7 @@ type ProductType = {
 }
 
 export default function ChartsPage() {
+  const { user } = useAuth()
   const getTodayDate = () => {
     const today = new Date()
     const yyyy = today.getFullYear()
@@ -264,7 +266,7 @@ export default function ChartsPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
           <BarChart3 className="h-8 w-8" />
-          Relatórios e Gráficos
+          {`Relatórios e Gráficos${user?.estabelecimento?.nomeFantasia ? ` do ${user.estabelecimento.nomeFantasia}` : ''}`}
         </h1>
       </div>
 

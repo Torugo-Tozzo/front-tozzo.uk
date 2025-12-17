@@ -21,6 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { useAuth } from "@/contexts/AuthContext"
 
 type Order = {
   id: number
@@ -32,6 +33,7 @@ type Order = {
 }
 
 export default function OrdersPage() {
+  const { user } = useAuth()
   const [orders, setOrders] = useState<Order[]>([])
   const [page, setPage] = useState(1)
   const [limit, setLimit] = useState(10)
@@ -171,7 +173,7 @@ export default function OrdersPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
           <ShoppingCart className="h-8 w-8" />
-          Pedidos
+          {`Pedidos${user?.estabelecimento?.nomeFantasia ? ` do ${user.estabelecimento.nomeFantasia}` : ''}`}
         </h1>
         <Button onClick={handleOpenCreateModal}>
           <Plus className="mr-2 h-4 w-4" /> Novo Pedido

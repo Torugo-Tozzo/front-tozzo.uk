@@ -32,6 +32,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Plus, Pencil, Trash2, ShoppingBag, Search, Loader2, Power } from "lucide-react"
 import api from "@/services/api"
 import { Pagination } from "@/components/Pagination"
+import { useAuth } from "@/contexts/AuthContext"
 
 type ProductType = {
   id: number
@@ -51,8 +52,16 @@ type Product = {
 }
 
 export default function ProductsPage() {
+  const { user } = useAuth()
   const [products, setProducts] = useState<Product[]>([])
   const [productTypes, setProductTypes] = useState<ProductType[]>([])
+  const [pagedTypes, setPagedTypes] = useState<ProductType[]>([])
+  const [typesPage, setTypesPage] = useState(1)
+  const [typesLimit, setTypesLimit] = useState(10)
+  const [typesTotalPages, setTypesTotalPages] = useState(0)
+  const [typesTotalItems, setTypesTotalItems] = useState(0)
+  const [typesHasMore, setTypesHasMore] = useState(false)
+  const [typesSearch, setTypesSearch] = useState("")
   const [typeColor, setTypeColor] = useState<string>("#000000")
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
@@ -79,8 +88,17 @@ export default function ProductsPage() {
   const [currentType, setCurrentType] = useState<ProductType | null>(null)
 
   useEffect(() => {
-    fetchTypes()
+    // load all types for selects/lookup and load first page for types table
+    fetchTypesAll()
+    fetchTypesPage()
   }, [])
+
+  useEffect(() => {
+    const delay = setTimeout(() => {
+      fetchTypesPage()
+    }, 300)
+    return () => clearTimeout(delay)
+  }, [typesPage, typesLimit, typesSearch])
 
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
@@ -120,10 +138,10 @@ export default function ProductsPage() {
     }
   }
 
-  const fetchTypes = async () => {
+  // fetch all types (used for selects and product mapping)
+  const fetchTypesAll = async () => {
     try {
       const response = await api.get("/tipos?all=true")
-      // normalize types to ensure `cor` and `ativo` exist
       const types: ProductType[] = response.data.map((t: any) => ({
         id: t.id,
         descricao: t.descricao,
@@ -134,6 +152,46 @@ export default function ProductsPage() {
       setProductTypes(types)
     } catch (error) {
       console.error("Error fetching types", error)
+    }
+  }
+
+  // fetch paginated types for the types table
+  const fetchTypesPage = async () => {
+    try {
+      const response = await api.get(`/tipos?page=${typesPage}&limit=${typesLimit}&all=true&search=${encodeURIComponent(typesSearch)}`)
+
+      let data: any[] = []
+      let total = 0
+
+      if (response.data.data) {
+        data = response.data.data
+        total = response.data.total || response.data.count || 0
+      } else if (Array.isArray(response.data)) {
+        data = response.data
+        const totalHeader = response.headers['x-total-count']
+        total = totalHeader ? parseInt(totalHeader) : 0
+      }
+
+      const types: ProductType[] = data.map((t: any) => ({
+        id: t.id,
+        descricao: t.descricao,
+        isEditable: t.isEditable ?? t.editavel ?? true,
+        cor: t.cor ?? t.color ?? "#111827",
+        ativo: typeof t.ativo === "boolean" ? t.ativo : (t.ativo === 0 ? false : true),
+      }))
+
+      setPagedTypes(types)
+      setTypesTotalItems(total)
+
+      if (total > 0) {
+        setTypesTotalPages(Math.ceil(total / typesLimit))
+        setTypesHasMore(typesPage < Math.ceil(total / typesLimit))
+      } else {
+        setTypesTotalPages(0)
+        setTypesHasMore(types.length === typesLimit)
+      }
+    } catch (error) {
+      console.error("Error fetching paged types", error)
     }
   }
 
@@ -237,7 +295,8 @@ export default function ProductsPage() {
     setIsLoading(true)
     try {
       await api.post("/tipos", { descricao: typeName, cor: typeColor })
-      fetchTypes()
+      await fetchTypesAll()
+      await fetchTypesPage()
       setIsAddTypeDialogOpen(false)
       resetTypeForm()
     } catch (error) {
@@ -261,7 +320,8 @@ export default function ProductsPage() {
     setIsLoading(true)
     try {
       await api.put(`/tipos/${currentType.id}`, { descricao: typeName, cor: typeColor })
-      fetchTypes()
+      await fetchTypesAll()
+      await fetchTypesPage()
       setIsEditTypeDialogOpen(false)
       resetTypeForm()
     } catch (error) {
@@ -282,7 +342,8 @@ export default function ProductsPage() {
         // toggle ativo via PATCH endpoint, API expects { ativo: boolean }
         await api.patch(`/tipos/${id}/ativo`, { ativo: !currentlyActive })
         // refresh types and products because inactive types hide their products
-        await fetchTypes()
+        await fetchTypesAll()
+        await fetchTypesPage()
         await fetchProducts()
       } catch (error) {
         console.error("Error toggling type active", error)
@@ -309,7 +370,7 @@ export default function ProductsPage() {
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
             <ShoppingBag className="h-8 w-8" />
-            Gerenciamento
+            {`Gerenciamento${user?.estabelecimento?.nomeFantasia ? ` do ${user.estabelecimento.nomeFantasia}` : ''}`}
           </h1>
           
           <div className="flex items-center gap-4">
@@ -544,22 +605,37 @@ export default function ProductsPage() {
         <TabsContent value="types">
           <Card>
             <CardHeader>
-              <CardTitle>Tipos de Produtos</CardTitle>
+                  <div className="flex items-center justify-between">
+                    <CardTitle>Tipos de Produtos</CardTitle>
+                    <div className="relative w-[250px]">
+                      <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Buscar tipos..."
+                        value={typesSearch}
+                        onChange={(e) => {
+                          setTypesSearch(e.target.value)
+                          setTypesPage(1)
+                        }}
+                        className="pl-8"
+                      />
+                    </div>
+                  </div>
             </CardHeader>
             <CardContent>
               <Table>
                 <TableCaption>Lista de tipos de produtos cadastrados.</TableCaption>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-[100px]">ID</TableHead>
+                    <TableHead className="w-[50px]">#</TableHead>
                     <TableHead>Descrição</TableHead>
+                    <TableHead className="w-[160px]">Origem</TableHead>
                     <TableHead className="text-right">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {productTypes.map((type) => (
+                  {pagedTypes.map((type, index) => (
                     <TableRow key={type.id} className={type.ativo === false ? 'opacity-60' : ''}>
-                      <TableCell className="font-medium">{type.id}</TableCell>
+                      <TableCell>{(typesPage - 1) * typesLimit + index + 1}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <span
@@ -567,6 +643,11 @@ export default function ProductsPage() {
                             style={{ backgroundColor: type.cor ?? '#111827' }}
                           />
                           <span>{type.descricao}{type.ativo === false ? ' (Inativo)' : ''}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-sm">
+                          {type.isEditable === false ? 'Padrão do Sistema' : 'Criado pelo usuário'}
                         </div>
                       </TableCell>
                       <TableCell className="text-right">
@@ -603,6 +684,20 @@ export default function ProductsPage() {
                   ))}
                 </TableBody>
               </Table>
+              <div className="mb-4 text-sm text-muted-foreground">
+                Total de registros: {typesTotalItems}
+              </div>
+              <Pagination
+                currentPage={typesPage}
+                totalPages={typesTotalPages}
+                hasMore={typesHasMore}
+                onPageChange={setTypesPage}
+                pageSize={typesLimit}
+                onPageSizeChange={(newLimit) => {
+                  setTypesLimit(newLimit)
+                  setTypesPage(1)
+                }}
+              />
             </CardContent>
           </Card>
         </TabsContent>

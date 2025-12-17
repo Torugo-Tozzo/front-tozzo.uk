@@ -28,39 +28,73 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Plus, Pencil, Trash2, Users, Loader2 } from "lucide-react"
+import { Plus, Pencil, Trash2, Users, Loader2, Search } from "lucide-react"
 import api from "@/services/api"
+import { Pagination } from "@/components/Pagination"
+import { useAuth } from "@/contexts/AuthContext"
 
 type Employee = {
   id: number
   nome: string
   email: string
-  cargo: string
+  role: string
 }
 
 export default function EmployeesPage() {
+  const { user } = useAuth()
   const [employees, setEmployees] = useState<Employee[]>([])
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [currentEmployee, setCurrentEmployee] = useState<Employee | null>(null)
 
   const [isLoading, setIsLoading] = useState(false)
+  const [page, setPage] = useState(1)
+  const [limit, setLimit] = useState(10)
+  const [totalPages, setTotalPages] = useState(0)
+  const [totalItems, setTotalItems] = useState(0)
+  const [hasMore, setHasMore] = useState(false)
+  const [search, setSearch] = useState("")
 
   // Form states
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
-  const [role, setRole] = useState("Funcionário")
+  const [role, setRole] = useState("FUNCIONARIO")
 
   useEffect(() => {
-    setIsLoading(true)
-    fetchEmployees().finally(() => setIsLoading(false))
-  }, [])
+    const delay = setTimeout(() => {
+      setIsLoading(true)
+      fetchEmployees().finally(() => setIsLoading(false))
+    }, 300)
+    return () => clearTimeout(delay)
+  }, [page, limit, search])
 
   const fetchEmployees = async () => {
     try {
-      const response = await api.get("/usuarios")
-      setEmployees(response.data)
+      const response = await api.get(`/usuarios?page=${page}&limit=${limit}&search=${encodeURIComponent(search)}`)
+
+      let data: any[] = []
+      let total = 0
+
+      if (response.data.data) {
+        data = response.data.data
+        total = response.data.total || response.data.count || 0
+      } else if (Array.isArray(response.data)) {
+        data = response.data
+        const totalHeader = response.headers['x-total-count']
+        total = totalHeader ? parseInt(totalHeader) : 0
+      }
+
+      setEmployees(data)
+      setTotalItems(total)
+
+      if (total > 0) {
+        setTotalPages(Math.ceil(total / limit))
+        setHasMore(page < Math.ceil(total / limit))
+      } else {
+        setTotalPages(0)
+        setHasMore(data.length === limit)
+      }
     } catch (error) {
       console.error("Error fetching employees", error)
     }
@@ -74,7 +108,7 @@ export default function EmployeesPage() {
         nome: name,
         email,
         senha: password,
-        cargo: role
+        role: role
       })
       await fetchEmployees()
       setIsAddDialogOpen(false)
@@ -91,7 +125,7 @@ export default function EmployeesPage() {
     setCurrentEmployee(employee)
     setName(employee.nome)
     setEmail(employee.email)
-    setRole(employee.cargo || "Funcionário")
+    setRole(employee.role || "FUNCIONARIO")
     setPassword("") // Reset password field
     setIsEditDialogOpen(true)
   }
@@ -105,7 +139,7 @@ export default function EmployeesPage() {
       const payload: any = {
         nome: name,
         email,
-        cargo: role
+        role: role
       }
       if (password) {
         payload.senha = password
@@ -142,7 +176,7 @@ export default function EmployeesPage() {
     setName("")
     setEmail("")
     setPassword("")
-    setRole("Funcionário")
+    setRole("FUNCIONARIO")
     setCurrentEmployee(null)
   }
 
@@ -156,7 +190,7 @@ export default function EmployeesPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
           <Users className="h-8 w-8" />
-          Funcionários
+          {`Funcionários${user?.estabelecimento?.nomeFantasia ? ` do ${user.estabelecimento.nomeFantasia}` : ''}`}
         </h1>
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
@@ -200,9 +234,10 @@ export default function EmployeesPage() {
                     <SelectValue placeholder="Selecione o cargo" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Dono">Dono</SelectItem>
-                    <SelectItem value="Gerente">Gerente</SelectItem>
-                    <SelectItem value="Funcionário">Funcionário</SelectItem>
+                      <SelectItem value="DONO">Dono</SelectItem>
+                      <SelectItem value="GERENTE">Gerente</SelectItem>
+                      <SelectItem value="FUNCIONARIO">Funcionário</SelectItem>
+                      <SelectItem value="CLIENTE">Cliente</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -236,7 +271,21 @@ export default function EmployeesPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Equipe</CardTitle>
+          <div className="flex items-center justify-between w-full">
+            <CardTitle>Equipe</CardTitle>
+            <div className="relative w-[250px]">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar funcionários..."
+                value={search}
+                onChange={(e) => {
+                  setSearch(e.target.value)
+                  setPage(1)
+                }}
+                className="pl-8"
+              />
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           <Table>
@@ -251,16 +300,26 @@ export default function EmployeesPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {employees.map((employee, index) => (
+                {employees.map((employee, index) => (
                 <TableRow key={employee.id}>
-                  <TableCell className="font-medium">{index + 1}</TableCell>
-                  <TableCell>{employee.nome}</TableCell>
-                  <TableCell>{employee.email}</TableCell>
-                  <TableCell>
-                    <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-primary/10 text-primary">
-                      {employee.cargo || "N/A"}
-                    </span>
-                  </TableCell>
+                    <TableCell className="font-medium">{(page - 1) * limit + index + 1}</TableCell>
+                    <TableCell>{employee.nome}</TableCell>
+                    <TableCell>{employee.email}</TableCell>
+                    <TableCell>
+                      <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-primary/10 text-primary">
+                        {(() => {
+                          const r = employee.role
+                          if (!r) return "N/A"
+                          switch (r) {
+                            case 'DONO': return 'Dono'
+                            case 'GERENTE': return 'Gerente'
+                            case 'FUNCIONARIO': return 'Funcionário'
+                            case 'CLIENTE': return 'Cliente'
+                            default: return r
+                          }
+                        })()}
+                      </span>
+                    </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
                         <Button
@@ -271,25 +330,41 @@ export default function EmployeesPage() {
                         >
                           <Pencil className="h-4 w-4" />
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="text-destructive hover:text-destructive"
-                          onClick={() => handleDeleteEmployee(employee.id)}
-                          disabled={isLoading}
-                        >
-                          {isLoading ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : (
-                            <Trash2 className="h-4 w-4" />
-                          )}
-                        </Button>
+                        {employee.role !== 'DONO' && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-destructive hover:text-destructive"
+                            onClick={() => handleDeleteEmployee(employee.id)}
+                            disabled={isLoading}
+                          >
+                            {isLoading ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <Trash2 className="h-4 w-4" />
+                            )}
+                          </Button>
+                        )}
                     </div>
                   </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
+          <div className="mt-4 flex items-center justify-between">
+            <div className="text-sm text-muted-foreground">Total de registros: {totalItems}</div>
+            <Pagination
+              currentPage={page}
+              totalPages={totalPages}
+              hasMore={hasMore}
+              onPageChange={setPage}
+              pageSize={limit}
+              onPageSizeChange={(newLimit) => {
+                setLimit(newLimit)
+                setPage(1)
+              }}
+            />
+          </div>
         </CardContent>
       </Card>
 
@@ -331,9 +406,10 @@ export default function EmployeesPage() {
                   <SelectValue placeholder="Selecione o cargo" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Dono">Dono</SelectItem>
-                  <SelectItem value="Gerente">Gerente</SelectItem>
-                  <SelectItem value="Funcionário">Funcionário</SelectItem>
+                  <SelectItem value="DONO">Dono</SelectItem>
+                  <SelectItem value="GERENTE">Gerente</SelectItem>
+                  <SelectItem value="FUNCIONARIO">Funcionário</SelectItem>
+                  <SelectItem value="CLIENTE">Cliente</SelectItem>
                 </SelectContent>
               </Select>
             </div>

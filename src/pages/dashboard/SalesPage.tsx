@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Plus, DollarSign, Info, Search, Loader2 } from "lucide-react"
 import api from "@/services/api"
+import { useAuth } from "@/contexts/AuthContext"
 import { ProductSelectionModal } from "@/components/ProductSelectionModal"
 import { Pagination } from "@/components/Pagination"
 
@@ -27,6 +28,7 @@ type Sale = {
 export default function SalesPage() {
   const [sales, setSales] = useState<Sale[]>([])
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const { user } = useAuth()
   const [page, setPage] = useState(1)
   const [limit, setLimit] = useState(10)
   const [totalPages, setTotalPages] = useState(0)
@@ -40,18 +42,27 @@ export default function SalesPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [isLoadingDetails, setIsLoadingDetails] = useState(false)
 
-  const getTodayDate = () => {
-    const today = new Date()
-    const yyyy = today.getFullYear()
-    const mm = String(today.getMonth() + 1).padStart(2, '0')
-    const dd = String(today.getDate()).padStart(2, '0')
+  // Use últimas 24 horas como padrão: end = now, start = now - 24h
+  const formatDate = (d: Date) => {
+    const yyyy = d.getFullYear()
+    const mm = String(d.getMonth() + 1).padStart(2, '0')
+    const dd = String(d.getDate()).padStart(2, '0')
     return `${yyyy}-${mm}-${dd}`
   }
 
-  const [startDate, setStartDate] = useState(getTodayDate())
-  const [startTime, setStartTime] = useState("00:00")
-  const [endDate, setEndDate] = useState(getTodayDate())
-  const [endTime, setEndTime] = useState("23:59")
+  const formatTime = (d: Date) => {
+    const hh = String(d.getHours()).padStart(2, '0')
+    const min = String(d.getMinutes()).padStart(2, '0')
+    return `${hh}:${min}`
+  }
+
+  const now = new Date()
+  const ago24 = new Date(now.getTime() - 24 * 60 * 60 * 1000)
+
+  const [startDate, setStartDate] = useState(formatDate(ago24))
+  const [startTime, setStartTime] = useState(formatTime(ago24))
+  const [endDate, setEndDate] = useState(formatDate(now))
+  const [endTime, setEndTime] = useState(formatTime(now))
   const [periodTotal, setPeriodTotal] = useState(0)
 
   useEffect(() => {
@@ -132,34 +143,57 @@ export default function SalesPage() {
   const handleInfoClick = async (sale: Sale) => {
     setIsLoadingDetails(true)
     try {
-      // Try to fetch details if needed, or use what we have if the list returns items
-      // Assuming we need to fetch details similar to orders
-      // If the API doesn't support GET /vendas/{id}, we might need to rely on the list or another way.
-      // Let's try to fetch from list with filter if possible or just assume we need to fetch.
-      // Based on previous context, let's try to get details.
-      // If GET /vendas/{id} is not available, we might need to check if the list response already has items.
-      // Let's assume for now we can get it via query param like orders or just use the sale object if it has items (it might not).
-      
-      // Strategy: Fetch /vendas with id param to get details including items
-      const response = await api.get(`/vendas`, { params: { id: sale.id } })
-      
-      let saleData = null
-      if (response.data.data && Array.isArray(response.data.data)) {
-        saleData = response.data.data[0]
-      } else if (Array.isArray(response.data)) {
-        saleData = response.data[0]
-      }
-
-      if (saleData && saleData.itens) {
-         const items = saleData.itens.map((item: any) => ({
+      // If the sale object already contains items, use them
+      // (some APIs include itens in the list). Otherwise try to
+      // fetch related pedido by `pedidoId` or fallback to `/vendas/{id}`.
+      if ((sale as any).itens && Array.isArray((sale as any).itens)) {
+        const items = (sale as any).itens.map((item: any) => ({
           produtoId: item.produtoId || (item.produto ? item.produto.id : 0),
-          quantidade: item.quantidade
+          quantidade: item.quantidade,
         })).filter((i: any) => i.produtoId > 0)
         setCurrentSaleItems(items)
       } else {
-        setCurrentSaleItems([])
+        let itemsFound: { produtoId: number; quantidade: number }[] = []
+
+        // If sale has pedidoId, fetch the pedido which usually contains itens
+        if ((sale as any).pedidoId) {
+          try {
+            const resp = await api.get(`/pedidos`, { params: { id: (sale as any).pedidoId } })
+            let pedidoData = null
+            if (resp.data.data && Array.isArray(resp.data.data)) pedidoData = resp.data.data[0]
+            else if (Array.isArray(resp.data)) pedidoData = resp.data[0]
+
+            if (pedidoData && pedidoData.itens) {
+              itemsFound = pedidoData.itens.map((item: any) => ({
+                produtoId: item.produtoId || (item.produto ? item.produto.id : 0),
+                quantidade: item.quantidade,
+              })).filter((i: any) => i.produtoId > 0)
+            }
+          } catch (e) {
+            // ignore and try other fallbacks
+            console.warn('Error fetching pedido for venda details', e)
+          }
+        }
+
+        // Fallback: try GET /vendas/{id} in case server exposes it
+        if (itemsFound.length === 0) {
+          try {
+            const resp2 = await api.get(`/vendas/${sale.id}`)
+            const vendaData = resp2.data && (resp2.data.venda || resp2.data)
+            if (vendaData && vendaData.itens) {
+              itemsFound = vendaData.itens.map((item: any) => ({
+                produtoId: item.produtoId || (item.produto ? item.produto.id : 0),
+                quantidade: item.quantidade,
+              })).filter((i: any) => i.produtoId > 0)
+            }
+          } catch (e) {
+            // ignore, server may not support this route
+          }
+        }
+
+        setCurrentSaleItems(itemsFound)
       }
-      
+
       setCurrentSaleClient(sale.cliente)
       setIsReadOnlyModal(true)
       setIsModalOpen(true)
@@ -188,7 +222,7 @@ export default function SalesPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
           <DollarSign className="h-8 w-8" />
-          Vendas
+          {`Vendas${user?.estabelecimento?.nomeFantasia ? ` do ${user.estabelecimento.nomeFantasia}` : ''}`}
         </h1>
         <Button onClick={handleNewSaleClick}>
           <Plus className="mr-2 h-4 w-4" /> Nova Venda
