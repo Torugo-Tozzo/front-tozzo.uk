@@ -517,7 +517,6 @@ export default function ProductsPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-[50px]">#</TableHead>
-                    <TableHead className="w-[100px]">ID</TableHead>
                     <TableHead>Nome</TableHead>
                     <TableHead>Tipo</TableHead>
                     <TableHead className="text-right">Preço</TableHead>
@@ -534,7 +533,6 @@ export default function ProductsPage() {
                     .map((product, index) => (
                     <TableRow key={product.id}>
                       <TableCell>{(page - 1) * limit + index + 1}</TableCell>
-                      <TableCell className="font-medium">{product.id}</TableCell>
                       <TableCell>{product.nome}</TableCell>
                       <TableCell>
                         {(() => {

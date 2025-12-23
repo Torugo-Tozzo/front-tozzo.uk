@@ -221,7 +221,6 @@ export default function OrdersPage() {
             <TableHeader>
               <TableRow>
                 <TableHead className="w-[50px]">#</TableHead>
-                <TableHead className="w-[80px]">ID</TableHead>
                 <TableHead>Cliente / Mesa</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Data</TableHead>
@@ -230,10 +229,9 @@ export default function OrdersPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {orders.map((order, index) => (
+                {orders.map((order, index) => (
                 <TableRow key={order.id}>
                   <TableCell>{(page - 1) * limit + index + 1}</TableCell>
-                  <TableCell className="font-medium">{order.id}</TableCell>
                   <TableCell>{order.cliente || "Não Informado"}</TableCell>
                   <TableCell>
                     <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium
