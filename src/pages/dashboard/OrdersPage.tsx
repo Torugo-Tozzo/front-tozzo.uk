@@ -13,7 +13,6 @@ import { Plus, Pencil, Trash2, ShoppingCart, Loader2 } from "lucide-react"
 import api from "@/services/api"
 import { ProductSelectionModal } from "@/components/ProductSelectionModal"
 import { Pagination } from "@/components/Pagination"
-import { Input } from "@/components/ui/input"
 import {
   Select,
   SelectContent,
@@ -46,15 +45,14 @@ export default function OrdersPage() {
   const [updatingStatusId, setUpdatingStatusId] = useState<number | null>(null)
   
   const [statusFilter, setStatusFilter] = useState("NAO_FECHADOS")
-  const [dateFilter, setDateFilter] = useState(new Date().toISOString().split('T')[0])
 
   useEffect(() => {
     fetchOrders()
-  }, [page, limit, statusFilter, dateFilter])
+  }, [page, limit, statusFilter])
 
   const fetchOrders = async () => {
     try {
-      const params: any = { page, limit, data: dateFilter }
+      const params: any = { page, limit }
       if (statusFilter !== 'NAO_FECHADOS') params.status = statusFilter
 
       const response = await api.get(`/pedidos`, { params })
@@ -202,13 +200,6 @@ export default function OrdersPage() {
       </div>
 
       <div className="flex gap-4 items-center">
-        <div className="w-[200px]">
-          <Input
-            type="date"
-            value={dateFilter}
-            onChange={(e) => setDateFilter(e.target.value)}
-          />
-        </div>
         <div className="w-[200px]">
           <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger>
