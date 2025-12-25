@@ -35,7 +35,7 @@ export default function SalesPage() {
   const [totalItems, setTotalItems] = useState(0)
   const [hasMore, setHasMore] = useState(false)
   
-  const [currentSaleItems, setCurrentSaleItems] = useState<{ produtoId: number; quantidade: number }[]>([])
+  const [currentSaleItems, setCurrentSaleItems] = useState<{ produtoId: number | string; quantidade: number }[]>([])
   const [currentSaleClient, setCurrentSaleClient] = useState("")
   const [isReadOnlyModal, setIsReadOnlyModal] = useState(false)
 
@@ -148,9 +148,9 @@ export default function SalesPage() {
       // fetch related pedido by `pedidoId` or fallback to `/vendas/{id}`.
       if ((sale as any).itens && Array.isArray((sale as any).itens)) {
         const items = (sale as any).itens.map((item: any) => ({
-          produtoId: item.produtoId || (item.produto ? item.produto.id : 0),
-          quantidade: item.quantidade,
-        })).filter((i: any) => i.produtoId > 0)
+          produtoId: item.produtoId ?? (item.produto ? item.produto.id : undefined),
+          quantidade: Number(item.quantidade) || 0,
+        })).filter((i: any) => i.produtoId != null && i.produtoId !== '')
         setCurrentSaleItems(items)
       } else {
         let itemsFound: { produtoId: number; quantidade: number }[] = []
@@ -165,9 +165,9 @@ export default function SalesPage() {
 
             if (pedidoData && pedidoData.itens) {
               itemsFound = pedidoData.itens.map((item: any) => ({
-                produtoId: item.produtoId || (item.produto ? item.produto.id : 0),
-                quantidade: item.quantidade,
-              })).filter((i: any) => i.produtoId > 0)
+                produtoId: item.produtoId ?? (item.produto ? item.produto.id : undefined),
+                quantidade: Number(item.quantidade) || 0,
+              })).filter((i: any) => i.produtoId != null && i.produtoId !== '')
             }
           } catch (e) {
             // ignore and try other fallbacks
@@ -182,9 +182,9 @@ export default function SalesPage() {
             const vendaData = resp2.data && (resp2.data.venda || resp2.data)
             if (vendaData && vendaData.itens) {
               itemsFound = vendaData.itens.map((item: any) => ({
-                produtoId: item.produtoId || (item.produto ? item.produto.id : 0),
-                quantidade: item.quantidade,
-              })).filter((i: any) => i.produtoId > 0)
+                produtoId: item.produtoId ?? (item.produto ? item.produto.id : undefined),
+                quantidade: Number(item.quantidade) || 0,
+              })).filter((i: any) => i.produtoId != null && i.produtoId !== '')
             }
           } catch (e) {
             // ignore, server may not support this route
@@ -289,7 +289,7 @@ export default function SalesPage() {
         onConfirm={handleModalConfirm}
         title={isReadOnlyModal ? "Detalhes da Venda" : "Nova Venda"}
         initialClientName={currentSaleClient}
-        initialOrderItems={currentSaleItems}
+        initialOrderItems={currentSaleItems as any}
         readOnly={isReadOnlyModal}
       />
 

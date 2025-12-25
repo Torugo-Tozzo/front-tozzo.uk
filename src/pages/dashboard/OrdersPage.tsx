@@ -41,7 +41,7 @@ export default function OrdersPage() {
   const [hasMore, setHasMore] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [currentOrder, setCurrentOrder] = useState<Order | null>(null)
-  const [currentOrderItems, setCurrentOrderItems] = useState<{ produtoId: number; quantidade: number }[]>([])
+  const [currentOrderItems, setCurrentOrderItems] = useState<{ produtoId: number | string; quantidade: number }[]>([])
   const [deletingId, setDeletingId] = useState<number | null>(null)
   const [closingId, setClosingId] = useState<number | null>(null)
   
@@ -102,9 +102,9 @@ export default function OrdersPage() {
 
       if (orderData && orderData.itens) {
         const items = orderData.itens.map((item: any) => ({
-          produtoId: item.produtoId || (item.produto ? item.produto.id : 0),
-          quantidade: item.quantidade
-        })).filter((i: any) => i.produtoId > 0)
+          produtoId: item.produtoId ?? (item.produto ? item.produto.id : undefined),
+          quantidade: Number(item.quantidade) || 0
+        })).filter((i: any) => i.produtoId != null && i.produtoId !== '')
         setCurrentOrderItems(items)
       } else {
         setCurrentOrderItems([])
@@ -207,7 +207,7 @@ export default function OrdersPage() {
         onConfirm={handleModalConfirm}
         title={currentOrder ? "Editar Pedido (Adicionar Itens)" : "Novo Pedido"}
         initialClientName={currentOrder?.cliente || ""}
-        initialOrderItems={currentOrderItems}
+        initialOrderItems={currentOrderItems as any}
         isEditing={!!currentOrder}
         onCloseOrder={currentOrder ? () => handleCloseOrder(currentOrder.id) : undefined}
       />
