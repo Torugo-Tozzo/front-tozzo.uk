@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/table"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Plus, Pencil, Trash2, ShoppingCart, CheckCircle, Loader2 } from "lucide-react"
+import { Plus, Pencil, Trash2, ShoppingCart, Loader2 } from "lucide-react"
 import api from "@/services/api"
 import { ProductSelectionModal } from "@/components/ProductSelectionModal"
 import { Pagination } from "@/components/Pagination"
@@ -43,9 +43,9 @@ export default function OrdersPage() {
   const [currentOrder, setCurrentOrder] = useState<Order | null>(null)
   const [currentOrderItems, setCurrentOrderItems] = useState<{ produtoId: number | string; quantidade: number }[]>([])
   const [deletingId, setDeletingId] = useState<number | null>(null)
-  const [closingId, setClosingId] = useState<number | null>(null)
+  const [updatingStatusId, setUpdatingStatusId] = useState<number | null>(null)
   
-  const [statusFilter, setStatusFilter] = useState("ABERTO")
+  const [statusFilter, setStatusFilter] = useState("NAO_FECHADOS")
   const [dateFilter, setDateFilter] = useState(new Date().toISOString().split('T')[0])
 
   useEffect(() => {
@@ -54,9 +54,12 @@ export default function OrdersPage() {
 
   const fetchOrders = async () => {
     try {
-      const response = await api.get(`/pedidos?page=${page}&limit=${limit}&status=${statusFilter}&data=${dateFilter}`)
-      
-      let data = []
+      const params: any = { page, limit, data: dateFilter }
+      if (statusFilter !== 'NAO_FECHADOS') params.status = statusFilter
+
+      const response = await api.get(`/pedidos`, { params })
+
+      let data: any[] = []
       let total = 0
 
       if (response.data.data) {
@@ -66,6 +69,13 @@ export default function OrdersPage() {
         data = response.data
         const totalHeader = response.headers['x-total-count']
         total = totalHeader ? parseInt(totalHeader) : 0
+      }
+
+      // If client requested "Não Fechados", filter out FECHADO on client-side
+      if (statusFilter === 'NAO_FECHADOS') {
+        data = data.filter((o: any) => o.status !== 'FECHADO')
+        // total should reflect filtered results when server can't provide that
+        total = data.length
       }
 
       setOrders(data)
@@ -156,15 +166,26 @@ export default function OrdersPage() {
 
   const handleCloseOrder = async (id: number) => {
     if (!confirm("Tem certeza que deseja fechar este pedido? Ele será transformado em venda.")) return
-    setClosingId(id)
     try {
-      await api.post(`/pedidos/${id}/fechar`)
+      await api.post(`/pedidos/${id}/status`, { status: 'FECHADO' })
       fetchOrders()
     } catch (error) {
       console.error("Error closing order", error)
       alert("Erro ao fechar pedido")
     } finally {
-      setClosingId(null)
+    }
+  }
+
+  const handleChangeStatus = async (id: number, newStatus: string) => {
+    setUpdatingStatusId(id)
+    try {
+      await api.post(`/pedidos/${id}/status`, { status: newStatus })
+      fetchOrders()
+    } catch (error) {
+      console.error('Error updating order status', error)
+      alert('Erro ao atualizar status do pedido')
+    } finally {
+      setUpdatingStatusId(null)
     }
   }
 
@@ -194,7 +215,10 @@ export default function OrdersPage() {
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="NAO_FECHADOS">Não Fechados</SelectItem>
               <SelectItem value="ABERTO">Aberto</SelectItem>
+              <SelectItem value="EM_PREPARO">Em Preparo</SelectItem>
+              <SelectItem value="ENTREGANDO">Entregando</SelectItem>
               <SelectItem value="FECHADO">Fechado</SelectItem>
             </SelectContent>
           </Select>
@@ -210,6 +234,8 @@ export default function OrdersPage() {
         initialOrderItems={currentOrderItems as any}
         isEditing={!!currentOrder}
         onCloseOrder={currentOrder ? () => handleCloseOrder(currentOrder.id) : undefined}
+        initialStatus={currentOrder?.status}
+        onChangeStatus={currentOrder ? (val: string) => handleChangeStatus(currentOrder.id, val) : undefined}
       />
 
       <Card>
@@ -248,21 +274,31 @@ export default function OrdersPage() {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
-                      {order.status === 'ABERTO' && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="text-green-600 hover:text-green-700 hover:bg-green-100"
-                          title="Fechar Pedido"
-                          onClick={() => handleCloseOrder(order.id)}
-                          disabled={closingId === order.id}
-                        >
-                          {closingId === order.id ? (
+                      {order.status !== 'FECHADO' && (
+                        <div className="flex items-center gap-2">
+                          <Select
+                            value={order.status}
+                            onValueChange={(val) => {
+                              const confirmMsg = 'Tem certeza que deseja alterar o status do pedido?'
+                              if (!confirm(confirmMsg)) return
+                              handleChangeStatus(order.id, val)
+                            }}
+                            disabled={updatingStatusId === order.id}
+                          >
+                            <SelectTrigger className="w-[150px]">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="ABERTO">Aberto</SelectItem>
+                              <SelectItem value="EM_PREPARO">Em Preparo</SelectItem>
+                              <SelectItem value="ENTREGANDO">Entregando</SelectItem>
+                              <SelectItem value="FECHADO">Fechado</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          {updatingStatusId === order.id && (
                             <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : (
-                            <CheckCircle className="h-4 w-4" />
                           )}
-                        </Button>
+                        </div>
                       )}
                       <Button
                         variant="ghost"

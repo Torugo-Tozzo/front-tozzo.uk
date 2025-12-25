@@ -12,6 +12,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Plus, Minus, Trash2, Loader2 } from "lucide-react";
 import api from "@/services/api";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 type Product = {
   id: number;
@@ -35,6 +42,8 @@ interface ProductSelectionModalProps {
   initialOrderItems?: { produtoId: number; quantidade: number }[];
   isEditing?: boolean; // If editing, we might handle things differently
   onCloseOrder?: () => Promise<void>;
+  initialStatus?: string;
+  onChangeStatus?: (newStatus: string) => Promise<void> | void;
   readOnly?: boolean;
 }
 
@@ -49,6 +58,8 @@ export function ProductSelectionModal({
   initialOrderItems = DEFAULT_ITEMS,
   isEditing = false,
   onCloseOrder,
+  initialStatus,
+  onChangeStatus,
   readOnly = false,
 }: ProductSelectionModalProps) {
   const [products, setProducts] = useState<Product[]>([]);
@@ -56,6 +67,7 @@ export function ProductSelectionModal({
   const [clientName, setClientName] = useState(initialClientName);
   const [isLoading, setIsLoading] = useState(false);
   const [isClosingOrder, setIsClosingOrder] = useState(false);
+  const [status, setStatus] = useState<string | undefined>(initialStatus);
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
@@ -65,6 +77,12 @@ export function ProductSelectionModal({
       setSearchTerm("");
     }
   }, [isOpen, initialClientName]);
+
+  useEffect(() => {
+    if (isOpen) {
+      setStatus(initialStatus);
+    }
+  }, [isOpen, initialStatus]);
 
   useEffect(() => {
     if (isOpen && products.length > 0) {
@@ -276,29 +294,44 @@ export function ProductSelectionModal({
           </div>
         </div>
         <DialogFooter className="flex justify-between sm:justify-between">
-          {isEditing && onCloseOrder && !readOnly && (
-            <Button 
-              onClick={async () => {
-                setIsClosingOrder(true);
-                try {
-                  await onCloseOrder();
-                  onClose();
-                } finally {
-                  setIsClosingOrder(false);
-                }
-              }}
-              className="mr-auto bg-blue-600 hover:bg-blue-700 text-white"
-              disabled={isClosingOrder || isLoading}
-            >
-              {isClosingOrder ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Fechando...
-                </>
-              ) : (
-                "Fechar Pedido (Venda)"
-              )}
-            </Button>
+          {isEditing && !readOnly && (
+            <div className="mr-auto">
+              <div className="flex items-center gap-2">
+                <Select
+                  value={status}
+                  onValueChange={async (val: string) => {
+                    if (val === status) return
+                    const confirmMsg = 'Tem certeza que deseja alterar o status do pedido?'
+                    if (!confirm(confirmMsg)) return
+                    setIsClosingOrder(true)
+                    try {
+                      if (onChangeStatus) {
+                        await onChangeStatus(val)
+                      } else if (val === 'FECHADO' && onCloseOrder) {
+                        await onCloseOrder()
+                      }
+                      setStatus(val)
+                    } catch (err) {
+                      console.error('Error changing status', err)
+                      alert('Erro ao alterar status do pedido')
+                    } finally {
+                      setIsClosingOrder(false)
+                    }
+                  }}
+                >
+                  <SelectTrigger className="w-[200px]">
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ABERTO">Aberto</SelectItem>
+                    <SelectItem value="EM_PREPARO">Em Preparo</SelectItem>
+                    <SelectItem value="ENTREGANDO">Entregando</SelectItem>
+                    <SelectItem value="FECHADO">Fechado</SelectItem>
+                  </SelectContent>
+                </Select>
+                {isClosingOrder && <Loader2 className="h-4 w-4 animate-spin" />}
+              </div>
+            </div>
           )}
           <div className="flex gap-2 ml-auto">
             <Button variant="outline" onClick={onClose} disabled={isLoading || isClosingOrder}>
