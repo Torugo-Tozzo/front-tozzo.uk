@@ -8,3 +8,4 @@ Frontend do tozzo.uk
 
 - PREPARAR UM ARQUIVO DE CONFIGURAÇÃO, docker talvez, para se auto-configurar no servidor.
 - criar logica nas tabelas do front-end para ficar consultando /sincronizacao/devices/{id}/last-mod
+- Fazer a impressão de pedidos tambem pelo web. (deve tere lib pronta pra isso). 

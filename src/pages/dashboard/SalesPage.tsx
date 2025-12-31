@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import {
   Table,
   TableBody,
@@ -17,6 +17,7 @@ import api from "@/services/api"
 import { useAuth } from "@/contexts/AuthContext"
 import { ProductSelectionModal } from "@/components/ProductSelectionModal"
 import { Pagination } from "@/components/Pagination"
+import useSSE from "@/hooks/useSSE"
 
 type Sale = {
   id: number
@@ -69,6 +70,24 @@ export default function SalesPage() {
     setIsLoading(true)
     fetchSales().finally(() => setIsLoading(false))
   }, [page, limit])
+
+  const handleSSEPayload = useCallback((payload: any) => {
+    try {
+      const action = payload.action
+      const venda = payload.venda || payload.sale || (payload.order && payload.order.venda)
+      if (!venda) return
+      if (action === 'created') {
+        if (page === 1) setSales(prev => [venda, ...prev].slice(0, limit))
+      } else if (action === 'updated') {
+        setSales(prev => prev.map(s => (s.id === venda.id ? { ...s, ...venda } : s)))
+      } else if (action === 'deleted') {
+        setSales(prev => prev.filter(s => s.id !== venda.id))
+      }
+    } catch (e) { console.error('[Sales SSE handler] error', e) }
+  }, [page, limit])
+
+  // Start SSE listener (hook must be called at top-level)
+  useSSE(handleSSEPayload, { path: '/pedidos/stream' })
 
   const fetchSales = async () => {
     try {

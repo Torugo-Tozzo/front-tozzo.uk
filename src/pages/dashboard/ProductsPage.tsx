@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import {
   Table,
   TableBody,
@@ -31,6 +31,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Plus, Pencil, Trash2, ShoppingBag, Search, Loader2, Power } from "lucide-react"
 import api from "@/services/api"
+import useSSE from "@/hooks/useSSE"
 import { Pagination } from "@/components/Pagination"
 import { useAuth } from "@/contexts/AuthContext"
 
@@ -106,6 +107,23 @@ export default function ProductsPage() {
     }, 300)
     return () => clearTimeout(delayDebounceFn)
   }, [page, limit, search])
+
+  const handleProductsSSE = useCallback((payload: any) => {
+    try {
+      const action = payload.action
+      const produto = payload.produto
+      if (!produto) return
+      if (action === 'created') {
+        if (page === 1) setProducts(prev => [produto, ...prev].slice(0, limit))
+      } else if (action === 'updated') {
+        setProducts(prev => prev.map(p => (p.id === produto.id ? { ...p, ...produto } : p)))
+      } else if (action === 'deleted') {
+        setProducts(prev => prev.filter(p => p.id !== produto.id))
+      }
+    } catch (e) { console.error('[Products SSE handler] error', e) }
+  }, [page, limit])
+
+  useSSE(handleProductsSSE, { path: '/pedidos/stream' })
 
   const fetchProducts = async () => {
     try {

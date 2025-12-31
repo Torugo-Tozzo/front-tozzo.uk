@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import {
   Table,
   TableBody,
@@ -45,10 +45,116 @@ export default function OrdersPage() {
   const [updatingStatusId, setUpdatingStatusId] = useState<number | null>(null)
   
   const [statusFilter, setStatusFilter] = useState("NAO_FECHADOS")
+  const [newOrdersCount, setNewOrdersCount] = useState(0)
+  const esRef = useRef<EventSource | null>(null)
 
   useEffect(() => {
     fetchOrders()
   }, [page, limit, statusFilter])
+
+  // SSE: listen to server-sent events for pedidos changes using fetch so we can send Authorization header
+  useEffect(() => {
+    // intentionally mount once
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    let stopped = false
+    const ac = new AbortController()
+
+    const connect = async () => {
+      try {
+        const base = (api as any).defaults?.baseURL || window.location.origin
+        const url = `${String(base).replace(/\/$/, '')}/pedidos/stream`
+
+        // try to obtain token from api defaults, user context or localStorage
+        let token = undefined
+        try {
+          const authHeader = (api as any).defaults?.headers?.Authorization
+          if (typeof authHeader === 'string') token = authHeader.replace(/^Bearer\s+/i, '')
+        } catch {}
+        if (!token && (user as any)?.token) token = (user as any).token
+        if (!token) {
+          const stored = localStorage.getItem('tozzo_token')
+          if (stored) token = stored.replace(/^Bearer\s+/i, '')
+        }
+
+        const headers: Record<string, string> = {}
+        if (token) headers['Authorization'] = `Bearer ${token}`
+
+        const res = await fetch(url, { headers, signal: ac.signal })
+        if (!res.ok) {
+          console.error('SSE fetch error', res.status, await res.text())
+          return
+        }
+
+        const reader = res.body?.getReader()
+        if (!reader) return
+        esRef.current = null
+
+        const decoder = new TextDecoder()
+        let buf = ''
+
+        while (!stopped) {
+          const { done, value } = await reader.read()
+          if (done) break
+          buf += decoder.decode(value, { stream: true })
+          const parts = buf.split(/\n\n/)
+          buf = parts.pop() || ''
+          for (const part of parts) {
+            const lines = part.split(/\n/).filter(Boolean)
+            const dataLines = lines.filter(l => l.startsWith('data:')).map(l => l.replace(/^data:\s?/, ''))
+            if (dataLines.length === 0) continue
+            const dataStr = dataLines.join('\n')
+            try {
+              const payload = JSON.parse(dataStr)
+              const action = payload.action
+              const order = payload.order
+
+              // Handle actions respecting the current `statusFilter`.
+              // If an order is updated to FECHADO while the filter is NAO_FECHADOS,
+              // remove it from the list instead of ignoring the event.
+              if (action === 'created') {
+                // ignore created closed orders when showing only non-closed
+                if (statusFilter === 'NAO_FECHADOS' && order?.status === 'FECHADO') {
+                  // do nothing
+                } else {
+                  if (page === 1) {
+                    setOrders(prev => [order, ...prev].slice(0, limit))
+                  } else {
+                    setNewOrdersCount(c => c + 1)
+                  }
+                }
+              } else if (action === 'updated') {
+                if (statusFilter === 'NAO_FECHADOS' && order?.status === 'FECHADO') {
+                  // order became closed, remove from current list
+                  setOrders(prev => prev.filter((o: any) => o.id !== order.id))
+                } else {
+                  setOrders(prev => prev.map((o: any) => (o.id === order?.id ? order : o)))
+                }
+              } else if (action === 'deleted') {
+                setOrders(prev => prev.filter((o: any) => o.id !== order.id))
+              }
+            } catch (e) {
+              console.error('SSE parse error', e)
+            }
+          }
+        }
+      } catch (err: any) {
+        if (err.name === 'AbortError') return
+        console.error('SSE connection error', err)
+        // attempt reconnect after delay
+        if (!stopped) {
+          setTimeout(() => { if (!stopped) connect() }, 3000)
+        }
+      }
+    }
+
+    connect()
+
+    return () => {
+      stopped = true
+      try { ac.abort() } catch {}
+      esRef.current = null
+    }
+  }, [])
 
   const fetchOrders = async () => {
     try {
@@ -214,6 +320,20 @@ export default function OrdersPage() {
             </SelectContent>
           </Select>
         </div>
+        {newOrdersCount > 0 && (
+          <div>
+            <Button
+              variant="ghost"
+              onClick={() => {
+                setPage(1)
+                fetchOrders()
+                setNewOrdersCount(0)
+              }}
+            >
+              Mostrar {newOrdersCount} novos
+            </Button>
+          </div>
+        )}
       </div>
 
       <ProductSelectionModal
