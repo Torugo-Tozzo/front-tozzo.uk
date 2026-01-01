@@ -44,6 +44,7 @@ interface ProductSelectionModalProps {
   onCloseOrder?: () => Promise<void>;
   initialStatus?: string;
   onChangeStatus?: (newStatus: string) => Promise<void> | void;
+  onCancelSale?: () => Promise<void>;
   readOnly?: boolean;
 }
 
@@ -60,6 +61,7 @@ export function ProductSelectionModal({
   onCloseOrder,
   initialStatus,
   onChangeStatus,
+  onCancelSale,
   readOnly = false,
 }: ProductSelectionModalProps) {
   const [products, setProducts] = useState<Product[]>([]);
@@ -67,6 +69,7 @@ export function ProductSelectionModal({
   const [clientName, setClientName] = useState(initialClientName);
   const [isLoading, setIsLoading] = useState(false);
   const [isClosingOrder, setIsClosingOrder] = useState(false);
+  const [isCancellingSale, setIsCancellingSale] = useState(false);
   const [status, setStatus] = useState<string | undefined>(initialStatus);
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -334,6 +337,37 @@ export function ProductSelectionModal({
             </div>
           )}
           <div className="flex gap-2 ml-auto">
+            {readOnly && onCancelSale && (
+              <div className="mr-auto">
+                <Button
+                  variant="ghost"
+                  className="text-destructive hover:text-destructive"
+                  onClick={async () => {
+                    if (!confirm('Tem certeza que deseja cancelar esta venda?')) return
+                    setIsCancellingSale(true)
+                    try {
+                      await onCancelSale()
+                      onClose()
+                    } catch (err) {
+                      console.error('Error cancelling sale', err)
+                      alert('Erro ao cancelar venda')
+                    } finally {
+                      setIsCancellingSale(false)
+                    }
+                  }}
+                  disabled={isCancellingSale || isLoading || isClosingOrder}
+                >
+                  {isCancellingSale ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Cancelando...
+                    </>
+                  ) : (
+                    'Cancelar Venda'
+                  )}
+                </Button>
+              </div>
+            )}
             <Button variant="outline" onClick={onClose} disabled={isLoading || isClosingOrder}>
               {readOnly ? "Fechar" : "Cancelar"}
             </Button>

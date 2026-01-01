@@ -62,7 +62,7 @@ export default function OrdersPage() {
     const connect = async () => {
       try {
         const base = (api as any).defaults?.baseURL || window.location.origin
-        const url = `${String(base).replace(/\/$/, '')}/pedidos/stream`
+        const url = `${String(base).replace(/\/$/, '')}/stream`
 
         // try to obtain token from api defaults, user context or localStorage
         let token = undefined

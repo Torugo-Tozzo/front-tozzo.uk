@@ -116,7 +116,7 @@ export default function DashboardLayout() {
     const connect = async () => {
       try {
         const base = (api as any).defaults?.baseURL || window.location.origin
-        const url = `${String(base).replace(/\/$/, '')}/pedidos/stream`
+        const url = `${String(base).replace(/\/$/, '')}/stream`
 
         // try to obtain token from api defaults or localStorage
         let token = undefined
@@ -132,13 +132,11 @@ export default function DashboardLayout() {
         const headers: Record<string,string> = {}
         if (token) headers['Authorization'] = `Bearer ${token}`
 
-        console.log('[Dashboard SSE] connecting', { url, tokenPresent: !!token })
         const res = await fetch(url, { headers, signal: ac.signal })
         if (!res.ok) {
           console.error('[Dashboard SSE] fetch error', res.status)
           return
         }
-        console.log('[Dashboard SSE] connected')
         const reader = res.body?.getReader()
         if (!reader) return
 
@@ -163,7 +161,6 @@ export default function DashboardLayout() {
                 const payload = JSON.parse(dataStr)
                 const action = payload.action
                 const order = payload.order
-                console.log('[Dashboard SSE] payload', { action, order })
 
                 // handle simple cases locally to avoid full refetch
                 if (action === 'created') {

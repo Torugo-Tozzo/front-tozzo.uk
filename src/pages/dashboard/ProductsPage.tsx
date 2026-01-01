@@ -123,7 +123,7 @@ export default function ProductsPage() {
     } catch (e) { console.error('[Products SSE handler] error', e) }
   }, [page, limit])
 
-  useSSE(handleProductsSSE, { path: '/pedidos/stream' })
+  useSSE(handleProductsSSE, { path: '/stream' })
 
   const fetchProducts = async () => {
     try {

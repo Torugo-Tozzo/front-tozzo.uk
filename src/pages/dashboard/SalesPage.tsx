@@ -39,6 +39,7 @@ export default function SalesPage() {
   const [currentSaleItems, setCurrentSaleItems] = useState<{ produtoId: number | string; quantidade: number }[]>([])
   const [currentSaleClient, setCurrentSaleClient] = useState("")
   const [isReadOnlyModal, setIsReadOnlyModal] = useState(false)
+  const [currentSaleId, setCurrentSaleId] = useState<number | null>(null)
 
   const [isLoading, setIsLoading] = useState(false)
   const [isLoadingDetails, setIsLoadingDetails] = useState(false)
@@ -87,7 +88,7 @@ export default function SalesPage() {
   }, [page, limit])
 
   // Start SSE listener (hook must be called at top-level)
-  useSSE(handleSSEPayload, { path: '/pedidos/stream' })
+  useSSE(handleSSEPayload, { path: '/stream' })
 
   const fetchSales = async () => {
     try {
@@ -194,11 +195,15 @@ export default function SalesPage() {
           }
         }
 
-        // Fallback: try GET /vendas/{id} in case server exposes it
+        // Fallback: try GET /vendas with query param `id` (some APIs expose list endpoint only)
         if (itemsFound.length === 0) {
           try {
-            const resp2 = await api.get(`/vendas/${sale.id}`)
-            const vendaData = resp2.data && (resp2.data.venda || resp2.data)
+            const resp2 = await api.get(`/vendas`, { params: { id: sale.id } })
+            // resp2 may contain { venda }, { vendas }, { data }, or be an array
+            let vendaData: any = null
+            if (resp2.data) {
+              vendaData = resp2.data.venda || (Array.isArray(resp2.data) ? resp2.data[0] : resp2.data.vendas?.[0] || resp2.data.data?.[0])
+            }
             if (vendaData && vendaData.itens) {
               itemsFound = vendaData.itens.map((item: any) => ({
                 produtoId: item.produtoId ?? (item.produto ? item.produto.id : undefined),
@@ -214,6 +219,7 @@ export default function SalesPage() {
       }
 
       setCurrentSaleClient(sale.cliente)
+      setCurrentSaleId(sale.id)
       setIsReadOnlyModal(true)
       setIsModalOpen(true)
     } catch (error) {
@@ -228,7 +234,20 @@ export default function SalesPage() {
     setCurrentSaleClient("")
     setCurrentSaleItems([])
     setIsReadOnlyModal(false)
+    setCurrentSaleId(null)
     setIsModalOpen(true)
+  }
+
+  const handleCancelSale = async (id: number) => {
+    try {
+      await api.delete(`/vendas/${id}`)
+      await fetchSales()
+      setIsModalOpen(false)
+      setCurrentSaleId(null)
+    } catch (error) {
+      console.error('Error cancelling sale', error)
+      alert('Erro ao cancelar venda')
+    }
   }
 
   return (
@@ -304,12 +323,13 @@ export default function SalesPage() {
 
       <ProductSelectionModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={() => { setIsModalOpen(false); setCurrentSaleId(null); setIsReadOnlyModal(false) }}
         onConfirm={handleModalConfirm}
         title={isReadOnlyModal ? "Detalhes da Venda" : "Nova Venda"}
         initialClientName={currentSaleClient}
         initialOrderItems={currentSaleItems as any}
         readOnly={isReadOnlyModal}
+        onCancelSale={isReadOnlyModal && currentSaleId ? async () => handleCancelSale(currentSaleId) : undefined}
       />
 
       <Card>

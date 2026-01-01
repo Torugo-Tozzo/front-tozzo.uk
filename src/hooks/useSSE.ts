@@ -8,7 +8,7 @@ type UseSSEOptions = {
 
 // onPayload will be called with parsed JSON payloads from the stream
 export function useSSE(onPayload: (payload: any) => void, options: UseSSEOptions = {}) {
-  const { path = '/pedidos/stream', enabled = true } = options
+  const { path = '/stream', enabled = true } = options
   const [key, setKey] = useState(0) // allow manual reconnect
   const stoppedRef = useRef(false)
 
@@ -36,7 +36,6 @@ export function useSSE(onPayload: (payload: any) => void, options: UseSSEOptions
         const headers: Record<string, string> = {}
         if (token) headers['Authorization'] = `Bearer ${token}`
 
-        console.log('[useSSE] connecting', url)
         const res = await fetch(url, { headers, signal: ac.signal })
         if (!res.ok) {
           console.error('[useSSE] fetch error', res.status)
