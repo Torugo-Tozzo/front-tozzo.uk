@@ -33,156 +33,51 @@ type Order = {
 
 export default function OrdersPage() {
   const { user } = useAuth()
+  const [page, setPage] = useState<number>(1)
+  const [limit, setLimit] = useState<number>(10)
+  const [statusFilter, setStatusFilter] = useState<string>('NAO_FECHADOS')
   const [orders, setOrders] = useState<Order[]>([])
-  const [page, setPage] = useState(1)
-  const [limit, setLimit] = useState(10)
-  const [totalPages, setTotalPages] = useState(0)
-  const [hasMore, setHasMore] = useState(false)
-  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [totalPages, setTotalPages] = useState<number>(0)
+  const [hasMore, setHasMore] = useState<boolean>(false)
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false)
   const [currentOrder, setCurrentOrder] = useState<Order | null>(null)
-  const [currentOrderItems, setCurrentOrderItems] = useState<{ produtoId: number | string; quantidade: number }[]>([])
+  const [currentOrderItems, setCurrentOrderItems] = useState<any[]>([])
   const [deletingId, setDeletingId] = useState<number | null>(null)
   const [updatingStatusId, setUpdatingStatusId] = useState<number | null>(null)
-  
-  const [statusFilter, setStatusFilter] = useState("NAO_FECHADOS")
-  const [newOrdersCount, setNewOrdersCount] = useState(0)
-  const esRef = useRef<EventSource | null>(null)
+  const [newOrdersCount, setNewOrdersCount] = useState<number>(0)
+  const ordersRef = useRef<Order[]>([])
 
-  useEffect(() => {
-    fetchOrders()
-  }, [page, limit, statusFilter])
+  const loadOrdersRaw = async () => {
+    const params: any = { page, limit }
+    if (statusFilter !== 'NAO_FECHADOS') params.status = statusFilter
 
-  // SSE: listen to server-sent events for pedidos changes using fetch so we can send Authorization header
-  useEffect(() => {
-    // intentionally mount once
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    let stopped = false
-    const ac = new AbortController()
+    const response = await api.get(`/pedidos`, { params })
 
-    const connect = async () => {
-      try {
-        const base = (api as any).defaults?.baseURL || window.location.origin
-        const url = `${String(base).replace(/\/$/, '')}/stream`
+    let data: any[] = []
+    let total = 0
 
-        // try to obtain token from api defaults, user context or localStorage
-        let token = undefined
-        try {
-          const authHeader = (api as any).defaults?.headers?.Authorization
-          if (typeof authHeader === 'string') token = authHeader.replace(/^Bearer\s+/i, '')
-        } catch {}
-        if (!token && (user as any)?.token) token = (user as any).token
-        if (!token) {
-          const stored = localStorage.getItem('tozzo_token')
-          if (stored) token = stored.replace(/^Bearer\s+/i, '')
-        }
-
-        const headers: Record<string, string> = {}
-        if (token) headers['Authorization'] = `Bearer ${token}`
-
-        const res = await fetch(url, { headers, signal: ac.signal })
-        if (!res.ok) {
-          console.error('SSE fetch error', res.status, await res.text())
-          return
-        }
-
-        const reader = res.body?.getReader()
-        if (!reader) return
-        esRef.current = null
-
-        const decoder = new TextDecoder()
-        let buf = ''
-
-        while (!stopped) {
-          const { done, value } = await reader.read()
-          if (done) break
-          buf += decoder.decode(value, { stream: true })
-          const parts = buf.split(/\n\n/)
-          buf = parts.pop() || ''
-          for (const part of parts) {
-            const lines = part.split(/\n/).filter(Boolean)
-            const dataLines = lines.filter(l => l.startsWith('data:')).map(l => l.replace(/^data:\s?/, ''))
-            if (dataLines.length === 0) continue
-            const dataStr = dataLines.join('\n')
-            try {
-              const payload = JSON.parse(dataStr)
-              const action = payload.action
-              const order = payload.order
-
-              // Handle actions respecting the current `statusFilter`.
-              // If an order is updated to FECHADO while the filter is NAO_FECHADOS,
-              // remove it from the list instead of ignoring the event.
-              if (action === 'created') {
-                // ignore created closed orders when showing only non-closed
-                if (statusFilter === 'NAO_FECHADOS' && order?.status === 'FECHADO') {
-                  // do nothing
-                } else {
-                  if (page === 1) {
-                    setOrders(prev => [order, ...prev].slice(0, limit))
-                  } else {
-                    setNewOrdersCount(c => c + 1)
-                  }
-                }
-              } else if (action === 'updated') {
-                if (statusFilter === 'NAO_FECHADOS' && order?.status === 'FECHADO') {
-                  // order became closed, remove from current list
-                  setOrders(prev => prev.filter((o: any) => o.id !== order.id))
-                } else {
-                  setOrders(prev => prev.map((o: any) => (o.id === order?.id ? order : o)))
-                }
-              } else if (action === 'deleted') {
-                setOrders(prev => prev.filter((o: any) => o.id !== order.id))
-              }
-            } catch (e) {
-              console.error('SSE parse error', e)
-            }
-          }
-        }
-      } catch (err: any) {
-        if (err.name === 'AbortError') return
-        console.error('SSE connection error', err)
-        // attempt reconnect after delay
-        if (!stopped) {
-          setTimeout(() => { if (!stopped) connect() }, 3000)
-        }
-      }
+    if (response.data.data) {
+      data = response.data.data
+      total = response.data.total || response.data.count || 0
+    } else if (Array.isArray(response.data)) {
+      data = response.data
+      const totalHeader = response.headers['x-total-count']
+      total = totalHeader ? parseInt(totalHeader) : 0
     }
 
-    connect()
-
-    return () => {
-      stopped = true
-      try { ac.abort() } catch {}
-      esRef.current = null
+    if (statusFilter === 'NAO_FECHADOS') {
+      data = data.filter((o: any) => o.status !== 'FECHADO')
+      total = data.length
     }
-  }, [])
+
+    return { data, total }
+  }
 
   const fetchOrders = async () => {
     try {
-      const params: any = { page, limit }
-      if (statusFilter !== 'NAO_FECHADOS') params.status = statusFilter
-
-      const response = await api.get(`/pedidos`, { params })
-
-      let data: any[] = []
-      let total = 0
-
-      if (response.data.data) {
-        data = response.data.data
-        total = response.data.total || response.data.count || 0
-      } else if (Array.isArray(response.data)) {
-        data = response.data
-        const totalHeader = response.headers['x-total-count']
-        total = totalHeader ? parseInt(totalHeader) : 0
-      }
-
-      // If client requested "Não Fechados", filter out FECHADO on client-side
-      if (statusFilter === 'NAO_FECHADOS') {
-        data = data.filter((o: any) => o.status !== 'FECHADO')
-        // total should reflect filtered results when server can't provide that
-        total = data.length
-      }
-
+      const { data, total } = await loadOrdersRaw()
       setOrders(data)
+      ordersRef.current = data
 
       if (total > 0) {
         setTotalPages(Math.ceil(total / limit))
@@ -195,6 +90,92 @@ export default function OrdersPage() {
       console.error("Error fetching orders", error)
     }
   }
+
+  useEffect(() => {
+    fetchOrders()
+  }, [page, limit, statusFilter])
+
+  // Polling: every 8 seconds check for updates and update state only if changed
+  // But only run polling when the page/tab is visible. When the tab becomes visible
+  // do an immediate poll and resume the interval. Pause polling when hidden.
+  useEffect(() => {
+    let mounted = true
+    let interval: number | null = null
+
+    const isOrdersEqual = (a: Order[], b: Order[]) => {
+      if (a.length !== b.length) return false
+      for (let i = 0; i < a.length; i++) {
+        const ai = a[i]
+        const bi = b[i]
+        if (ai.id !== bi.id) return false
+        if (ai.status !== bi.status) return false
+        if ((ai.updatedAt || ai.dataCriacao) !== (bi.updatedAt || bi.dataCriacao)) return false
+        if (ai.total !== bi.total) return false
+      }
+      return true
+    }
+
+    const poll = async () => {
+      try {
+        const { data } = await loadOrdersRaw()
+        if (!mounted) return
+
+        const previous = ordersRef.current || []
+        if (!isOrdersEqual(previous, data)) {
+          setOrders(data)
+          ordersRef.current = data
+
+          // if new items were added at the top (only when page === 1), show count
+          if (page === 1 && data.length > previous.length) {
+            setNewOrdersCount(data.length - previous.length)
+          }
+        } else {
+        }
+      } catch (err) {
+        console.error('[OrdersPage] Error polling orders', err)
+      }
+    }
+
+    const startPolling = () => {
+      if (interval != null) return
+      poll()
+      interval = window.setInterval(poll, 8000)
+    }
+
+    const stopPolling = () => {
+      if (interval != null) {
+        clearInterval(interval)
+        interval = null
+      }
+    }
+
+    const handleVisibilityChange = () => {
+      if (!mounted) return
+      const visibility = (typeof document !== 'undefined' && document.visibilityState) || 'unknown'
+      if (visibility === 'visible') {
+        startPolling()
+      } else {
+        stopPolling()
+      }
+    }
+
+    // start polling only if the page is visible
+    if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+      startPolling()
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    window.addEventListener('focus', handleVisibilityChange)
+    window.addEventListener('blur', handleVisibilityChange)
+
+    return () => {
+      mounted = false
+      stopPolling()
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+      window.removeEventListener('focus', handleVisibilityChange)
+      window.removeEventListener('blur', handleVisibilityChange)
+    }
+  }, [page, limit, statusFilter])
 
   const handleOpenCreateModal = () => {
     setCurrentOrder(null)
@@ -217,7 +198,8 @@ export default function OrdersPage() {
       if (orderData && orderData.itens) {
         const items = orderData.itens.map((item: any) => ({
           produtoId: item.produtoId ?? (item.produto ? item.produto.id : undefined),
-          quantidade: Number(item.quantidade) || 0
+          quantidade: Number(item.quantidade) || 0,
+          precoHistorico: item.precoHistorico != null ? Number(item.precoHistorico) : (item.preco != null ? Number(item.preco) : (item.produto ? Number(item.produto.preco || 0) : undefined)),
         })).filter((i: any) => i.produtoId != null && i.produtoId !== '')
         setCurrentOrderItems(items)
       } else {
@@ -230,7 +212,7 @@ export default function OrdersPage() {
     setIsModalOpen(true)
   }
 
-  const handleModalConfirm = async (cliente: string, itens: { produtoId: number; quantidade: number }[]) => {
+  const handleModalConfirm = async (cliente: string, itens: { produtoId: number; quantidade: number; precoHistorico?: number }[]) => {
     try {
       if (currentOrder) {
         // Edit Mode - Full Update via PUT

@@ -30,16 +30,17 @@ export type SelectedItem = {
   produtoId: number;
   quantidade: number;
   nome: string;
-  preco: number;
+  preco: number; // current product price (for reference)
+  precoHistorico: number; // snapshot price to send with the order/sale
 };
 
 interface ProductSelectionModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: (cliente: string, itens: { produtoId: number; quantidade: number }[]) => Promise<void>;
+  onConfirm: (cliente: string, itens: { produtoId: number; quantidade: number; precoHistorico?: number }[]) => Promise<void>;
   title: string;
   initialClientName?: string;
-  initialOrderItems?: { produtoId: number; quantidade: number }[];
+  initialOrderItems?: { produtoId: number; quantidade: number; precoHistorico?: number }[];
   isEditing?: boolean; // If editing, we might handle things differently
   onCloseOrder?: () => Promise<void>;
   initialStatus?: string;
@@ -70,7 +71,7 @@ export function ProductSelectionModal({
   const [isLoading, setIsLoading] = useState(false);
   const [isClosingOrder, setIsClosingOrder] = useState(false);
   const [isCancellingSale, setIsCancellingSale] = useState(false);
-  const [status, setStatus] = useState<string | undefined>(initialStatus);
+  const [status, setStatus] = useState<string>(initialStatus ?? "");
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
@@ -83,7 +84,7 @@ export function ProductSelectionModal({
 
   useEffect(() => {
     if (isOpen) {
-      setStatus(initialStatus);
+      setStatus(initialStatus ?? "");
     }
   }, [isOpen, initialStatus]);
 
@@ -98,6 +99,7 @@ export function ProductSelectionModal({
               quantidade: item.quantidade,
               nome: product.nome,
               preco: product.preco,
+              precoHistorico: item.precoHistorico != null ? Number(item.precoHistorico) : Number(product.preco || 0),
             };
           }
           return null;
@@ -135,7 +137,7 @@ export function ProductSelectionModal({
       }
       return [
         ...prev,
-        { produtoId: product.id, quantidade: 1, nome: product.nome, preco: product.preco },
+        { produtoId: product.id, quantidade: 1, nome: product.nome, preco: product.preco, precoHistorico: Number(product.preco || 0) },
       ];
     });
   };
@@ -165,9 +167,10 @@ export function ProductSelectionModal({
     setIsLoading(true);
     try {
       const finalClientName = clientName.trim() || "Não Informado";
-      const itensPayload = selectedItems.map(({ produtoId, quantidade }) => ({
+      const itensPayload = selectedItems.map(({ produtoId, quantidade, precoHistorico, preco }) => ({
         produtoId,
         quantidade,
+        precoHistorico: precoHistorico != null ? Number(precoHistorico) : Number(preco || 0),
       }));
       
       await onConfirm(finalClientName, itensPayload);
@@ -183,7 +186,7 @@ export function ProductSelectionModal({
     p.nome.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const total = selectedItems.reduce((acc, item) => acc + (item.preco * item.quantidade), 0);
+  const total = selectedItems.reduce((acc, item) => acc + ((item.precoHistorico != null ? item.precoHistorico : item.preco) * item.quantidade), 0);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -249,7 +252,7 @@ export function ProductSelectionModal({
                       <div className="flex-1">
                         <p className="font-medium">{item.nome}</p>
                         <p className="text-sm text-gray-500 dark:text-gray-400">
-                          {item.quantidade} x R$ {Number(item.preco || 0).toFixed(2)}
+                          {item.quantidade} x R$ {Number((item.precoHistorico != null ? item.precoHistorico : item.preco) || 0).toFixed(2)}
                         </p>
                       </div>
                       <div className="flex items-center gap-2">

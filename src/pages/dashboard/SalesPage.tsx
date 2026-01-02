@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useRef } from "react"
 import {
   Table,
   TableBody,
@@ -17,7 +17,6 @@ import api from "@/services/api"
 import { useAuth } from "@/contexts/AuthContext"
 import { ProductSelectionModal } from "@/components/ProductSelectionModal"
 import { Pagination } from "@/components/Pagination"
-import useSSE from "@/hooks/useSSE"
 
 type Sale = {
   id: number
@@ -36,7 +35,7 @@ export default function SalesPage() {
   const [totalItems, setTotalItems] = useState(0)
   const [hasMore, setHasMore] = useState(false)
   
-  const [currentSaleItems, setCurrentSaleItems] = useState<{ produtoId: number | string; quantidade: number }[]>([])
+  const [currentSaleItems, setCurrentSaleItems] = useState<{ produtoId: number | string; quantidade: number; precoHistorico?: number }[]>([])
   const [currentSaleClient, setCurrentSaleClient] = useState("")
   const [isReadOnlyModal, setIsReadOnlyModal] = useState(false)
   const [currentSaleId, setCurrentSaleId] = useState<number | null>(null)
@@ -66,29 +65,122 @@ export default function SalesPage() {
   const [endDate, setEndDate] = useState(formatDate(now))
   const [endTime, setEndTime] = useState(formatTime(now))
   const [periodTotal, setPeriodTotal] = useState(0)
+  const salesRef = useRef<Sale[]>([])
 
   useEffect(() => {
     setIsLoading(true)
     fetchSales().finally(() => setIsLoading(false))
   }, [page, limit])
 
-  const handleSSEPayload = useCallback((payload: any) => {
-    try {
-      const action = payload.action
-      const venda = payload.venda || payload.sale || (payload.order && payload.order.venda)
-      if (!venda) return
-      if (action === 'created') {
-        if (page === 1) setSales(prev => [venda, ...prev].slice(0, limit))
-      } else if (action === 'updated') {
-        setSales(prev => prev.map(s => (s.id === venda.id ? { ...s, ...venda } : s)))
-      } else if (action === 'deleted') {
-        setSales(prev => prev.filter(s => s.id !== venda.id))
-      }
-    } catch (e) { console.error('[Sales SSE handler] error', e) }
-  }, [page, limit])
+  // Polling: every 8 seconds when page is visible.
+  // For polling we ALWAYS override date filters to: now (end) and now-24h (start),
+  // regardless of the user's selected filter values, to keep the result bounded.
+  useEffect(() => {
+    let mounted = true
+    let interval: number | null = null
 
-  // Start SSE listener (hook must be called at top-level)
-  useSSE(handleSSEPayload, { path: '/stream' })
+    const isSalesEqual = (a: Sale[], b: Sale[]) => {
+      if (a.length !== b.length) return false
+      for (let i = 0; i < a.length; i++) {
+        const ai = a[i]
+        const bi = b[i]
+        if (ai.id !== bi.id) return false
+        if (ai.total !== bi.total) return false
+        if ((ai.horario || '') !== (bi.horario || '')) return false
+      }
+      return true
+    }
+
+    const poll = async () => {
+      try {
+        const now = new Date()
+        const start = new Date(now.getTime() - 24 * 60 * 60 * 1000)
+
+        const params: any = { page, limit }
+        params.dataInicial = start.toISOString()
+        params.dataFinal = now.toISOString()
+
+        const response = await api.get(`/vendas`, { params })
+
+        let data: any[] = []
+        let total = 0
+        let fechamento = 0
+
+        if (response.data.vendas) {
+          data = response.data.vendas
+          fechamento = Number(response.data.fechamento) || 0
+          total = response.data.total || response.data.count || 0
+          if (!total && response.headers['x-total-count']) total = parseInt(response.headers['x-total-count'])
+          if (!total && data.length > 0) total = data.length
+        } else if (response.data.data) {
+          data = response.data.data
+          total = response.data.total || response.data.count || 0
+        } else if (Array.isArray(response.data)) {
+          data = response.data
+          const totalHeader = response.headers['x-total-count']
+          total = totalHeader ? parseInt(totalHeader) : 0
+        }
+
+        if (!mounted) return
+
+        const previous = salesRef.current || []
+        if (!isSalesEqual(previous, data)) {
+          setSales(data)
+          salesRef.current = data
+          setTotalItems(total)
+          setPeriodTotal(fechamento)
+
+          if (total > 0) {
+            setTotalPages(Math.ceil(total / limit))
+            setHasMore(page < Math.ceil(total / limit))
+          } else {
+            setTotalPages(0)
+            setHasMore(data.length === limit)
+          }
+        }
+      } catch (err) {
+        console.error('Error polling sales', err)
+      }
+    }
+
+    const startPolling = () => {
+      if (interval != null) return
+      poll()
+      interval = window.setInterval(poll, 8000)
+    }
+
+    const stopPolling = () => {
+      if (interval != null) {
+        clearInterval(interval)
+        interval = null
+      }
+    }
+
+    const handleVisibilityChange = () => {
+      if (!mounted) return
+      if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+        startPolling()
+      } else {
+        stopPolling()
+      }
+    }
+
+    if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+      startPolling()
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    window.addEventListener('focus', handleVisibilityChange)
+    window.addEventListener('blur', handleVisibilityChange)
+
+    return () => {
+      mounted = false
+      stopPolling()
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+      window.removeEventListener('focus', handleVisibilityChange)
+      window.removeEventListener('blur', handleVisibilityChange)
+    }
+  }, [page, limit])
 
   const fetchSales = async () => {
     try {
@@ -143,7 +235,7 @@ export default function SalesPage() {
     }
   }
 
-  const handleModalConfirm = async (cliente: string, itens: { produtoId: number; quantidade: number }[]) => {
+  const handleModalConfirm = async (cliente: string, itens: { produtoId: number; quantidade: number; precoHistorico?: number }[]) => {
     setIsLoading(true)
     try {
       await api.post("/vendas", {
@@ -170,6 +262,7 @@ export default function SalesPage() {
         const items = (sale as any).itens.map((item: any) => ({
           produtoId: item.produtoId ?? (item.produto ? item.produto.id : undefined),
           quantidade: Number(item.quantidade) || 0,
+          precoHistorico: item.precoHistorico != null ? Number(item.precoHistorico) : (item.preco != null ? Number(item.preco) : (item.produto ? Number(item.produto.preco || 0) : undefined)),
         })).filter((i: any) => i.produtoId != null && i.produtoId !== '')
         setCurrentSaleItems(items)
       } else {
@@ -187,6 +280,7 @@ export default function SalesPage() {
               itemsFound = pedidoData.itens.map((item: any) => ({
                 produtoId: item.produtoId ?? (item.produto ? item.produto.id : undefined),
                 quantidade: Number(item.quantidade) || 0,
+                precoHistorico: item.precoHistorico != null ? Number(item.precoHistorico) : (item.preco != null ? Number(item.preco) : (item.produto ? Number(item.produto.preco || 0) : undefined)),
               })).filter((i: any) => i.produtoId != null && i.produtoId !== '')
             }
           } catch (e) {
@@ -208,6 +302,7 @@ export default function SalesPage() {
               itemsFound = vendaData.itens.map((item: any) => ({
                 produtoId: item.produtoId ?? (item.produto ? item.produto.id : undefined),
                 quantidade: Number(item.quantidade) || 0,
+                precoHistorico: item.precoHistorico != null ? Number(item.precoHistorico) : (item.preco != null ? Number(item.preco) : (item.produto ? Number(item.produto.preco || 0) : undefined)),
               })).filter((i: any) => i.produtoId != null && i.produtoId !== '')
             }
           } catch (e) {
