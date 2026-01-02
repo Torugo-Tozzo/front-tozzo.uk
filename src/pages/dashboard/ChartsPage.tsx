@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useAuth } from "@/contexts/AuthContext"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -37,7 +37,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts"
-import { BarChart3, Search } from "lucide-react"
+import { BarChart3, Search, Loader2 } from "lucide-react"
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884d8", "#82ca9d", "#ffc658"];
 
@@ -76,6 +76,14 @@ export default function ChartsPage() {
   const [totalPages, setTotalPages] = useState(0)
   const [totalItems, setTotalItems] = useState(0)
   const [hasMore, setHasMore] = useState(false)
+
+  // Report generation state
+  const [reportGeneratingType, setReportGeneratingType] = useState<'excel' | 'pdf' | null>(null)
+  const [reportTaskId, setReportTaskId] = useState<string | null>(null)
+  const [reportStatusUrl, setReportStatusUrl] = useState<string | null>(null)
+  const [reportDownloadUrl, setReportDownloadUrl] = useState<string | null>(null)
+  const [reportError, setReportError] = useState<string | null>(null)
+  const pollTimerRef = useRef<number | null>(null)
 
   useEffect(() => {
     fetchTypes()
@@ -187,6 +195,153 @@ export default function ChartsPage() {
     fetchChartData()
     fetchDetailedData()
   }
+
+  const buildFilterBody = () => {
+    const body: any = {}
+    if (startDate && startTime) body.dataInicial = new Date(`${startDate}T${startTime}:00`).toISOString()
+    if (endDate && endTime) body.dataFinal = new Date(`${endDate}T${endTime}:59`).toISOString()
+    if (selectedTypeId && selectedTypeId !== "0") body.tipoProdutoId = parseInt(selectedTypeId)
+    return body
+  }
+
+  // downloadBlob removed in favor of downloadBlobWithRetry
+
+  const downloadBlobWithRetry = async (url: string, filename?: string, attempts = 3) => {
+    let lastErr: any = null
+    for (let i = 0; i < attempts; i++) {
+      try {
+        const path = url.startsWith('http') ? url.replace(window.location.origin, '') : url
+        const response = await api.get(path, { responseType: 'blob' } as any)
+        const blob = response.data instanceof Blob ? response.data : new Blob([response.data])
+        const link = document.createElement('a')
+        link.href = window.URL.createObjectURL(blob)
+        link.download = filename || 'relatorio'
+        document.body.appendChild(link)
+        link.click()
+        link.remove()
+        return
+      } catch (err) {
+        lastErr = err
+        const backoff = 500 * Math.pow(2, i)
+        await new Promise((r) => setTimeout(r, backoff))
+      }
+    }
+    console.error('All download attempts failed', lastErr)
+    setReportError('Falha ao baixar o arquivo após várias tentativas')
+    throw lastErr
+  }
+
+  const stopPolling = () => {
+    if (pollTimerRef.current) {
+      clearInterval(pollTimerRef.current)
+      pollTimerRef.current = null
+    }
+  }
+
+  const pollStatus = (taskId: string, statusPath?: string) => {
+    const statusPathNormalized = statusPath ? (statusPath.startsWith('http') ? statusPath.replace(window.location.origin, '') : statusPath) : `/graficos/relatorio/${taskId}`
+    let attempts = 0
+    const maxAttempts = 90 // allow ~3 minutes if interval 2s
+    const intervalMs = 2000
+    stopPolling()
+
+    return new Promise<any>((resolve, reject) => {
+      pollTimerRef.current = window.setInterval(async () => {
+        attempts += 1
+        try {
+          const resp = await api.get(statusPathNormalized, { headers: { Accept: 'application/json' } })
+          const data = resp.data
+          if (data?.status === 'done') {
+            stopPolling()
+            setReportGeneratingType(null)
+            setReportStatusUrl(null)
+            setReportTaskId(null)
+            setReportDownloadUrl(data.downloadUrl || data.download_url || null)
+            resolve(data)
+          } else if (data?.status === 'error') {
+            stopPolling()
+            setReportGeneratingType(null)
+            setReportError(data.error || 'Erro na geração do relatório')
+            reject(new Error(data.error || 'Erro na geração do relatório'))
+          }
+        } catch (err) {
+          console.error('Error polling report status', err)
+          if (attempts >= maxAttempts) {
+            stopPolling()
+            setReportGeneratingType(null)
+            setReportError('Tempo esgotado ao verificar status do relatório')
+            reject(new Error('Tempo esgotado ao verificar status do relatório'))
+          }
+        }
+      }, intervalMs)
+    })
+  }
+
+  const generateReport = async (tipo: 'excel' | 'pdf' = 'excel') => {
+    setReportError(null)
+    setReportGeneratingType(tipo)
+    setReportTaskId(null)
+    setReportStatusUrl(null)
+    setReportDownloadUrl(null)
+
+    try {
+      const body = buildFilterBody()
+      body.tipo = tipo
+      // no callbackUrl by default -> use polling
+      const response = await api.post('/graficos/relatorio', body)
+      if (response.status === 201) {
+        const resp = response.data || {}
+        const taskId = resp.taskId || resp.id || null
+        const statusUrl = resp.statusUrl || resp.status_url || (taskId ? `/graficos/relatorio/${taskId}` : null)
+        const downloadUrl = resp.downloadUrl || resp.download_url || null
+        setReportTaskId(taskId)
+        setReportStatusUrl(statusUrl)
+        setReportDownloadUrl(downloadUrl)
+
+        if (taskId) {
+          // wait until status === done, then download
+          try {
+            const statusResult = await pollStatus(taskId, statusUrl || undefined)
+            const finalDownload = statusResult?.downloadUrl || statusResult?.download_url || downloadUrl
+            if (finalDownload) {
+              await downloadBlobWithRetry(finalDownload, statusResult?.filename || resp.filename)
+              setReportGeneratingType(null)
+            } else {
+              setReportGeneratingType(null)
+              setReportError('Relatório pronto, mas sem URL de download')
+            }
+          } catch (err: any) {
+            console.error('Polling failed', err)
+            setReportGeneratingType(null)
+            setReportError(err?.message || 'Erro no polling do relatório')
+          }
+        } else if (downloadUrl) {
+          // No taskId (backend provided immediate download URL). Try download with retry.
+          try {
+            await downloadBlobWithRetry(downloadUrl, resp.filename)
+          } finally {
+            setReportGeneratingType(null)
+          }
+        } else {
+          setReportGeneratingType(null)
+          setReportError('Resposta inválida do servidor')
+        }
+      } else {
+        setReportGeneratingType(null)
+        setReportError('Falha ao iniciar geração do relatório')
+      }
+    } catch (err: any) {
+      console.error('Error generating report', err)
+      setReportGeneratingType(null)
+      setReportError(err?.response?.data?.message || 'Erro ao iniciar geração do relatório')
+    }
+  }
+
+  useEffect(() => {
+    return () => {
+      stopPolling()
+    }
+  }, [])
 
   const renderChart = () => {
     const tooltipStyle = { backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #e2e8f0', color: '#0f172a' }
@@ -325,10 +480,42 @@ export default function ChartsPage() {
               </Select>
             </div>
           </div>
-          <div className="mt-4 flex justify-end">
-            <Button className="w-full md:w-auto" onClick={handleSearch}>
-              <Search className="mr-2 h-4 w-4" /> Pesquisar
-            </Button>
+          <div className="mt-4 flex flex-col items-end">
+            <div className="flex gap-2 w-full md:w-auto justify-end">
+              <Button
+                className="w-full md:w-auto"
+                onClick={() => generateReport('excel')}
+                disabled={!!reportGeneratingType}
+              >
+                {reportGeneratingType === 'excel' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                Gerar Excel
+              </Button>
+              <Button
+                className="w-full md:w-auto"
+                onClick={() => generateReport('pdf')}
+                disabled={!!reportGeneratingType}
+              >
+                {reportGeneratingType === 'pdf' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                Gerar PDF
+              </Button>
+              <Button className="w-full md:w-auto" onClick={handleSearch}>
+                <Search className="mr-2 h-4 w-4" /> Pesquisar
+              </Button>
+            </div>
+            {reportGeneratingType && (
+              <div className="mt-2 text-sm text-muted-foreground">
+                Gerando relatório{reportGeneratingType ? ` (${reportGeneratingType.toUpperCase()})` : ''}... {reportStatusUrl ? (
+                  <>
+                    Ver status em{' '}
+                    <a className="underline" href={reportStatusUrl?.startsWith('http') ? reportStatusUrl : window.location.origin + (reportStatusUrl || '')} target="_blank" rel="noreferrer">status</a>
+                  </>
+                ) : null}
+              </div>
+            )}
+            {/* download link and task id hidden — download is automatic */}
+            {reportError && (
+              <div className="mt-2 text-sm text-red-600">{reportError}</div>
+            )}
           </div>
         </CardContent>
       </Card>
