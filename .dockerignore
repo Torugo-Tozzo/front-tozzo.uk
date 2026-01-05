@@ -2,9 +2,3 @@ node_modules
 dist
 .git
 .env
-.env.*
-*.log
-coverage
-npm-debug.log
-yarn-error.log
-.vite
