@@ -79,9 +79,7 @@ export default function ChartsPage() {
 
   // Report generation state
   const [reportGeneratingType, setReportGeneratingType] = useState<'excel' | 'pdf' | null>(null)
-  const [reportTaskId, setReportTaskId] = useState<string | null>(null)
   const [reportStatusUrl, setReportStatusUrl] = useState<string | null>(null)
-  const [reportDownloadUrl, setReportDownloadUrl] = useState<string | null>(null)
   const [reportError, setReportError] = useState<string | null>(null)
   const pollTimerRef = useRef<number | null>(null)
 
@@ -255,8 +253,6 @@ export default function ChartsPage() {
             stopPolling()
             setReportGeneratingType(null)
             setReportStatusUrl(null)
-            setReportTaskId(null)
-            setReportDownloadUrl(data.downloadUrl || data.download_url || null)
             resolve(data)
           } else if (data?.status === 'error') {
             stopPolling()
@@ -280,9 +276,7 @@ export default function ChartsPage() {
   const generateReport = async (tipo: 'excel' | 'pdf' = 'excel') => {
     setReportError(null)
     setReportGeneratingType(tipo)
-    setReportTaskId(null)
     setReportStatusUrl(null)
-    setReportDownloadUrl(null)
 
     try {
       const body = buildFilterBody()
@@ -294,9 +288,7 @@ export default function ChartsPage() {
         const taskId = resp.taskId || resp.id || null
         const statusUrl = resp.statusUrl || resp.status_url || (taskId ? `/graficos/relatorio/${taskId}` : null)
         const downloadUrl = resp.downloadUrl || resp.download_url || null
-        setReportTaskId(taskId)
         setReportStatusUrl(statusUrl)
-        setReportDownloadUrl(downloadUrl)
 
         if (taskId) {
           // wait until status === done, then download
