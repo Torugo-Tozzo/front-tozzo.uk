@@ -9,8 +9,7 @@ import {
   Menu,
   X,
   Users,
-  BarChart3,
-  Loader2
+  BarChart3
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
