@@ -28,6 +28,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { Skeleton } from "@/components/ui/skeleton"
 import { Plus, Pencil, Trash2, Users, Loader2, Search } from "lucide-react"
 import api from "@/services/api"
 import { Pagination } from "@/components/Pagination"
@@ -182,11 +183,6 @@ export default function EmployeesPage() {
 
   return (
     <div className="space-y-6">
-      {isLoading && (
-        <div className="flex justify-center items-center py-8">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </div>
-      )}
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
           <Users className="h-8 w-8" />
@@ -300,7 +296,21 @@ export default function EmployeesPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-                {employees.map((employee, index) => (
+              {isLoading ? (
+                  Array.from({ length: 5 }).map((_, i) => (
+                    <TableRow key={i}>
+                      <TableCell><Skeleton className="h-4 w-8" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-[200px]" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-[250px]" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-[100px]" /></TableCell>
+                      <TableCell className="text-right justify-end flex gap-2">
+                        <Skeleton className="h-8 w-8" />
+                        <Skeleton className="h-8 w-8" />
+                      </TableCell>
+                    </TableRow>
+                  ))
+              ) : (
+                employees.map((employee, index) => (
                 <TableRow key={employee.id}>
                     <TableCell className="font-medium">{(page - 1) * limit + index + 1}</TableCell>
                     <TableCell>{employee.nome}</TableCell>
@@ -348,7 +358,7 @@ export default function EmployeesPage() {
                     </div>
                   </TableCell>
                 </TableRow>
-              ))}
+              )))}
             </TableBody>
           </Table>
           <div className="mt-4 flex items-center justify-between">
@@ -363,6 +373,7 @@ export default function EmployeesPage() {
                 setLimit(newLimit)
                 setPage(1)
               }}
+              isLoading={isLoading}
             />
           </div>
         </CardContent>

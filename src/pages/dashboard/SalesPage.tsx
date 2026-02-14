@@ -17,6 +17,7 @@ import api from "@/services/api"
 import { useAuth } from "@/contexts/AuthContext"
 import { ProductSelectionModal } from "@/components/ProductSelectionModal"
 import { Pagination } from "@/components/Pagination"
+import { Skeleton } from "@/components/ui/skeleton"
 
 type Sale = {
   id: number
@@ -41,7 +42,7 @@ export default function SalesPage() {
   const [currentSaleId, setCurrentSaleId] = useState<number | null>(null)
 
   const [isLoading, setIsLoading] = useState(false)
-  const [isLoadingDetails, setIsLoadingDetails] = useState(false)
+  const [loadingSaleId, setLoadingSaleId] = useState<number | null>(null)
 
   // Use últimas 24 horas como padrão: end = now, start = now - 24h
   const formatDate = (d: Date) => {
@@ -68,8 +69,7 @@ export default function SalesPage() {
   const salesRef = useRef<Sale[]>([])
 
   useEffect(() => {
-    setIsLoading(true)
-    fetchSales().finally(() => setIsLoading(false))
+    fetchSales()
   }, [page, limit])
 
   // Polling: every 8 seconds when page is visible.
@@ -183,6 +183,7 @@ export default function SalesPage() {
   }, [page, limit])
 
   const fetchSales = async () => {
+    setIsLoading(true)
     try {
       const params: any = { page, limit }
       
@@ -232,6 +233,8 @@ export default function SalesPage() {
       }
     } catch (error) {
       console.error("Error fetching sales", error)
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -253,7 +256,7 @@ export default function SalesPage() {
   }
 
   const handleInfoClick = async (sale: Sale) => {
-    setIsLoadingDetails(true)
+    setLoadingSaleId(sale.id)
     try {
       // If the sale object already contains items, use them
       // (some APIs include itens in the list). Otherwise try to
@@ -321,7 +324,7 @@ export default function SalesPage() {
       console.error("Error fetching sale details", error)
       alert("Erro ao carregar detalhes da venda")
     } finally {
-      setIsLoadingDetails(false)
+      setLoadingSaleId(null)
     }
   }
 
@@ -347,17 +350,12 @@ export default function SalesPage() {
 
   return (
     <div className="space-y-6">
-      {(isLoading || isLoadingDetails) && (
-        <div className="flex justify-center items-center py-8">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </div>
-      )}
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
           <DollarSign className="h-8 w-8" />
           {`Vendas${user?.estabelecimento?.nomeFantasia ? ` do ${user.estabelecimento.nomeFantasia}` : ''}`}
         </h1>
-        <Button onClick={handleNewSaleClick}>
+        <Button onClick={handleNewSaleClick} disabled={isLoading}>
           <Plus className="mr-2 h-4 w-4" /> Nova Venda
         </Button>
       </div>
@@ -378,6 +376,7 @@ export default function SalesPage() {
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
+                disabled={isLoading}
               />
             </div>
             <div className="space-y-2">
@@ -387,6 +386,7 @@ export default function SalesPage() {
                 type="time"
                 value={startTime}
                 onChange={(e) => setStartTime(e.target.value)}
+                disabled={isLoading}
               />
             </div>
             <div className="space-y-2">
@@ -396,6 +396,7 @@ export default function SalesPage() {
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
+                disabled={isLoading}
               />
             </div>
             <div className="space-y-2">
@@ -405,12 +406,18 @@ export default function SalesPage() {
                 type="time"
                 value={endTime}
                 onChange={(e) => setEndTime(e.target.value)}
+                disabled={isLoading}
               />
             </div>
           </div>
           <div className="mt-4 flex justify-end">
-            <Button onClick={() => { setPage(1); fetchSales(); }} className="w-full md:w-auto">
-              <Search className="mr-2 h-4 w-4" /> Filtrar
+            <Button 
+              onClick={() => { setPage(1); fetchSales(); }} 
+              className="w-full md:w-auto"
+              disabled={isLoading}
+            >
+              {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
+              Filtrar
             </Button>
           </div>
         </CardContent>
@@ -455,12 +462,23 @@ export default function SalesPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {sales.map((sale, index) => (
+              {isLoading ? (
+                  Array.from({ length: 5 }).map((_, i) => (
+                    <TableRow key={i}>
+                      <TableCell><Skeleton className="h-4 w-8" /></TableCell>
+                      <TableCell><Skeleton className="h-6 w-6 rounded-full" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-[200px]" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-[150px]" /></TableCell>
+                      <TableCell className="text-right justify-end flex"><Skeleton className="h-4 w-16" /></TableCell>
+                    </TableRow>
+                  ))
+              ) : (
+                sales.map((sale, index) => (
                 <TableRow key={sale.id}>
                   <TableCell>{(page - 1) * limit + index + 1}</TableCell>
                   <TableCell>
-                    <Button variant="outline" size="icon" onClick={() => handleInfoClick(sale)}>
-                      <Info className="h-4 w-4" />
+                    <Button variant="outline" size="icon" onClick={() => handleInfoClick(sale)} disabled={loadingSaleId === sale.id}>
+                      {loadingSaleId === sale.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Info className="h-4 w-4" />}
                     </Button>
                   </TableCell>
                   <TableCell>{sale.cliente || "Não Informado"}</TableCell>
@@ -471,7 +489,7 @@ export default function SalesPage() {
                     {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(sale.total)}
                   </TableCell>
                 </TableRow>
-              ))}
+              )))}
             </TableBody>
           </Table>
           <Pagination
@@ -484,6 +502,7 @@ export default function SalesPage() {
               setLimit(newLimit)
               setPage(1)
             }}
+            isLoading={isLoading}
           />
         </CardContent>
       </Card>

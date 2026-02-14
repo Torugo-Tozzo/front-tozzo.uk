@@ -13,6 +13,7 @@ import { Plus, Pencil, Trash2, ShoppingCart, Loader2 } from "lucide-react"
 import api from "@/services/api"
 import { ProductSelectionModal } from "@/components/ProductSelectionModal"
 import { Pagination } from "@/components/Pagination"
+import { Skeleton } from "@/components/ui/skeleton"
 import {
   Select,
   SelectContent,
@@ -39,6 +40,7 @@ export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([])
   const [totalPages, setTotalPages] = useState<number>(0)
   const [hasMore, setHasMore] = useState<boolean>(false)
+  const [isLoading, setIsLoading] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false)
   const [currentOrder, setCurrentOrder] = useState<Order | null>(null)
   const [currentOrderItems, setCurrentOrderItems] = useState<any[]>([])
@@ -74,6 +76,7 @@ export default function OrdersPage() {
   }
 
   const fetchOrders = async () => {
+    setIsLoading(true)
     try {
       const { data, total } = await loadOrdersRaw()
       setOrders(data)
@@ -88,6 +91,8 @@ export default function OrdersPage() {
       }
     } catch (error) {
       console.error("Error fetching orders", error)
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -282,7 +287,7 @@ export default function OrdersPage() {
           <ShoppingCart className="h-8 w-8" />
           {`Pedidos${user?.estabelecimento?.nomeFantasia ? ` do ${user.estabelecimento.nomeFantasia}` : ''}`}
         </h1>
-        <Button onClick={handleOpenCreateModal}>
+        <Button onClick={handleOpenCreateModal} disabled={isLoading}>
           <Plus className="mr-2 h-4 w-4" /> Novo Pedido
         </Button>
       </div>
@@ -348,7 +353,23 @@ export default function OrdersPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-                {orders.map((order, index) => (
+              {isLoading ? (
+                  Array.from({ length: 5 }).map((_, i) => (
+                    <TableRow key={i}>
+                      <TableCell><Skeleton className="h-4 w-8" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-[150px]" /></TableCell>
+                      <TableCell><Skeleton className="h-5 w-24 rounded-full" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-[120px]" /></TableCell>
+                      <TableCell className="text-right justify-end flex"><Skeleton className="h-4 w-16" /></TableCell>
+                      <TableCell className="text-right justify-end flex gap-2">
+                        <Skeleton className="h-8 w-8" />
+                        <Skeleton className="h-8 w-8" />
+                        <Skeleton className="h-8 w-8" />
+                      </TableCell>
+                    </TableRow>
+                  ))
+              ) : (
+                orders.map((order, index) => (
                 <TableRow key={order.id}>
                   <TableCell>{(page - 1) * limit + index + 1}</TableCell>
                   <TableCell>{order.cliente || "Não Informado"}</TableCell>
@@ -416,7 +437,7 @@ export default function OrdersPage() {
                     </div>
                   </TableCell>
                 </TableRow>
-              ))}
+              )))}
             </TableBody>
           </Table>
           <Pagination
@@ -429,6 +450,7 @@ export default function OrdersPage() {
               setLimit(newLimit)
               setPage(1)
             }}
+            isLoading={isLoading}
           />
         </CardContent>
       </Card>

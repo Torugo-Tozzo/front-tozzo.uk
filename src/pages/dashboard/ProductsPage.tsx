@@ -28,6 +28,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { Skeleton } from "@/components/ui/skeleton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Plus, Pencil, Trash2, ShoppingBag, Search, Loader2, Power } from "lucide-react"
 import api from "@/services/api"
@@ -73,6 +74,7 @@ export default function ProductsPage() {
   const [hasMore, setHasMore] = useState(false)
   const [search, setSearch] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [isTypesLoading, setIsTypesLoading] = useState(false)
   const [deletingId, setDeletingId] = useState<number | null>(null)
 
   // Form states
@@ -94,6 +96,12 @@ export default function ProductsPage() {
   }, [])
 
   useEffect(() => {
+    // load all types for selects/lookup and load first page for types table
+    fetchTypesAll()
+  }, [])
+
+  useEffect(() => {
+    setIsTypesLoading(true)
     const delay = setTimeout(() => {
       fetchTypesPage()
     }, 300)
@@ -101,6 +109,7 @@ export default function ProductsPage() {
   }, [typesPage, typesLimit, typesSearch])
 
   useEffect(() => {
+    setIsLoading(true)
     const delayDebounceFn = setTimeout(() => {
       fetchProducts()
     }, 300)
@@ -108,6 +117,7 @@ export default function ProductsPage() {
   }, [page, limit, search])
 
   const fetchProducts = async () => {
+    setIsLoading(true)
     try {
       const response = await api.get(`/produtos?page=${page}&limit=${limit}&search=${search}`)
       
@@ -135,6 +145,8 @@ export default function ProductsPage() {
       }
     } catch (error) {
       console.error("Error fetching products", error)
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -157,6 +169,7 @@ export default function ProductsPage() {
 
   // fetch paginated types for the types table
   const fetchTypesPage = async () => {
+    setIsTypesLoading(true)
     try {
       const response = await api.get(`/tipos?page=${typesPage}&limit=${typesLimit}&all=true&search=${encodeURIComponent(typesSearch)}`)
 
@@ -192,6 +205,8 @@ export default function ProductsPage() {
       }
     } catch (error) {
       console.error("Error fetching paged types", error)
+    } finally {
+      setIsTypesLoading(false)
     }
   }
 
@@ -382,7 +397,7 @@ export default function ProductsPage() {
             <TabsContent value="products" className="mt-0">
               <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button onClick={resetForm}>
+                  <Button onClick={resetForm} disabled={isLoading}>
                     <Plus className="mr-2 h-4 w-4" /> Novo Produto
                   </Button>
                 </DialogTrigger>
@@ -451,7 +466,7 @@ export default function ProductsPage() {
             <TabsContent value="types" className="mt-0">
               <Dialog open={isAddTypeDialogOpen} onOpenChange={setIsAddTypeDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button onClick={resetTypeForm}>
+                  <Button onClick={resetTypeForm} disabled={isLoading}>
                     <Plus className="mr-2 h-4 w-4" /> Novo Tipo
                   </Button>
                 </DialogTrigger>
@@ -524,8 +539,22 @@ export default function ProductsPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {products
-                    .filter((product) => {
+                  {isLoading ? (
+                      Array.from({ length: 5 }).map((_, i) => (
+                        <TableRow key={i}>
+                          <TableCell><Skeleton className="h-4 w-8" /></TableCell>
+                          <TableCell><Skeleton className="h-4 w-[200px]" /></TableCell>
+                          <TableCell><Skeleton className="h-5 w-20 rounded-full" /></TableCell>
+                          <TableCell className="text-right justify-end flex"><Skeleton className="h-4 w-16" /></TableCell>
+                          <TableCell className="text-right justify-end gap-2 flex">
+                             <Skeleton className="h-8 w-8" />
+                             <Skeleton className="h-8 w-8" />
+                          </TableCell>
+                        </TableRow>
+                      ))
+                  ) : (
+                    products
+                      .filter((product) => {
                       const t = getType(product.tipoProdutoId)
                       // hide products whose type is explicitly inactive
                       return t ? (t.ativo !== false) : true
@@ -582,7 +611,7 @@ export default function ProductsPage() {
                         </div>
                       </TableCell>
                     </TableRow>
-                  ))}
+                  )))}
                 </TableBody>
               </Table>
               <Pagination
@@ -595,6 +624,7 @@ export default function ProductsPage() {
                   setLimit(newLimit)
                   setPage(1)
                 }}
+                isLoading={isLoading}
               />
             </CardContent>
           </Card>
@@ -631,7 +661,27 @@ export default function ProductsPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {pagedTypes.map((type, index) => (
+                  {isTypesLoading ? (
+                    Array.from({ length: 5 }).map((_, i) => (
+                      <TableRow key={i}>
+                        <TableCell><Skeleton className="h-4 w-8" /></TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Skeleton className="h-3 w-3 rounded-full" />
+                            <Skeleton className="h-4 w-[150px]" />
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Skeleton className="h-4 w-[100px]" />
+                        </TableCell>
+                        <TableCell className="text-right justify-end gap-2 flex">
+                          <Skeleton className="h-8 w-8" />
+                          <Skeleton className="h-8 w-8" />
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    pagedTypes.map((type, index) => (
                     <TableRow key={type.id} className={type.ativo === false ? 'opacity-60' : ''}>
                       <TableCell>{(typesPage - 1) * typesLimit + index + 1}</TableCell>
                       <TableCell>
@@ -679,7 +729,8 @@ export default function ProductsPage() {
                         </div>
                       </TableCell>
                     </TableRow>
-                  ))}
+                  ))
+                  )}
                 </TableBody>
               </Table>
               <div className="mb-4 text-sm text-muted-foreground">

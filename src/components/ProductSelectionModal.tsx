@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Plus, Minus, Trash2, Loader2 } from "lucide-react";
 import api from "@/services/api";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Select,
   SelectContent,
@@ -73,57 +74,66 @@ export function ProductSelectionModal({
   const [isCancellingSale, setIsCancellingSale] = useState(false);
   const [status, setStatus] = useState<string>(initialStatus ?? "");
   const [searchTerm, setSearchTerm] = useState("");
+  const [isProductsLoading, setIsProductsLoading] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
-      fetchProducts();
-      setClientName(initialClientName);
-      setSearchTerm("");
-    }
-  }, [isOpen, initialClientName]);
-
-  useEffect(() => {
-    if (isOpen) {
-      setStatus(initialStatus ?? "");
+      if (initialStatus) {
+        setStatus(initialStatus);
+      } else {
+        setStatus("");
+      }
     }
   }, [isOpen, initialStatus]);
 
+  // Combined fetch and hydrate to avoid flash of empty state
   useEffect(() => {
-    if (isOpen && products.length > 0) {
-      if (initialOrderItems && initialOrderItems.length > 0) {
-        const hydratedItems = initialOrderItems.map((item) => {
-          const product = products.find((p) => p.id === item.produtoId);
-          if (product) {
-            return {
-              produtoId: item.produtoId,
-              quantidade: item.quantidade,
-              nome: product.nome,
-              preco: product.preco,
-              precoHistorico: item.precoHistorico != null ? Number(item.precoHistorico) : Number(product.preco || 0),
-            };
-          }
-          return null;
-        }).filter((item): item is SelectedItem => item !== null);
-        setSelectedItems(hydratedItems);
-      } else {
-        setSelectedItems([]);
-      }
-    }
-  }, [isOpen, products, initialOrderItems]);
+    if (isOpen) {
+      // Immediate reset to show loading and clear stale data
+      setIsProductsLoading(true);
+      setSelectedItems([]); 
+      
+      setClientName(initialClientName);
+      setSearchTerm("");
+      
+      const loadData = async () => {
+        try {
+          const response = await api.get("/produtos");
+          const data = response.data.map((p: any) => ({
+            ...p,
+            preco: p.preco ? Number(p.preco) : 0
+          }));
+          setProducts(data);
 
-  const fetchProducts = async () => {
-    try {
-      const response = await api.get("/produtos");
-      // Ensure preco is a number
-      const data = response.data.map((p: any) => ({
-        ...p,
-        preco: p.preco ? Number(p.preco) : 0
-      }));
-      setProducts(data);
-    } catch (error) {
-      console.error("Error fetching products", error);
+          // Hydrate immediately with the fetched data
+          if (initialOrderItems && initialOrderItems.length > 0) {
+            const hydratedItems = initialOrderItems.map((item) => {
+              const product = data.find((p: any) => p.id === item.produtoId);
+              if (product) {
+                return {
+                  produtoId: item.produtoId,
+                  quantidade: item.quantidade,
+                  nome: product.nome,
+                  preco: product.preco, // preco atual
+                  precoHistorico: item.precoHistorico != null ? Number(item.precoHistorico) : Number(product.preco || 0),
+                };
+              }
+              return null;
+            }).filter((item: any): item is SelectedItem => item !== null);
+            setSelectedItems(hydratedItems);
+          } else {
+            setSelectedItems([]);
+          }
+        } catch (error) {
+          console.error("Error fetching products", error);
+        } finally {
+          setIsProductsLoading(false);
+        }
+      };
+
+      loadData();
     }
-  };
+  }, [isOpen, initialClientName, initialOrderItems]);
 
   const handleAddItem = (product: Product) => {
     setSelectedItems((prev) => {
@@ -219,23 +229,36 @@ export function ProductSelectionModal({
                   placeholder="Buscar produto..." 
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
+                  disabled={isProductsLoading}
                 />
                 <div className="h-[300px] overflow-y-auto space-y-2">
-                  {filteredProducts.map((product) => (
-                    <div
-                      key={product.id}
-                      className="flex items-center justify-between p-2 border rounded hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer"
-                      onClick={() => handleAddItem(product)}
-                    >
-                      <div>
-                        <p className="font-medium">{product.nome}</p>
-                        <p className="text-sm text-gray-500">R$ {Number(product.preco || 0).toFixed(2)}</p>
+                  {isProductsLoading ? (
+                    Array.from({ length: 6 }).map((_, i) => (
+                      <div key={i} className="flex items-center justify-between p-2 border rounded">
+                        <div className="space-y-2">
+                          <Skeleton className="h-4 w-[150px] bg-gray-200 dark:bg-gray-700" />
+                          <Skeleton className="h-3 w-[80px] bg-gray-200 dark:bg-gray-700" />
+                        </div>
+                        <Skeleton className="h-8 w-8 rounded-md bg-gray-200 dark:bg-gray-700" />
                       </div>
-                      <Button size="sm" variant="ghost">
-                        <Plus className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ))}
+                    ))
+                  ) : (
+                    filteredProducts.map((product) => (
+                      <div
+                        key={product.id}
+                        className="flex items-center justify-between p-2 border rounded hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer"
+                        onClick={() => handleAddItem(product)}
+                      >
+                        <div>
+                          <p className="font-medium">{product.nome}</p>
+                          <p className="text-sm text-gray-500">R$ {Number(product.preco || 0).toFixed(2)}</p>
+                        </div>
+                        <Button size="sm" variant="ghost">
+                          <Plus className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
             )}
@@ -244,57 +267,83 @@ export function ProductSelectionModal({
             <div className="space-y-4 border rounded-lg p-4 bg-gray-50 dark:bg-gray-900/50">
               <h3 className="font-semibold">Itens Selecionados</h3>
               <div className="h-[300px] overflow-y-auto space-y-2">
-                {selectedItems.length === 0 ? (
-                  <p className="text-gray-500 dark:text-gray-400 text-center py-8">Nenhum item selecionado</p>
-                ) : (
-                  selectedItems.map((item) => (
-                    <div key={item.produtoId} className="flex items-center justify-between p-2 bg-white dark:bg-gray-800 rounded shadow-sm border dark:border-gray-700">
-                      <div className="flex-1">
-                        <p className="font-medium">{item.nome}</p>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
-                          {item.quantidade} x R$ {Number((item.precoHistorico != null ? item.precoHistorico : item.preco) || 0).toFixed(2)}
-                        </p>
+                {isProductsLoading ? (
+                  Array.from({ length: 4 }).map((_, i) => (
+                    <div key={i} className="flex items-center justify-between p-2 bg-white dark:bg-gray-800 rounded shadow-sm border dark:border-gray-700">
+                      <div className="space-y-2 flex-1">
+                        <Skeleton className="h-4 w-[120px] bg-gray-200 dark:bg-gray-700" />
+                        <Skeleton className="h-3 w-[180px] bg-gray-200 dark:bg-gray-700" />
                       </div>
                       <div className="flex items-center gap-2">
-                        {!readOnly ? (
-                          <>
-                            <Button
-                              size="icon"
-                              variant="outline"
-                              className="h-6 w-6"
-                              onClick={() => handleUpdateQuantity(item.produtoId, -1)}
-                            >
-                              <Minus className="h-3 w-3" />
-                            </Button>
-                            <span className="w-4 text-center">{item.quantidade}</span>
-                            <Button
-                              size="icon"
-                              variant="outline"
-                              className="h-6 w-6"
-                              onClick={() => handleUpdateQuantity(item.produtoId, 1)}
-                            >
-                              <Plus className="h-3 w-3" />
-                            </Button>
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              className="h-6 w-6 text-red-500"
-                              onClick={() => handleRemoveItem(item.produtoId)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </>
+                        {readOnly ? (
+                            <Skeleton className="h-6 w-16 bg-gray-200 dark:bg-gray-700" />
                         ) : (
-                          <span className="font-bold px-4">{item.quantidade} un</span>
+                          <>
+                            <Skeleton className="h-6 w-6 rounded-md bg-gray-200 dark:bg-gray-700" />
+                            <Skeleton className="h-4 w-4 bg-gray-200 dark:bg-gray-700" />
+                            <Skeleton className="h-6 w-6 rounded-md bg-gray-200 dark:bg-gray-700" />
+                          </>
                         )}
                       </div>
                     </div>
                   ))
+                ) : (
+                  selectedItems.length === 0 ? (
+                    <p className="text-gray-500 dark:text-gray-400 text-center py-8">Nenhum item selecionado</p>
+                  ) : (
+                    selectedItems.map((item) => (
+                      <div key={item.produtoId} className="flex items-center justify-between p-2 bg-white dark:bg-gray-800 rounded shadow-sm border dark:border-gray-700">
+                        <div className="flex-1">
+                          <p className="font-medium">{item.nome}</p>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                            {item.quantidade} x R$ {Number((item.precoHistorico != null ? item.precoHistorico : item.preco) || 0).toFixed(2)}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {!readOnly ? (
+                            <>
+                              <Button
+                                size="icon"
+                                variant="outline"
+                                className="h-6 w-6"
+                                onClick={() => handleUpdateQuantity(item.produtoId, -1)}
+                              >
+                                <Minus className="h-3 w-3" />
+                              </Button>
+                              <span className="w-4 text-center">{item.quantidade}</span>
+                              <Button
+                                size="icon"
+                                variant="outline"
+                                className="h-6 w-6"
+                                onClick={() => handleUpdateQuantity(item.produtoId, 1)}
+                              >
+                                <Plus className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                className="h-6 w-6 text-red-500"
+                                onClick={() => handleRemoveItem(item.produtoId)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </>
+                          ) : (
+                            <span className="font-bold px-4">{item.quantidade} un</span>
+                          )}
+                        </div>
+                      </div>
+                    ))
+                  )
                 )}
               </div>
               <div className="pt-4 border-t flex justify-between items-center font-bold text-lg text-gray-900 dark:text-gray-100">
                 <span>Total:</span>
-                <span>R$ {total.toFixed(2)}</span>
+                {isProductsLoading ? (
+                   <Skeleton className="h-6 w-24 bg-gray-200 dark:bg-gray-700" />
+                ) : (
+                   <span>R$ {total.toFixed(2)}</span>
+                )}
               </div>
             </div>
           </div>

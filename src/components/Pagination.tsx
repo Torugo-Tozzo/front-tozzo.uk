@@ -15,6 +15,7 @@ interface PaginationProps {
   onPageChange: (page: number) => void
   pageSize: number
   onPageSizeChange: (size: number) => void
+  isLoading?: boolean
 }
 
 export function Pagination({ 
@@ -23,11 +24,12 @@ export function Pagination({
   hasMore, 
   onPageChange,
   pageSize,
-  onPageSizeChange
+  onPageSizeChange,
+  isLoading = false
 }: PaginationProps) {
-  const isNextDisabled = totalPages && totalPages > 0 
+  const isNextDisabled = (totalPages && totalPages > 0 
     ? currentPage >= totalPages 
-    : !hasMore;
+    : !hasMore) || isLoading;
 
   return (
     <div className="flex items-center justify-end space-x-4 py-4">
@@ -38,6 +40,7 @@ export function Pagination({
           onValueChange={(value) => {
             onPageSizeChange(Number(value))
           }}
+          disabled={isLoading}
         >
           <SelectTrigger className="h-8 w-[70px]">
             <SelectValue placeholder={pageSize.toString()} />
@@ -48,6 +51,7 @@ export function Pagination({
                 {size}
               </SelectItem>
             ))}
+          
           </SelectContent>
         </Select>
       </div>
@@ -60,7 +64,7 @@ export function Pagination({
           variant="outline"
           size="sm"
           onClick={() => onPageChange(currentPage - 1)}
-          disabled={currentPage <= 1}
+          disabled={currentPage <= 1 || isLoading}
         >
           <ChevronLeft className="h-4 w-4" />
           Anterior

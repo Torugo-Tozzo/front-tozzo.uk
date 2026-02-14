@@ -39,6 +39,8 @@ import {
 } from "recharts"
 import { BarChart3, Search, Loader2 } from "lucide-react"
 
+import { Skeleton } from "@/components/ui/skeleton"
+
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884d8", "#82ca9d", "#ffc658"];
 
 type ProductType = {
@@ -77,6 +79,10 @@ export default function ChartsPage() {
   const [totalItems, setTotalItems] = useState(0)
   const [hasMore, setHasMore] = useState(false)
 
+  const [isChartLoading, setIsChartLoading] = useState(false)
+  const [isTableLoading, setIsTableLoading] = useState(false)
+  const isLoading = isChartLoading || isTableLoading
+
   // Report generation state
   const [reportGeneratingType, setReportGeneratingType] = useState<'excel' | 'pdf' | null>(null)
   const [reportStatusUrl, setReportStatusUrl] = useState<string | null>(null)
@@ -103,6 +109,7 @@ export default function ChartsPage() {
   }
 
   const fetchChartData = async () => {
+    setIsChartLoading(true)
     try {
       const params: any = {}
       
@@ -136,10 +143,13 @@ export default function ChartsPage() {
     } catch (error) {
       console.error("Error fetching chart data", error)
       setChartData([])
+    } finally {
+      setIsChartLoading(false)
     }
   }
 
   const fetchDetailedData = async () => {
+    setIsTableLoading(true)
     try {
       const params: any = { page, limit }
       
@@ -185,13 +195,14 @@ export default function ChartsPage() {
     } catch (error) {
       console.error("Error fetching detailed data", error)
       setDetailedData([])
+    } finally {
+      setIsTableLoading(false)
     }
   }
 
-  const handleSearch = () => {
+  const handleSearch = async () => {
     setPage(1)
-    fetchChartData()
-    fetchDetailedData()
+    await Promise.all([fetchChartData(), fetchDetailedData()])
   }
 
   const buildFilterBody = () => {
@@ -429,6 +440,7 @@ export default function ChartsPage() {
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
+                disabled={isLoading}
               />
             </div>
             <div className="space-y-2">
@@ -437,6 +449,7 @@ export default function ChartsPage() {
                 type="time"
                 value={startTime}
                 onChange={(e) => setStartTime(e.target.value)}
+                disabled={isLoading}
               />
             </div>
             <div className="space-y-2">
@@ -445,6 +458,7 @@ export default function ChartsPage() {
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
+                disabled={isLoading}
               />
             </div>
             <div className="space-y-2">
@@ -453,11 +467,12 @@ export default function ChartsPage() {
                 type="time"
                 value={endTime}
                 onChange={(e) => setEndTime(e.target.value)}
+                disabled={isLoading}
               />
             </div>
             <div className="space-y-2">
               <Label>Tipo de Alimento</Label>
-              <Select value={selectedTypeId} onValueChange={setSelectedTypeId}>
+              <Select value={selectedTypeId} onValueChange={setSelectedTypeId} disabled={isLoading}>
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione" />
                 </SelectTrigger>
@@ -477,7 +492,7 @@ export default function ChartsPage() {
               <Button
                 className="w-full md:w-auto"
                 onClick={() => generateReport('excel')}
-                disabled={!!reportGeneratingType}
+                disabled={!!reportGeneratingType || isLoading || detailedData.length === 0}
               >
                 {reportGeneratingType === 'excel' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                 Gerar Excel
@@ -485,13 +500,14 @@ export default function ChartsPage() {
               <Button
                 className="w-full md:w-auto"
                 onClick={() => generateReport('pdf')}
-                disabled={!!reportGeneratingType}
+                disabled={!!reportGeneratingType || isLoading || detailedData.length === 0}
               >
                 {reportGeneratingType === 'pdf' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                 Gerar PDF
               </Button>
-              <Button className="w-full md:w-auto" onClick={handleSearch}>
-                <Search className="mr-2 h-4 w-4" /> Pesquisar
+              <Button className="w-full md:w-auto" onClick={handleSearch} disabled={isLoading}>
+                {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
+                Pesquisar
               </Button>
             </div>
             {reportGeneratingType && (
@@ -516,7 +532,7 @@ export default function ChartsPage() {
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle>Visualização de Vendas</CardTitle>
           <div className="w-[200px]">
-            <Select value={chartType} onValueChange={(value: any) => setChartType(value)}>
+            <Select value={chartType} onValueChange={(value: any) => setChartType(value)} disabled={isLoading}>
               <SelectTrigger>
                 <SelectValue placeholder="Selecione o gráfico" />
               </SelectTrigger>
@@ -530,30 +546,43 @@ export default function ChartsPage() {
           </div>
         </CardHeader>
         <CardContent>
-          {periodTotal && (
-            <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3">
-              <div className="rounded-lg border p-3">
-                <div className="text-sm font-medium text-muted-foreground">Total Faturado</div>
-                <div className="text-2xl font-bold">
-                  {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(periodTotal.totalFaturado)}
-                </div>
+          {isChartLoading ? (
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                 <Skeleton className="h-20 rounded-lg" />
+                 <Skeleton className="h-20 rounded-lg" />
+                 <Skeleton className="h-20 rounded-lg" />
               </div>
-              <div className="rounded-lg border p-3">
-                <div className="text-sm font-medium text-muted-foreground">Total de Vendas</div>
-                <div className="text-2xl font-bold">{periodTotal.totalNumeroVendas}</div>
-              </div>
-              <div className="rounded-lg border p-3">
-                <div className="text-sm font-medium text-muted-foreground">Unidades Vendidas</div>
-                <div className="text-2xl font-bold">{periodTotal.totalUnidadesVendidas}</div>
-              </div>
+              <Skeleton className="h-[400px] w-full rounded-lg" />
             </div>
-          )}
-          {chartData.length > 0 ? (
-            renderChart()
           ) : (
-            <div className="flex h-[400px] items-center justify-center text-muted-foreground">
-              Nenhum dado encontrado para os filtros selecionados.
-            </div>
+            <>
+              {periodTotal && (
+                <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3">
+                  <div className="rounded-lg border p-3">
+                    <div className="text-sm font-medium text-muted-foreground">Total Faturado</div>
+                    <div className="text-2xl font-bold">
+                      {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(periodTotal.totalFaturado)}
+                    </div>
+                  </div>
+                  <div className="rounded-lg border p-3">
+                    <div className="text-sm font-medium text-muted-foreground">Total de Vendas</div>
+                    <div className="text-2xl font-bold">{periodTotal.totalNumeroVendas}</div>
+                  </div>
+                  <div className="rounded-lg border p-3">
+                    <div className="text-sm font-medium text-muted-foreground">Unidades Vendidas</div>
+                    <div className="text-2xl font-bold">{periodTotal.totalUnidadesVendidas}</div>
+                  </div>
+                </div>
+              )}
+              {chartData.length > 0 ? (
+                renderChart()
+              ) : (
+                <div className="flex h-[400px] items-center justify-center text-muted-foreground">
+                  Nenhum dado encontrado para os filtros selecionados.
+                </div>
+              )}
+            </>
           )}
         </CardContent>
       </Card>
@@ -577,16 +606,35 @@ export default function ChartsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {detailedData.map((item, index) => (
-                <TableRow key={item.id || index}>
-                  <TableCell>{(page - 1) * limit + index + 1}</TableCell>
-                  <TableCell>{item.nome}</TableCell>
-                  <TableCell className="text-right">{item.quantidadeVendida}</TableCell>
-                  <TableCell className="text-right">
-                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.totalFaturado)}
-                  </TableCell>
-                </TableRow>
-              ))}
+              {isTableLoading ? (
+                Array.from({ length: limit || 10 }).map((_, i) => (
+                  <TableRow key={i}>
+                    <TableCell>
+                      <Skeleton className="h-4 w-8" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-[200px]" />
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Skeleton className="h-4 w-12 ml-auto" />
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Skeleton className="h-4 w-24 ml-auto" />
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                detailedData.map((item, index) => (
+                  <TableRow key={item.id || index}>
+                    <TableCell>{(page - 1) * limit + index + 1}</TableCell>
+                    <TableCell>{item.nome}</TableCell>
+                    <TableCell className="text-right">{item.quantidadeVendida}</TableCell>
+                    <TableCell className="text-right">
+                      {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.totalFaturado)}
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
           <Pagination
@@ -599,6 +647,7 @@ export default function ChartsPage() {
               setLimit(newLimit)
               setPage(1)
             }}
+            isLoading={isTableLoading}
           />
         </CardContent>
       </Card>

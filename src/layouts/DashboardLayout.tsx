@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { Link, Outlet, useLocation } from "react-router-dom"
 import { 
   LayoutDashboard, 
@@ -9,12 +9,14 @@ import {
   Menu,
   X,
   Users,
-  BarChart3
+  BarChart3,
+  Loader2
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { ModeToggle } from "@/components/mode-toggle"
 import { Footer } from "@/components/Footer"
+import { LoadingOverlay } from "@/components/LoadingOverlay"
 import logo from "@/assets/images/logo.png"
 import { useAuth } from "@/contexts/AuthContext"
 import api from "@/services/api"
@@ -148,7 +150,9 @@ export default function DashboardLayout() {
         </header>
 
         <main className="flex-1 p-4 md:p-6 overflow-auto">
-          <Outlet />
+          <Suspense fallback={<LoadingOverlay />}>
+            <Outlet />
+          </Suspense>
         </main>
         
         <Footer />
