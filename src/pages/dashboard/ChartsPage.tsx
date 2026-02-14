@@ -67,7 +67,7 @@ export default function ChartsPage() {
   // Data
   const [chartData, setChartData] = useState<any[]>([])
   const [productTypes, setProductTypes] = useState<ProductType[]>([])
-  const [periodTotal, setPeriodTotal] = useState<{ totalUnidadesVendidas: number, totalFaturado: number } | null>(null)
+  const [periodTotal, setPeriodTotal] = useState<{ totalUnidadesVendidas: number, totalFaturado: number, totalNumeroVendas: number } | null>(null)
 
   // Detailed List Data
   const [detailedData, setDetailedData] = useState<any[]>([])
@@ -531,12 +531,16 @@ export default function ChartsPage() {
         </CardHeader>
         <CardContent>
           {periodTotal && (
-            <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3">
               <div className="rounded-lg border p-3">
                 <div className="text-sm font-medium text-muted-foreground">Total Faturado</div>
                 <div className="text-2xl font-bold">
                   {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(periodTotal.totalFaturado)}
                 </div>
+              </div>
+              <div className="rounded-lg border p-3">
+                <div className="text-sm font-medium text-muted-foreground">Total de Vendas</div>
+                <div className="text-2xl font-bold">{periodTotal.totalNumeroVendas}</div>
               </div>
               <div className="rounded-lg border p-3">
                 <div className="text-sm font-medium text-muted-foreground">Unidades Vendidas</div>
