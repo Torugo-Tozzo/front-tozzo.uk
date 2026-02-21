@@ -22,6 +22,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Pagination } from "@/components/Pagination"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   BarChart,
   Bar,
@@ -37,7 +38,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts"
-import { BarChart3, Search, Loader2 } from "lucide-react"
+import { BarChart3, Search, Loader2, ChevronLeft, ChevronRight, Clock } from "lucide-react"
 
 import { Skeleton } from "@/components/ui/skeleton"
 
@@ -88,6 +89,14 @@ export default function ChartsPage() {
   const [reportStatusUrl, setReportStatusUrl] = useState<string | null>(null)
   const [reportError, setReportError] = useState<string | null>(null)
   const pollTimerRef = useRef<number | null>(null)
+
+  // Sales by Hour state
+  const [salesByHourStartDate, setSalesByHourStartDate] = useState(getTodayDate())
+  const [salesByHourEndDate, setSalesByHourEndDate] = useState(getTodayDate())
+  const [salesByHourPage, setSalesByHourPage] = useState(0) // offset in days from start date
+  const [salesByHourData, setSalesByHourData] = useState<any[]>([]) // raw API data
+  const [salesByHourChartData, setSalesByHourChartData] = useState<any[]>([]) // aggregated by hour
+  const [isSalesByHourLoading, setIsSalesByHourLoading] = useState(false)
 
   useEffect(() => {
     fetchTypes()
@@ -204,6 +213,90 @@ export default function ChartsPage() {
     setPage(1)
     await Promise.all([fetchChartData(), fetchDetailedData()])
   }
+
+  // Fetch sales by hour data
+  const fetchSalesByHour = async () => {
+    setIsSalesByHourLoading(true)
+    try {
+      const params: any = {
+        dataInicial: new Date(`${salesByHourStartDate}T00:00:00`).toISOString(),
+        page: salesByHourPage
+      }
+      
+      if (salesByHourEndDate) {
+        params.dataFinal = new Date(`${salesByHourEndDate}T23:59:59`).toISOString()
+      }
+
+      const response = await api.get("/graficos/vendas-por-horario", { params })
+      
+      const rawData = Array.isArray(response.data) ? response.data : []
+      setSalesByHourData(rawData)
+
+      // Aggregate by hour (0-23)
+      const hourCounts: { [hour: string]: { count: number, totalRevenue: number, sales: any[] } } = {}
+      
+      // Initialize all hours
+      for (let h = 0; h < 24; h++) {
+        const hourKey = String(h).padStart(2, '0') + ':00'
+        hourCounts[hourKey] = { count: 0, totalRevenue: 0, sales: [] }
+      }
+
+      rawData.forEach((sale: any) => {
+        const date = new Date(sale.horario)
+        const hourKey = String(date.getHours()).padStart(2, '0') + ':00'
+        if (hourCounts[hourKey]) {
+          hourCounts[hourKey].count += 1
+          hourCounts[hourKey].totalRevenue += parseFloat(sale.total) || 0
+          hourCounts[hourKey].sales.push(sale)
+        }
+      })
+
+      const aggregatedData = Object.entries(hourCounts)
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([hour, data]) => ({
+          hour,
+          vendas: data.count,
+          faturamento: data.totalRevenue,
+          sales: data.sales
+        }))
+
+      setSalesByHourChartData(aggregatedData)
+    } catch (error) {
+      console.error("Error fetching sales by hour", error)
+      setSalesByHourData([])
+      setSalesByHourChartData([])
+    } finally {
+      setIsSalesByHourLoading(false)
+    }
+  }
+
+  // Get the current day being displayed for sales by hour
+  const getCurrentSalesByHourDate = () => {
+    const startDateObj = new Date(salesByHourStartDate + 'T00:00:00')
+    startDateObj.setDate(startDateObj.getDate() + salesByHourPage)
+    return startDateObj.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' })
+  }
+
+  // Calculate max page (days between start and end date)
+  const getSalesByHourMaxPage = () => {
+    const start = new Date(salesByHourStartDate + 'T00:00:00')
+    const end = new Date(salesByHourEndDate + 'T00:00:00')
+    const diffTime = end.getTime() - start.getTime()
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
+    return Math.max(0, diffDays)
+  }
+
+  const handleSalesByHourSearch = () => {
+    setSalesByHourPage(0)
+    fetchSalesByHour()
+  }
+
+  // Effect to fetch sales by hour when page changes
+  useEffect(() => {
+    if (salesByHourStartDate) {
+      fetchSalesByHour()
+    }
+  }, [salesByHourPage])
 
   const buildFilterBody = () => {
     const body: any = {}
@@ -428,10 +521,17 @@ export default function ChartsPage() {
         </h1>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Filtros</CardTitle>
-        </CardHeader>
+      <Tabs defaultValue="produtos" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="produtos">Produtos Vendidos</TabsTrigger>
+          <TabsTrigger value="horarios">Vendas por Horário</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="produtos" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Filtros</CardTitle>
+            </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="space-y-2">
@@ -651,6 +751,171 @@ export default function ChartsPage() {
           />
         </CardContent>
       </Card>
+        </TabsContent>
+
+        <TabsContent value="horarios" className="space-y-6">
+          {/* Filtros */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Filtros</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label>Data Inicial</Label>
+                  <Input
+                    type="date"
+                    value={salesByHourStartDate}
+                    onChange={(e) => setSalesByHourStartDate(e.target.value)}
+                    disabled={isSalesByHourLoading}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Data Final</Label>
+                  <Input
+                    type="date"
+                    value={salesByHourEndDate}
+                    onChange={(e) => setSalesByHourEndDate(e.target.value)}
+                    disabled={isSalesByHourLoading}
+                  />
+                </div>
+                <div className="flex items-end">
+                  <Button 
+                    className="w-full" 
+                    onClick={handleSalesByHourSearch} 
+                    disabled={isSalesByHourLoading}
+                  >
+                    {isSalesByHourLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
+                    Pesquisar
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Chart */}
+          <Card className="min-h-[500px]">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Clock className="h-5 w-5" />
+                Vendas por Horário
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {/* Summary cards */}
+              {isSalesByHourLoading ? (
+                <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3">
+                  <Skeleton className="h-20 rounded-lg" />
+                  <Skeleton className="h-20 rounded-lg" />
+                  <Skeleton className="h-20 rounded-lg" />
+                </div>
+              ) : salesByHourData.length > 0 && (
+                <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3">
+                  <div className="rounded-lg border p-3">
+                    <div className="text-sm font-medium text-muted-foreground">Total de Vendas</div>
+                    <div className="text-2xl font-bold">{salesByHourData.length}</div>
+                  </div>
+                  <div className="rounded-lg border p-3">
+                    <div className="text-sm font-medium text-muted-foreground">Faturamento do Dia</div>
+                    <div className="text-2xl font-bold">
+                      {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(
+                        salesByHourData.reduce((sum: number, sale: any) => sum + (parseFloat(sale.total) || 0), 0)
+                      )}
+                    </div>
+                  </div>
+                  <div className="rounded-lg border p-3">
+                    <div className="text-sm font-medium text-muted-foreground">Horário de Pico</div>
+                    <div className="text-2xl font-bold">
+                      {salesByHourChartData.reduce((max: any, curr: any) => {
+                        if (!max) return curr
+                        if (curr.vendas > max.vendas) return curr
+                        if (curr.vendas === max.vendas && curr.faturamento > max.faturamento) return curr
+                        return max
+                      }, null)?.hour || '-'}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Day navigation */}
+              <div className="flex items-center justify-center gap-4 mb-4">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setSalesByHourPage(Math.max(0, salesByHourPage - 1))}
+                  disabled={salesByHourPage === 0 || isSalesByHourLoading}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <div className="text-center min-w-[250px]">
+                  <div className="font-medium capitalize">{getCurrentSalesByHourDate()}</div>
+                  <div className="text-sm text-muted-foreground">
+                    Dia {salesByHourPage + 1} de {getSalesByHourMaxPage() + 1}
+                  </div>
+                </div>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setSalesByHourPage(Math.min(getSalesByHourMaxPage(), salesByHourPage + 1))}
+                  disabled={salesByHourPage >= getSalesByHourMaxPage() || isSalesByHourLoading}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+
+              {isSalesByHourLoading ? (
+                <Skeleton className="h-[400px] w-full rounded-lg" />
+              ) : salesByHourChartData.length > 0 ? (
+                <ResponsiveContainer width="100%" height={400}>
+                  <BarChart data={salesByHourChartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="hour" />
+                    <YAxis allowDecimals={false} />
+                    <Tooltip
+                      content={({ active, payload, label }) => {
+                        if (active && payload && payload.length) {
+                          const data = payload[0].payload
+                          return (
+                            <div className="bg-white dark:bg-slate-800 p-3 rounded-lg shadow-lg border">
+                              <p className="font-semibold mb-2">{label}</p>
+                              <p className="text-sm">Vendas: <span className="font-medium">{data.vendas}</span></p>
+                              <p className="text-sm">Faturamento: <span className="font-medium">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(data.faturamento)}</span></p>
+                              {data.sales && data.sales.length > 0 && (
+                                <div className="mt-2 pt-2 border-t max-h-[150px] overflow-y-auto">
+                                  <p className="text-xs text-muted-foreground mb-1">Detalhes:</p>
+                                  {data.sales.slice(0, 5).map((sale: any, idx: number) => (
+                                    <div key={sale.id || idx} className="text-xs py-1 border-b last:border-b-0">
+                                      <div className="flex justify-between">
+                                        <span>{new Date(sale.horario).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
+                                        <span className="font-medium">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(sale.total)}</span>
+                                      </div>
+                                      {sale.cliente && <div className="text-muted-foreground">{sale.cliente}</div>}
+                                    </div>
+                                  ))}
+                                  {data.sales.length > 5 && (
+                                    <p className="text-xs text-muted-foreground mt-1">+{data.sales.length - 5} mais...</p>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          )
+                        }
+                        return null
+                      }}
+                    />
+                    <Legend />
+                    <Bar dataKey="vendas" name="Vendas" fill="#82ca9d" />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex h-[400px] items-center justify-center text-muted-foreground">
+                  {salesByHourData.length === 0 ? 'Nenhuma venda encontrada para este dia.' : 'Selecione um período e clique em Pesquisar.'}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }
