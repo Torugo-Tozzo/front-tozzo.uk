@@ -51,7 +51,9 @@ export default function OrdersPage() {
 
   const loadOrdersRaw = async () => {
     const params: any = { page, limit }
-    if (statusFilter !== 'NAO_FECHADOS') params.status = statusFilter
+    if (statusFilter) {
+      params.status = statusFilter
+    }
 
     const response = await api.get(`/pedidos`, { params })
 
