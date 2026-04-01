@@ -20,6 +20,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { useToast } from "@/contexts/ToastContext";
 
 type Product = {
   id: number;
@@ -66,6 +68,7 @@ export function ProductSelectionModal({
   onCancelSale,
   readOnly = false,
 }: ProductSelectionModalProps) {
+  const toast = useToast();
   const [products, setProducts] = useState<Product[]>([]);
   const [selectedItems, setSelectedItems] = useState<SelectedItem[]>([]);
   const [clientName, setClientName] = useState(initialClientName);
@@ -75,6 +78,8 @@ export function ProductSelectionModal({
   const [status, setStatus] = useState<string>(initialStatus ?? "");
   const [searchTerm, setSearchTerm] = useState("");
   const [isProductsLoading, setIsProductsLoading] = useState(false);
+  const [pendingStatusChange, setPendingStatusChange] = useState<string | null>(null);
+  const [pendingCancelSale, setPendingCancelSale] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -170,7 +175,7 @@ export function ProductSelectionModal({
 
   const handleConfirm = async () => {
     if (selectedItems.length === 0 && !isEditing) {
-      alert("Selecione pelo menos um produto.");
+      toast("Selecione pelo menos um produto.", "error");
       return;
     }
 
@@ -354,24 +359,9 @@ export function ProductSelectionModal({
               <div className="flex items-center gap-2">
                 <Select
                   value={status}
-                  onValueChange={async (val: string) => {
+                  onValueChange={(val: string) => {
                     if (val === status) return
-                    const confirmMsg = 'Tem certeza que deseja alterar o status do pedido?'
-                    if (!confirm(confirmMsg)) return
-                    setIsClosingOrder(true)
-                    try {
-                      if (onChangeStatus) {
-                        await onChangeStatus(val)
-                      } else if (val === 'FECHADO' && onCloseOrder) {
-                        await onCloseOrder()
-                      }
-                      setStatus(val)
-                    } catch (err) {
-                      console.error('Error changing status', err)
-                      alert('Erro ao alterar status do pedido')
-                    } finally {
-                      setIsClosingOrder(false)
-                    }
+                    setPendingStatusChange(val)
                   }}
                 >
                   <SelectTrigger className="w-[200px]">
@@ -394,19 +384,7 @@ export function ProductSelectionModal({
                 <Button
                   variant="ghost"
                   className="text-destructive hover:text-destructive"
-                  onClick={async () => {
-                    if (!confirm('Tem certeza que deseja cancelar esta venda?')) return
-                    setIsCancellingSale(true)
-                    try {
-                      await onCancelSale()
-                      onClose()
-                    } catch (err) {
-                      console.error('Error cancelling sale', err)
-                      alert('Erro ao cancelar venda')
-                    } finally {
-                      setIsCancellingSale(false)
-                    }
-                  }}
+                  onClick={() => setPendingCancelSale(true)}
                   disabled={isCancellingSale || isLoading || isClosingOrder}
                 >
                   {isCancellingSale ? (
@@ -438,6 +416,50 @@ export function ProductSelectionModal({
           </div>
         </DialogFooter>
       </DialogContent>
+
+      <ConfirmDialog
+        open={pendingStatusChange !== null}
+        title="Alterar Status"
+        description="Tem certeza que deseja alterar o status do pedido?"
+        onConfirm={async () => {
+          const val = pendingStatusChange!
+          setPendingStatusChange(null)
+          setIsClosingOrder(true)
+          try {
+            if (onChangeStatus) {
+              await onChangeStatus(val)
+            } else if (val === 'FECHADO' && onCloseOrder) {
+              await onCloseOrder()
+            }
+            setStatus(val)
+          } catch {
+            toast('Erro ao alterar status do pedido', 'error')
+          } finally {
+            setIsClosingOrder(false)
+          }
+        }}
+        onCancel={() => setPendingStatusChange(null)}
+      />
+
+      <ConfirmDialog
+        open={pendingCancelSale}
+        title="Cancelar Venda"
+        description="Tem certeza que deseja cancelar esta venda?"
+        confirmLabel="Cancelar Venda"
+        onConfirm={async () => {
+          setPendingCancelSale(false)
+          setIsCancellingSale(true)
+          try {
+            await onCancelSale!()
+            onClose()
+          } catch {
+            toast('Erro ao cancelar venda', 'error')
+          } finally {
+            setIsCancellingSale(false)
+          }
+        }}
+        onCancel={() => setPendingCancelSale(false)}
+      />
     </Dialog>
   );
 }

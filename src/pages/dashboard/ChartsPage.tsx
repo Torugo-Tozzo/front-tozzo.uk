@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import api from "@/services/api"
+import { getTodayDate } from "@/utils/format"
 import {
   Select,
   SelectContent,
@@ -51,13 +52,6 @@ type ProductType = {
 
 export default function ChartsPage() {
   const { user } = useAuth()
-  const getTodayDate = () => {
-    const today = new Date()
-    const yyyy = today.getFullYear()
-    const mm = String(today.getMonth() + 1).padStart(2, '0')
-    const dd = String(today.getDate()).padStart(2, '0')
-    return `${yyyy}-${mm}-${dd}`
-  }
 
   // Filters
   const [startDate, setStartDate] = useState(getTodayDate())

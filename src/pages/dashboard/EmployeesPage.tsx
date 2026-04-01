@@ -30,24 +30,22 @@ import {
 } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Plus, Pencil, Trash2, Users, Loader2, Search } from "lucide-react"
-import api from "@/services/api"
 import { Pagination } from "@/components/Pagination"
+import { ConfirmDialog } from "@/components/ConfirmDialog"
 import { useAuth } from "@/contexts/AuthContext"
-
-type Employee = {
-  id: number
-  nome: string
-  email: string
-  role: string
-}
+import { useDebounce } from "@/hooks/useDebounce"
+import { useToast } from "@/contexts/ToastContext"
+import { employeesService, type Employee } from "@/services/employees"
+import { formatRole } from "@/utils/format"
 
 export default function EmployeesPage() {
   const { user } = useAuth()
+  const toast = useToast()
+
   const [employees, setEmployees] = useState<Employee[]>([])
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [currentEmployee, setCurrentEmployee] = useState<Employee | null>(null)
-
   const [isLoading, setIsLoading] = useState(false)
   const [page, setPage] = useState(1)
   const [limit, setLimit] = useState(10)
@@ -55,68 +53,42 @@ export default function EmployeesPage() {
   const [totalItems, setTotalItems] = useState(0)
   const [hasMore, setHasMore] = useState(false)
   const [search, setSearch] = useState("")
+  const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null)
 
-  // Form states
-  const [name, setName] = useState("")
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [role, setRole] = useState("FUNCIONARIO")
+  const [form, setForm] = useState({ name: "", email: "", password: "", role: "FUNCIONARIO" })
+
+  const debouncedSearch = useDebounce(search, 300)
 
   useEffect(() => {
-    const delay = setTimeout(() => {
-      setIsLoading(true)
-      fetchEmployees().finally(() => setIsLoading(false))
-    }, 300)
-    return () => clearTimeout(delay)
-  }, [page, limit, search])
+    fetchEmployees()
+  }, [page, limit, debouncedSearch])
 
   const fetchEmployees = async () => {
+    setIsLoading(true)
     try {
-      const response = await api.get(`/usuarios?page=${page}&limit=${limit}&search=${encodeURIComponent(search)}`)
-
-      let data: any[] = []
-      let total = 0
-
-      if (response.data.data) {
-        data = response.data.data
-        total = response.data.total || response.data.count || 0
-      } else if (Array.isArray(response.data)) {
-        data = response.data
-        const totalHeader = response.headers['x-total-count']
-        total = totalHeader ? parseInt(totalHeader) : 0
-      }
-
-      setEmployees(data)
+      const { items, total, totalPages, hasMore } = await employeesService.list(page, limit, debouncedSearch)
+      setEmployees(items)
       setTotalItems(total)
-
-      if (total > 0) {
-        setTotalPages(Math.ceil(total / limit))
-        setHasMore(page < Math.ceil(total / limit))
-      } else {
-        setTotalPages(0)
-        setHasMore(data.length === limit)
-      }
-    } catch (error) {
-      console.error("Error fetching employees", error)
+      setTotalPages(totalPages)
+      setHasMore(hasMore)
+    } catch {
+      toast("Erro ao carregar funcionários", "error")
+    } finally {
+      setIsLoading(false)
     }
   }
 
   const handleAddEmployee = async (e: React.FormEvent) => {
-    setIsLoading(true)
     e.preventDefault()
+    setIsLoading(true)
     try {
-      await api.post("/usuarios", {
-        nome: name,
-        email,
-        senha: password,
-        role: role
-      })
+      await employeesService.create({ nome: form.name, email: form.email, senha: form.password, role: form.role })
+      toast("Funcionário criado com sucesso", "success")
       await fetchEmployees()
       setIsAddDialogOpen(false)
       resetForm()
-    } catch (error) {
-      console.error("Error creating employee", error)
-      alert("Erro ao criar funcionário")
+    } catch {
+      toast("Erro ao criar funcionário", "error")
     } finally {
       setIsLoading(false)
     }
@@ -124,60 +96,47 @@ export default function EmployeesPage() {
 
   const handleEditClick = (employee: Employee) => {
     setCurrentEmployee(employee)
-    setName(employee.nome)
-    setEmail(employee.email)
-    setRole(employee.role || "FUNCIONARIO")
-    setPassword("") // Reset password field
+    setForm({ name: employee.nome, email: employee.email, password: "", role: employee.role || "FUNCIONARIO" })
     setIsEditDialogOpen(true)
   }
 
   const handleUpdateEmployee = async (e: React.FormEvent) => {
-    setIsLoading(true)
     e.preventDefault()
     if (!currentEmployee) return
-
+    setIsLoading(true)
     try {
-      const payload: any = {
-        nome: name,
-        email,
-        role: role
-      }
-      if (password) {
-        payload.senha = password
-      }
-
-      await api.put(`/usuarios/${currentEmployee.id}`, payload)
+      const payload: Parameters<typeof employeesService.update>[1] = { nome: form.name, email: form.email, role: form.role }
+      if (form.password) payload.senha = form.password
+      await employeesService.update(currentEmployee.id, payload)
+      toast("Funcionário atualizado", "success")
       await fetchEmployees()
       setIsEditDialogOpen(false)
       resetForm()
-    } catch (error) {
-      console.error("Error updating employee", error)
-      alert("Erro ao atualizar funcionário")
+    } catch {
+      toast("Erro ao atualizar funcionário", "error")
     } finally {
       setIsLoading(false)
     }
   }
 
-  const handleDeleteEmployee = async (id: number) => {
-    if (confirm("Tem certeza que deseja excluir este funcionário?")) {
-        setIsLoading(true)
-        try {
-          await api.delete(`/usuarios/${id}`)
-          await fetchEmployees()
-        } catch (error) {
-          console.error("Error deleting employee", error)
-          alert("Erro ao excluir funcionário")
-        } finally {
-          setIsLoading(false)
-        }
+  const handleConfirmDelete = async () => {
+    if (confirmDeleteId === null) return
+    const id = confirmDeleteId
+    setConfirmDeleteId(null)
+    setIsLoading(true)
+    try {
+      await employeesService.delete(id)
+      toast("Funcionário excluído", "success")
+      await fetchEmployees()
+    } catch {
+      toast("Erro ao excluir funcionário", "error")
+    } finally {
+      setIsLoading(false)
     }
   }
 
   const resetForm = () => {
-    setName("")
-    setEmail("")
-    setPassword("")
-    setRole("FUNCIONARIO")
+    setForm({ name: "", email: "", password: "", role: "FUNCIONARIO" })
     setCurrentEmployee(null)
   }
 
@@ -197,67 +156,36 @@ export default function EmployeesPage() {
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Adicionar Funcionário</DialogTitle>
-              <DialogDescription>
-                Cadastre um novo funcionário para acessar o sistema.
-              </DialogDescription>
+              <DialogDescription>Cadastre um novo funcionário para acessar o sistema.</DialogDescription>
             </DialogHeader>
             <form onSubmit={handleAddEmployee} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Nome</Label>
-                <Input
-                  id="name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  required
-                  disabled={isLoading}
-                />
+                <Input id="name" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} required disabled={isLoading} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  disabled={isLoading}
-                />
+                <Input id="email" type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} required disabled={isLoading} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="role">Cargo</Label>
-                <Select value={role} onValueChange={setRole}>
-                  <SelectTrigger disabled={isLoading}>
-                    <SelectValue placeholder="Selecione o cargo" />
-                  </SelectTrigger>
+                <Select value={form.role} onValueChange={v => setForm(f => ({ ...f, role: v }))}>
+                  <SelectTrigger disabled={isLoading}><SelectValue placeholder="Selecione o cargo" /></SelectTrigger>
                   <SelectContent>
-                      <SelectItem value="DONO">Dono</SelectItem>
-                      <SelectItem value="GERENTE">Gerente</SelectItem>
-                      <SelectItem value="FUNCIONARIO">Funcionário</SelectItem>
-                      <SelectItem value="CLIENTE">Cliente</SelectItem>
+                    <SelectItem value="DONO">Dono</SelectItem>
+                    <SelectItem value="GERENTE">Gerente</SelectItem>
+                    <SelectItem value="FUNCIONARIO">Funcionário</SelectItem>
+                    <SelectItem value="CLIENTE">Cliente</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="password">Senha</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  disabled={isLoading}
-                />
+                <Input id="password" type="password" value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} required disabled={isLoading} />
               </div>
               <DialogFooter>
                 <Button type="submit" disabled={isLoading}>
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Salvar
-                    </>
-                  ) : (
-                    "Salvar"
-                  )}
+                  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Salvar
                 </Button>
               </DialogFooter>
             </form>
@@ -274,10 +202,7 @@ export default function EmployeesPage() {
               <Input
                 placeholder="Buscar funcionários..."
                 value={search}
-                onChange={(e) => {
-                  setSearch(e.target.value)
-                  setPage(1)
-                }}
+                onChange={e => { setSearch(e.target.value); setPage(1) }}
                 className="pl-8"
               />
             </div>
@@ -297,68 +222,48 @@ export default function EmployeesPage() {
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                  Array.from({ length: 5 }).map((_, i) => (
-                    <TableRow key={i}>
-                      <TableCell><Skeleton className="h-4 w-8" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-[200px]" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-[250px]" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-[100px]" /></TableCell>
-                      <TableCell className="text-right justify-end flex gap-2">
-                        <Skeleton className="h-8 w-8" />
-                        <Skeleton className="h-8 w-8" />
-                      </TableCell>
-                    </TableRow>
-                  ))
+                Array.from({ length: 5 }).map((_, i) => (
+                  <TableRow key={i}>
+                    <TableCell><Skeleton className="h-4 w-8" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-[200px]" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-[250px]" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-[100px]" /></TableCell>
+                    <TableCell className="text-right justify-end flex gap-2">
+                      <Skeleton className="h-8 w-8" /><Skeleton className="h-8 w-8" />
+                    </TableCell>
+                  </TableRow>
+                ))
               ) : (
                 employees.map((employee, index) => (
-                <TableRow key={employee.id}>
+                  <TableRow key={employee.id}>
                     <TableCell className="font-medium">{(page - 1) * limit + index + 1}</TableCell>
                     <TableCell>{employee.nome}</TableCell>
                     <TableCell>{employee.email}</TableCell>
                     <TableCell>
                       <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-primary/10 text-primary">
-                        {(() => {
-                          const r = employee.role
-                          if (!r) return "N/A"
-                          switch (r) {
-                            case 'DONO': return 'Dono'
-                            case 'GERENTE': return 'Gerente'
-                            case 'FUNCIONARIO': return 'Funcionário'
-                            case 'CLIENTE': return 'Cliente'
-                            default: return r
-                          }
-                        })()}
+                        {formatRole(employee.role)}
                       </span>
                     </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleEditClick(employee)}
-                          disabled={isLoading}
-                        >
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        <Button variant="ghost" size="icon" onClick={() => handleEditClick(employee)} disabled={isLoading}>
                           <Pencil className="h-4 w-4" />
                         </Button>
                         {employee.role !== 'DONO' && (
                           <Button
-                            variant="ghost"
-                            size="icon"
+                            variant="ghost" size="icon"
                             className="text-destructive hover:text-destructive"
-                            onClick={() => handleDeleteEmployee(employee.id)}
+                            onClick={() => setConfirmDeleteId(employee.id)}
                             disabled={isLoading}
                           >
-                            {isLoading ? (
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                              <Trash2 className="h-4 w-4" />
-                            )}
+                            <Trash2 className="h-4 w-4" />
                           </Button>
                         )}
-                    </div>
-                  </TableCell>
-                </TableRow>
-              )))}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
           <div className="mt-4 flex items-center justify-between">
@@ -369,10 +274,7 @@ export default function EmployeesPage() {
               hasMore={hasMore}
               onPageChange={setPage}
               pageSize={limit}
-              onPageSizeChange={(newLimit) => {
-                setLimit(newLimit)
-                setPage(1)
-              }}
+              onPageSizeChange={newLimit => { setLimit(newLimit); setPage(1) }}
               isLoading={isLoading}
             />
           </div>
@@ -384,38 +286,21 @@ export default function EmployeesPage() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Editar Funcionário</DialogTitle>
-            <DialogDescription>
-              Atualize os dados do funcionário.
-            </DialogDescription>
+            <DialogDescription>Atualize os dados do funcionário.</DialogDescription>
           </DialogHeader>
           <form onSubmit={handleUpdateEmployee} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="edit-name">Nome</Label>
-              <Input
-                id="edit-name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-                disabled={isLoading}
-              />
+              <Input id="edit-name" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} required disabled={isLoading} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="edit-email">Email</Label>
-              <Input
-                id="edit-email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                disabled={isLoading}
-              />
+              <Input id="edit-email" type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} required disabled={isLoading} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="edit-role">Cargo</Label>
-              <Select value={role} onValueChange={setRole}>
-                <SelectTrigger disabled={isLoading}>
-                  <SelectValue placeholder="Selecione o cargo" />
-                </SelectTrigger>
+              <Select value={form.role} onValueChange={v => setForm(f => ({ ...f, role: v }))}>
+                <SelectTrigger disabled={isLoading}><SelectValue placeholder="Selecione o cargo" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="DONO">Dono</SelectItem>
                   <SelectItem value="GERENTE">Gerente</SelectItem>
@@ -426,30 +311,25 @@ export default function EmployeesPage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="edit-password">Nova Senha (opcional)</Label>
-              <Input
-                id="edit-password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Deixe em branco para manter"
-                disabled={isLoading}
-              />
+              <Input id="edit-password" type="password" value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} placeholder="Deixe em branco para manter" disabled={isLoading} />
             </div>
             <DialogFooter>
               <Button type="submit" disabled={isLoading}>
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Salvar Alterações
-                  </>
-                ) : (
-                  "Salvar Alterações"
-                )}
+                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Salvar Alterações
               </Button>
             </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog
+        open={confirmDeleteId !== null}
+        title="Excluir Funcionário"
+        description="Tem certeza que deseja excluir este funcionário?"
+        confirmLabel="Excluir"
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setConfirmDeleteId(null)}
+      />
     </div>
   )
 }

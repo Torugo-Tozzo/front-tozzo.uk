@@ -1,15 +1,15 @@
-import { useState, useEffect, Suspense } from "react"
+import { useState, Suspense } from "react"
 import { Link, Outlet, useLocation } from "react-router-dom"
-import { 
-  LayoutDashboard, 
-  ShoppingBag, 
-  Settings, 
+import {
+  LayoutDashboard,
+  ShoppingBag,
+  Settings,
   LogOut,
   ClipboardList,
   Menu,
   X,
   Users,
-  BarChart3
+  BarChart3,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -18,13 +18,14 @@ import { Footer } from "@/components/Footer"
 import { LoadingOverlay } from "@/components/LoadingOverlay"
 import logo from "@/assets/images/logo.png"
 import { useAuth } from "@/contexts/AuthContext"
-import api from "@/services/api"
+import { usePolling } from "@/hooks/usePolling"
+import { ordersService } from "@/services/orders"
 
 export default function DashboardLayout() {
   const location = useLocation()
   const { logout } = useAuth()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const [nonClosedCount, setNonClosedCount] = useState<number>(0)
+  const [nonClosedCount, setNonClosedCount] = useState(0)
 
   const navItems = [
     { href: "/dashboard/orders", label: "Pedidos", icon: ClipboardList },
@@ -35,20 +36,37 @@ export default function DashboardLayout() {
     { href: "/dashboard/settings", label: "Configurações", icon: Settings },
   ]
 
+  const fetchCount = async () => {
+    try {
+      const count = await ordersService.countOpen()
+      setNonClosedCount(count)
+    } catch {
+      // silent
+    }
+  }
+
+  usePolling(fetchCount, 15000)
+
   const NavContent = () => (
     <>
       <div className="h-16 flex items-center justify-between px-6 border-b shrink-0">
-        <Link to="/" className="flex items-center gap-2 font-bold text-xl" onClick={() => setIsMobileMenuOpen(false)}>
+        <Link
+          to="/"
+          className="flex items-center gap-2 font-bold text-xl"
+          onClick={() => setIsMobileMenuOpen(false)}
+        >
           <img src={logo} alt="Tozzo.uk" className="h-10 w-10 object-contain" />
           <span>Tozzo.uk</span>
         </Link>
       </div>
-      
+
       <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
         {navItems.map((item) => {
           const Icon = item.icon
-          const isActive = location.pathname === item.href || (item.href === "/dashboard/orders" && location.pathname === "/dashboard")
-          
+          const isActive =
+            location.pathname === item.href ||
+            (item.href === "/dashboard/orders" && location.pathname === "/dashboard")
+
           return (
             <Link key={item.href} to={item.href} onClick={() => setIsMobileMenuOpen(false)}>
               <Button
@@ -61,11 +79,9 @@ export default function DashboardLayout() {
                     {item.label}
                   </div>
                   {item.href === "/dashboard/orders" && (
-                    <div className="ml-2">
-                      <span className="inline-flex items-center justify-center bg-blue-500 text-white text-xs font-medium rounded-full h-6 w-6">
-                        {nonClosedCount}
-                      </span>
-                    </div>
+                    <span className="inline-flex items-center justify-center bg-blue-500 text-white text-xs font-medium rounded-full h-6 w-6">
+                      {nonClosedCount}
+                    </span>
                   )}
                 </div>
               </Button>
@@ -75,8 +91,8 @@ export default function DashboardLayout() {
       </nav>
 
       <div className="p-4 border-t shrink-0">
-        <Button 
-          variant="ghost" 
+        <Button
+          variant="ghost"
           className="w-full justify-start gap-3 text-muted-foreground hover:text-destructive"
           onClick={logout}
         >
@@ -86,29 +102,6 @@ export default function DashboardLayout() {
       </div>
     </>
   )
-
-  useEffect(() => {
-    let mounted = true
-    const fetchCount = async () => {
-      try {
-        // fetch a reasonable number of pedidos and count non-FECHADO
-        const resp = await api.get('/pedidos', { params: { limit: 1000 } })
-        let items: any[] = []
-        if (resp.data && resp.data.data) items = resp.data.data
-        else if (Array.isArray(resp.data)) items = resp.data
-        const count = items.filter(i => i?.status !== 'FECHADO').length
-        if (mounted) setNonClosedCount(count)
-      } catch (err) {
-        console.error('Error fetching non-closed orders count', err)
-      }
-    }
-
-    fetchCount()
-    const iv = setInterval(fetchCount, 15000)
-    return () => { mounted = false; clearInterval(iv) }
-  }, [])
-
-  // Realtime badge updates removed (SSE removed)
 
   return (
     <div className="min-h-screen flex bg-muted/20">
@@ -121,12 +114,12 @@ export default function DashboardLayout() {
       {isMobileMenuOpen && (
         <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm md:hidden">
           <div className="fixed inset-y-0 left-0 w-3/4 max-w-xs bg-card border-r shadow-lg flex flex-col animate-in slide-in-from-left duration-200">
-             <div className="absolute right-4 top-4 md:hidden">
-                <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(false)}>
-                  <X className="h-5 w-5" />
-                </Button>
-             </div>
-             <NavContent />
+            <div className="absolute right-4 top-4 md:hidden">
+              <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(false)}>
+                <X className="h-5 w-5" />
+              </Button>
+            </div>
+            <NavContent />
           </div>
           <div className="flex-1" onClick={() => setIsMobileMenuOpen(false)} />
         </div>
@@ -153,7 +146,7 @@ export default function DashboardLayout() {
             <Outlet />
           </Suspense>
         </main>
-        
+
         <Footer />
       </div>
     </div>

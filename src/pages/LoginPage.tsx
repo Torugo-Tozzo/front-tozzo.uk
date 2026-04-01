@@ -15,10 +15,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import logo from "@/assets/images/logo.png"
 import api from "@/services/api"
 import { useAuth } from "@/contexts/AuthContext"
+import { useToast } from "@/contexts/ToastContext"
 
 export default function LoginPage() {
   const navigate = useNavigate()
   const { login, isAuthenticated, user } = useAuth()
+  const toast = useToast()
   const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
@@ -66,7 +68,7 @@ export default function LoginPage() {
         }
       }
 
-      alert("Falha no login. Verifique suas credenciais.")
+      toast("Falha no login. Verifique suas credenciais.", "error")
     } finally {
       setIsLoading(false)
     }
@@ -94,11 +96,11 @@ export default function LoginPage() {
           navigate("/plan")
         }
       } else {
-        alert("Cadastro realizado com sucesso! Faça login para continuar.")
+        toast("Cadastro realizado com sucesso! Faça login para continuar.", "success")
       }
     } catch (error) {
       console.error("Registration failed", error)
-      alert("Falha no cadastro. Verifique os dados.")
+      toast("Falha no cadastro. Verifique os dados.", "error")
     } finally {
       setIsLoading(false)
     }
