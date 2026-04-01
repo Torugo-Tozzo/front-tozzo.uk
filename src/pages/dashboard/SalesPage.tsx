@@ -81,12 +81,11 @@ export default function SalesPage() {
 
   const poll = async () => {
     try {
-      const pollNow = new Date()
       const { items, total, fechamento, totalPages, hasMore } = await salesService.list({
         page,
         limit,
-        dataInicial: new Date(pollNow.getTime() - 24 * 60 * 60 * 1000).toISOString(),
-        dataFinal: pollNow.toISOString(),
+        dataInicial: startDate && startTime ? toISO(startDate, startTime) : undefined,
+        dataFinal: endDate && endTime ? toISO(endDate, endTime, '59') : undefined,
       })
       const previous = salesRef.current
       const changed =
