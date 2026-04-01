@@ -445,7 +445,7 @@ export default function SalesPage() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <div>
-            <CardTitle>Vendas Recentes!</CardTitle>
+            <CardTitle>Vendas no Período</CardTitle>
             <div className="text-sm text-muted-foreground mt-1">
               Total de registros: {totalItems}
             </div>
