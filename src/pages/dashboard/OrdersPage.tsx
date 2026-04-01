@@ -37,7 +37,7 @@ export default function OrdersPage() {
 
   const [page, setPage] = useState(1)
   const [limit, setLimit] = useState(10)
-  const [statusFilter, setStatusFilter] = useState('NAO_FECHADOS')
+  const [statusFilter, setStatusFilter] = useState('NAO_FECHADO')
   const [orders, setOrders] = useState<Order[]>([])
   const [totalPages, setTotalPages] = useState(0)
   const [hasMore, setHasMore] = useState(false)
@@ -72,7 +72,7 @@ export default function OrdersPage() {
 
   const poll = async () => {
     try {
-      const { items } = await ordersService.list({ page, limit, status: statusFilter })
+      const { items, totalPages: tp, hasMore: hm } = await ordersService.list({ page, limit, status: statusFilter })
       const previous = ordersRef.current
       const changed =
         items.length !== previous.length ||
@@ -88,6 +88,8 @@ export default function OrdersPage() {
       if (changed) {
         setOrders(items)
         ordersRef.current = items
+        setTotalPages(tp)
+        setHasMore(hm)
         if (page === 1 && items.length > previous.length) {
           setNewOrdersCount(items.length - previous.length)
         }
@@ -186,7 +188,7 @@ export default function OrdersPage() {
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="NAO_FECHADOS">Não Fechados</SelectItem>
+              <SelectItem value="NAO_FECHADO">Não Fechados</SelectItem>
               <SelectItem value="ABERTO">Aberto</SelectItem>
               <SelectItem value="EM_PREPARO">Em Preparo</SelectItem>
               <SelectItem value="ENTREGANDO">Entregando</SelectItem>

@@ -57,11 +57,11 @@ export default function SalesPage() {
     fetchSales()
   }, [page, limit])
 
-  const fetchSales = async () => {
+  const fetchSales = async (pageOverride?: number) => {
     setIsLoading(true)
     try {
       const { items, total, fechamento, totalPages, hasMore } = await salesService.list({
-        page,
+        page: pageOverride ?? page,
         limit,
         dataInicial: startDate && startTime ? toISO(startDate, startTime) : undefined,
         dataFinal: endDate && endTime ? toISO(endDate, endTime, '59') : undefined,
@@ -221,7 +221,7 @@ export default function SalesPage() {
           </div>
           <div className="mt-4 flex justify-end">
             <Button
-              onClick={() => { setPage(1); fetchSales() }}
+              onClick={() => { setPage(1); fetchSales(1) }}
               className="w-full md:w-auto"
               disabled={isLoading}
             >

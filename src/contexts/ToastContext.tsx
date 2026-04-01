@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, ReactNode } from 'react'
+import { createContext, useContext, useState, useCallback, useEffect, useRef, ReactNode } from 'react'
 
 type ToastType = 'success' | 'error' | 'info'
 
@@ -18,11 +18,22 @@ let counter = 0
 
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([])
+  const timeoutsRef = useRef<Map<number, ReturnType<typeof setTimeout>>>(new Map())
+
+  useEffect(() => {
+    return () => {
+      timeoutsRef.current.forEach(id => clearTimeout(id))
+    }
+  }, [])
 
   const toast = useCallback((message: string, type: ToastType = 'info') => {
     const id = ++counter
     setToasts(prev => [...prev, { id, message, type }])
-    setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 4000)
+    const tid = setTimeout(() => {
+      setToasts(prev => prev.filter(t => t.id !== id))
+      timeoutsRef.current.delete(id)
+    }, 4000)
+    timeoutsRef.current.set(id, tid)
   }, [])
 
   return (

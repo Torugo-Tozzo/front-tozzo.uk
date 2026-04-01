@@ -25,17 +25,12 @@ interface ListParams {
 export const ordersService = {
   async list(params: ListParams) {
     const query: Record<string, any> = { page: params.page, limit: params.limit }
-    if (params.status && params.status !== 'NAO_FECHADOS') query.status = params.status
+    if (params.status) query.status = params.status
 
     const response = await api.get('/pedidos', { params: query })
-    let items = extractList<Order>(response.data)
-    const rawTotal = extractTotal(response.data, response.headers)
+    const items = extractList<Order>(response.data)
+    const total = extractTotal(response.data, response.headers)
 
-    if (params.status === 'NAO_FECHADOS') {
-      items = items.filter(o => o.status !== 'FECHADO')
-    }
-
-    const total = params.status === 'NAO_FECHADOS' ? items.length : rawTotal
     return { items, total, ...calcPagination(total, params.page, params.limit, items.length) }
   },
 
