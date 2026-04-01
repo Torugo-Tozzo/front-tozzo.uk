@@ -34,8 +34,8 @@ export const chartsService = {
     let items: any[] = []
     let total = 0
 
-    if (data?.data) { items = data.data; total = data.total || data.count || 0 }
-    else if (data?.produtos) { items = data.produtos; total = data.total || data.count || 0 }
+    if (data?.data) { items = data.data; total = Number(data.total ?? data.count ?? 0) }
+    else if (data?.produtos) { items = data.produtos; total = Number(data.total ?? data.count ?? 0) }
     else if (Array.isArray(data)) {
       items = data
       total = extractTotal(null, response.headers)

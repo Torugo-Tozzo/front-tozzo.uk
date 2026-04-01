@@ -30,7 +30,7 @@ function normalizeType(t: any): ProductType {
 
 export const productsService = {
   async list(page: number, limit: number, search = '') {
-    const response = await api.get(`/produtos?page=${page}&limit=${limit}&search=${search}`)
+    const response = await api.get(`/produtos?page=${page}&limit=${limit}&search=${encodeURIComponent(search)}`)
     const items = extractList<Product>(response.data)
     const total = extractTotal(response.data, response.headers)
     return { items, total, ...calcPagination(total, page, limit, items.length) }

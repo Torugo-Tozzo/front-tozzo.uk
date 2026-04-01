@@ -24,12 +24,12 @@ function parseSalesResponse(response: any) {
   if (data?.vendas && Array.isArray(data.vendas)) {
     items = data.vendas
     fechamento = Number(data.fechamento) || 0
-    total = data.total || data.count || items.length
+    total = Number(data.total || data.count || items.length)
     if (!total && response.headers?.['x-total-count'])
       total = parseInt(response.headers['x-total-count'])
   } else if (data?.data && Array.isArray(data.data)) {
     items = data.data
-    total = data.total || data.count || 0
+    total = Number(data.total || data.count || 0)
   } else if (Array.isArray(data)) {
     items = data
     total = response.headers?.['x-total-count']

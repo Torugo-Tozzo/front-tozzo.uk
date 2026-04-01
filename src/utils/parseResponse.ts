@@ -7,9 +7,9 @@ export function extractList<T>(data: any): T[] {
 }
 
 export function extractTotal(data: any, headers?: any): number {
-  if (data?.total) return Number(data.total)
-  if (data?.count) return Number(data.count)
-  if (headers?.['x-total-count']) return parseInt(headers['x-total-count'])
+  if (data?.total != null) return Number(data.total)
+  if (data?.count != null) return Number(data.count)
+  if (headers?.['x-total-count'] != null) return parseInt(headers['x-total-count'])
   return 0
 }
 
@@ -25,15 +25,22 @@ export function normalizeOrderItems(
   itens: any[]
 ): { produtoId: number; quantidade: number; precoHistorico?: number }[] {
   return itens
-    .map((item: any) => ({
-      produtoId: item.produtoId ?? item.produto?.id,
-      quantidade: Number(item.quantidade) || 0,
-      precoHistorico:
-        item.precoHistorico != null
-          ? Number(item.precoHistorico)
-          : item.preco != null
-          ? Number(item.preco)
-          : Number(item.produto?.preco ?? 0),
-    }))
-    .filter((i) => i.produtoId != null && i.produtoId !== '')
+    .map((item: any) => {
+      const rawProdutoId = item.produtoId ?? item.produto?.id
+      const produtoId =
+        rawProdutoId != null && rawProdutoId !== ''
+          ? Number(rawProdutoId)
+          : Number.NaN
+      return {
+        produtoId,
+        quantidade: Number(item.quantidade) || 0,
+        precoHistorico:
+          item.precoHistorico != null
+            ? Number(item.precoHistorico)
+            : item.preco != null
+            ? Number(item.preco)
+            : Number(item.produto?.preco ?? 0),
+      }
+    })
+    .filter((i) => !Number.isNaN(i.produtoId))
 }
