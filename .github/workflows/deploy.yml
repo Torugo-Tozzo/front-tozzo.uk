@@ -20,4 +20,4 @@ jobs:
             cd /home/victor/app/frontend
             git pull origin main
             cd ..
-            docker compose up --build -d frontend
+            docker compose up -d --build --force-recreate frontend
