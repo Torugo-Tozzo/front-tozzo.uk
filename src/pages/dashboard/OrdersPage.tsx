@@ -51,6 +51,34 @@ export default function OrdersPage() {
   const [confirmAction, setConfirmAction] = useState<ConfirmAction | null>(null)
   const ordersRef = useRef<Order[]>([])
 
+  const loadOrdersRaw = async () => {
+    const params: any = { page, limit }
+    if (statusFilter) {
+      params.status = statusFilter
+    }
+
+    const response = await api.get(`/pedidos`, { params })
+
+    let data: any[] = []
+    let total = 0
+
+    if (response.data.data) {
+      data = response.data.data
+      total = response.data.total || response.data.count || 0
+    } else if (Array.isArray(response.data)) {
+      data = response.data
+      const totalHeader = response.headers['x-total-count']
+      total = totalHeader ? parseInt(totalHeader) : 0
+    }
+
+    if (statusFilter === 'NAO_FECHADOS') {
+      data = data.filter((o: any) => o.status !== 'FECHADO')
+      total = data.length
+    }
+
+    return { data, total }
+  }
+
   const fetchOrders = async () => {
     setIsLoading(true)
     try {
