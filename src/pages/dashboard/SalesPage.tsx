@@ -67,6 +67,11 @@ export default function SalesPage() {
   const [endTime, setEndTime] = useState(formatTime(now))
   const [periodTotal, setPeriodTotal] = useState(0)
   const salesRef = useRef<Sale[]>([])
+  const filterRef = useRef({ startDate, startTime, endDate, endTime })
+
+  useEffect(() => {
+    filterRef.current = { startDate, startTime, endDate, endTime }
+  }, [startDate, startTime, endDate, endTime])
 
   useEffect(() => {
     fetchSales()
@@ -93,12 +98,15 @@ export default function SalesPage() {
 
     const poll = async () => {
       try {
-        const now = new Date()
-        const start = new Date(now.getTime() - 24 * 60 * 60 * 1000)
-
+        const { startDate, startTime, endDate, endTime } = filterRef.current
         const params: any = { page, limit }
-        params.dataInicial = start.toISOString()
-        params.dataFinal = now.toISOString()
+
+        if (startDate && startTime) {
+          params.dataInicial = new Date(`${startDate}T${startTime}:00`).toISOString()
+        }
+        if (endDate && endTime) {
+          params.dataFinal = new Date(`${endDate}T${endTime}:59`).toISOString()
+        }
 
         const response = await api.get(`/vendas`, { params })
 
