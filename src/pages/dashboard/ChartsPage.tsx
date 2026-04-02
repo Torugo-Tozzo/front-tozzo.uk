@@ -219,12 +219,12 @@ export default function ChartsPage() {
     setIsSalesByHourLoading(true)
     try {
       const params: any = {
-        dataInicial: new Date(`${salesByHourStartDate}T00:00:00`).toISOString(),
+        dataInicial: new Date(`${salesByHourStartDate}T00:00:00-03:00`).toISOString(),
         page: salesByHourPage
       }
-      
+
       if (salesByHourEndDate) {
-        params.dataFinal = new Date(`${salesByHourEndDate}T23:59:59`).toISOString()
+        params.dataFinal = new Date(`${salesByHourEndDate}T23:59:59-03:00`).toISOString()
       }
 
       const response = await api.get("/graficos/vendas-por-horario", { params })
@@ -243,7 +243,8 @@ export default function ChartsPage() {
 
       rawData.forEach((sale: any) => {
         const date = new Date(sale.horario)
-        const hourKey = String(date.getHours()).padStart(2, '0') + ':00'
+        const brazilHour = ((date.getUTCHours() - 3) + 24) % 24
+        const hourKey = String(brazilHour).padStart(2, '0') + ':00'
         if (hourCounts[hourKey]) {
           hourCounts[hourKey].count += 1
           hourCounts[hourKey].totalRevenue += parseFloat(sale.total) || 0
