@@ -340,7 +340,7 @@ export default function OrdersPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Pedidos Recentes!</CardTitle>
+          <CardTitle>Pedidos Recentes</CardTitle>
         </CardHeader>
         <CardContent>
           <Table>

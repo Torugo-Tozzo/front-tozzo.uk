@@ -32,6 +32,7 @@ function RootLayout() {
 const router = createBrowserRouter([
   {
     element: <RootLayout />,
+    HydrateFallback: LoadingOverlay,
     children: [
       {
         element: <MainLayout />,
