@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - dev
 
 jobs:
   deploy:
@@ -17,7 +18,14 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            cd /home/victor/app/frontend
-            git pull origin main
-            cd ..
-            docker compose up -d --build --force-recreate frontend
+            if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+              cd /home/victor/app/frontend
+              git pull origin main
+              cd ..
+              docker compose up -d --build --force-recreate frontend
+            else
+              cd /home/victor/dev-app/frontend
+              git pull origin dev
+              cd ..
+              docker compose up -d --build --force-recreate frontend
+            fi
