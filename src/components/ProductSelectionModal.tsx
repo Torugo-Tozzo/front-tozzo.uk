@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Plus, Minus, Trash2, Loader2 } from "lucide-react";
 import api from "@/services/api";
+import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Select,
@@ -170,7 +171,7 @@ export function ProductSelectionModal({
 
   const handleConfirm = async () => {
     if (selectedItems.length === 0 && !isEditing) {
-      alert("Selecione pelo menos um produto.");
+      toast.warning("Selecione pelo menos um produto.");
       return;
     }
 
@@ -368,7 +369,7 @@ export function ProductSelectionModal({
                       setStatus(val)
                     } catch (err) {
                       console.error('Error changing status', err)
-                      alert('Erro ao alterar status do pedido')
+                      toast.error('Erro ao alterar status do pedido')
                     } finally {
                       setIsClosingOrder(false)
                     }
@@ -402,7 +403,7 @@ export function ProductSelectionModal({
                       onClose()
                     } catch (err) {
                       console.error('Error cancelling sale', err)
-                      alert('Erro ao cancelar venda')
+                      toast.error('Erro ao cancelar venda')
                     } finally {
                       setIsCancellingSale(false)
                     }

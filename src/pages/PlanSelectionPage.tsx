@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '@/services/api';
+import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -32,11 +33,11 @@ export default function PlanSelectionPage() {
         window.location.href = response.data.url;
       } else {
         console.error('Resposta inesperada:', response.data);
-        alert('Erro ao iniciar pagamento: URL não encontrada.');
+        toast.error('Erro ao iniciar pagamento: URL não encontrada.');
       }
     } catch (error: any) {
       console.error("Erro no checkout:", error);
-      alert('Erro ao processar pagamento. Verifique se sua sessão está ativa.');
+      toast.error('Erro ao processar pagamento. Verifique se sua sessão está ativa.');
     } finally {
       setLoading(false);
     }

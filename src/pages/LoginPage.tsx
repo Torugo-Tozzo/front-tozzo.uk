@@ -14,6 +14,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import logo from "@/assets/images/logo.png"
 import api from "@/services/api"
+import { toast } from "sonner"
 import { useAuth } from "@/contexts/AuthContext"
 
 export default function LoginPage() {
@@ -66,7 +67,7 @@ export default function LoginPage() {
         }
       }
 
-      alert("Falha no login. Verifique suas credenciais.")
+      toast.error("Falha no login. Verifique suas credenciais.")
     } finally {
       setIsLoading(false)
     }
@@ -94,11 +95,11 @@ export default function LoginPage() {
           navigate("/plan")
         }
       } else {
-        alert("Cadastro realizado com sucesso! Faça login para continuar.")
+        toast.success("Cadastro realizado com sucesso! Faça login para continuar.")
       }
     } catch (error) {
       console.error("Registration failed", error)
-      alert("Falha no cadastro. Verifique os dados.")
+      toast.error("Falha no cadastro. Verifique os dados.")
     } finally {
       setIsLoading(false)
     }

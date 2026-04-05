@@ -31,6 +31,8 @@ import {
 import { Skeleton } from "@/components/ui/skeleton"
 import { Plus, Pencil, Trash2, Users, Loader2, Search } from "lucide-react"
 import api from "@/services/api"
+import { parseListResponse } from "@/services/parseResponse"
+import { toast } from "sonner"
 import { Pagination } from "@/components/Pagination"
 import { useAuth } from "@/contexts/AuthContext"
 
@@ -74,17 +76,7 @@ export default function EmployeesPage() {
     try {
       const response = await api.get(`/usuarios?page=${page}&limit=${limit}&search=${encodeURIComponent(search)}`)
 
-      let data: any[] = []
-      let total = 0
-
-      if (response.data.data) {
-        data = response.data.data
-        total = response.data.total || response.data.count || 0
-      } else if (Array.isArray(response.data)) {
-        data = response.data
-        const totalHeader = response.headers['x-total-count']
-        total = totalHeader ? parseInt(totalHeader) : 0
-      }
+      const { data, total } = parseListResponse<Employee>(response)
 
       setEmployees(data)
       setTotalItems(total)
@@ -116,7 +108,7 @@ export default function EmployeesPage() {
       resetForm()
     } catch (error) {
       console.error("Error creating employee", error)
-      alert("Erro ao criar funcionário")
+      toast.error("Erro ao criar funcionário")
     } finally {
       setIsLoading(false)
     }
@@ -152,7 +144,7 @@ export default function EmployeesPage() {
       resetForm()
     } catch (error) {
       console.error("Error updating employee", error)
-      alert("Erro ao atualizar funcionário")
+      toast.error("Erro ao atualizar funcionário")
     } finally {
       setIsLoading(false)
     }
@@ -166,7 +158,7 @@ export default function EmployeesPage() {
           await fetchEmployees()
         } catch (error) {
           console.error("Error deleting employee", error)
-          alert("Erro ao excluir funcionário")
+          toast.error("Erro ao excluir funcionário")
         } finally {
           setIsLoading(false)
         }

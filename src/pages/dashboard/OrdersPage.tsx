@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useCallback, useMemo } from "react"
 import {
   Table,
   TableBody,
@@ -10,7 +10,9 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Plus, Pencil, Trash2, ShoppingCart, Loader2 } from "lucide-react"
-import api from "@/services/api"
+import api, { getErrorMessage } from "@/services/api"
+import { parseListResponse } from "@/services/parseResponse"
+import { toast } from "sonner"
 import { ProductSelectionModal } from "@/components/ProductSelectionModal"
 import { Pagination } from "@/components/Pagination"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -30,6 +32,7 @@ type Order = {
   status: string
   dataCriacao: string
   updatedAt: string
+  vendedor?: { id: number; nome: string } | null
 }
 
 export default function OrdersPage() {
@@ -49,7 +52,7 @@ export default function OrdersPage() {
   const [newOrdersCount, setNewOrdersCount] = useState<number>(0)
   const ordersRef = useRef<Order[]>([])
 
-  const loadOrdersRaw = async () => {
+  const loadOrdersRaw = useCallback(async () => {
     const params: any = { page, limit }
     if (statusFilter) {
       params.status = statusFilter
@@ -57,27 +60,17 @@ export default function OrdersPage() {
 
     const response = await api.get(`/pedidos`, { params })
 
-    let data: any[] = []
-    let total = 0
-
-    if (response.data.data) {
-      data = response.data.data
-      total = response.data.total || response.data.count || 0
-    } else if (Array.isArray(response.data)) {
-      data = response.data
-      const totalHeader = response.headers['x-total-count']
-      total = totalHeader ? parseInt(totalHeader) : 0
-    }
+    let { data, total } = parseListResponse<Order>(response)
 
     if (statusFilter === 'NAO_FECHADOS') {
-      data = data.filter((o: any) => o.status !== 'FECHADO')
+      data = data.filter((o) => o.status !== 'FECHADO')
       total = data.length
     }
 
     return { data, total }
-  }
+  }, [page, limit, statusFilter])
 
-  const fetchOrders = async () => {
+  const fetchOrders = useCallback(async () => {
     setIsLoading(true)
     try {
       const { data, total } = await loadOrdersRaw()
@@ -96,11 +89,11 @@ export default function OrdersPage() {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [loadOrdersRaw])
 
   useEffect(() => {
     fetchOrders()
-  }, [page, limit, statusFilter])
+  }, [fetchOrders])
 
   // Polling: every 8 seconds check for updates and update state only if changed
   // But only run polling when the page/tab is visible. When the tab becomes visible
@@ -239,7 +232,7 @@ export default function OrdersPage() {
       setIsModalOpen(false)
     } catch (error) {
       console.error("Error saving order", error)
-      alert("Erro ao salvar pedido")
+      toast.error(getErrorMessage(error, "Erro ao salvar pedido"))
     }
   }
 
@@ -251,7 +244,7 @@ export default function OrdersPage() {
       fetchOrders()
     } catch (error) {
       console.error("Error deleting order", error)
-      alert("Erro ao excluir pedido")
+      toast.error(getErrorMessage(error, "Erro ao excluir pedido"))
     } finally {
       setDeletingId(null)
     }
@@ -264,7 +257,7 @@ export default function OrdersPage() {
       fetchOrders()
     } catch (error) {
       console.error("Error closing order", error)
-      alert("Erro ao fechar pedido")
+      toast.error(getErrorMessage(error, "Erro ao fechar pedido"))
     } finally {
     }
   }
@@ -276,7 +269,7 @@ export default function OrdersPage() {
       fetchOrders()
     } catch (error) {
       console.error('Error updating order status', error)
-      alert('Erro ao atualizar status do pedido')
+      toast.error(getErrorMessage(error, 'Erro ao atualizar status do pedido'))
     } finally {
       setUpdatingStatusId(null)
     }
@@ -348,6 +341,7 @@ export default function OrdersPage() {
               <TableRow>
                 <TableHead className="w-[50px]">#</TableHead>
                 <TableHead>Cliente / Mesa</TableHead>
+                <TableHead>Criado por</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Data</TableHead>
                 <TableHead className="text-right">Total</TableHead>
@@ -360,6 +354,7 @@ export default function OrdersPage() {
                     <TableRow key={i}>
                       <TableCell><Skeleton className="h-4 w-8" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-[150px]" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-[100px]" /></TableCell>
                       <TableCell><Skeleton className="h-5 w-24 rounded-full" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-[120px]" /></TableCell>
                       <TableCell className="text-right justify-end flex"><Skeleton className="h-4 w-16" /></TableCell>
@@ -375,6 +370,7 @@ export default function OrdersPage() {
                 <TableRow key={order.id}>
                   <TableCell>{(page - 1) * limit + index + 1}</TableCell>
                   <TableCell>{order.cliente || "Não Informado"}</TableCell>
+                  <TableCell className="text-muted-foreground">{order.vendedor?.nome || "-"}</TableCell>
                   <TableCell>
                     <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium
                       ${order.status === 'FECHADO' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' : 

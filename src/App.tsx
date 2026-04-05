@@ -5,6 +5,7 @@ import ProtectedRoute from './components/ProtectedRoute'
 import DashboardLayout from './layouts/DashboardLayout'
 import MainLayout from './layouts/MainLayout'
 import { LoadingOverlay } from './components/LoadingOverlay'
+import { Toaster } from 'sonner'
 
 // Helper to convert default export to route.lazy object
 // This enables React Router to know about the loading state
@@ -21,6 +22,7 @@ function RootLayout() {
 
   return (
     <AuthProvider>
+      <Toaster position="top-right" richColors closeButton />
       {isNavigating && <LoadingOverlay />}
       <Suspense fallback={<LoadingOverlay />}>
         <Outlet />

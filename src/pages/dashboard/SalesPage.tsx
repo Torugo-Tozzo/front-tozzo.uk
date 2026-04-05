@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useCallback, useMemo } from "react"
 import {
   Table,
   TableBody,
@@ -13,7 +13,9 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Plus, DollarSign, Info, Search, Loader2 } from "lucide-react"
-import api from "@/services/api"
+import api, { getErrorMessage } from "@/services/api"
+import { parseListResponse } from "@/services/parseResponse"
+import { toast } from "sonner"
 import { useAuth } from "@/contexts/AuthContext"
 import { ProductSelectionModal } from "@/components/ProductSelectionModal"
 import { Pagination } from "@/components/Pagination"
@@ -24,6 +26,7 @@ type Sale = {
   cliente: string
   total: number
   horario: string
+  vendedor?: { id: number; nome: string } | null
 }
 
 export default function SalesPage() {
@@ -110,24 +113,8 @@ export default function SalesPage() {
 
         const response = await api.get(`/vendas`, { params })
 
-        let data: any[] = []
-        let total = 0
-        let fechamento = 0
-
-        if (response.data.vendas) {
-          data = response.data.vendas
-          fechamento = Number(response.data.fechamento) || 0
-          total = response.data.total || response.data.count || 0
-          if (!total && response.headers['x-total-count']) total = parseInt(response.headers['x-total-count'])
-          if (!total && data.length > 0) total = data.length
-        } else if (response.data.data) {
-          data = response.data.data
-          total = response.data.total || response.data.count || 0
-        } else if (Array.isArray(response.data)) {
-          data = response.data
-          const totalHeader = response.headers['x-total-count']
-          total = totalHeader ? parseInt(totalHeader) : 0
-        }
+        const { data, total } = parseListResponse<Sale>(response, 'vendas')
+        const fechamento = Number(response.data.fechamento) || 0
 
         if (!mounted) return
 
@@ -205,28 +192,8 @@ export default function SalesPage() {
 
       const response = await api.get(`/vendas`, { params })
       
-      let data = []
-      let total = 0
-      let fechamento = 0
-
-      if (response.data.vendas) {
-        data = response.data.vendas
-        fechamento = Number(response.data.fechamento) || 0
-        // Tenta pegar o total de itens para paginação
-        total = response.data.total || response.data.count || 0
-        if (!total && response.headers['x-total-count']) {
-          total = parseInt(response.headers['x-total-count'])
-        }
-        // Se ainda não tiver total mas tiver dados, assume o tamanho dos dados (fallback)
-        if (!total && data.length > 0) total = data.length
-      } else if (response.data.data) {
-        data = response.data.data
-        total = response.data.total || response.data.count || 0
-      } else if (Array.isArray(response.data)) {
-        data = response.data
-        const totalHeader = response.headers['x-total-count']
-        total = totalHeader ? parseInt(totalHeader) : 0
-      }
+      const { data, total } = parseListResponse<Sale>(response, 'vendas')
+      const fechamento = Number(response.data.fechamento) || 0
 
       setSales(data)
       setTotalItems(total)
@@ -257,7 +224,7 @@ export default function SalesPage() {
       setIsModalOpen(false)
     } catch (error) {
       console.error("Error creating sale", error)
-      alert("Erro ao criar venda")
+      toast.error(getErrorMessage(error, "Erro ao criar venda"))
     } finally {
       setIsLoading(false)
     }
@@ -330,7 +297,7 @@ export default function SalesPage() {
       setIsModalOpen(true)
     } catch (error) {
       console.error("Error fetching sale details", error)
-      alert("Erro ao carregar detalhes da venda")
+      toast.error(getErrorMessage(error, "Erro ao carregar detalhes da venda"))
     } finally {
       setLoadingSaleId(null)
     }
@@ -352,7 +319,7 @@ export default function SalesPage() {
       setCurrentSaleId(null)
     } catch (error) {
       console.error('Error cancelling sale', error)
-      alert('Erro ao cancelar venda')
+      toast.error('Erro ao cancelar venda')
     }
   }
 
@@ -465,6 +432,7 @@ export default function SalesPage() {
                 <TableHead className="w-[50px]">#</TableHead>
                 <TableHead className="w-[100px]">Info</TableHead>
                 <TableHead>Cliente / Mesa</TableHead>
+                <TableHead>Criado por</TableHead>
                 <TableHead>Data</TableHead>
                 <TableHead className="text-right">Total</TableHead>
               </TableRow>
@@ -476,6 +444,7 @@ export default function SalesPage() {
                       <TableCell><Skeleton className="h-4 w-8" /></TableCell>
                       <TableCell><Skeleton className="h-6 w-6 rounded-full" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-[200px]" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-[100px]" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-[150px]" /></TableCell>
                       <TableCell className="text-right justify-end flex"><Skeleton className="h-4 w-16" /></TableCell>
                     </TableRow>
@@ -490,6 +459,7 @@ export default function SalesPage() {
                     </Button>
                   </TableCell>
                   <TableCell>{sale.cliente || "Não Informado"}</TableCell>
+                  <TableCell className="text-muted-foreground">{sale.vendedor?.nome || "-"}</TableCell>
                   <TableCell>
                     {sale.horario ? new Date(sale.horario).toLocaleString() : "-"}
                   </TableCell>

@@ -91,12 +91,9 @@ export default function DashboardLayout() {
     let mounted = true
     const fetchCount = async () => {
       try {
-        // fetch a reasonable number of pedidos and count non-FECHADO
-        const resp = await api.get('/pedidos', { params: { limit: 1000 } })
-        let items: any[] = []
-        if (resp.data && resp.data.data) items = resp.data.data
-        else if (Array.isArray(resp.data)) items = resp.data
-        const count = items.filter(i => i?.status !== 'FECHADO').length
+        const resp = await api.get('/pedidos', { params: { status: 'NAO_FECHADOS', limit: 1 } })
+        const totalHeader = resp.headers['x-total-count']
+        const count = totalHeader ? parseInt(totalHeader) : (Array.isArray(resp.data) ? resp.data.length : 0)
         if (mounted) setNonClosedCount(count)
       } catch (err) {
         console.error('Error fetching non-closed orders count', err)

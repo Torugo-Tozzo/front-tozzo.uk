@@ -27,4 +27,9 @@ api.interceptors.response.use(
   }
 );
 
+export function getErrorMessage(error: any, fallback: string): string {
+  const msg = error?.response?.data?.message;
+  return msg ? String(msg) : fallback;
+}
+
 export default api;

@@ -32,6 +32,8 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Plus, Pencil, Trash2, ShoppingBag, Search, Loader2, Power } from "lucide-react"
 import api from "@/services/api"
+import { parseListResponse } from "@/services/parseResponse"
+import { toast } from "sonner"
 import { Pagination } from "@/components/Pagination"
 import { useAuth } from "@/contexts/AuthContext"
 
@@ -121,17 +123,7 @@ export default function ProductsPage() {
     try {
       const response = await api.get(`/produtos?page=${page}&limit=${limit}&search=${search}`)
       
-      let data = []
-      let total = 0
-
-      if (response.data.data) {
-        data = response.data.data
-        total = response.data.total || response.data.count || 0
-      } else if (Array.isArray(response.data)) {
-        data = response.data
-        const totalHeader = response.headers['x-total-count']
-        total = totalHeader ? parseInt(totalHeader) : 0
-      }
+      const { data, total } = parseListResponse<Product>(response)
 
       setProducts(data)
       setTotalItems(total)
@@ -173,17 +165,7 @@ export default function ProductsPage() {
     try {
       const response = await api.get(`/tipos?page=${typesPage}&limit=${typesLimit}&all=true&search=${encodeURIComponent(typesSearch)}`)
 
-      let data: any[] = []
-      let total = 0
-
-      if (response.data.data) {
-        data = response.data.data
-        total = response.data.total || response.data.count || 0
-      } else if (Array.isArray(response.data)) {
-        data = response.data
-        const totalHeader = response.headers['x-total-count']
-        total = totalHeader ? parseInt(totalHeader) : 0
-      }
+      const { data, total } = parseListResponse<any>(response)
 
       const types: ProductType[] = data.map((t: any) => ({
         id: t.id,
@@ -219,7 +201,7 @@ export default function ProductsPage() {
   const handleAddProduct = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!typeId) {
-      alert("Por favor, selecione um tipo de produto.")
+      toast.warning("Por favor, selecione um tipo de produto.")
       return
     }
     setIsLoading(true)
@@ -235,7 +217,7 @@ export default function ProductsPage() {
       resetForm()
     } catch (error) {
       console.error("Error creating product", error)
-      alert("Erro ao criar produto")
+      toast.error("Erro ao criar produto")
     } finally {
       setIsLoading(false)
     }
@@ -254,7 +236,7 @@ export default function ProductsPage() {
     e.preventDefault()
     if (!currentProduct) return
     if (!typeId) {
-      alert("Por favor, selecione um tipo de produto.")
+      toast.warning("Por favor, selecione um tipo de produto.")
       return
     }
     setIsLoading(true)
@@ -270,7 +252,7 @@ export default function ProductsPage() {
       resetForm()
     } catch (error) {
       console.error("Error updating product", error)
-      alert("Erro ao atualizar produto")
+      toast.error("Erro ao atualizar produto")
     } finally {
       setIsLoading(false)
     }
@@ -284,7 +266,7 @@ export default function ProductsPage() {
         fetchProducts()
       } catch (error) {
         console.error("Error deleting product", error)
-        alert("Erro ao excluir produto")
+        toast.error("Erro ao excluir produto")
       } finally {
         setDeletingId(null)
       }
@@ -316,7 +298,7 @@ export default function ProductsPage() {
       resetTypeForm()
     } catch (error) {
       console.error("Error creating type", error)
-      alert("Erro ao criar tipo")
+      toast.error("Erro ao criar tipo")
     } finally {
       setIsLoading(false)
     }
@@ -341,7 +323,7 @@ export default function ProductsPage() {
       resetTypeForm()
     } catch (error) {
       console.error("Error updating type", error)
-      alert("Erro ao atualizar tipo")
+      toast.error("Erro ao atualizar tipo")
     } finally {
       setIsLoading(false)
     }
@@ -362,7 +344,7 @@ export default function ProductsPage() {
         await fetchProducts()
       } catch (error) {
         console.error("Error toggling type active", error)
-        alert("Erro ao atualizar status do tipo. Verifique se não há produtos vinculados.")
+        toast.error("Erro ao atualizar status do tipo. Verifique se não há produtos vinculados.")
       } finally {
         setDeletingId(null)
       }
