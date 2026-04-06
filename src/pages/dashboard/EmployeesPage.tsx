@@ -64,6 +64,33 @@ export default function EmployeesPage() {
   const [password, setPassword] = useState("")
   const [role, setRole] = useState("FUNCIONARIO")
 
+  const isDono = user?.role === "DONO"
+  const isGerente = user?.role === "GERENTE"
+  const canManageUsers = isDono || isGerente
+
+  // Roles disponíveis para criação/edição baseado no cargo do usuário logado
+  const getAvailableRoles = () => {
+    if (isDono) return ["GERENTE", "FUNCIONARIO", "CLIENTE"]
+    if (isGerente) return ["FUNCIONARIO", "CLIENTE"]
+    return []
+  }
+
+  // Verifica se o usuário logado pode editar o funcionário alvo
+  const canEditEmployee = (employee: Employee) => {
+    if (employee.role === "DONO") return false
+    if (isDono) return true
+    if (isGerente && (employee.role === "FUNCIONARIO" || employee.role === "CLIENTE")) return true
+    return false
+  }
+
+  // Verifica se o usuário logado pode excluir o funcionário alvo
+  const canDeleteEmployee = (employee: Employee) => {
+    if (employee.role === "DONO") return false
+    if (isDono) return true
+    if (isGerente && (employee.role === "FUNCIONARIO" || employee.role === "CLIENTE")) return true
+    return false
+  }
+
   useEffect(() => {
     const delay = setTimeout(() => {
       setIsLoading(true)
@@ -173,6 +200,26 @@ export default function EmployeesPage() {
     setCurrentEmployee(null)
   }
 
+  const roleLabel = (r: string) => {
+    switch (r) {
+      case 'DONO': return 'Dono'
+      case 'GERENTE': return 'Gerente'
+      case 'FUNCIONARIO': return 'Funcionário'
+      case 'CLIENTE': return 'Cliente'
+      default: return r || "N/A"
+    }
+  }
+
+  const availableRoles = getAvailableRoles()
+
+  // Roles disponíveis para edição (pode ser diferente dependendo do alvo)
+  const getEditAvailableRoles = () => {
+    if (!currentEmployee) return availableRoles
+    // Se estiver editando um GERENTE, só o DONO pode e pode rebaixar
+    if (currentEmployee.role === "GERENTE" && isDono) return ["GERENTE", "FUNCIONARIO", "CLIENTE"]
+    return availableRoles
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -180,81 +227,82 @@ export default function EmployeesPage() {
           <Users className="h-8 w-8" />
           {`Funcionários${user?.estabelecimento?.nomeFantasia ? ` do ${user.estabelecimento.nomeFantasia}` : ''}`}
         </h1>
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={resetForm} disabled={isLoading}>
-              <Plus className="mr-2 h-4 w-4" /> Novo Funcionário
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Adicionar Funcionário</DialogTitle>
-              <DialogDescription>
-                Cadastre um novo funcionário para acessar o sistema.
-              </DialogDescription>
-            </DialogHeader>
-            <form onSubmit={handleAddEmployee} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Nome</Label>
-                <Input
-                  id="name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  required
-                  disabled={isLoading}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  disabled={isLoading}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="role">Cargo</Label>
-                <Select value={role} onValueChange={setRole}>
-                  <SelectTrigger disabled={isLoading}>
-                    <SelectValue placeholder="Selecione o cargo" />
-                  </SelectTrigger>
-                  <SelectContent>
-                      <SelectItem value="DONO">Dono</SelectItem>
-                      <SelectItem value="GERENTE">Gerente</SelectItem>
-                      <SelectItem value="FUNCIONARIO">Funcionário</SelectItem>
-                      <SelectItem value="CLIENTE">Cliente</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="password">Senha</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  disabled={isLoading}
-                />
-              </div>
-              <DialogFooter>
-                <Button type="submit" disabled={isLoading}>
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Salvar
-                    </>
-                  ) : (
-                    "Salvar"
-                  )}
-                </Button>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
+        {canManageUsers && (
+          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+            <DialogTrigger asChild>
+              <Button onClick={resetForm} disabled={isLoading}>
+                <Plus className="mr-2 h-4 w-4" /> Novo Funcionário
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Adicionar Funcionário</DialogTitle>
+                <DialogDescription>
+                  Cadastre um novo funcionário para acessar o sistema.
+                </DialogDescription>
+              </DialogHeader>
+              <form onSubmit={handleAddEmployee} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Nome</Label>
+                  <Input
+                    id="name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    required
+                    disabled={isLoading}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    disabled={isLoading}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="role">Cargo</Label>
+                  <Select value={role} onValueChange={setRole}>
+                    <SelectTrigger disabled={isLoading}>
+                      <SelectValue placeholder="Selecione o cargo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableRoles.map((r) => (
+                        <SelectItem key={r} value={r}>{roleLabel(r)}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="password">Senha</Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    disabled={isLoading}
+                  />
+                </div>
+                <DialogFooter>
+                  <Button type="submit" disabled={isLoading}>
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Salvar
+                      </>
+                    ) : (
+                      "Salvar"
+                    )}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
 
       <Card>
@@ -284,7 +332,9 @@ export default function EmployeesPage() {
                 <TableHead>Nome</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Cargo</TableHead>
-                <TableHead className="text-right">Ações</TableHead>
+                {canManageUsers && (
+                  <TableHead className="text-right">Ações</TableHead>
+                )}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -295,10 +345,12 @@ export default function EmployeesPage() {
                       <TableCell><Skeleton className="h-4 w-[200px]" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-[250px]" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-[100px]" /></TableCell>
-                      <TableCell className="text-right justify-end flex gap-2">
-                        <Skeleton className="h-8 w-8" />
-                        <Skeleton className="h-8 w-8" />
-                      </TableCell>
+                      {canManageUsers && (
+                        <TableCell className="text-right justify-end flex gap-2">
+                          <Skeleton className="h-8 w-8" />
+                          <Skeleton className="h-8 w-8" />
+                        </TableCell>
+                      )}
                     </TableRow>
                   ))
               ) : (
@@ -309,30 +361,23 @@ export default function EmployeesPage() {
                     <TableCell>{employee.email}</TableCell>
                     <TableCell>
                       <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-primary/10 text-primary">
-                        {(() => {
-                          const r = employee.role
-                          if (!r) return "N/A"
-                          switch (r) {
-                            case 'DONO': return 'Dono'
-                            case 'GERENTE': return 'Gerente'
-                            case 'FUNCIONARIO': return 'Funcionário'
-                            case 'CLIENTE': return 'Cliente'
-                            default: return r
-                          }
-                        })()}
+                        {roleLabel(employee.role)}
                       </span>
                     </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleEditClick(employee)}
-                          disabled={isLoading}
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        {employee.role !== 'DONO' && (
+                  {canManageUsers && (
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        {canEditEmployee(employee) && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleEditClick(employee)}
+                            disabled={isLoading}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                        )}
+                        {canDeleteEmployee(employee) && (
                           <Button
                             variant="ghost"
                             size="icon"
@@ -347,8 +392,9 @@ export default function EmployeesPage() {
                             )}
                           </Button>
                         )}
-                    </div>
-                  </TableCell>
+                      </div>
+                    </TableCell>
+                  )}
                 </TableRow>
               )))}
             </TableBody>
@@ -409,10 +455,9 @@ export default function EmployeesPage() {
                   <SelectValue placeholder="Selecione o cargo" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="DONO">Dono</SelectItem>
-                  <SelectItem value="GERENTE">Gerente</SelectItem>
-                  <SelectItem value="FUNCIONARIO">Funcionário</SelectItem>
-                  <SelectItem value="CLIENTE">Cliente</SelectItem>
+                  {getEditAvailableRoles().map((r) => (
+                    <SelectItem key={r} value={r}>{roleLabel(r)}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>

@@ -11,6 +11,7 @@ interface User {
   id: number;
   nome: string;
   email: string;
+  role?: string;
   estabelecimento?: Establishment;
 }
 
@@ -57,6 +58,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           if (userResponse.data) {
             userData.nome = userResponse.data.nome || userData.nome;
             userData.email = userResponse.data.email || userData.email;
+            userData.role = userResponse.data.role;
           }
         } catch (error) {
           console.warn('Não foi possível buscar dados detalhados do usuário', error);
