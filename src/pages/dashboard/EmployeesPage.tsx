@@ -30,7 +30,7 @@ import {
 } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Plus, Pencil, Trash2, Users, Loader2, Search } from "lucide-react"
-import api from "@/services/api"
+import api, { getErrorMessage } from "@/services/api"
 import { parseListResponse } from "@/services/parseResponse"
 import { toast } from "sonner"
 import { Pagination } from "@/components/Pagination"
@@ -108,7 +108,7 @@ export default function EmployeesPage() {
       resetForm()
     } catch (error) {
       console.error("Error creating employee", error)
-      toast.error("Erro ao criar funcionário")
+      toast.error(getErrorMessage(error, "Erro ao criar funcionário"))
     } finally {
       setIsLoading(false)
     }
@@ -144,7 +144,7 @@ export default function EmployeesPage() {
       resetForm()
     } catch (error) {
       console.error("Error updating employee", error)
-      toast.error("Erro ao atualizar funcionário")
+      toast.error(getErrorMessage(error, "Erro ao atualizar funcionário"))
     } finally {
       setIsLoading(false)
     }
@@ -158,7 +158,7 @@ export default function EmployeesPage() {
           await fetchEmployees()
         } catch (error) {
           console.error("Error deleting employee", error)
-          toast.error("Erro ao excluir funcionário")
+          toast.error(getErrorMessage(error, "Erro ao excluir funcionário"))
         } finally {
           setIsLoading(false)
         }

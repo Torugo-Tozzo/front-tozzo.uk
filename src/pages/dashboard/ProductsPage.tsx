@@ -31,7 +31,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Plus, Pencil, Trash2, ShoppingBag, Search, Loader2, Power } from "lucide-react"
-import api from "@/services/api"
+import api, { getErrorMessage } from "@/services/api"
 import { parseListResponse } from "@/services/parseResponse"
 import { toast } from "sonner"
 import { Pagination } from "@/components/Pagination"
@@ -217,7 +217,7 @@ export default function ProductsPage() {
       resetForm()
     } catch (error) {
       console.error("Error creating product", error)
-      toast.error("Erro ao criar produto")
+      toast.error(getErrorMessage(error, "Erro ao criar produto"))
     } finally {
       setIsLoading(false)
     }
@@ -252,7 +252,7 @@ export default function ProductsPage() {
       resetForm()
     } catch (error) {
       console.error("Error updating product", error)
-      toast.error("Erro ao atualizar produto")
+      toast.error(getErrorMessage(error, "Erro ao atualizar produto"))
     } finally {
       setIsLoading(false)
     }
@@ -266,7 +266,7 @@ export default function ProductsPage() {
         fetchProducts()
       } catch (error) {
         console.error("Error deleting product", error)
-        toast.error("Erro ao excluir produto")
+        toast.error(getErrorMessage(error, "Erro ao excluir produto"))
       } finally {
         setDeletingId(null)
       }
@@ -298,7 +298,7 @@ export default function ProductsPage() {
       resetTypeForm()
     } catch (error) {
       console.error("Error creating type", error)
-      toast.error("Erro ao criar tipo")
+      toast.error(getErrorMessage(error, "Erro ao criar tipo"))
     } finally {
       setIsLoading(false)
     }
@@ -323,7 +323,7 @@ export default function ProductsPage() {
       resetTypeForm()
     } catch (error) {
       console.error("Error updating type", error)
-      toast.error("Erro ao atualizar tipo")
+      toast.error(getErrorMessage(error, "Erro ao atualizar tipo"))
     } finally {
       setIsLoading(false)
     }
@@ -344,7 +344,7 @@ export default function ProductsPage() {
         await fetchProducts()
       } catch (error) {
         console.error("Error toggling type active", error)
-        toast.error("Erro ao atualizar status do tipo. Verifique se não há produtos vinculados.")
+        toast.error(getErrorMessage(error, "Erro ao atualizar status do tipo"))
       } finally {
         setDeletingId(null)
       }

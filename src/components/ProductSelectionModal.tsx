@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Plus, Minus, Trash2, Loader2 } from "lucide-react";
-import api from "@/services/api";
+import api, { getErrorMessage } from "@/services/api";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -369,7 +369,7 @@ export function ProductSelectionModal({
                       setStatus(val)
                     } catch (err) {
                       console.error('Error changing status', err)
-                      toast.error('Erro ao alterar status do pedido')
+                      toast.error(getErrorMessage(err, 'Erro ao alterar status do pedido'))
                     } finally {
                       setIsClosingOrder(false)
                     }
@@ -403,7 +403,7 @@ export function ProductSelectionModal({
                       onClose()
                     } catch (err) {
                       console.error('Error cancelling sale', err)
-                      toast.error('Erro ao cancelar venda')
+                      toast.error(getErrorMessage(err, 'Erro ao cancelar venda'))
                     } finally {
                       setIsCancellingSale(false)
                     }

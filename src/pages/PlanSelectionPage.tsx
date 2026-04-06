@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api from '@/services/api';
+import api, { getErrorMessage } from '@/services/api';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -37,7 +37,7 @@ export default function PlanSelectionPage() {
       }
     } catch (error: any) {
       console.error("Erro no checkout:", error);
-      toast.error('Erro ao processar pagamento. Verifique se sua sessão está ativa.');
+      toast.error(getErrorMessage(error, 'Erro ao processar pagamento. Verifique se sua sessão está ativa.'));
     } finally {
       setLoading(false);
     }

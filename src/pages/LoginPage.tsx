@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import logo from "@/assets/images/logo.png"
-import api from "@/services/api"
+import api, { getErrorMessage } from "@/services/api"
 import { toast } from "sonner"
 import { useAuth } from "@/contexts/AuthContext"
 
@@ -67,7 +67,7 @@ export default function LoginPage() {
         }
       }
 
-      toast.error("Falha no login. Verifique suas credenciais.")
+      toast.error(getErrorMessage(error, "Falha no login. Verifique suas credenciais."))
     } finally {
       setIsLoading(false)
     }
@@ -99,7 +99,7 @@ export default function LoginPage() {
       }
     } catch (error) {
       console.error("Registration failed", error)
-      toast.error("Falha no cadastro. Verifique os dados.")
+      toast.error(getErrorMessage(error, "Falha no cadastro. Verifique os dados."))
     } finally {
       setIsLoading(false)
     }

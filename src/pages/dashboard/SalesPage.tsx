@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from "react"
+import { useState, useEffect, useRef } from "react"
 import {
   Table,
   TableBody,
@@ -319,7 +319,7 @@ export default function SalesPage() {
       setCurrentSaleId(null)
     } catch (error) {
       console.error('Error cancelling sale', error)
-      toast.error('Erro ao cancelar venda')
+      toast.error(getErrorMessage(error, 'Erro ao cancelar venda'))
     }
   }
 
