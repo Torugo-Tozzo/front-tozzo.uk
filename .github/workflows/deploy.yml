@@ -14,9 +14,9 @@ jobs:
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ secrets.SERVER_IP }}
+          host: ${{ github.ref == 'refs/heads/main' && secrets.SERVER_IP || secrets.ORACLE_SERVER_IP }}
           username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          key: ${{ github.ref == 'refs/heads/main' && secrets.SSH_PRIVATE_KEY || secrets.ORACLE_SSH_PRIVATE_KEY }}
           script: |
             if [ "${{ github.ref }}" = "refs/heads/main" ]; then
               cd /home/victor/app/frontend
