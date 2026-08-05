@@ -1,3 +1,6 @@
+# Superpowers SDD scratch workspace (ledgers, briefs, review packages — not part of history)
+.superpowers/
+
 # Logs
 logs
 *.log
