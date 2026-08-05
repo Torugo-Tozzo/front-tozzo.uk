@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import {
   Table,
   TableBody,
@@ -17,6 +17,7 @@ import api, { getErrorMessage } from "@/services/api"
 import { parseListResponse } from "@/services/parseResponse"
 import { toast } from "sonner"
 import { useAuth } from "@/contexts/AuthContext"
+import { useRealtimeEvents } from "@/hooks/useRealtimeEvents"
 import { ProductSelectionModal } from "@/components/ProductSelectionModal"
 import { Pagination } from "@/components/Pagination"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -27,6 +28,18 @@ type Sale = {
   total: number
   horario: string
   vendedor?: { id: number; nome: string } | null
+}
+
+function isSalesEqual(a: Sale[], b: Sale[]) {
+  if (a.length !== b.length) return false
+  for (let i = 0; i < a.length; i++) {
+    const ai = a[i]
+    const bi = b[i]
+    if (ai.id !== bi.id) return false
+    if (ai.total !== bi.total) return false
+    if ((ai.horario || '') !== (bi.horario || '')) return false
+  }
+  return true
 }
 
 export default function SalesPage() {
@@ -80,68 +93,53 @@ export default function SalesPage() {
     fetchSales()
   }, [page, limit])
 
-  // Polling: every 8 seconds when page is visible.
-  // For polling we ALWAYS override date filters to: now (end) and now-24h (start),
-  // regardless of the user's selected filter values, to keep the result bounded.
+  const poll = useCallback(async () => {
+    try {
+      const { startDate, startTime, endDate, endTime } = filterRef.current
+      const params: any = { page, limit }
+
+      if (startDate && startTime) {
+        params.dataInicial = new Date(`${startDate}T${startTime}:00`).toISOString()
+      }
+      if (endDate && endTime) {
+        params.dataFinal = new Date(`${endDate}T${endTime}:59`).toISOString()
+      }
+
+      const response = await api.get(`/vendas`, { params })
+      const { data, total } = parseListResponse<Sale>(response, 'vendas')
+      const fechamento = Number(response.data.fechamento) || 0
+
+      const previous = salesRef.current || []
+      if (!isSalesEqual(previous, data)) {
+        setSales(data)
+        salesRef.current = data
+        setTotalItems(total)
+        setPeriodTotal(fechamento)
+
+        if (total > 0) {
+          setTotalPages(Math.ceil(total / limit))
+          setHasMore(page < Math.ceil(total / limit))
+        } else {
+          setTotalPages(0)
+          setHasMore(data.length === limit)
+        }
+      }
+    } catch (err) {
+      console.error('Error polling sales', err)
+    }
+  }, [page, limit])
+
+  useRealtimeEvents(['vendas'], poll)
+
+  // Fallback: SSE eh o caminho principal (useRealtimeEvents acima), esse
+  // interval mais espaçado so cobre o caso de conexao SSE falhar silenciosamente.
   useEffect(() => {
-    let mounted = true
     let interval: number | null = null
-
-    const isSalesEqual = (a: Sale[], b: Sale[]) => {
-      if (a.length !== b.length) return false
-      for (let i = 0; i < a.length; i++) {
-        const ai = a[i]
-        const bi = b[i]
-        if (ai.id !== bi.id) return false
-        if (ai.total !== bi.total) return false
-        if ((ai.horario || '') !== (bi.horario || '')) return false
-      }
-      return true
-    }
-
-    const poll = async () => {
-      try {
-        const { startDate, startTime, endDate, endTime } = filterRef.current
-        const params: any = { page, limit }
-
-        if (startDate && startTime) {
-          params.dataInicial = new Date(`${startDate}T${startTime}:00`).toISOString()
-        }
-        if (endDate && endTime) {
-          params.dataFinal = new Date(`${endDate}T${endTime}:59`).toISOString()
-        }
-
-        const response = await api.get(`/vendas`, { params })
-
-        const { data, total } = parseListResponse<Sale>(response, 'vendas')
-        const fechamento = Number(response.data.fechamento) || 0
-
-        if (!mounted) return
-
-        const previous = salesRef.current || []
-        if (!isSalesEqual(previous, data)) {
-          setSales(data)
-          salesRef.current = data
-          setTotalItems(total)
-          setPeriodTotal(fechamento)
-
-          if (total > 0) {
-            setTotalPages(Math.ceil(total / limit))
-            setHasMore(page < Math.ceil(total / limit))
-          } else {
-            setTotalPages(0)
-            setHasMore(data.length === limit)
-          }
-        }
-      } catch (err) {
-        console.error('Error polling sales', err)
-      }
-    }
 
     const startPolling = () => {
       if (interval != null) return
       poll()
-      interval = window.setInterval(poll, 8000)
+      interval = window.setInterval(poll, 60000)
     }
 
     const stopPolling = () => {
@@ -152,7 +150,6 @@ export default function SalesPage() {
     }
 
     const handleVisibilityChange = () => {
-      if (!mounted) return
       if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
         startPolling()
       } else {
@@ -169,13 +166,12 @@ export default function SalesPage() {
     window.addEventListener('blur', handleVisibilityChange)
 
     return () => {
-      mounted = false
       stopPolling()
       document.removeEventListener('visibilitychange', handleVisibilityChange)
       window.removeEventListener('focus', handleVisibilityChange)
       window.removeEventListener('blur', handleVisibilityChange)
     }
-  }, [page, limit])
+  }, [poll])
 
   const fetchSales = async () => {
     setIsLoading(true)
