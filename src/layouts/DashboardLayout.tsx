@@ -1,4 +1,4 @@
-import { useState, useEffect, Suspense } from "react"
+import { useState, useEffect, useCallback, Suspense } from "react"
 import { Link, Outlet, useLocation } from "react-router-dom"
 import { 
   LayoutDashboard, 
@@ -19,6 +19,7 @@ import { LoadingOverlay } from "@/components/LoadingOverlay"
 import logo from "@/assets/images/logo.png"
 import { useAuth } from "@/contexts/AuthContext"
 import api from "@/services/api"
+import { useRealtimeEvents } from "@/hooks/useRealtimeEvents"
 
 export default function DashboardLayout() {
   const location = useLocation()
@@ -87,23 +88,24 @@ export default function DashboardLayout() {
     </>
   )
 
-  useEffect(() => {
-    let mounted = true
-    const fetchCount = async () => {
-      try {
-        const resp = await api.get('/pedidos', { params: { status: 'NAO_FECHADOS', limit: 1 } })
-        const totalHeader = resp.headers['x-total-count']
-        const count = totalHeader ? parseInt(totalHeader) : (Array.isArray(resp.data) ? resp.data.length : 0)
-        if (mounted) setNonClosedCount(count)
-      } catch (err) {
-        console.error('Error fetching non-closed orders count', err)
-      }
+  const fetchCount = useCallback(async () => {
+    try {
+      const resp = await api.get('/pedidos', { params: { status: 'NAO_FECHADOS', limit: 1 } })
+      const totalHeader = resp.headers['x-total-count']
+      const count = totalHeader ? parseInt(totalHeader) : (Array.isArray(resp.data) ? resp.data.length : 0)
+      setNonClosedCount(count)
+    } catch (err) {
+      console.error('Error fetching non-closed orders count', err)
     }
-
-    fetchCount()
-    const iv = setInterval(fetchCount, 15000)
-    return () => { mounted = false; clearInterval(iv) }
   }, [])
+
+  useRealtimeEvents(['pedidos'], fetchCount)
+
+  useEffect(() => {
+    fetchCount()
+    const iv = setInterval(fetchCount, 60000)
+    return () => clearInterval(iv)
+  }, [fetchCount])
 
   // Realtime badge updates removed (SSE removed)
 
