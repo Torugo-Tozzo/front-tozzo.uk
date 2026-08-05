@@ -63,7 +63,6 @@ export default function OrdersPage() {
   const [currentOrderItems, setCurrentOrderItems] = useState<any[]>([])
   const [deletingId, setDeletingId] = useState<number | null>(null)
   const [updatingStatusId, setUpdatingStatusId] = useState<number | null>(null)
-  const [newOrdersCount, setNewOrdersCount] = useState<number>(0)
   const ordersRef = useRef<Order[]>([])
 
   const loadOrdersRaw = useCallback(async () => {
@@ -112,15 +111,11 @@ export default function OrdersPage() {
       if (!isOrdersEqual(previous, data)) {
         setOrders(data)
         ordersRef.current = data
-
-        if (page === 1 && data.length > previous.length) {
-          setNewOrdersCount(data.length - previous.length)
-        }
       }
     } catch (err) {
       console.error('[OrdersPage] Error polling orders', err)
     }
-  }, [loadOrdersRaw, page])
+  }, [loadOrdersRaw])
 
   useRealtimeEvents(['pedidos'], poll)
 
@@ -296,20 +291,6 @@ export default function OrdersPage() {
             </SelectContent>
           </Select>
         </div>
-        {newOrdersCount > 0 && (
-          <div>
-            <Button
-              variant="ghost"
-              onClick={() => {
-                setPage(1)
-                fetchOrders()
-                setNewOrdersCount(0)
-              }}
-            >
-              Mostrar {newOrdersCount} novos
-            </Button>
-          </div>
-        )}
       </div>
 
       <ProductSelectionModal
