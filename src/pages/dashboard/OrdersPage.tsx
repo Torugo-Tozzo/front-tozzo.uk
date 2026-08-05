@@ -24,6 +24,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { useAuth } from "@/contexts/AuthContext"
+import { useRealtimeEvents } from "@/hooks/useRealtimeEvents"
 
 type Order = {
   id: number
@@ -33,6 +34,19 @@ type Order = {
   dataCriacao: string
   updatedAt: string
   vendedor?: { id: number; nome: string } | null
+}
+
+function isOrdersEqual(a: Order[], b: Order[]) {
+  if (a.length !== b.length) return false
+  for (let i = 0; i < a.length; i++) {
+    const ai = a[i]
+    const bi = b[i]
+    if (ai.id !== bi.id) return false
+    if (ai.status !== bi.status) return false
+    if ((ai.updatedAt || ai.dataCriacao) !== (bi.updatedAt || bi.dataCriacao)) return false
+    if (ai.total !== bi.total) return false
+  }
+  return true
 }
 
 export default function OrdersPage() {
@@ -91,55 +105,38 @@ export default function OrdersPage() {
     }
   }, [loadOrdersRaw])
 
+  const poll = useCallback(async () => {
+    try {
+      const { data } = await loadOrdersRaw()
+      const previous = ordersRef.current || []
+      if (!isOrdersEqual(previous, data)) {
+        setOrders(data)
+        ordersRef.current = data
+
+        if (page === 1 && data.length > previous.length) {
+          setNewOrdersCount(data.length - previous.length)
+        }
+      }
+    } catch (err) {
+      console.error('[OrdersPage] Error polling orders', err)
+    }
+  }, [loadOrdersRaw, page])
+
+  useRealtimeEvents(['pedidos'], poll)
+
   useEffect(() => {
     fetchOrders()
   }, [fetchOrders])
 
-  // Polling: every 8 seconds check for updates and update state only if changed
-  // But only run polling when the page/tab is visible. When the tab becomes visible
-  // do an immediate poll and resume the interval. Pause polling when hidden.
+  // Fallback: SSE eh o caminho principal (useRealtimeEvents acima), esse
+  // interval mais espaçado so cobre o caso de conexao SSE falhar silenciosamente.
   useEffect(() => {
-    let mounted = true
     let interval: number | null = null
-
-    const isOrdersEqual = (a: Order[], b: Order[]) => {
-      if (a.length !== b.length) return false
-      for (let i = 0; i < a.length; i++) {
-        const ai = a[i]
-        const bi = b[i]
-        if (ai.id !== bi.id) return false
-        if (ai.status !== bi.status) return false
-        if ((ai.updatedAt || ai.dataCriacao) !== (bi.updatedAt || bi.dataCriacao)) return false
-        if (ai.total !== bi.total) return false
-      }
-      return true
-    }
-
-    const poll = async () => {
-      try {
-        const { data } = await loadOrdersRaw()
-        if (!mounted) return
-
-        const previous = ordersRef.current || []
-        if (!isOrdersEqual(previous, data)) {
-          setOrders(data)
-          ordersRef.current = data
-
-          // if new items were added at the top (only when page === 1), show count
-          if (page === 1 && data.length > previous.length) {
-            setNewOrdersCount(data.length - previous.length)
-          }
-        } else {
-        }
-      } catch (err) {
-        console.error('[OrdersPage] Error polling orders', err)
-      }
-    }
 
     const startPolling = () => {
       if (interval != null) return
       poll()
-      interval = window.setInterval(poll, 8000)
+      interval = window.setInterval(poll, 60000)
     }
 
     const stopPolling = () => {
@@ -150,7 +147,6 @@ export default function OrdersPage() {
     }
 
     const handleVisibilityChange = () => {
-      if (!mounted) return
       const visibility = (typeof document !== 'undefined' && document.visibilityState) || 'unknown'
       if (visibility === 'visible') {
         startPolling()
@@ -159,7 +155,6 @@ export default function OrdersPage() {
       }
     }
 
-    // start polling only if the page is visible
     if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
       startPolling()
     }
@@ -169,13 +164,12 @@ export default function OrdersPage() {
     window.addEventListener('blur', handleVisibilityChange)
 
     return () => {
-      mounted = false
       stopPolling()
       document.removeEventListener('visibilitychange', handleVisibilityChange)
       window.removeEventListener('focus', handleVisibilityChange)
       window.removeEventListener('blur', handleVisibilityChange)
     }
-  }, [page, limit, statusFilter])
+  }, [poll])
 
   const handleOpenCreateModal = () => {
     setCurrentOrder(null)
