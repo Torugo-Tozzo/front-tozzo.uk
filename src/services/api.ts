@@ -32,4 +32,9 @@ export function getErrorMessage(error: any, fallback: string): string {
   return msg ? String(msg) : fallback;
 }
 
+export async function getSseToken(): Promise<string> {
+  const response = await api.post('/auth/sse-token')
+  return response.data.token
+}
+
 export default api;
