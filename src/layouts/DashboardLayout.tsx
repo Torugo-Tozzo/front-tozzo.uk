@@ -107,8 +107,6 @@ export default function DashboardLayout() {
     return () => clearInterval(iv)
   }, [fetchCount])
 
-  // Realtime badge updates removed (SSE removed)
-
   return (
     <div className="min-h-screen flex bg-muted/20">
       {/* Desktop Sidebar */}
