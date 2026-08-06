@@ -51,19 +51,26 @@ const TableFooter = React.forwardRef<
 ))
 TableFooter.displayName = "TableFooter"
 
-const TableRow = React.forwardRef<
-  HTMLTableRowElement,
-  React.HTMLAttributes<HTMLTableRowElement>
->(({ className, ...props }, ref) => (
-  <tr
-    ref={ref}
-    className={cn(
-      "border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted",
-      className
-    )}
-    {...props}
-  />
-))
+export interface TableRowProps extends React.HTMLAttributes<HTMLTableRowElement> {
+  accentColor?: string
+}
+
+const TableRow = React.forwardRef<HTMLTableRowElement, TableRowProps>(
+  ({ className, accentColor, style, ...props }, ref) => (
+    <tr
+      ref={ref}
+      style={accentColor ? { borderLeftColor: accentColor, ...style } : style}
+      className={cn(
+        "border-b transition-all duration-150 data-[state=selected]:bg-muted",
+        accentColor
+          ? "bg-row border-l-4 hover:scale-[1.012] hover:shadow-md relative"
+          : "hover:bg-muted/50",
+        className
+      )}
+      {...props}
+    />
+  )
+)
 TableRow.displayName = "TableRow"
 
 const TableHead = React.forwardRef<
