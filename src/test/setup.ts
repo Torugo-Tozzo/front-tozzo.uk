@@ -22,3 +22,13 @@ if (!window.matchMedia) {
     dispatchEvent: () => false,
   }) as unknown as MediaQueryList
 }
+
+// jsdom doesn't implement hasPointerCapture; Radix UI components rely on it.
+if (!Element.prototype.hasPointerCapture) {
+  Element.prototype.hasPointerCapture = () => false
+}
+
+// jsdom doesn't implement scrollIntoView; Radix UI components rely on it.
+if (!Element.prototype.scrollIntoView) {
+  Element.prototype.scrollIntoView = () => {}
+}
