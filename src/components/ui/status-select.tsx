@@ -21,7 +21,7 @@ export function StatusSelect({ value, onValueChange, disabled, className }: Stat
       {/* bg-white/text-black fixos nos dois temas - decisao do brainstorm:
           usar a variavel de tema aqui fazia o texto sumir no dark mode. */}
       <SelectTrigger
-        className={cn("w-[150px] border-2 bg-white text-black", className)}
+        className={cn("w-[150px] border-2 bg-white text-black transition-transform hover:scale-105", className)}
         style={{ borderColor: getStatusColor(value) }}
       >
         <SelectValue />
