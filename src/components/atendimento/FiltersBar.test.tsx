@@ -17,8 +17,6 @@ describe('FiltersBar', () => {
     expect(screen.getByLabelText('Total máximo')).toBeInTheDocument()
     expect(screen.queryByLabelText('Data Inicial')).not.toBeInTheDocument()
     expect(screen.queryByLabelText('Criado por')).not.toBeInTheDocument()
-    expect(screen.queryByLabelText('Nome do produto')).not.toBeInTheDocument()
-    expect(screen.queryByLabelText('Preço mínimo')).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /^Novo/ })).not.toBeInTheDocument()
   })
 

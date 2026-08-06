@@ -44,10 +44,6 @@ type OrderFilters = {
   criadoPor: string
   totalMin: string
   totalMax: string
-  startDate: string
-  startTime: string
-  endDate: string
-  endTime: string
 }
 
 const STATUS_FILTER_OPTIONS = [
@@ -83,8 +79,6 @@ function buildOrderParams(page: number, limit: number, f: OrderFilters) {
   if (f.criadoPor) params.criadoPor = f.criadoPor
   if (f.totalMin) params.totalMin = parseFloat(f.totalMin)
   if (f.totalMax) params.totalMax = parseFloat(f.totalMax)
-  if (f.startDate && f.startTime) params.dataInicial = new Date(`${f.startDate}T${f.startTime}:00`).toISOString()
-  if (f.endDate && f.endTime) params.dataFinal = new Date(`${f.endDate}T${f.endTime}:59`).toISOString()
   return params
 }
 
@@ -108,35 +102,13 @@ export function PedidosTab() {
   const [totalMin, setTotalMin] = useState("")
   const [totalMax, setTotalMax] = useState("")
 
-  const formatDate = (d: Date) => {
-    const yyyy = d.getFullYear()
-    const mm = String(d.getMonth() + 1).padStart(2, "0")
-    const dd = String(d.getDate()).padStart(2, "0")
-    return `${yyyy}-${mm}-${dd}`
-  }
-  const formatTime = (d: Date) => {
-    const hh = String(d.getHours()).padStart(2, "0")
-    const min = String(d.getMinutes()).padStart(2, "0")
-    return `${hh}:${min}`
-  }
-  const now = new Date()
-  const ago24 = new Date(now.getTime() - 24 * 60 * 60 * 1000)
-  const [startDate, setStartDate] = useState(formatDate(ago24))
-  const [startTime, setStartTime] = useState(formatTime(ago24))
-  const [endDate, setEndDate] = useState(formatDate(now))
-  const [endTime, setEndTime] = useState(formatTime(now))
-
-  const filterRef = useRef<OrderFilters>({
-    statusFilter, cliente, criadoPor, totalMin, totalMax, startDate, startTime, endDate, endTime,
-  })
+  const filterRef = useRef<OrderFilters>({ statusFilter, cliente, criadoPor, totalMin, totalMax })
   useEffect(() => {
-    filterRef.current = { statusFilter, cliente, criadoPor, totalMin, totalMax, startDate, startTime, endDate, endTime }
-  }, [statusFilter, cliente, criadoPor, totalMin, totalMax, startDate, startTime, endDate, endTime])
+    filterRef.current = { statusFilter, cliente, criadoPor, totalMin, totalMax }
+  }, [statusFilter, cliente, criadoPor, totalMin, totalMax])
 
   const loadOrdersRaw = useCallback(async () => {
-    const params = buildOrderParams(page, limit, {
-      statusFilter, cliente, criadoPor, totalMin, totalMax, startDate, startTime, endDate, endTime,
-    })
+    const params = buildOrderParams(page, limit, { statusFilter, cliente, criadoPor, totalMin, totalMax })
 
     const response = await api.get(`/pedidos`, { params })
 
@@ -148,7 +120,7 @@ export function PedidosTab() {
     }
 
     return { data, total }
-  }, [page, limit, statusFilter, cliente, criadoPor, totalMin, totalMax, startDate, startTime, endDate, endTime])
+  }, [page, limit, statusFilter, cliente, criadoPor, totalMin, totalMax])
 
   const fetchOrders = useCallback(async () => {
     setIsLoading(true)
@@ -343,13 +315,6 @@ export function PedidosTab() {
     <div className="space-y-4">
       <FiltersBar
         status={{ value: statusFilter, onChange: setStatusFilter, options: STATUS_FILTER_OPTIONS }}
-        dateRange={{
-          startDate, startTime, endDate, endTime,
-          onStartDateChange: setStartDate,
-          onStartTimeChange: setStartTime,
-          onEndDateChange: setEndDate,
-          onEndTimeChange: setEndTime,
-        }}
         cliente={{ value: cliente, onChange: setCliente }}
         criadoPor={{ value: criadoPor, onChange: setCriadoPor }}
         totalRange={{ min: totalMin, max: totalMax, onMinChange: setTotalMin, onMaxChange: setTotalMax }}

@@ -4,10 +4,9 @@ import { ClipboardList } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
 import { PedidosTab } from "@/components/atendimento/PedidosTab"
 import { VendasTab } from "@/components/atendimento/VendasTab"
-import { ProdutosQuickTab } from "@/components/atendimento/ProdutosQuickTab"
 
-type TabKey = 'pedidos' | 'vendas' | 'produtos'
-const VALID_TABS: TabKey[] = ['pedidos', 'vendas', 'produtos']
+type TabKey = 'pedidos' | 'vendas'
+const VALID_TABS: TabKey[] = ['pedidos', 'vendas']
 
 export default function AtendimentoPage() {
   const { user } = useAuth()
@@ -30,7 +29,6 @@ export default function AtendimentoPage() {
         <TabsList>
           <TabsTrigger value="pedidos">Pedidos</TabsTrigger>
           <TabsTrigger value="vendas">Vendas</TabsTrigger>
-          <TabsTrigger value="produtos">Produtos</TabsTrigger>
         </TabsList>
 
         <TabsContent value="pedidos">
@@ -38,9 +36,6 @@ export default function AtendimentoPage() {
         </TabsContent>
         <TabsContent value="vendas">
           <VendasTab />
-        </TabsContent>
-        <TabsContent value="produtos">
-          <ProdutosQuickTab />
         </TabsContent>
       </Tabs>
     </div>

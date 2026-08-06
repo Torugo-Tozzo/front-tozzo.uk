@@ -54,10 +54,7 @@ export interface FiltersBarProps {
   status?: SelectFilterProps
   cliente?: TextFilterProps
   criadoPor?: TextFilterProps
-  nome?: TextFilterProps
-  tipo?: SelectFilterProps
   totalRange?: RangeFilterProps
-  precoRange?: RangeFilterProps
   primaryAction?: PrimaryActionProps
   onFilter: () => void
   isLoading?: boolean
@@ -78,10 +75,7 @@ export function FiltersBar({
   status,
   cliente,
   criadoPor,
-  nome,
-  tipo,
   totalRange,
-  precoRange,
   primaryAction,
   onFilter,
   isLoading,
@@ -197,35 +191,6 @@ export function FiltersBar({
             </div>
           )}
 
-          {nome && (
-            <div className={`space-y-2 ${WIDTH_TEXT}`}>
-              <Label htmlFor="filter-nome">Nome do produto</Label>
-              <Input
-                id="filter-nome"
-                placeholder={nome.placeholder ?? "Buscar produto..."}
-                value={nome.value}
-                onChange={(e) => nome.onChange(e.target.value)}
-                disabled={isLoading}
-              />
-            </div>
-          )}
-
-          {tipo && (
-            <div className={`space-y-2 ${WIDTH_SELECT}`}>
-              <Label htmlFor="filter-tipo">Tipo</Label>
-              <Select value={tipo.value} onValueChange={tipo.onChange}>
-                <SelectTrigger id="filter-tipo">
-                  <SelectValue placeholder={tipo.placeholder ?? "Tipo"} />
-                </SelectTrigger>
-                <SelectContent>
-                  {tipo.options.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-
           {totalRange && (
             <>
               <div className={`space-y-2 ${WIDTH_MONEY}`}>
@@ -247,33 +212,6 @@ export function FiltersBar({
                   placeholder="0.00"
                   value={totalRange.max}
                   onChange={(e) => totalRange.onMaxChange(maskCentsInput(e.target.value))}
-                  disabled={isLoading}
-                />
-              </div>
-            </>
-          )}
-
-          {precoRange && (
-            <>
-              <div className={`space-y-2 ${WIDTH_MONEY}`}>
-                <Label htmlFor="filter-precoMin">Preço mínimo</Label>
-                <Input
-                  id="filter-precoMin"
-                  inputMode="numeric"
-                  placeholder="0.00"
-                  value={precoRange.min}
-                  onChange={(e) => precoRange.onMinChange(maskCentsInput(e.target.value))}
-                  disabled={isLoading}
-                />
-              </div>
-              <div className={`space-y-2 ${WIDTH_MONEY}`}>
-                <Label htmlFor="filter-precoMax">Preço máximo</Label>
-                <Input
-                  id="filter-precoMax"
-                  inputMode="numeric"
-                  placeholder="0.00"
-                  value={precoRange.max}
-                  onChange={(e) => precoRange.onMaxChange(maskCentsInput(e.target.value))}
                   disabled={isLoading}
                 />
               </div>

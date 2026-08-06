@@ -48,9 +48,9 @@ describe('AtendimentoPage', () => {
     renderAt('/dashboard/atendimento')
     await screen.findByText('Nenhum pedido encontrado.')
 
-    await user.click(screen.getByRole('tab', { name: 'Produtos' }))
+    await user.click(screen.getByRole('tab', { name: 'Vendas' }))
 
-    expect(await screen.findByText('Nenhum produto encontrado.')).toBeInTheDocument()
+    expect(await screen.findByText('Nenhuma venda encontrada no período.')).toBeInTheDocument()
   })
 
   it('falls back to the Pedidos tab when ?tab= has an invalid value', async () => {
