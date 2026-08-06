@@ -8,11 +8,9 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { IconButton } from "@/components/ui/icon-button"
-import { Printer, Eye, Search, Loader2 } from "lucide-react"
+import { FiltersBar } from "@/components/atendimento/FiltersBar"
+import { Printer, Eye, Loader2 } from "lucide-react"
 import api, { getErrorMessage } from "@/services/api"
 import { parseListResponse } from "@/services/parseResponse"
 import { toast } from "sonner"
@@ -37,6 +35,17 @@ type Sale = {
   itens?: SaleItem[]
 }
 
+type SaleFilters = {
+  cliente: string
+  criadoPor: string
+  totalMin: string
+  totalMax: string
+  startDate: string
+  startTime: string
+  endDate: string
+  endTime: string
+}
+
 function isSalesEqual(a: Sale[], b: Sale[]) {
   if (a.length !== b.length) return false
   for (let i = 0; i < a.length; i++) {
@@ -52,6 +61,17 @@ function isSalesEqual(a: Sale[], b: Sale[]) {
 function formatItemsSummary(itens?: SaleItem[]): string {
   if (!itens || itens.length === 0) return ""
   return itens.map((i) => `${i.quantidade}x ${i.produto?.nome ?? "Produto"}`).join(", ")
+}
+
+function buildSaleParams(page: number, limit: number, f: SaleFilters) {
+  const params: any = { page, limit }
+  if (f.cliente) params.cliente = f.cliente
+  if (f.criadoPor) params.criadoPor = f.criadoPor
+  if (f.totalMin) params.totalMin = parseFloat(f.totalMin)
+  if (f.totalMax) params.totalMax = parseFloat(f.totalMax)
+  if (f.startDate && f.startTime) params.dataInicial = new Date(`${f.startDate}T${f.startTime}:00`).toISOString()
+  if (f.endDate && f.endTime) params.dataFinal = new Date(`${f.endDate}T${f.endTime}:59`).toISOString()
+  return params
 }
 
 interface VendasTabProps {
@@ -75,6 +95,11 @@ export function VendasTab({ onReady }: VendasTabProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [loadingSaleId, setLoadingSaleId] = useState<number | null>(null)
 
+  const [cliente, setCliente] = useState("")
+  const [criadoPor, setCriadoPor] = useState("")
+  const [totalMin, setTotalMin] = useState("")
+  const [totalMax, setTotalMax] = useState("")
+
   const formatDate = (d: Date) => {
     const yyyy = d.getFullYear()
     const mm = String(d.getMonth() + 1).padStart(2, '0')
@@ -97,22 +122,18 @@ export function VendasTab({ onReady }: VendasTabProps) {
   const [endTime, setEndTime] = useState(formatTime(now))
   const [periodTotal, setPeriodTotal] = useState(0)
   const salesRef = useRef<Sale[]>([])
-  const filterRef = useRef({ startDate, startTime, endDate, endTime })
+  const filterRef = useRef<SaleFilters>({ cliente, criadoPor, totalMin, totalMax, startDate, startTime, endDate, endTime })
 
   useEffect(() => {
-    filterRef.current = { startDate, startTime, endDate, endTime }
-  }, [startDate, startTime, endDate, endTime])
+    filterRef.current = { cliente, criadoPor, totalMin, totalMax, startDate, startTime, endDate, endTime }
+  }, [cliente, criadoPor, totalMin, totalMax, startDate, startTime, endDate, endTime])
 
   const fetchSales = useCallback(async () => {
     setIsLoading(true)
     try {
-      const params: any = { page, limit }
-      if (startDate && startTime) {
-        params.dataInicial = new Date(`${startDate}T${startTime}:00`).toISOString()
-      }
-      if (endDate && endTime) {
-        params.dataFinal = new Date(`${endDate}T${endTime}:59`).toISOString()
-      }
+      const params = buildSaleParams(page, limit, {
+        cliente, criadoPor, totalMin, totalMax, startDate, startTime, endDate, endTime,
+      })
 
       const response = await api.get(`/vendas`, { params })
       const { data, total } = parseListResponse<Sale>(response, 'vendas')
@@ -135,7 +156,7 @@ export function VendasTab({ onReady }: VendasTabProps) {
     } finally {
       setIsLoading(false)
     }
-  }, [page, limit, startDate, startTime, endDate, endTime])
+  }, [page, limit, cliente, criadoPor, totalMin, totalMax, startDate, startTime, endDate, endTime])
 
   useEffect(() => {
     fetchSales()
@@ -144,15 +165,8 @@ export function VendasTab({ onReady }: VendasTabProps) {
 
   const poll = useCallback(async () => {
     try {
-      const { startDate, startTime, endDate, endTime } = filterRef.current
-      const params: any = { page, limit }
-
-      if (startDate && startTime) {
-        params.dataInicial = new Date(`${startDate}T${startTime}:00`).toISOString()
-      }
-      if (endDate && endTime) {
-        params.dataFinal = new Date(`${endDate}T${endTime}:59`).toISOString()
-      }
+      const f = filterRef.current
+      const params = buildSaleParams(page, limit, f)
 
       const response = await api.get(`/vendas`, { params })
       const { data, total } = parseListResponse<Sale>(response, 'vendas')
@@ -284,39 +298,27 @@ export function VendasTab({ onReady }: VendasTabProps) {
     }
   }
 
+  const handleApplyFilters = () => {
+    setPage(1)
+    fetchSales()
+  }
+
   return (
     <div className="space-y-4">
-      <Card>
-        <CardHeader>
-          <CardTitle>Filtros</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="startDate">Data Inicial</Label>
-              <Input id="startDate" type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} disabled={isLoading} />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="startTime">Hora Inicial</Label>
-              <Input id="startTime" type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} disabled={isLoading} />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="endDate">Data Final</Label>
-              <Input id="endDate" type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} disabled={isLoading} />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="endTime">Hora Final</Label>
-              <Input id="endTime" type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} disabled={isLoading} />
-            </div>
-          </div>
-          <div className="mt-4 flex justify-end">
-            <Button onClick={() => { setPage(1); fetchSales(); }} className="w-full md:w-auto" disabled={isLoading}>
-              {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
-              Filtrar
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      <FiltersBar
+        dateRange={{
+          startDate, startTime, endDate, endTime,
+          onStartDateChange: setStartDate,
+          onStartTimeChange: setStartTime,
+          onEndDateChange: setEndDate,
+          onEndTimeChange: setEndTime,
+        }}
+        cliente={{ value: cliente, onChange: setCliente }}
+        criadoPor={{ value: criadoPor, onChange: setCriadoPor }}
+        totalRange={{ min: totalMin, max: totalMax, onMinChange: setTotalMin, onMaxChange: setTotalMax }}
+        onFilter={handleApplyFilters}
+        isLoading={isLoading}
+      />
 
       <ProductSelectionModal
         isOpen={isModalOpen}

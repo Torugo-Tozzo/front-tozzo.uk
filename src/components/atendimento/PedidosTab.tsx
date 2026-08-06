@@ -10,6 +10,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { StatusSelect } from "@/components/ui/status-select"
 import { IconButton } from "@/components/ui/icon-button"
+import { FiltersBar } from "@/components/atendimento/FiltersBar"
 import { Printer, Pencil, Trash2, Loader2 } from "lucide-react"
 import api, { getErrorMessage } from "@/services/api"
 import { parseListResponse } from "@/services/parseResponse"
@@ -17,13 +18,6 @@ import { toast } from "sonner"
 import { ProductSelectionModal } from "@/components/ProductSelectionModal"
 import { Pagination } from "@/components/Pagination"
 import { Skeleton } from "@/components/ui/skeleton"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import { useRealtimeEvents } from "@/hooks/useRealtimeEvents"
 import { getStatusColor, type PedidoStatus } from "@/lib/status"
 
@@ -44,6 +38,26 @@ type Order = {
   itens?: OrderItem[]
 }
 
+type OrderFilters = {
+  statusFilter: string
+  cliente: string
+  criadoPor: string
+  totalMin: string
+  totalMax: string
+  startDate: string
+  startTime: string
+  endDate: string
+  endTime: string
+}
+
+const STATUS_FILTER_OPTIONS = [
+  { value: "NAO_FECHADOS", label: "Não Fechados" },
+  { value: "ABERTO", label: "Aberto" },
+  { value: "EM_PREPARO", label: "Em Preparo" },
+  { value: "ENTREGANDO", label: "Entregando" },
+  { value: "FECHADO", label: "Fechado" },
+]
+
 function isOrdersEqual(a: Order[], b: Order[]) {
   if (a.length !== b.length) return false
   for (let i = 0; i < a.length; i++) {
@@ -62,6 +76,18 @@ function formatItemsSummary(itens?: OrderItem[]): string {
   return itens.map((i) => `${i.quantidade}x ${i.produto?.nome ?? "Produto"}`).join(", ")
 }
 
+function buildOrderParams(page: number, limit: number, f: OrderFilters) {
+  const params: any = { page, limit }
+  if (f.statusFilter) params.status = f.statusFilter
+  if (f.cliente) params.cliente = f.cliente
+  if (f.criadoPor) params.criadoPor = f.criadoPor
+  if (f.totalMin) params.totalMin = parseFloat(f.totalMin)
+  if (f.totalMax) params.totalMax = parseFloat(f.totalMax)
+  if (f.startDate && f.startTime) params.dataInicial = new Date(`${f.startDate}T${f.startTime}:00`).toISOString()
+  if (f.endDate && f.endTime) params.dataFinal = new Date(`${f.endDate}T${f.endTime}:59`).toISOString()
+  return params
+}
+
 interface PedidosTabProps {
   onReady?: (handlers: { openCreate: () => void }) => void
 }
@@ -69,7 +95,6 @@ interface PedidosTabProps {
 export function PedidosTab({ onReady }: PedidosTabProps) {
   const [page, setPage] = useState<number>(1)
   const [limit, setLimit] = useState<number>(10)
-  const [statusFilter, setStatusFilter] = useState<string>('NAO_FECHADOS')
   const [orders, setOrders] = useState<Order[]>([])
   const [totalPages, setTotalPages] = useState<number>(0)
   const [hasMore, setHasMore] = useState<boolean>(false)
@@ -81,23 +106,53 @@ export function PedidosTab({ onReady }: PedidosTabProps) {
   const [updatingStatusId, setUpdatingStatusId] = useState<number | null>(null)
   const ordersRef = useRef<Order[]>([])
 
+  const [statusFilter, setStatusFilter] = useState<string>("NAO_FECHADOS")
+  const [cliente, setCliente] = useState("")
+  const [criadoPor, setCriadoPor] = useState("")
+  const [totalMin, setTotalMin] = useState("")
+  const [totalMax, setTotalMax] = useState("")
+
+  const formatDate = (d: Date) => {
+    const yyyy = d.getFullYear()
+    const mm = String(d.getMonth() + 1).padStart(2, "0")
+    const dd = String(d.getDate()).padStart(2, "0")
+    return `${yyyy}-${mm}-${dd}`
+  }
+  const formatTime = (d: Date) => {
+    const hh = String(d.getHours()).padStart(2, "0")
+    const min = String(d.getMinutes()).padStart(2, "0")
+    return `${hh}:${min}`
+  }
+  const now = new Date()
+  const ago24 = new Date(now.getTime() - 24 * 60 * 60 * 1000)
+  const [startDate, setStartDate] = useState(formatDate(ago24))
+  const [startTime, setStartTime] = useState(formatTime(ago24))
+  const [endDate, setEndDate] = useState(formatDate(now))
+  const [endTime, setEndTime] = useState(formatTime(now))
+
+  const filterRef = useRef<OrderFilters>({
+    statusFilter, cliente, criadoPor, totalMin, totalMax, startDate, startTime, endDate, endTime,
+  })
+  useEffect(() => {
+    filterRef.current = { statusFilter, cliente, criadoPor, totalMin, totalMax, startDate, startTime, endDate, endTime }
+  }, [statusFilter, cliente, criadoPor, totalMin, totalMax, startDate, startTime, endDate, endTime])
+
   const loadOrdersRaw = useCallback(async () => {
-    const params: any = { page, limit }
-    if (statusFilter) {
-      params.status = statusFilter
-    }
+    const params = buildOrderParams(page, limit, {
+      statusFilter, cliente, criadoPor, totalMin, totalMax, startDate, startTime, endDate, endTime,
+    })
 
     const response = await api.get(`/pedidos`, { params })
 
     let { data, total } = parseListResponse<Order>(response)
 
-    if (statusFilter === 'NAO_FECHADOS') {
-      data = data.filter((o) => o.status !== 'FECHADO')
+    if (statusFilter === "NAO_FECHADOS") {
+      data = data.filter((o) => o.status !== "FECHADO")
       total = data.length
     }
 
     return { data, total }
-  }, [page, limit, statusFilter])
+  }, [page, limit, statusFilter, cliente, criadoPor, totalMin, totalMax, startDate, startTime, endDate, endTime])
 
   const fetchOrders = useCallback(async () => {
     setIsLoading(true)
@@ -122,7 +177,15 @@ export function PedidosTab({ onReady }: PedidosTabProps) {
 
   const poll = useCallback(async () => {
     try {
-      const { data } = await loadOrdersRaw()
+      const f = filterRef.current
+      const params = buildOrderParams(page, limit, f)
+      const response = await api.get(`/pedidos`, { params })
+      let { data } = parseListResponse<Order>(response)
+
+      if (f.statusFilter === "NAO_FECHADOS") {
+        data = data.filter((o) => o.status !== "FECHADO")
+      }
+
       const previous = ordersRef.current || []
       if (!isOrdersEqual(previous, data)) {
         setOrders(data)
@@ -131,13 +194,17 @@ export function PedidosTab({ onReady }: PedidosTabProps) {
     } catch (err) {
       console.error('[PedidosTab] Error polling orders', err)
     }
-  }, [loadOrdersRaw])
+  }, [page, limit])
 
   useRealtimeEvents(['pedidos'], poll)
 
+  // Filtros (status/cliente/criado-por/total/data) so aplicam ao clicar em
+  // "Filtrar" (handleApplyFilters) - so page/limit disparam refetch automatico,
+  // igual ao padrao ja usado em VendasTab.
   useEffect(() => {
     fetchOrders()
-  }, [fetchOrders])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, limit])
 
   // Fallback: SSE eh o caminho principal (useRealtimeEvents acima), esse
   // interval mais espaçado so cobre o caso de conexao SSE falhar silenciosamente.
@@ -191,6 +258,11 @@ export function PedidosTab({ onReady }: PedidosTabProps) {
   useEffect(() => {
     onReady?.({ openCreate: handleOpenCreateModal })
   }, [onReady, handleOpenCreateModal])
+
+  const handleApplyFilters = () => {
+    setPage(1)
+    fetchOrders()
+  }
 
   const handleEditClick = async (order: Order) => {
     setCurrentOrder(order)
@@ -277,20 +349,21 @@ export function PedidosTab({ onReady }: PedidosTabProps) {
 
   return (
     <div className="space-y-4">
-      <div className="w-[200px]">
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger>
-            <SelectValue placeholder="Status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="NAO_FECHADOS">Não Fechados</SelectItem>
-            <SelectItem value="ABERTO">Aberto</SelectItem>
-            <SelectItem value="EM_PREPARO">Em Preparo</SelectItem>
-            <SelectItem value="ENTREGANDO">Entregando</SelectItem>
-            <SelectItem value="FECHADO">Fechado</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+      <FiltersBar
+        status={{ value: statusFilter, onChange: setStatusFilter, options: STATUS_FILTER_OPTIONS }}
+        dateRange={{
+          startDate, startTime, endDate, endTime,
+          onStartDateChange: setStartDate,
+          onStartTimeChange: setStartTime,
+          onEndDateChange: setEndDate,
+          onEndTimeChange: setEndTime,
+        }}
+        cliente={{ value: cliente, onChange: setCliente }}
+        criadoPor={{ value: criadoPor, onChange: setCriadoPor }}
+        totalRange={{ min: totalMin, max: totalMax, onMinChange: setTotalMin, onMaxChange: setTotalMax }}
+        onFilter={handleApplyFilters}
+        isLoading={isLoading}
+      />
 
       <ProductSelectionModal
         isOpen={isModalOpen}
