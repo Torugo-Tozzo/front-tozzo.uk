@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { ModeToggle } from "@/components/mode-toggle"
-import logo from "@/assets/images/logo.png"
+import logo from "@/assets/images/logo.svg"
 import { useAuth } from "@/contexts/AuthContext"
 import { LogOut } from "lucide-react"
 

@@ -12,7 +12,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import logo from "@/assets/images/logo.png"
+import logo from "@/assets/images/logo.svg"
 import api, { getErrorMessage } from "@/services/api"
 import { toast } from "sonner"
 import { useAuth } from "@/contexts/AuthContext"
