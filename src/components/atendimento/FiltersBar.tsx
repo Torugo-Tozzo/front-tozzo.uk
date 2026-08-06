@@ -56,6 +56,16 @@ export interface FiltersBarProps {
   isLoading?: boolean
 }
 
+// Cada campo declara a propria largura (em vez de dividir o espaco em
+// colunas iguais) - assim campo estreito (hora, valor) nao deixa espaco
+// morto na propria celula nem empurra o resto pra uma linha nova. Mobile
+// continua empilhado (w-full) ate o breakpoint sm.
+const WIDTH_DATE = "w-full sm:w-[170px]"
+const WIDTH_TIME = "w-full sm:w-[130px]"
+const WIDTH_SELECT = "w-full sm:w-[190px]"
+const WIDTH_TEXT = "w-full sm:w-[220px]"
+const WIDTH_MONEY = "w-full sm:w-[140px]"
+
 export function FiltersBar({
   dateRange,
   status,
@@ -74,10 +84,10 @@ export function FiltersBar({
         <CardTitle>Filtros</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="flex flex-wrap gap-4">
           {dateRange && (
             <>
-              <div className="space-y-2">
+              <div className={`space-y-2 ${WIDTH_DATE}`}>
                 <Label htmlFor="filter-startDate">Data Inicial</Label>
                 <Input
                   id="filter-startDate"
@@ -87,18 +97,17 @@ export function FiltersBar({
                   disabled={isLoading}
                 />
               </div>
-              <div className="space-y-2">
+              <div className={`space-y-2 ${WIDTH_TIME}`}>
                 <Label htmlFor="filter-startTime">Hora Inicial</Label>
                 <Input
                   id="filter-startTime"
                   type="time"
-                  className="max-w-[140px]"
                   value={dateRange.startTime}
                   onChange={(e) => dateRange.onStartTimeChange(e.target.value)}
                   disabled={isLoading}
                 />
               </div>
-              <div className="space-y-2">
+              <div className={`space-y-2 ${WIDTH_DATE}`}>
                 <Label htmlFor="filter-endDate">Data Final</Label>
                 <Input
                   id="filter-endDate"
@@ -108,12 +117,11 @@ export function FiltersBar({
                   disabled={isLoading}
                 />
               </div>
-              <div className="space-y-2">
+              <div className={`space-y-2 ${WIDTH_TIME}`}>
                 <Label htmlFor="filter-endTime">Hora Final</Label>
                 <Input
                   id="filter-endTime"
                   type="time"
-                  className="max-w-[140px]"
                   value={dateRange.endTime}
                   onChange={(e) => dateRange.onEndTimeChange(e.target.value)}
                   disabled={isLoading}
@@ -123,7 +131,7 @@ export function FiltersBar({
           )}
 
           {status && (
-            <div className="space-y-2">
+            <div className={`space-y-2 ${WIDTH_SELECT}`}>
               <Label htmlFor="filter-status">Status</Label>
               <Select value={status.value} onValueChange={status.onChange}>
                 <SelectTrigger id="filter-status">
@@ -139,7 +147,7 @@ export function FiltersBar({
           )}
 
           {cliente && (
-            <div className="space-y-2">
+            <div className={`space-y-2 ${WIDTH_TEXT}`}>
               <Label htmlFor="filter-cliente">Cliente / Mesa</Label>
               <Input
                 id="filter-cliente"
@@ -152,7 +160,7 @@ export function FiltersBar({
           )}
 
           {criadoPor && (
-            <div className="space-y-2">
+            <div className={`space-y-2 ${WIDTH_TEXT}`}>
               <Label htmlFor="filter-criadoPor">Criado por</Label>
               <Input
                 id="filter-criadoPor"
@@ -165,7 +173,7 @@ export function FiltersBar({
           )}
 
           {nome && (
-            <div className="space-y-2">
+            <div className={`space-y-2 ${WIDTH_TEXT}`}>
               <Label htmlFor="filter-nome">Nome do produto</Label>
               <Input
                 id="filter-nome"
@@ -178,7 +186,7 @@ export function FiltersBar({
           )}
 
           {tipo && (
-            <div className="space-y-2">
+            <div className={`space-y-2 ${WIDTH_SELECT}`}>
               <Label htmlFor="filter-tipo">Tipo</Label>
               <Select value={tipo.value} onValueChange={tipo.onChange}>
                 <SelectTrigger id="filter-tipo">
@@ -195,24 +203,22 @@ export function FiltersBar({
 
           {totalRange && (
             <>
-              <div className="space-y-2">
+              <div className={`space-y-2 ${WIDTH_MONEY}`}>
                 <Label htmlFor="filter-totalMin">Total mínimo</Label>
                 <Input
                   id="filter-totalMin"
                   inputMode="numeric"
-                  className="max-w-[140px]"
                   placeholder="0.00"
                   value={totalRange.min}
                   onChange={(e) => totalRange.onMinChange(maskCentsInput(e.target.value))}
                   disabled={isLoading}
                 />
               </div>
-              <div className="space-y-2">
+              <div className={`space-y-2 ${WIDTH_MONEY}`}>
                 <Label htmlFor="filter-totalMax">Total máximo</Label>
                 <Input
                   id="filter-totalMax"
                   inputMode="numeric"
-                  className="max-w-[140px]"
                   placeholder="0.00"
                   value={totalRange.max}
                   onChange={(e) => totalRange.onMaxChange(maskCentsInput(e.target.value))}
@@ -224,24 +230,22 @@ export function FiltersBar({
 
           {precoRange && (
             <>
-              <div className="space-y-2">
+              <div className={`space-y-2 ${WIDTH_MONEY}`}>
                 <Label htmlFor="filter-precoMin">Preço mínimo</Label>
                 <Input
                   id="filter-precoMin"
                   inputMode="numeric"
-                  className="max-w-[140px]"
                   placeholder="0.00"
                   value={precoRange.min}
                   onChange={(e) => precoRange.onMinChange(maskCentsInput(e.target.value))}
                   disabled={isLoading}
                 />
               </div>
-              <div className="space-y-2">
+              <div className={`space-y-2 ${WIDTH_MONEY}`}>
                 <Label htmlFor="filter-precoMax">Preço máximo</Label>
                 <Input
                   id="filter-precoMax"
                   inputMode="numeric"
-                  className="max-w-[140px]"
                   placeholder="0.00"
                   value={precoRange.max}
                   onChange={(e) => precoRange.onMaxChange(maskCentsInput(e.target.value))}
