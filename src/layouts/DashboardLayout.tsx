@@ -1,9 +1,8 @@
 import { useState, useEffect, useCallback, Suspense } from "react"
 import { Link, Outlet, useLocation } from "react-router-dom"
-import { 
-  LayoutDashboard, 
-  ShoppingBag, 
-  Settings, 
+import {
+  ShoppingBag,
+  Settings,
   LogOut,
   ClipboardList,
   Menu,
@@ -28,8 +27,7 @@ export default function DashboardLayout() {
   const [nonClosedCount, setNonClosedCount] = useState<number>(0)
 
   const navItems = [
-    { href: "/dashboard/orders", label: "Pedidos", icon: ClipboardList },
-    { href: "/dashboard/sales", label: "Vendas", icon: LayoutDashboard },
+    { href: "/dashboard/atendimento", label: "Atendimento", icon: ClipboardList },
     { href: "/dashboard/products", label: "Produtos", icon: ShoppingBag },
     { href: "/dashboard/employees", label: "Funcionários", icon: Users },
     { href: "/dashboard/charts", label: "Relatórios", icon: BarChart3 },
@@ -48,7 +46,7 @@ export default function DashboardLayout() {
       <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
         {navItems.map((item) => {
           const Icon = item.icon
-          const isActive = location.pathname === item.href || (item.href === "/dashboard/orders" && location.pathname === "/dashboard")
+          const isActive = location.pathname === item.href || (item.href === "/dashboard/atendimento" && location.pathname === "/dashboard")
           
           return (
             <Link key={item.href} to={item.href} onClick={() => setIsMobileMenuOpen(false)}>
@@ -61,7 +59,7 @@ export default function DashboardLayout() {
                     <Icon className="h-5 w-5" />
                     {item.label}
                   </div>
-                  {item.href === "/dashboard/orders" && (
+                  {item.href === "/dashboard/atendimento" && (
                     <div className="ml-2">
                       <span className="inline-flex items-center justify-center bg-blue-500 text-white text-xs font-medium rounded-full h-6 w-6">
                         {nonClosedCount}
