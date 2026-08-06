@@ -17,15 +17,16 @@ describe('FiltersBar', () => {
     expect(screen.getByLabelText('Total máximo')).toBeInTheDocument()
     expect(screen.queryByLabelText('Data Inicial')).not.toBeInTheDocument()
     expect(screen.queryByLabelText('Criado por')).not.toBeInTheDocument()
-    expect(screen.queryByLabelText('Nome')).not.toBeInTheDocument()
+    expect(screen.queryByLabelText('Nome do produto')).not.toBeInTheDocument()
     expect(screen.queryByLabelText('Preço mínimo')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /^Novo/ })).not.toBeInTheDocument()
   })
 
-  it('calls onFilter when the Filtrar button is clicked', async () => {
+  it('calls onFilter when the Buscar button is clicked', async () => {
     const onFilter = vi.fn()
     const user = userEvent.setup()
     render(<FiltersBar cliente={{ value: '', onChange: vi.fn() }} onFilter={onFilter} />)
-    await user.click(screen.getByRole('button', { name: /filtrar/i }))
+    await user.click(screen.getByRole('button', { name: /buscar/i }))
     expect(onFilter).toHaveBeenCalledTimes(1)
   })
 
@@ -40,7 +41,7 @@ describe('FiltersBar', () => {
   it('disables inputs and the button while isLoading', () => {
     render(<FiltersBar cliente={{ value: '', onChange: vi.fn() }} onFilter={vi.fn()} isLoading />)
     expect(screen.getByLabelText('Cliente / Mesa')).toBeDisabled()
-    expect(screen.getByRole('button', { name: /filtrar/i })).toBeDisabled()
+    expect(screen.getByRole('button', { name: /buscar/i })).toBeDisabled()
   })
 
   it('renders the date range before the status field', () => {
@@ -69,5 +70,34 @@ describe('FiltersBar', () => {
     )
     await user.type(screen.getByLabelText('Total mínimo'), '6')
     expect(onMinChange).toHaveBeenLastCalledWith('0.06')
+  })
+
+  it('renders the primary action button and calls its onClick', async () => {
+    const onClick = vi.fn()
+    const user = userEvent.setup()
+    render(
+      <FiltersBar
+        cliente={{ value: '', onChange: vi.fn() }}
+        primaryAction={{ label: 'Novo Pedido', onClick }}
+        onFilter={vi.fn()}
+      />
+    )
+    const button = screen.getByRole('button', { name: 'Novo Pedido' })
+    await user.click(button)
+    expect(onClick).toHaveBeenCalledTimes(1)
+  })
+
+  it('toggles the mobile filter panel via the expand/collapse button', async () => {
+    const user = userEvent.setup()
+    render(<FiltersBar cliente={{ value: '', onChange: vi.fn() }} onFilter={vi.fn()} />)
+
+    const toggle = screen.getByRole('button', { name: 'Expandir filtros' })
+    expect(toggle).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.getByLabelText('Cliente / Mesa').closest('.hidden')).not.toBeNull()
+
+    await user.click(toggle)
+
+    expect(screen.getByRole('button', { name: 'Recolher filtros' })).toHaveAttribute('aria-expanded', 'true')
+    expect(screen.getByLabelText('Cliente / Mesa').closest('.hidden')).toBeNull()
   })
 })

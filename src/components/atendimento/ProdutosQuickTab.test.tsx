@@ -26,22 +26,22 @@ describe('ProdutosQuickTab', () => {
     expect(screen.getByText(/R\$\s*25,00/)).toBeInTheDocument()
   })
 
-  it('exposes an openCreate handler via onReady that opens the quick-create dialog', async () => {
-    let handlers: { openCreate: () => void } | null = null
-    render(<ProdutosQuickTab onReady={(h) => { handlers = h }} />)
-    await waitFor(() => expect(handlers).not.toBeNull())
+  it('opens the quick-create dialog when "Novo Produto" is clicked', async () => {
+    const user = userEvent.setup()
+    render(<ProdutosQuickTab />)
+    await screen.findByText('X-Bacon')
 
-    handlers!.openCreate()
+    await user.click(screen.getByRole('button', { name: 'Novo Produto' }))
     expect(await screen.findByText('Produto novo')).toBeInTheDocument()
   })
 
   it('creates a product and refreshes the list', async () => {
     vi.mocked(api.post).mockResolvedValue({ data: {} })
     const user = userEvent.setup()
-    let handlers: { openCreate: () => void } | null = null
-    render(<ProdutosQuickTab onReady={(h) => { handlers = h }} />)
-    await waitFor(() => expect(handlers).not.toBeNull())
-    handlers!.openCreate()
+    render(<ProdutosQuickTab />)
+    await screen.findByText('X-Bacon')
+
+    await user.click(screen.getByRole('button', { name: 'Novo Produto' }))
 
     await user.type(await screen.findByLabelText('Nome'), 'Coca-Cola')
     await user.type(screen.getByLabelText('Preço'), '600')

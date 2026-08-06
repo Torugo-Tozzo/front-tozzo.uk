@@ -31,41 +31,31 @@ describe('AtendimentoPage', () => {
     vi.mocked(api.get).mockClear()
   })
 
-  it('defaults to the Pedidos tab and shows the matching action button', async () => {
+  it('defaults to the Pedidos tab', async () => {
     renderAt('/dashboard/atendimento')
-    expect(await screen.findByRole('button', { name: /Novo Pedido/i })).toBeInTheDocument()
+    expect(await screen.findByText('Nenhum pedido encontrado.')).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: 'Pedidos' })).toHaveAttribute('aria-selected', 'true')
   })
 
   it('reads the initial tab from the ?tab= query param', async () => {
     renderAt('/dashboard/atendimento?tab=vendas')
-    expect(await screen.findByRole('button', { name: /Nova Venda/i })).toBeInTheDocument()
+    expect(await screen.findByText('Nenhuma venda encontrada no período.')).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: 'Vendas' })).toHaveAttribute('aria-selected', 'true')
   })
 
-  it('switches the action button label when the user changes tabs', async () => {
+  it('switches tab content when the user clicks a different tab', async () => {
     const user = userEvent.setup()
     renderAt('/dashboard/atendimento')
-    await screen.findByRole('button', { name: /Novo Pedido/i })
+    await screen.findByText('Nenhum pedido encontrado.')
 
     await user.click(screen.getByRole('tab', { name: 'Produtos' }))
 
-    expect(await screen.findByRole('button', { name: /Novo Produto/i })).toBeInTheDocument()
+    expect(await screen.findByText('Nenhum produto encontrado.')).toBeInTheDocument()
   })
 
   it('falls back to the Pedidos tab when ?tab= has an invalid value', async () => {
     renderAt('/dashboard/atendimento?tab=nonsense')
-    expect(await screen.findByRole('button', { name: /Novo Pedido/i })).toBeInTheDocument()
-  })
-
-  it('clicking the header button calls the currently active tab handler, not a stale one', async () => {
-    const user = userEvent.setup()
-    renderAt('/dashboard/atendimento')
-    await screen.findByRole('button', { name: /Novo Pedido/i })
-
-    await user.click(screen.getByRole('tab', { name: 'Produtos' }))
-    const actionButton = await screen.findByRole('button', { name: /Novo Produto/i })
-
-    await user.click(actionButton)
-
-    expect(await screen.findByText('Produto novo')).toBeInTheDocument()
+    expect(await screen.findByText('Nenhum pedido encontrado.')).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: 'Pedidos' })).toHaveAttribute('aria-selected', 'true')
   })
 })

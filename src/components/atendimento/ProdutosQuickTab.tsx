@@ -37,11 +37,7 @@ type Product = { id: number; nome: string; preco: number; tipoProdutoId: number 
 
 const TODOS_TIPOS = "TODOS"
 
-interface ProdutosQuickTabProps {
-  onReady?: (handlers: { openCreate: () => void }) => void
-}
-
-export function ProdutosQuickTab({ onReady }: ProdutosQuickTabProps) {
+export function ProdutosQuickTab() {
   const [products, setProducts] = useState<Product[]>([])
   const [types, setTypes] = useState<ProductType[]>([])
   const [isLoading, setIsLoading] = useState(false)
@@ -95,16 +91,12 @@ export function ProdutosQuickTab({ onReady }: ProdutosQuickTabProps) {
 
   const getTypeName = (id: number) => types.find((t) => t.id === id)?.descricao ?? "-"
 
-  const openCreate = useCallback(() => {
+  const handleOpenCreate = () => {
     setName("")
     setPrice("")
     setTypeId("")
     setIsDialogOpen(true)
-  }, [])
-
-  useEffect(() => {
-    onReady?.({ openCreate })
-  }, [onReady, openCreate])
+  }
 
   const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const rawValue = e.target.value.replace(/\D/g, "")
@@ -149,6 +141,7 @@ export function ProdutosQuickTab({ onReady }: ProdutosQuickTabProps) {
           ],
         }}
         precoRange={{ min: precoMin, max: precoMax, onMinChange: setPrecoMin, onMaxChange: setPrecoMax }}
+        primaryAction={{ label: "Novo Produto", onClick: handleOpenCreate }}
         onFilter={fetchProducts}
         isLoading={isLoading}
       />

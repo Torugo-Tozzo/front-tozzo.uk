@@ -1,3 +1,4 @@
+import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -9,7 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Search, Loader2 } from "lucide-react"
+import { Search, Loader2, Plus, ChevronDown, ChevronUp } from "lucide-react"
 import { maskCentsInput } from "@/lib/currency"
 
 export interface DateRangeFilterProps {
@@ -43,6 +44,11 @@ export interface SelectFilterProps {
   placeholder?: string
 }
 
+export interface PrimaryActionProps {
+  label: string
+  onClick: () => void
+}
+
 export interface FiltersBarProps {
   dateRange?: DateRangeFilterProps
   status?: SelectFilterProps
@@ -52,6 +58,7 @@ export interface FiltersBarProps {
   tipo?: SelectFilterProps
   totalRange?: RangeFilterProps
   precoRange?: RangeFilterProps
+  primaryAction?: PrimaryActionProps
   onFilter: () => void
   isLoading?: boolean
 }
@@ -75,15 +82,33 @@ export function FiltersBar({
   tipo,
   totalRange,
   precoRange,
+  primaryAction,
   onFilter,
   isLoading,
 }: FiltersBarProps) {
+  // Colapsado por padrao so importa no mobile (abaixo do breakpoint sm) -
+  // o botao de expandir/recolher tambem so aparece la (sm:hidden). Em
+  // telas maiores o painel fica sempre visivel via sm:block, ignorando
+  // esse estado.
+  const [isExpanded, setIsExpanded] = useState(false)
+
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0">
         <CardTitle>Filtros</CardTitle>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="sm:hidden"
+          onClick={() => setIsExpanded((v) => !v)}
+          aria-expanded={isExpanded}
+          aria-label={isExpanded ? "Recolher filtros" : "Expandir filtros"}
+        >
+          {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+        </Button>
       </CardHeader>
-      <CardContent>
+      <CardContent className={isExpanded ? "block" : "hidden sm:block"}>
         <div className="flex flex-wrap gap-4">
           {dateRange && (
             <>
@@ -255,10 +280,16 @@ export function FiltersBar({
             </>
           )}
         </div>
-        <div className="mt-4 flex justify-end">
-          <Button onClick={onFilter} className="w-full md:w-auto" disabled={isLoading}>
+        <div className={`mt-4 flex flex-col sm:flex-row sm:items-center gap-4 ${primaryAction ? "sm:justify-between" : "sm:justify-end"}`}>
+          {primaryAction && (
+            <Button type="button" onClick={primaryAction.onClick} disabled={isLoading} className="w-full sm:w-auto">
+              <Plus className="mr-2 h-4 w-4" />
+              {primaryAction.label}
+            </Button>
+          )}
+          <Button onClick={onFilter} className="w-full sm:w-auto" disabled={isLoading}>
             {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
-            Filtrar
+            Buscar
           </Button>
         </div>
       </CardContent>

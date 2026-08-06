@@ -88,11 +88,7 @@ function buildOrderParams(page: number, limit: number, f: OrderFilters) {
   return params
 }
 
-interface PedidosTabProps {
-  onReady?: (handlers: { openCreate: () => void }) => void
-}
-
-export function PedidosTab({ onReady }: PedidosTabProps) {
+export function PedidosTab() {
   const [page, setPage] = useState<number>(1)
   const [limit, setLimit] = useState<number>(10)
   const [orders, setOrders] = useState<Order[]>([])
@@ -249,15 +245,11 @@ export function PedidosTab({ onReady }: PedidosTabProps) {
     }
   }, [poll])
 
-  const handleOpenCreateModal = useCallback(() => {
+  const handleOpenCreateModal = () => {
     setCurrentOrder(null)
     setCurrentOrderItems([])
     setIsModalOpen(true)
-  }, [])
-
-  useEffect(() => {
-    onReady?.({ openCreate: handleOpenCreateModal })
-  }, [onReady, handleOpenCreateModal])
+  }
 
   const handleApplyFilters = () => {
     setPage(1)
@@ -361,6 +353,7 @@ export function PedidosTab({ onReady }: PedidosTabProps) {
         cliente={{ value: cliente, onChange: setCliente }}
         criadoPor={{ value: criadoPor, onChange: setCriadoPor }}
         totalRange={{ min: totalMin, max: totalMax, onMinChange: setTotalMin, onMaxChange: setTotalMax }}
+        primaryAction={{ label: "Novo Pedido", onClick: handleOpenCreateModal }}
         onFilter={handleApplyFilters}
         isLoading={isLoading}
       />

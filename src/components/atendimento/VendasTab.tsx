@@ -74,11 +74,7 @@ function buildSaleParams(page: number, limit: number, f: SaleFilters) {
   return params
 }
 
-interface VendasTabProps {
-  onReady?: (handlers: { openCreate: () => void }) => void
-}
-
-export function VendasTab({ onReady }: VendasTabProps) {
+export function VendasTab() {
   const [sales, setSales] = useState<Sale[]>([])
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [page, setPage] = useState(1)
@@ -274,17 +270,13 @@ export function VendasTab({ onReady }: VendasTabProps) {
     }
   }
 
-  const handleNewSaleClick = useCallback(() => {
+  const handleNewSaleClick = () => {
     setCurrentSaleClient("")
     setCurrentSaleItems([])
     setIsReadOnlyModal(false)
     setCurrentSaleId(null)
     setIsModalOpen(true)
-  }, [])
-
-  useEffect(() => {
-    onReady?.({ openCreate: handleNewSaleClick })
-  }, [onReady, handleNewSaleClick])
+  }
 
   const handleCancelSale = async (id: number) => {
     try {
@@ -316,6 +308,7 @@ export function VendasTab({ onReady }: VendasTabProps) {
         cliente={{ value: cliente, onChange: setCliente }}
         criadoPor={{ value: criadoPor, onChange: setCriadoPor }}
         totalRange={{ min: totalMin, max: totalMax, onMinChange: setTotalMin, onMaxChange: setTotalMax }}
+        primaryAction={{ label: "Nova Venda", onClick: handleNewSaleClick }}
         onFilter={handleApplyFilters}
         isLoading={isLoading}
       />
