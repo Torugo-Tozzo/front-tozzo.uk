@@ -50,4 +50,22 @@ describe('AtendimentoPage', () => {
 
     expect(await screen.findByRole('button', { name: /Novo Produto/i })).toBeInTheDocument()
   })
+
+  it('falls back to the Pedidos tab when ?tab= has an invalid value', async () => {
+    renderAt('/dashboard/atendimento?tab=nonsense')
+    expect(await screen.findByRole('button', { name: /Novo Pedido/i })).toBeInTheDocument()
+  })
+
+  it('clicking the header button calls the currently active tab handler, not a stale one', async () => {
+    const user = userEvent.setup()
+    renderAt('/dashboard/atendimento')
+    await screen.findByRole('button', { name: /Novo Pedido/i })
+
+    await user.click(screen.getByRole('tab', { name: 'Produtos' }))
+    const actionButton = await screen.findByRole('button', { name: /Novo Produto/i })
+
+    await user.click(actionButton)
+
+    expect(await screen.findByText('Produto novo')).toBeInTheDocument()
+  })
 })
