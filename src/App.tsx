@@ -1,5 +1,5 @@
 import { Suspense } from 'react'
-import { createBrowserRouter, RouterProvider, Outlet, useNavigation } from 'react-router-dom'
+import { createBrowserRouter, RouterProvider, Outlet, useNavigation, Navigate } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import DashboardLayout from './layouts/DashboardLayout'
@@ -59,9 +59,10 @@ const router = createBrowserRouter([
             path: "/dashboard",
             element: <DashboardLayout />,
             children: [
-              { index: true, lazy: lazyPage(() => import('./pages/dashboard/OrdersPage')) },
-              { path: "orders", lazy: lazyPage(() => import('./pages/dashboard/OrdersPage')) },
-              { path: "sales", lazy: lazyPage(() => import('./pages/dashboard/SalesPage')) },
+              { index: true, lazy: lazyPage(() => import('./pages/dashboard/AtendimentoPage')) },
+              { path: "atendimento", lazy: lazyPage(() => import('./pages/dashboard/AtendimentoPage')) },
+              { path: "orders", element: <Navigate to="/dashboard/atendimento?tab=pedidos" replace /> },
+              { path: "sales", element: <Navigate to="/dashboard/atendimento?tab=vendas" replace /> },
               { path: "products", lazy: lazyPage(() => import('./pages/dashboard/ProductsPage')) },
               { path: "employees", lazy: lazyPage(() => import('./pages/dashboard/EmployeesPage')) },
               { path: "charts", lazy: lazyPage(() => import('./pages/dashboard/ChartsPage')) },
