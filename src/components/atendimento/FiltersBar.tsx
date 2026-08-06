@@ -10,6 +10,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Search, Loader2 } from "lucide-react"
+import { maskCentsInput } from "@/lib/currency"
 
 export interface DateRangeFilterProps {
   startDate: string
@@ -74,22 +75,6 @@ export function FiltersBar({
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {status && (
-            <div className="space-y-2">
-              <Label htmlFor="filter-status">Status</Label>
-              <Select value={status.value} onValueChange={status.onChange}>
-                <SelectTrigger id="filter-status">
-                  <SelectValue placeholder={status.placeholder ?? "Status"} />
-                </SelectTrigger>
-                <SelectContent>
-                  {status.options.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-
           {dateRange && (
             <>
               <div className="space-y-2">
@@ -107,6 +92,7 @@ export function FiltersBar({
                 <Input
                   id="filter-startTime"
                   type="time"
+                  className="max-w-[140px]"
                   value={dateRange.startTime}
                   onChange={(e) => dateRange.onStartTimeChange(e.target.value)}
                   disabled={isLoading}
@@ -127,12 +113,29 @@ export function FiltersBar({
                 <Input
                   id="filter-endTime"
                   type="time"
+                  className="max-w-[140px]"
                   value={dateRange.endTime}
                   onChange={(e) => dateRange.onEndTimeChange(e.target.value)}
                   disabled={isLoading}
                 />
               </div>
             </>
+          )}
+
+          {status && (
+            <div className="space-y-2">
+              <Label htmlFor="filter-status">Status</Label>
+              <Select value={status.value} onValueChange={status.onChange}>
+                <SelectTrigger id="filter-status">
+                  <SelectValue placeholder={status.placeholder ?? "Status"} />
+                </SelectTrigger>
+                <SelectContent>
+                  {status.options.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           )}
 
           {cliente && (
@@ -196,11 +199,11 @@ export function FiltersBar({
                 <Label htmlFor="filter-totalMin">Total mínimo</Label>
                 <Input
                   id="filter-totalMin"
-                  type="number"
-                  step="0.01"
+                  inputMode="numeric"
+                  className="max-w-[140px]"
                   placeholder="0.00"
                   value={totalRange.min}
-                  onChange={(e) => totalRange.onMinChange(e.target.value)}
+                  onChange={(e) => totalRange.onMinChange(maskCentsInput(e.target.value))}
                   disabled={isLoading}
                 />
               </div>
@@ -208,11 +211,11 @@ export function FiltersBar({
                 <Label htmlFor="filter-totalMax">Total máximo</Label>
                 <Input
                   id="filter-totalMax"
-                  type="number"
-                  step="0.01"
+                  inputMode="numeric"
+                  className="max-w-[140px]"
                   placeholder="0.00"
                   value={totalRange.max}
-                  onChange={(e) => totalRange.onMaxChange(e.target.value)}
+                  onChange={(e) => totalRange.onMaxChange(maskCentsInput(e.target.value))}
                   disabled={isLoading}
                 />
               </div>
@@ -225,11 +228,11 @@ export function FiltersBar({
                 <Label htmlFor="filter-precoMin">Preço mínimo</Label>
                 <Input
                   id="filter-precoMin"
-                  type="number"
-                  step="0.01"
+                  inputMode="numeric"
+                  className="max-w-[140px]"
                   placeholder="0.00"
                   value={precoRange.min}
-                  onChange={(e) => precoRange.onMinChange(e.target.value)}
+                  onChange={(e) => precoRange.onMinChange(maskCentsInput(e.target.value))}
                   disabled={isLoading}
                 />
               </div>
@@ -237,11 +240,11 @@ export function FiltersBar({
                 <Label htmlFor="filter-precoMax">Preço máximo</Label>
                 <Input
                   id="filter-precoMax"
-                  type="number"
-                  step="0.01"
+                  inputMode="numeric"
+                  className="max-w-[140px]"
                   placeholder="0.00"
                   value={precoRange.max}
-                  onChange={(e) => precoRange.onMaxChange(e.target.value)}
+                  onChange={(e) => precoRange.onMaxChange(maskCentsInput(e.target.value))}
                   disabled={isLoading}
                 />
               </div>
