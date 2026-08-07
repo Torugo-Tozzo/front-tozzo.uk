@@ -1,6 +1,7 @@
 import { Suspense } from 'react'
-import { createBrowserRouter, RouterProvider, Outlet, useNavigation, Navigate } from 'react-router-dom'
+import { createBrowserRouter, RouterProvider, Outlet, useNavigation } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
+import { ConfirmProvider } from './contexts/ConfirmContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import DashboardLayout from './layouts/DashboardLayout'
 import MainLayout from './layouts/MainLayout'
@@ -22,11 +23,13 @@ function RootLayout() {
 
   return (
     <AuthProvider>
-      <Toaster position="top-right" richColors closeButton />
-      {isNavigating && <LoadingOverlay />}
-      <Suspense fallback={<LoadingOverlay />}>
-        <Outlet />
-      </Suspense>
+      <ConfirmProvider>
+        <Toaster position="top-right" richColors closeButton />
+        {isNavigating && <LoadingOverlay />}
+        <Suspense fallback={<LoadingOverlay />}>
+          <Outlet />
+        </Suspense>
+      </ConfirmProvider>
     </AuthProvider>
   )
 }
@@ -59,10 +62,9 @@ const router = createBrowserRouter([
             path: "/dashboard",
             element: <DashboardLayout />,
             children: [
-              { index: true, lazy: lazyPage(() => import('./pages/dashboard/AtendimentoPage')) },
-              { path: "atendimento", lazy: lazyPage(() => import('./pages/dashboard/AtendimentoPage')) },
-              { path: "orders", element: <Navigate to="/dashboard/atendimento?tab=pedidos" replace /> },
-              { path: "sales", element: <Navigate to="/dashboard/atendimento?tab=vendas" replace /> },
+              { index: true, lazy: lazyPage(() => import('./pages/dashboard/OrdersPage')) },
+              { path: "orders", lazy: lazyPage(() => import('./pages/dashboard/OrdersPage')) },
+              { path: "sales", lazy: lazyPage(() => import('./pages/dashboard/SalesPage')) },
               { path: "products", lazy: lazyPage(() => import('./pages/dashboard/ProductsPage')) },
               { path: "employees", lazy: lazyPage(() => import('./pages/dashboard/EmployeesPage')) },
               { path: "charts", lazy: lazyPage(() => import('./pages/dashboard/ChartsPage')) },
