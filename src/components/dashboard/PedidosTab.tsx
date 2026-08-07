@@ -10,7 +10,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { StatusSelect } from "@/components/ui/status-select"
 import { IconButton } from "@/components/ui/icon-button"
-import { FiltersBar } from "@/components/atendimento/FiltersBar"
+import { FiltersBar } from "@/components/dashboard/FiltersBar"
 import { Printer, Pencil, Trash2, Loader2 } from "lucide-react"
 import api, { getErrorMessage } from "@/services/api"
 import { parseListResponse } from "@/services/parseResponse"
@@ -19,6 +19,8 @@ import { ProductSelectionModal } from "@/components/ProductSelectionModal"
 import { Pagination } from "@/components/Pagination"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useRealtimeEvents } from "@/hooks/useRealtimeEvents"
+import { useMinLoadingDuration } from "@/hooks/useMinLoadingDuration"
+import { useConfirm } from "@/contexts/ConfirmContext"
 import { getStatusColor, type PedidoStatus } from "@/lib/status"
 
 type OrderItem = {
@@ -83,12 +85,14 @@ function buildOrderParams(page: number, limit: number, f: OrderFilters) {
 }
 
 export function PedidosTab() {
+  const confirm = useConfirm()
   const [page, setPage] = useState<number>(1)
   const [limit, setLimit] = useState<number>(10)
   const [orders, setOrders] = useState<Order[]>([])
   const [totalPages, setTotalPages] = useState<number>(0)
   const [hasMore, setHasMore] = useState<boolean>(false)
   const [isLoading, setIsLoading] = useState(false)
+  const showSkeleton = useMinLoadingDuration(isLoading)
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false)
   const [currentOrder, setCurrentOrder] = useState<Order | null>(null)
   const [currentOrderItems, setCurrentOrderItems] = useState<any[]>([])
@@ -244,6 +248,7 @@ export function PedidosTab() {
         const items = orderData.itens.map((item: any) => ({
           produtoId: item.produtoId ?? (item.produto ? item.produto.id : undefined),
           quantidade: Number(item.quantidade) || 0,
+          nome: item.produto?.nome,
           precoHistorico: item.precoHistorico != null ? Number(item.precoHistorico) : (item.preco != null ? Number(item.preco) : (item.produto ? Number(item.produto.preco || 0) : undefined)),
         })).filter((i: any) => i.produtoId != null && i.produtoId !== '')
         setCurrentOrderItems(items)
@@ -274,7 +279,7 @@ export function PedidosTab() {
   }
 
   const handleDeleteOrder = async (id: number) => {
-    if (!confirm("Tem certeza que deseja excluir este pedido?")) return
+    if (!(await confirm({ description: "Tem certeza que deseja excluir este pedido?", confirmLabel: "Excluir", destructive: true }))) return
     setDeletingId(id)
     try {
       await api.delete(`/pedidos/${id}`)
@@ -288,7 +293,7 @@ export function PedidosTab() {
   }
 
   const handleCloseOrder = async (id: number) => {
-    if (!confirm("Tem certeza que deseja fechar este pedido? Ele será transformado em venda.")) return
+    if (!(await confirm("Tem certeza que deseja fechar este pedido? Ele será transformado em venda."))) return
     try {
       await api.post(`/pedidos/${id}/status`, { status: 'FECHADO' })
       fetchOrders()
@@ -354,9 +359,9 @@ export function PedidosTab() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {isLoading ? (
+              {showSkeleton ? (
                 Array.from({ length: 5 }).map((_, i) => (
-                  <TableRow key={i}>
+                  <TableRow key={i} className="animate-in fade-in-0 duration-300">
                     <TableCell><Skeleton className="h-4 w-8" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-[150px]" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-[100px]" /></TableCell>
@@ -378,7 +383,7 @@ export function PedidosTab() {
                 </TableRow>
               ) : (
                 orders.map((order, index) => (
-                  <TableRow key={order.id} accentColor={getStatusColor(order.status)}>
+                  <TableRow key={order.id} accentColor={getStatusColor(order.status)} className="animate-in fade-in-0 duration-300">
                     <TableCell className="text-center">{(page - 1) * limit + index + 1}</TableCell>
                     <TableCell>
                       <div className="font-medium">{order.cliente || "Não Informado"}</div>
@@ -397,8 +402,8 @@ export function PedidosTab() {
                         <StatusSelect
                           value={order.status}
                           disabled={order.status === 'FECHADO' || updatingStatusId === order.id}
-                          onValueChange={(val) => {
-                            if (!confirm('Tem certeza que deseja alterar o status do pedido?')) return
+                          onValueChange={async (val) => {
+                            if (!(await confirm('Tem certeza que deseja alterar o status do pedido?'))) return
                             handleChangeStatus(order.id, val)
                           }}
                         />

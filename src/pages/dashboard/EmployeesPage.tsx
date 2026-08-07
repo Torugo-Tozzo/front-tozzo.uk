@@ -2,7 +2,6 @@ import { useState, useEffect } from "react"
 import {
   Table,
   TableBody,
-  TableCaption,
   TableCell,
   TableHead,
   TableHeader,
@@ -35,6 +34,8 @@ import { parseListResponse } from "@/services/parseResponse"
 import { toast } from "sonner"
 import { Pagination } from "@/components/Pagination"
 import { useAuth } from "@/contexts/AuthContext"
+import { useConfirm } from "@/contexts/ConfirmContext"
+import { useMinLoadingDuration } from "@/hooks/useMinLoadingDuration"
 
 type Employee = {
   id: number
@@ -45,12 +46,20 @@ type Employee = {
 
 export default function EmployeesPage() {
   const { user } = useAuth()
+  const confirm = useConfirm()
   const [employees, setEmployees] = useState<Employee[]>([])
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [currentEmployee, setCurrentEmployee] = useState<Employee | null>(null)
 
-  const [isLoading, setIsLoading] = useState(false)
+  // isFetching = so a listagem (efeito de page/limit/search). isSaving = so
+  // os dialogs de criar/editar. deletingId = so a linha sendo excluida.
+  // Mesmo padrao usado em ProductsPage - antes um unico isLoading cobria
+  // tudo e excluir 1 funcionario reskeletonava a tabela inteira.
+  const [isFetching, setIsFetching] = useState(false)
+  const showSkeleton = useMinLoadingDuration(isFetching)
+  const [isSaving, setIsSaving] = useState(false)
+  const [deletingId, setDeletingId] = useState<number | null>(null)
   const [page, setPage] = useState(1)
   const [limit, setLimit] = useState(10)
   const [totalPages, setTotalPages] = useState(0)
@@ -93,8 +102,8 @@ export default function EmployeesPage() {
 
   useEffect(() => {
     const delay = setTimeout(() => {
-      setIsLoading(true)
-      fetchEmployees().finally(() => setIsLoading(false))
+      setIsFetching(true)
+      fetchEmployees().finally(() => setIsFetching(false))
     }, 300)
     return () => clearTimeout(delay)
   }, [page, limit, search])
@@ -121,7 +130,7 @@ export default function EmployeesPage() {
   }
 
   const handleAddEmployee = async (e: React.FormEvent) => {
-    setIsLoading(true)
+    setIsSaving(true)
     e.preventDefault()
     try {
       await api.post("/usuarios", {
@@ -137,7 +146,7 @@ export default function EmployeesPage() {
       console.error("Error creating employee", error)
       toast.error(getErrorMessage(error, "Erro ao criar funcionário"))
     } finally {
-      setIsLoading(false)
+      setIsSaving(false)
     }
   }
 
@@ -151,7 +160,7 @@ export default function EmployeesPage() {
   }
 
   const handleUpdateEmployee = async (e: React.FormEvent) => {
-    setIsLoading(true)
+    setIsSaving(true)
     e.preventDefault()
     if (!currentEmployee) return
 
@@ -173,13 +182,13 @@ export default function EmployeesPage() {
       console.error("Error updating employee", error)
       toast.error(getErrorMessage(error, "Erro ao atualizar funcionário"))
     } finally {
-      setIsLoading(false)
+      setIsSaving(false)
     }
   }
 
   const handleDeleteEmployee = async (id: number) => {
-    if (confirm("Tem certeza que deseja excluir este funcionário?")) {
-        setIsLoading(true)
+    if (await confirm({ description: "Tem certeza que deseja excluir este funcionário?", confirmLabel: "Excluir", destructive: true })) {
+        setDeletingId(id)
         try {
           await api.delete(`/usuarios/${id}`)
           await fetchEmployees()
@@ -187,7 +196,7 @@ export default function EmployeesPage() {
           console.error("Error deleting employee", error)
           toast.error(getErrorMessage(error, "Erro ao excluir funcionário"))
         } finally {
-          setIsLoading(false)
+          setDeletingId(null)
         }
     }
   }
@@ -230,7 +239,7 @@ export default function EmployeesPage() {
         {canManageUsers && (
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
-              <Button onClick={resetForm} disabled={isLoading}>
+              <Button onClick={resetForm} disabled={isSaving}>
                 <Plus className="mr-2 h-4 w-4" /> Novo Funcionário
               </Button>
             </DialogTrigger>
@@ -249,7 +258,7 @@ export default function EmployeesPage() {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     required
-                    disabled={isLoading}
+                    disabled={isSaving}
                   />
                 </div>
                 <div className="space-y-2">
@@ -260,13 +269,13 @@ export default function EmployeesPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    disabled={isLoading}
+                    disabled={isSaving}
                   />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="role">Cargo</Label>
                   <Select value={role} onValueChange={setRole}>
-                    <SelectTrigger disabled={isLoading}>
+                    <SelectTrigger disabled={isSaving}>
                       <SelectValue placeholder="Selecione o cargo" />
                     </SelectTrigger>
                     <SelectContent>
@@ -284,12 +293,12 @@ export default function EmployeesPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    disabled={isLoading}
+                    disabled={isSaving}
                   />
                 </div>
                 <DialogFooter>
-                  <Button type="submit" disabled={isLoading}>
-                    {isLoading ? (
+                  <Button type="submit" disabled={isSaving}>
+                    {isSaving ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                         Salvar
@@ -325,7 +334,6 @@ export default function EmployeesPage() {
         </CardHeader>
         <CardContent>
           <Table>
-            <TableCaption>Lista de usuários do sistema.</TableCaption>
             <TableHeader>
               <TableRow>
                 <TableHead className="w-[50px]">#</TableHead>
@@ -338,9 +346,9 @@ export default function EmployeesPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {isLoading ? (
+              {showSkeleton ? (
                   Array.from({ length: 5 }).map((_, i) => (
-                    <TableRow key={i}>
+                    <TableRow key={i} className="animate-in fade-in-0 duration-300">
                       <TableCell><Skeleton className="h-4 w-8" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-[200px]" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-[250px]" /></TableCell>
@@ -355,7 +363,7 @@ export default function EmployeesPage() {
                   ))
               ) : (
                 employees.map((employee, index) => (
-                <TableRow key={employee.id}>
+                <TableRow key={employee.id} className="animate-in fade-in-0 duration-300">
                     <TableCell className="font-medium">{(page - 1) * limit + index + 1}</TableCell>
                     <TableCell>{employee.nome}</TableCell>
                     <TableCell>{employee.email}</TableCell>
@@ -372,7 +380,7 @@ export default function EmployeesPage() {
                             variant="ghost"
                             size="icon"
                             onClick={() => handleEditClick(employee)}
-                            disabled={isLoading}
+                            disabled={deletingId === employee.id}
                           >
                             <Pencil className="h-4 w-4" />
                           </Button>
@@ -383,9 +391,9 @@ export default function EmployeesPage() {
                             size="icon"
                             className="text-destructive hover:text-destructive"
                             onClick={() => handleDeleteEmployee(employee.id)}
-                            disabled={isLoading}
+                            disabled={deletingId === employee.id}
                           >
-                            {isLoading ? (
+                            {deletingId === employee.id ? (
                               <Loader2 className="h-4 w-4 animate-spin" />
                             ) : (
                               <Trash2 className="h-4 w-4" />
@@ -411,7 +419,7 @@ export default function EmployeesPage() {
                 setLimit(newLimit)
                 setPage(1)
               }}
-              isLoading={isLoading}
+              isLoading={isFetching || deletingId !== null}
             />
           </div>
         </CardContent>
@@ -434,7 +442,7 @@ export default function EmployeesPage() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
-                disabled={isLoading}
+                disabled={isSaving}
               />
             </div>
             <div className="space-y-2">
@@ -445,13 +453,13 @@ export default function EmployeesPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                disabled={isLoading}
+                disabled={isSaving}
               />
             </div>
             <div className="space-y-2">
               <Label htmlFor="edit-role">Cargo</Label>
               <Select value={role} onValueChange={setRole}>
-                <SelectTrigger disabled={isLoading}>
+                <SelectTrigger disabled={isSaving}>
                   <SelectValue placeholder="Selecione o cargo" />
                 </SelectTrigger>
                 <SelectContent>
@@ -469,12 +477,12 @@ export default function EmployeesPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Deixe em branco para manter"
-                disabled={isLoading}
+                disabled={isSaving}
               />
             </div>
             <DialogFooter>
-              <Button type="submit" disabled={isLoading}>
-                {isLoading ? (
+              <Button type="submit" disabled={isSaving}>
+                {isSaving ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Salvar Alterações

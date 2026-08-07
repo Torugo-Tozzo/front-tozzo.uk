@@ -10,10 +10,11 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, Minus, Trash2, Loader2 } from "lucide-react";
+import { Plus, Minus, Trash2, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
 import api, { getErrorMessage } from "@/services/api";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useConfirm } from "@/contexts/ConfirmContext";
 import {
   Select,
   SelectContent,
@@ -26,6 +27,11 @@ type Product = {
   id: number;
   nome: string;
   preco: number;
+};
+
+type TipoProduto = {
+  id: number;
+  descricao: string;
 };
 
 export type SelectedItem = {
@@ -42,7 +48,7 @@ interface ProductSelectionModalProps {
   onConfirm: (cliente: string, itens: { produtoId: number; quantidade: number; precoHistorico?: number }[]) => Promise<void>;
   title: string;
   initialClientName?: string;
-  initialOrderItems?: { produtoId: number; quantidade: number; precoHistorico?: number }[];
+  initialOrderItems?: { produtoId: number; quantidade: number; precoHistorico?: number; nome?: string; preco?: number }[];
   isEditing?: boolean; // If editing, we might handle things differently
   onCloseOrder?: () => Promise<void>;
   initialStatus?: string;
@@ -52,6 +58,7 @@ interface ProductSelectionModalProps {
 }
 
 const DEFAULT_ITEMS: { produtoId: number; quantidade: number }[] = [];
+const PRODUCTS_PAGE_SIZE = 20;
 
 export function ProductSelectionModal({
   isOpen,
@@ -67,7 +74,11 @@ export function ProductSelectionModal({
   onCancelSale,
   readOnly = false,
 }: ProductSelectionModalProps) {
+  const confirm = useConfirm();
   const [products, setProducts] = useState<Product[]>([]);
+  const [productsTotal, setProductsTotal] = useState(0);
+  const [productsPage, setProductsPage] = useState(1);
+  const [tipos, setTipos] = useState<TipoProduto[]>([]);
   const [selectedItems, setSelectedItems] = useState<SelectedItem[]>([]);
   const [clientName, setClientName] = useState(initialClientName);
   const [isLoading, setIsLoading] = useState(false);
@@ -75,6 +86,7 @@ export function ProductSelectionModal({
   const [isCancellingSale, setIsCancellingSale] = useState(false);
   const [status, setStatus] = useState<string>(initialStatus ?? "");
   const [searchTerm, setSearchTerm] = useState("");
+  const [tipoFilter, setTipoFilter] = useState("");
   const [isProductsLoading, setIsProductsLoading] = useState(false);
 
   useEffect(() => {
@@ -87,54 +99,83 @@ export function ProductSelectionModal({
     }
   }, [isOpen, initialStatus]);
 
-  // Combined fetch and hydrate to avoid flash of empty state
+  // Reset local state and hydrate selected items on open.
+  // Nomes/precos dos itens ja selecionados vem do caller (pedido/venda), nao
+  // depende mais do catalogo carregado - assim funciona mesmo se o produto
+  // do item nao estiver na pagina atual de busca.
   useEffect(() => {
-    if (isOpen) {
-      // Immediate reset to show loading and clear stale data
-      setIsProductsLoading(true);
-      setSelectedItems([]); 
-      
-      setClientName(initialClientName);
-      setSearchTerm("");
-      
-      const loadData = async () => {
-        try {
-          const response = await api.get("/produtos");
-          const data = response.data.map((p: any) => ({
-            ...p,
-            preco: p.preco ? Number(p.preco) : 0
-          }));
-          setProducts(data);
+    if (!isOpen) return;
 
-          // Hydrate immediately with the fetched data
-          if (initialOrderItems && initialOrderItems.length > 0) {
-            const hydratedItems = initialOrderItems.map((item) => {
-              const product = data.find((p: any) => p.id === item.produtoId);
-              if (product) {
-                return {
-                  produtoId: item.produtoId,
-                  quantidade: item.quantidade,
-                  nome: product.nome,
-                  preco: product.preco, // preco atual
-                  precoHistorico: item.precoHistorico != null ? Number(item.precoHistorico) : Number(product.preco || 0),
-                };
-              }
-              return null;
-            }).filter((item: any): item is SelectedItem => item !== null);
-            setSelectedItems(hydratedItems);
-          } else {
-            setSelectedItems([]);
-          }
-        } catch (error) {
-          console.error("Error fetching products", error);
-        } finally {
-          setIsProductsLoading(false);
-        }
-      };
+    setClientName(initialClientName);
+    setSearchTerm("");
+    setTipoFilter("");
 
-      loadData();
+    if (initialOrderItems && initialOrderItems.length > 0) {
+      const hydratedItems = initialOrderItems
+        .filter((item) => item.produtoId != null)
+        .map((item) => {
+          const preco = item.preco != null ? Number(item.preco) : Number(item.precoHistorico ?? 0);
+          return {
+            produtoId: item.produtoId,
+            quantidade: item.quantidade,
+            nome: item.nome ?? "Produto",
+            preco,
+            precoHistorico: item.precoHistorico != null ? Number(item.precoHistorico) : preco,
+          };
+        });
+      setSelectedItems(hydratedItems);
+    } else {
+      setSelectedItems([]);
     }
   }, [isOpen, initialClientName, initialOrderItems]);
+
+  // Tipos de produto para o filtro de categoria (poucos registros, carrega tudo de uma vez).
+  useEffect(() => {
+    if (!isOpen) return;
+    api.get("/tipos")
+      .then((response) => setTipos(response.data))
+      .catch((error) => console.error("Error fetching tipos", error));
+  }, [isOpen]);
+
+  // Busca produtos no servidor - nunca carrega o catalogo inteiro, so a
+  // pagina atual (20 itens) filtrada por nome/categoria.
+  const fetchProductsPage = async (page: number) => {
+    setIsProductsLoading(true);
+    try {
+      const params: any = { limit: PRODUCTS_PAGE_SIZE, page };
+      if (searchTerm) params.search = searchTerm;
+      if (tipoFilter) params.tipoProdutoId = tipoFilter;
+
+      const response = await api.get("/produtos", { params });
+      const data = response.data.map((p: any) => ({
+        ...p,
+        preco: p.preco ? Number(p.preco) : 0,
+      }));
+      setProducts(data);
+      setProductsPage(page);
+      const totalHeader = response.headers["x-total-count"];
+      setProductsTotal(totalHeader ? parseInt(totalHeader, 10) : data.length);
+    } catch (error) {
+      console.error("Error fetching products", error);
+    } finally {
+      setIsProductsLoading(false);
+    }
+  };
+
+  // Busca (nome/categoria) tem debounce e sempre volta pra pagina 1.
+  // Skeleton liga na hora (nao so quando o fetch comeca) - sem isso ficava
+  // um instante mostrando "Nenhum produto encontrado" antes do debounce disparar.
+  useEffect(() => {
+    if (!isOpen) return;
+    setIsProductsLoading(true);
+    const timer = setTimeout(() => {
+      fetchProductsPage(1);
+    }, 300);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, searchTerm, tipoFilter]);
+
+  const productsTotalPages = Math.ceil(productsTotal / PRODUCTS_PAGE_SIZE);
 
   const handleAddItem = (product: Product) => {
     setSelectedItems((prev) => {
@@ -193,10 +234,6 @@ export function ProductSelectionModal({
     }
   };
 
-  const filteredProducts = products.filter(p => 
-    p.nome.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
   const total = selectedItems.reduce((acc, item) => acc + ((item.precoHistorico != null ? item.precoHistorico : item.preco) * item.quantidade), 0);
 
   return (
@@ -226,12 +263,25 @@ export function ProductSelectionModal({
             {!readOnly && (
               <div className="space-y-4 border rounded-lg p-4">
                 <h3 className="font-semibold">Produtos Disponíveis</h3>
-                <Input 
-                  placeholder="Buscar produto..." 
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  disabled={isProductsLoading}
-                />
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Buscar produto..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="flex-1"
+                  />
+                  <Select value={tipoFilter || "all"} onValueChange={(val) => setTipoFilter(val === "all" ? "" : val)}>
+                    <SelectTrigger className="w-[150px]">
+                      <SelectValue placeholder="Categoria" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todas categorias</SelectItem>
+                      {tipos.map((tipo) => (
+                        <SelectItem key={tipo.id} value={String(tipo.id)}>{tipo.descricao}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
                 <div className="h-[300px] overflow-y-auto space-y-2">
                   {isProductsLoading ? (
                     Array.from({ length: 6 }).map((_, i) => (
@@ -243,23 +293,57 @@ export function ProductSelectionModal({
                         <Skeleton className="h-8 w-8 rounded-md bg-gray-200 dark:bg-gray-700" />
                       </div>
                     ))
+                  ) : products.length === 0 ? (
+                    <p className="text-gray-500 dark:text-gray-400 text-center py-8">Nenhum produto encontrado.</p>
                   ) : (
-                    filteredProducts.map((product) => (
-                      <div
-                        key={product.id}
-                        className="flex items-center justify-between p-2 border rounded hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer"
-                        onClick={() => handleAddItem(product)}
-                      >
-                        <div>
-                          <p className="font-medium">{product.nome}</p>
-                          <p className="text-sm text-gray-500">R$ {Number(product.preco || 0).toFixed(2)}</p>
+                    <div
+                      key={`${productsPage}-${searchTerm}-${tipoFilter}`}
+                      className="space-y-2 animate-in fade-in-0 duration-200"
+                    >
+                      {products.map((product) => (
+                        <div
+                          key={product.id}
+                          className="flex items-center justify-between p-2 border rounded hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer"
+                          onClick={() => handleAddItem(product)}
+                        >
+                          <div>
+                            <p className="font-medium">{product.nome}</p>
+                            <p className="text-sm text-gray-500">R$ {Number(product.preco || 0).toFixed(2)}</p>
+                          </div>
+                          <Button size="sm" variant="ghost">
+                            <Plus className="h-4 w-4" />
+                          </Button>
                         </div>
-                        <Button size="sm" variant="ghost">
-                          <Plus className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ))
+                      ))}
+                    </div>
                   )}
+                </div>
+                {/* Sempre renderiza (mesmo com 1 pagina, so desabilita) - senao
+                    o painel muda de altura ao trocar categoria e o modal "pula". */}
+                <div className="flex items-center justify-between pt-1 h-7">
+                  <span className="text-xs text-muted-foreground">
+                    {productsTotalPages > 0 && `Página ${productsPage} de ${productsTotalPages}`}
+                  </span>
+                  <div className="flex gap-1">
+                    <Button
+                      size="icon"
+                      variant="outline"
+                      className="h-7 w-7"
+                      onClick={() => fetchProductsPage(productsPage - 1)}
+                      disabled={productsPage <= 1 || isProductsLoading}
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="outline"
+                      className="h-7 w-7"
+                      onClick={() => fetchProductsPage(productsPage + 1)}
+                      disabled={productsPage >= productsTotalPages || isProductsLoading}
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               </div>
             )}
@@ -268,28 +352,7 @@ export function ProductSelectionModal({
             <div className="space-y-4 border rounded-lg p-4 bg-gray-50 dark:bg-gray-900/50">
               <h3 className="font-semibold">Itens Selecionados</h3>
               <div className="h-[300px] overflow-y-auto space-y-2">
-                {isProductsLoading ? (
-                  Array.from({ length: 4 }).map((_, i) => (
-                    <div key={i} className="flex items-center justify-between p-2 bg-white dark:bg-gray-800 rounded shadow-sm border dark:border-gray-700">
-                      <div className="space-y-2 flex-1">
-                        <Skeleton className="h-4 w-[120px] bg-gray-200 dark:bg-gray-700" />
-                        <Skeleton className="h-3 w-[180px] bg-gray-200 dark:bg-gray-700" />
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {readOnly ? (
-                            <Skeleton className="h-6 w-16 bg-gray-200 dark:bg-gray-700" />
-                        ) : (
-                          <>
-                            <Skeleton className="h-6 w-6 rounded-md bg-gray-200 dark:bg-gray-700" />
-                            <Skeleton className="h-4 w-4 bg-gray-200 dark:bg-gray-700" />
-                            <Skeleton className="h-6 w-6 rounded-md bg-gray-200 dark:bg-gray-700" />
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  selectedItems.length === 0 ? (
+                {selectedItems.length === 0 ? (
                     <p className="text-gray-500 dark:text-gray-400 text-center py-8">Nenhum item selecionado</p>
                   ) : (
                     selectedItems.map((item) => (
@@ -335,16 +398,11 @@ export function ProductSelectionModal({
                         </div>
                       </div>
                     ))
-                  )
-                )}
+                  )}
               </div>
               <div className="pt-4 border-t flex justify-between items-center font-bold text-lg text-gray-900 dark:text-gray-100">
                 <span>Total:</span>
-                {isProductsLoading ? (
-                   <Skeleton className="h-6 w-24 bg-gray-200 dark:bg-gray-700" />
-                ) : (
-                   <span>R$ {total.toFixed(2)}</span>
-                )}
+                <span>R$ {total.toFixed(2)}</span>
               </div>
             </div>
           </div>
@@ -357,8 +415,7 @@ export function ProductSelectionModal({
                   value={status}
                   onValueChange={async (val: string) => {
                     if (val === status) return
-                    const confirmMsg = 'Tem certeza que deseja alterar o status do pedido?'
-                    if (!confirm(confirmMsg)) return
+                    if (!(await confirm('Tem certeza que deseja alterar o status do pedido?'))) return
                     setIsClosingOrder(true)
                     try {
                       if (onChangeStatus) {
@@ -396,7 +453,7 @@ export function ProductSelectionModal({
                   variant="ghost"
                   className="text-destructive hover:text-destructive"
                   onClick={async () => {
-                    if (!confirm('Tem certeza que deseja cancelar esta venda?')) return
+                    if (!(await confirm({ description: 'Tem certeza que deseja cancelar esta venda?', confirmLabel: 'Cancelar venda', destructive: true }))) return
                     setIsCancellingSale(true)
                     try {
                       await onCancelSale()

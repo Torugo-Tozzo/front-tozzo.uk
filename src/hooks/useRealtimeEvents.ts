@@ -5,6 +5,71 @@ export type RealtimeTipo = 'pedidos' | 'vendas'
 
 const TOKEN_REFRESH_MS = 4 * 60 * 1000 // token expira em 5min — troca antes
 
+type Listener = (tipo: RealtimeTipo) => void
+
+// Uma unica EventSource compartilhada por aba, nao uma por chamada do hook.
+// Antes cada useRealtimeEvents() abria a sua propria conexao - DashboardLayout
+// (badge de pedidos) e PedidosTab, por exemplo, abriam 2 conexoes SSE
+// separadas pro mesmo 'pedidos' dentro da MESMA aba. Navegador limita ~6
+// conexoes HTTP/1.1 por origem; com poucas abas do dashboard abertas isso
+// estourava o limite e travava requests REST (POST/GET) esperando conexao
+// livre - sintoma: acao trava "carregando" pra sempre.
+let sharedEventSource: EventSource | null = null
+let refreshTimer: number | null = null
+let stopped = true
+const listeners = new Set<Listener>()
+
+function notify(tipo: RealtimeTipo) {
+  listeners.forEach((listener) => listener(tipo))
+}
+
+async function connect() {
+  if (stopped) return
+  try {
+    const token = await getSseToken()
+    if (stopped) return
+
+    const base = String(api.defaults.baseURL || '').replace(/\/$/, '')
+    sharedEventSource = new EventSource(`${base}/events?token=${encodeURIComponent(token)}`)
+
+    sharedEventSource.onmessage = (event) => {
+      try {
+        const payload = JSON.parse(event.data)
+        const tipo = payload?.tipo as RealtimeTipo | 'connected' | undefined
+        if (tipo && tipo !== 'connected') notify(tipo)
+      } catch (err) {
+        console.error('[useRealtimeEvents] parse error', err)
+      }
+    }
+
+    sharedEventSource.onerror = () => {
+      console.error('[useRealtimeEvents] connection error')
+    }
+  } catch (err) {
+    console.error('[useRealtimeEvents] failed to mint token', err)
+  }
+}
+
+function ensureConnection() {
+  if (sharedEventSource || refreshTimer != null) return
+  stopped = false
+  connect()
+  refreshTimer = window.setInterval(() => {
+    sharedEventSource?.close()
+    connect()
+  }, TOKEN_REFRESH_MS)
+}
+
+function teardownConnection() {
+  stopped = true
+  if (refreshTimer != null) {
+    clearInterval(refreshTimer)
+    refreshTimer = null
+  }
+  sharedEventSource?.close()
+  sharedEventSource = null
+}
+
 export function useRealtimeEvents(tipos: RealtimeTipo[], onEvent: (tipo: RealtimeTipo) => void): void {
   const onEventRef = useRef(onEvent)
   onEventRef.current = onEvent
@@ -12,49 +77,15 @@ export function useRealtimeEvents(tipos: RealtimeTipo[], onEvent: (tipo: Realtim
   tiposRef.current = tipos
 
   useEffect(() => {
-    let stopped = false
-    let es: EventSource | null = null
-    let refreshTimer: number | null = null
-
-    const connect = async () => {
-      if (stopped) return
-      try {
-        const token = await getSseToken()
-        if (stopped) return
-
-        const base = String(api.defaults.baseURL || '').replace(/\/$/, '')
-        es = new EventSource(`${base}/events?token=${encodeURIComponent(token)}`)
-
-        es.onmessage = (event) => {
-          try {
-            const payload = JSON.parse(event.data)
-            const tipo = payload?.tipo as RealtimeTipo | 'connected' | undefined
-            if (tipo && tiposRef.current.includes(tipo as RealtimeTipo)) {
-              onEventRef.current(tipo as RealtimeTipo)
-            }
-          } catch (err) {
-            console.error('[useRealtimeEvents] parse error', err)
-          }
-        }
-
-        es.onerror = () => {
-          console.error('[useRealtimeEvents] connection error')
-        }
-      } catch (err) {
-        console.error('[useRealtimeEvents] failed to mint token', err)
-      }
+    const listener: Listener = (tipo) => {
+      if (tiposRef.current.includes(tipo)) onEventRef.current(tipo)
     }
-
-    connect()
-    refreshTimer = window.setInterval(() => {
-      es?.close()
-      connect()
-    }, TOKEN_REFRESH_MS)
+    listeners.add(listener)
+    ensureConnection()
 
     return () => {
-      stopped = true
-      if (refreshTimer != null) clearInterval(refreshTimer)
-      es?.close()
+      listeners.delete(listener)
+      if (listeners.size === 0) teardownConnection()
     }
   }, [])
 }

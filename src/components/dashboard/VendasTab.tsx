@@ -9,12 +9,13 @@ import {
 } from "@/components/ui/table"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { IconButton } from "@/components/ui/icon-button"
-import { FiltersBar } from "@/components/atendimento/FiltersBar"
+import { FiltersBar } from "@/components/dashboard/FiltersBar"
 import { Printer, Eye, Loader2 } from "lucide-react"
 import api, { getErrorMessage } from "@/services/api"
 import { parseListResponse } from "@/services/parseResponse"
 import { toast } from "sonner"
 import { useRealtimeEvents } from "@/hooks/useRealtimeEvents"
+import { useMinLoadingDuration } from "@/hooks/useMinLoadingDuration"
 import { ProductSelectionModal } from "@/components/ProductSelectionModal"
 import { Pagination } from "@/components/Pagination"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -83,12 +84,13 @@ export function VendasTab() {
   const [totalItems, setTotalItems] = useState(0)
   const [hasMore, setHasMore] = useState(false)
 
-  const [currentSaleItems, setCurrentSaleItems] = useState<{ produtoId: number | string; quantidade: number; precoHistorico?: number }[]>([])
+  const [currentSaleItems, setCurrentSaleItems] = useState<{ produtoId: number | string; quantidade: number; precoHistorico?: number; nome?: string }[]>([])
   const [currentSaleClient, setCurrentSaleClient] = useState("")
   const [isReadOnlyModal, setIsReadOnlyModal] = useState(false)
   const [currentSaleId, setCurrentSaleId] = useState<number | null>(null)
 
   const [isLoading, setIsLoading] = useState(false)
+  const showSkeleton = useMinLoadingDuration(isLoading)
   const [loadingSaleId, setLoadingSaleId] = useState<number | null>(null)
 
   const [cliente, setCliente] = useState("")
@@ -251,6 +253,7 @@ export function VendasTab() {
         const items = sale.itens.map((item: any) => ({
           produtoId: item.produtoId ?? (item.produto ? item.produto.id : undefined),
           quantidade: Number(item.quantidade) || 0,
+          nome: item.produto?.nome,
           precoHistorico: item.precoHistorico != null ? Number(item.precoHistorico) : (item.preco != null ? Number(item.preco) : (item.produto ? Number(item.produto.preco || 0) : undefined)),
         })).filter((i: any) => i.produtoId != null && i.produtoId !== '')
         setCurrentSaleItems(items)
@@ -350,9 +353,9 @@ export function VendasTab() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {isLoading ? (
+              {showSkeleton ? (
                 Array.from({ length: 5 }).map((_, i) => (
-                  <TableRow key={i}>
+                  <TableRow key={i} className="animate-in fade-in-0 duration-300">
                     <TableCell><Skeleton className="h-4 w-8" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-[200px]" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-[100px]" /></TableCell>
@@ -372,7 +375,7 @@ export function VendasTab() {
                 </TableRow>
               ) : (
                 sales.map((sale, index) => (
-                  <TableRow key={sale.id} accentColor={getStatusColor('FECHADO')}>
+                  <TableRow key={sale.id} accentColor={getStatusColor('FECHADO')} className="animate-in fade-in-0 duration-300">
                     <TableCell className="text-center">{(page - 1) * limit + index + 1}</TableCell>
                     <TableCell>
                       <div className="font-medium">{sale.cliente || "Não Informado"}</div>

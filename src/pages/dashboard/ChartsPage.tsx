@@ -15,13 +15,13 @@ import {
 import {
   Table,
   TableBody,
-  TableCaption,
   TableCell,
   TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
 import { Pagination } from "@/components/Pagination"
+import { useMinLoadingDuration } from "@/hooks/useMinLoadingDuration"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   BarChart,
@@ -83,6 +83,7 @@ export default function ChartsPage() {
   const [isChartLoading, setIsChartLoading] = useState(false)
   const [isTableLoading, setIsTableLoading] = useState(false)
   const isLoading = isChartLoading || isTableLoading
+  const showTableSkeleton = useMinLoadingDuration(isTableLoading)
 
   // Report generation state
   const [reportGeneratingType, setReportGeneratingType] = useState<'excel' | 'pdf' | null>(null)
@@ -697,7 +698,6 @@ export default function ChartsPage() {
             Total de registros: {totalItems}
           </div>
           <Table>
-            <TableCaption>Lista detalhada dos produtos vendidos no período.</TableCaption>
             <TableHeader>
               <TableRow>
                 <TableHead className="w-[50px]">#</TableHead>
@@ -707,9 +707,9 @@ export default function ChartsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {isTableLoading ? (
+              {showTableSkeleton ? (
                 Array.from({ length: limit || 10 }).map((_, i) => (
-                  <TableRow key={i}>
+                  <TableRow key={i} className="animate-in fade-in-0 duration-300">
                     <TableCell>
                       <Skeleton className="h-4 w-8" />
                     </TableCell>
@@ -726,7 +726,7 @@ export default function ChartsPage() {
                 ))
               ) : (
                 detailedData.map((item, index) => (
-                  <TableRow key={item.id || index}>
+                  <TableRow key={item.id || index} className="animate-in fade-in-0 duration-300">
                     <TableCell>{(page - 1) * limit + index + 1}</TableCell>
                     <TableCell>{item.nome}</TableCell>
                     <TableCell className="text-right">{item.quantidadeVendida}</TableCell>

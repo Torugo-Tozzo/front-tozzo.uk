@@ -75,4 +75,24 @@ describe('useRealtimeEvents', () => {
     expect(first.closed).toBe(true)
     expect(FakeEventSource.instances).toHaveLength(2)
   })
+
+  it('compartilha uma unica EventSource entre varios hooks na mesma aba', async () => {
+    const onEventA = vi.fn()
+    const onEventB = vi.fn()
+    const hookA = renderHook(() => useRealtimeEvents(['pedidos'], onEventA))
+    const hookB = renderHook(() => useRealtimeEvents(['pedidos'], onEventB))
+
+    await waitFor(() => expect(FakeEventSource.instances).toHaveLength(1))
+    const es = FakeEventSource.instances[0]
+
+    es.emit({ tipo: 'pedidos' })
+    expect(onEventA).toHaveBeenCalledWith('pedidos')
+    expect(onEventB).toHaveBeenCalledWith('pedidos')
+
+    hookA.unmount()
+    expect(es.closed).toBe(false)
+
+    hookB.unmount()
+    expect(es.closed).toBe(true)
+  })
 })

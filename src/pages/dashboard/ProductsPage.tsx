@@ -36,6 +36,8 @@ import { parseListResponse } from "@/services/parseResponse"
 import { toast } from "sonner"
 import { Pagination } from "@/components/Pagination"
 import { useAuth } from "@/contexts/AuthContext"
+import { useConfirm } from "@/contexts/ConfirmContext"
+import { useMinLoadingDuration } from "@/hooks/useMinLoadingDuration"
 
 type ProductType = {
   id: number
@@ -56,6 +58,7 @@ type Product = {
 
 export default function ProductsPage() {
   const { user } = useAuth()
+  const confirm = useConfirm()
   const [products, setProducts] = useState<Product[]>([])
   const [productTypes, setProductTypes] = useState<ProductType[]>([])
   const [pagedTypes, setPagedTypes] = useState<ProductType[]>([])
@@ -76,8 +79,14 @@ export default function ProductsPage() {
   const [hasMore, setHasMore] = useState(false)
   const [search, setSearch] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const showSkeleton = useMinLoadingDuration(isLoading)
   const [isTypesLoading, setIsTypesLoading] = useState(false)
+  const showTypesSkeleton = useMinLoadingDuration(isTypesLoading)
   const [deletingId, setDeletingId] = useState<number | null>(null)
+  // Dedicado aos formularios (criar/editar produto ou tipo) - separado do
+  // isLoading/isTypesLoading, que sao so da listagem. Sem isso, salvar um
+  // tipo reskeletonava a tabela de Produtos tambem (flag errada sendo usada).
+  const [isSaving, setIsSaving] = useState(false)
 
   // Form states
   const [name, setName] = useState("")
@@ -204,7 +213,7 @@ export default function ProductsPage() {
       toast.warning("Por favor, selecione um tipo de produto.")
       return
     }
-    setIsLoading(true)
+    setIsSaving(true)
     try {
       await api.post("/produtos", {
         nome: name,
@@ -219,7 +228,7 @@ export default function ProductsPage() {
       console.error("Error creating product", error)
       toast.error(getErrorMessage(error, "Erro ao criar produto"))
     } finally {
-      setIsLoading(false)
+      setIsSaving(false)
     }
   }
 
@@ -239,7 +248,7 @@ export default function ProductsPage() {
       toast.warning("Por favor, selecione um tipo de produto.")
       return
     }
-    setIsLoading(true)
+    setIsSaving(true)
     try {
       await api.put(`/produtos/${currentProduct.id}`, {
         nome: name,
@@ -254,12 +263,12 @@ export default function ProductsPage() {
       console.error("Error updating product", error)
       toast.error(getErrorMessage(error, "Erro ao atualizar produto"))
     } finally {
-      setIsLoading(false)
+      setIsSaving(false)
     }
   }
 
   const handleDeleteProduct = async (id: number) => {
-    if (confirm("Tem certeza que deseja excluir este produto?")) {
+    if (await confirm({ description: "Tem certeza que deseja excluir este produto?", confirmLabel: "Excluir", destructive: true })) {
       setDeletingId(id)
       try {
         await api.delete(`/produtos/${id}`)
@@ -289,7 +298,7 @@ export default function ProductsPage() {
 
   const handleAddType = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsLoading(true)
+    setIsSaving(true)
     try {
       await api.post("/tipos", { descricao: typeName, cor: typeColor })
       await fetchTypesAll()
@@ -300,7 +309,7 @@ export default function ProductsPage() {
       console.error("Error creating type", error)
       toast.error(getErrorMessage(error, "Erro ao criar tipo"))
     } finally {
-      setIsLoading(false)
+      setIsSaving(false)
     }
   }
 
@@ -314,7 +323,7 @@ export default function ProductsPage() {
   const handleUpdateType = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!currentType) return
-    setIsLoading(true)
+    setIsSaving(true)
     try {
       await api.put(`/tipos/${currentType.id}`, { descricao: typeName, cor: typeColor })
       await fetchTypesAll()
@@ -325,7 +334,7 @@ export default function ProductsPage() {
       console.error("Error updating type", error)
       toast.error(getErrorMessage(error, "Erro ao atualizar tipo"))
     } finally {
-      setIsLoading(false)
+      setIsSaving(false)
     }
   }
 
@@ -333,7 +342,7 @@ export default function ProductsPage() {
     const type = productTypes.find(t => t.id === id)
     const currentlyActive = type?.ativo ?? true
     const action = currentlyActive ? 'inativar' : 'ativar'
-    if (confirm(`Tem certeza que deseja ${action} este tipo?`)) {
+    if (await confirm({ description: `Tem certeza que deseja ${action} este tipo?`, confirmLabel: currentlyActive ? "Inativar" : "Ativar", destructive: currentlyActive })) {
       setDeletingId(id)
       try {
         // toggle ativo via PATCH endpoint, API expects { ativo: boolean }
@@ -379,7 +388,7 @@ export default function ProductsPage() {
             <TabsContent value="products" className="mt-0">
               <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button onClick={resetForm} disabled={isLoading}>
+                  <Button onClick={resetForm} disabled={isSaving}>
                     <Plus className="mr-2 h-4 w-4" /> Novo Produto
                   </Button>
                 </DialogTrigger>
@@ -435,8 +444,8 @@ export default function ProductsPage() {
                       />
                     </div>
                     <DialogFooter>
-                      <Button type="submit" disabled={isLoading}>
-                        {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      <Button type="submit" disabled={isSaving}>
+                        {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                         Salvar
                       </Button>
                     </DialogFooter>
@@ -448,7 +457,7 @@ export default function ProductsPage() {
             <TabsContent value="types" className="mt-0">
               <Dialog open={isAddTypeDialogOpen} onOpenChange={setIsAddTypeDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button onClick={resetTypeForm} disabled={isLoading}>
+                  <Button onClick={resetTypeForm} disabled={isSaving}>
                     <Plus className="mr-2 h-4 w-4" /> Novo Tipo
                   </Button>
                 </DialogTrigger>
@@ -479,8 +488,8 @@ export default function ProductsPage() {
                       />
                     </div>
                     <DialogFooter>
-                      <Button type="submit" disabled={isLoading}>
-                        {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      <Button type="submit" disabled={isSaving}>
+                        {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                         Salvar
                       </Button>
                     </DialogFooter>
@@ -510,7 +519,6 @@ export default function ProductsPage() {
                 Total de registros: {totalItems}
               </div>
               <Table>
-                <TableCaption>Lista de todos os produtos cadastrados.</TableCaption>
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-[50px]">#</TableHead>
@@ -521,9 +529,9 @@ export default function ProductsPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {isLoading ? (
+                  {showSkeleton ? (
                       Array.from({ length: 5 }).map((_, i) => (
-                        <TableRow key={i}>
+                        <TableRow key={i} className="animate-in fade-in-0 duration-300">
                           <TableCell><Skeleton className="h-4 w-8" /></TableCell>
                           <TableCell><Skeleton className="h-4 w-[200px]" /></TableCell>
                           <TableCell><Skeleton className="h-5 w-20 rounded-full" /></TableCell>
@@ -542,7 +550,7 @@ export default function ProductsPage() {
                       return t ? (t.ativo !== false) : true
                     })
                     .map((product, index) => (
-                    <TableRow key={product.id}>
+                    <TableRow key={product.id} className="animate-in fade-in-0 duration-300">
                       <TableCell>{(page - 1) * limit + index + 1}</TableCell>
                       <TableCell>{product.nome}</TableCell>
                       <TableCell>
@@ -643,9 +651,9 @@ export default function ProductsPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {isTypesLoading ? (
+                  {showTypesSkeleton ? (
                     Array.from({ length: 5 }).map((_, i) => (
-                      <TableRow key={i}>
+                      <TableRow key={i} className="animate-in fade-in-0 duration-300">
                         <TableCell><Skeleton className="h-4 w-8" /></TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
@@ -664,7 +672,7 @@ export default function ProductsPage() {
                     ))
                   ) : (
                     pagedTypes.map((type, index) => (
-                    <TableRow key={type.id} className={type.ativo === false ? 'opacity-60' : ''}>
+                    <TableRow key={type.id} className={`animate-in fade-in-0 duration-300 ${type.ativo === false ? 'opacity-60' : ''}`}>
                       <TableCell>{(typesPage - 1) * typesLimit + index + 1}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
@@ -787,8 +795,8 @@ export default function ProductsPage() {
               />
             </div>
             <DialogFooter>
-              <Button type="submit" disabled={isLoading}>
-                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              <Button type="submit" disabled={isSaving}>
+                {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Salvar Alterações
               </Button>
             </DialogFooter>
@@ -825,8 +833,8 @@ export default function ProductsPage() {
                 />
               </div>
             <DialogFooter>
-              <Button type="submit" disabled={isLoading}>
-                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              <Button type="submit" disabled={isSaving}>
+                {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Salvar Alterações
               </Button>
             </DialogFooter>
