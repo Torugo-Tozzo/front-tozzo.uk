@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect } from 'bun:test'
 import { STATUS_OPTIONS, getStatusColor, getStatusLabel } from './status'
 
 describe('status', () => {

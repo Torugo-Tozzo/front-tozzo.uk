@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'bun:test'
 import { renderHook, waitFor } from '@testing-library/react'
 import { useRealtimeEvents } from './useRealtimeEvents'
 import api from '@/services/api'
@@ -67,11 +67,17 @@ describe('useRealtimeEvents', () => {
     const onEvent = vi.fn()
     renderHook(() => useRealtimeEvents(['pedidos'], onEvent))
 
-    await vi.advanceTimersByTimeAsync(0)
+    // bun:test nao tem advanceTimersByTimeAsync - avanca sync e da 1 volta
+    // no microtask queue pra deixar a promise de connect() (getSseToken) resolver.
+    vi.advanceTimersByTime(0)
+    await Promise.resolve()
+    await Promise.resolve()
     expect(FakeEventSource.instances).toHaveLength(1)
     const first = FakeEventSource.instances[0]
 
-    await vi.advanceTimersByTimeAsync(4 * 60 * 1000)
+    vi.advanceTimersByTime(4 * 60 * 1000)
+    await Promise.resolve()
+    await Promise.resolve()
     expect(first.closed).toBe(true)
     expect(FakeEventSource.instances).toHaveLength(2)
   })
