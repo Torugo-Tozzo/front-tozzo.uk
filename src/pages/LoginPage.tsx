@@ -24,7 +24,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (isAuthenticated) {
-      if (user?.estabelecimento?.status === 'ATIVO') {
+      if (user?.establishment?.status === 'ACTIVE') {
         navigate('/dashboard')
       } else {
         navigate('/plan')
@@ -50,7 +50,7 @@ export default function LoginPage() {
     try {
       const response = await api.post("/auth/login", {
         email: loginEmail,
-        senha: loginPassword,
+        password: loginPassword,
       })
       await login(response.data.token)
       navigate("/dashboard")
@@ -78,10 +78,10 @@ export default function LoginPage() {
     setIsLoading(true)
     try {
       const payload = {
-        nome: registerName,
+        name: registerName,
         email: registerEmail,
-        senha: registerPassword,
-        nomeFantasia: registerEstablishment,
+        password: registerPassword,
+        establishmentName: registerEstablishment,
         registrationKey: hasKey ? registrationKey : ""
       }
 

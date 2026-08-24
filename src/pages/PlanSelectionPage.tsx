@@ -15,7 +15,7 @@ export default function PlanSelectionPage() {
   const { user } = useAuth();
 
   useEffect(() => {
-    if (user?.estabelecimento?.status === 'ATIVO') {
+    if (user?.establishment?.status === 'ACTIVE') {
       navigate('/dashboard');
     }
   }, [user, navigate]);

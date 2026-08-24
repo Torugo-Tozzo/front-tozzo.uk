@@ -5,19 +5,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./select"
-import { STATUS_OPTIONS, getStatusColor, type PedidoStatus } from "@/lib/status"
+import { STATUS_OPTIONS, getStatusColor, type OrderStatus } from "@/lib/status"
 import { cn } from "@/lib/utils"
 
 interface StatusSelectProps {
-  value: PedidoStatus
-  onValueChange: (value: PedidoStatus) => void
+  value: OrderStatus
+  onValueChange: (value: OrderStatus) => void
   disabled?: boolean
   className?: string
 }
 
 export function StatusSelect({ value, onValueChange, disabled, className }: StatusSelectProps) {
   return (
-    <Select value={value} onValueChange={(v) => onValueChange(v as PedidoStatus)} disabled={disabled}>
+    <Select value={value} onValueChange={(v) => onValueChange(v as OrderStatus)} disabled={disabled}>
       <SelectTrigger
         className={cn("w-[150px] border-2 bg-background text-foreground transition-transform hover:scale-105", className)}
         style={{ borderColor: getStatusColor(value) }}

@@ -10,7 +10,7 @@ export default function LandingPage() {
 
   const handleSubscribe = () => {
     if (isAuthenticated) {
-      if (user?.estabelecimento?.status === 'ATIVO') {
+      if (user?.establishment?.status === 'ACTIVE') {
         navigate('/dashboard')
       } else {
         navigate('/plan')

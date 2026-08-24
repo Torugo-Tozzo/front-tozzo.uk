@@ -18,17 +18,13 @@ export default function ProtectedRoute({ allowPending = false }: ProtectedRouteP
     return <Navigate to="/login" replace />;
   }
 
-  // Se o usuário estiver pendente de pagamento e a rota não permitir pendentes
-  const status = user?.estabelecimento?.status;
+  // Pending payment users may access only routes explicitly marked as allowed.
+  const status = user?.establishment?.status;
   
   if (!allowPending) {
-    // Se tiver estabelecimento e não estiver ATIVO, bloqueia
-    if (user?.estabelecimento && status !== 'ATIVO') {
+    if (user?.establishment && status !== 'ACTIVE') {
       return <Navigate to="/plan" replace />;
     }
-    // Se NÃO tiver estabelecimento, pode ser um erro de carga ou usuário sem vínculo
-    // Nesse caso, talvez devêssemos bloquear ou redirecionar para um setup?
-    // Por enquanto, vamos manter o comportamento de bloquear apenas se explicitamente não for ATIVO
   }
 
   return <Outlet />;

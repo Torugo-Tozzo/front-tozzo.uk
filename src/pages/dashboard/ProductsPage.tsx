@@ -38,30 +38,16 @@ import { Pagination } from "@/components/Pagination"
 import { useAuth } from "@/contexts/AuthContext"
 import { useConfirm } from "@/contexts/ConfirmContext"
 import { useMinLoadingDuration } from "@/hooks/useMinLoadingDuration"
+import type { Product, ProductType } from "@/domain/models"
 
-type ProductType = {
-  id: number
-  descricao: string
-  isEditable?: boolean
-  cor?: string
-  ativo?: boolean
-}
-
-type Product = {
-  id: number
-  nome: string
-  preco: number
-  ingredientes: string
-  tipoProdutoId: number
-  tipoProduto?: ProductType
-}
+type EditableProductType = ProductType & { isEditable?: boolean }
 
 export default function ProductsPage() {
   const { user } = useAuth()
   const confirm = useConfirm()
   const [products, setProducts] = useState<Product[]>([])
-  const [productTypes, setProductTypes] = useState<ProductType[]>([])
-  const [pagedTypes, setPagedTypes] = useState<ProductType[]>([])
+  const [productTypes, setProductTypes] = useState<EditableProductType[]>([])
+  const [pagedTypes, setPagedTypes] = useState<EditableProductType[]>([])
   const [typesPage, setTypesPage] = useState(1)
   const [typesLimit, setTypesLimit] = useState(10)
   const [typesTotalPages, setTypesTotalPages] = useState(0)
@@ -82,7 +68,7 @@ export default function ProductsPage() {
   const showSkeleton = useMinLoadingDuration(isLoading)
   const [isTypesLoading, setIsTypesLoading] = useState(false)
   const showTypesSkeleton = useMinLoadingDuration(isTypesLoading)
-  const [deletingId, setDeletingId] = useState<number | null>(null)
+  const [deletingId, setDeletingId] = useState<number | string | null>(null)
   // Dedicado aos formularios (criar/editar produto ou tipo) - separado do
   // isLoading/isTypesLoading, que sao so da listagem. Sem isso, salvar um
   // tipo reskeletonava a tabela de Produtos tambem (flag errada sendo usada).
@@ -98,7 +84,7 @@ export default function ProductsPage() {
   const [isAddTypeDialogOpen, setIsAddTypeDialogOpen] = useState(false)
   const [isEditTypeDialogOpen, setIsEditTypeDialogOpen] = useState(false)
   const [typeName, setTypeName] = useState("")
-  const [currentType, setCurrentType] = useState<ProductType | null>(null)
+  const [currentType, setCurrentType] = useState<EditableProductType | null>(null)
 
   useEffect(() => {
     // load all types for selects/lookup and load first page for types table
@@ -155,13 +141,9 @@ export default function ProductsPage() {
   const fetchTypesAll = async () => {
     try {
       const response = await api.get("/tipos?all=true")
-      const types: ProductType[] = response.data.map((t: any) => ({
-        id: t.id,
-        descricao: t.descricao,
-        isEditable: t.isEditable ?? t.editavel ?? true,
-        cor: t.cor ?? t.color ?? "#111827",
-        ativo: typeof t.ativo === "boolean" ? t.ativo : (t.ativo === 0 ? false : true),
-      }))
+      const payload = response.data
+      const rawTypes = Array.isArray(payload) ? payload : payload?.types ?? payload?.data ?? []
+      const types: EditableProductType[] = rawTypes.map((t: ProductType) => ({ ...t, isEditable: (t as EditableProductType).isEditable ?? true }))
       setProductTypes(types)
     } catch (error) {
       console.error("Error fetching types", error)
@@ -176,13 +158,7 @@ export default function ProductsPage() {
 
       const { data, total } = parseListResponse<any>(response)
 
-      const types: ProductType[] = data.map((t: any) => ({
-        id: t.id,
-        descricao: t.descricao,
-        isEditable: t.isEditable ?? t.editavel ?? true,
-        cor: t.cor ?? t.color ?? "#111827",
-        ativo: typeof t.ativo === "boolean" ? t.ativo : (t.ativo === 0 ? false : true),
-      }))
+      const types: EditableProductType[] = data.map((t: ProductType) => ({ ...t, isEditable: (t as EditableProductType).isEditable ?? true }))
 
       setPagedTypes(types)
       setTypesTotalItems(total)
@@ -216,10 +192,10 @@ export default function ProductsPage() {
     setIsSaving(true)
     try {
       await api.post("/produtos", {
-        nome: name,
-        preco: parseFloat(price),
-        ingredientes: ingredients,
-        tipoProdutoId: parseInt(typeId),
+        name,
+        price: parseFloat(price),
+        ingredients,
+        productTypeId: parseInt(typeId),
       })
       fetchProducts()
       setIsAddDialogOpen(false)
@@ -234,10 +210,10 @@ export default function ProductsPage() {
 
   const handleEditClick = (product: Product) => {
     setCurrentProduct(product)
-    setName(product.nome)
-    setPrice(Number(product.preco).toFixed(2))
-    setIngredients(product.ingredientes)
-    setTypeId(product.tipoProdutoId?.toString() || "")
+    setName(product.name)
+    setPrice(Number(product.price).toFixed(2))
+    setIngredients(product.ingredients ?? '')
+    setTypeId(product.productTypeId?.toString() || "")
     setIsEditDialogOpen(true)
   }
 
@@ -251,10 +227,10 @@ export default function ProductsPage() {
     setIsSaving(true)
     try {
       await api.put(`/produtos/${currentProduct.id}`, {
-        nome: name,
-        preco: parseFloat(price),
-        ingredientes: ingredients,
-        tipoProdutoId: parseInt(typeId),
+        name,
+        price: parseFloat(price),
+        ingredients,
+        productTypeId: parseInt(typeId),
       })
       fetchProducts()
       setIsEditDialogOpen(false)
@@ -267,7 +243,7 @@ export default function ProductsPage() {
     }
   }
 
-  const handleDeleteProduct = async (id: number) => {
+  const handleDeleteProduct = async (id: number | string) => {
     if (await confirm({ description: "Tem certeza que deseja excluir este produto?", confirmLabel: "Excluir", destructive: true })) {
       setDeletingId(id)
       try {
@@ -291,16 +267,16 @@ export default function ProductsPage() {
     setCurrentProduct(null)
   }
 
-  const getTypeName = (id: number) => {
-    const type = productTypes.find(t => t.id === id)
-    return type ? type.descricao : "-"
+  const getTypeName = (id: number | string) => {
+    const type = productTypes.find(t => String(t.id) === String(id))
+    return type ? type.description : "-"
   }
 
   const handleAddType = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSaving(true)
     try {
-      await api.post("/tipos", { descricao: typeName, cor: typeColor })
+      await api.post("/tipos", { description: typeName, color: typeColor })
       await fetchTypesAll()
       await fetchTypesPage()
       setIsAddTypeDialogOpen(false)
@@ -315,8 +291,8 @@ export default function ProductsPage() {
 
   const handleEditTypeClick = (type: ProductType) => {
     setCurrentType(type)
-    setTypeName(type.descricao)
-    setTypeColor(type.cor ?? "#000000")
+    setTypeName(type.description)
+    setTypeColor(type.color ?? "#000000")
     setIsEditTypeDialogOpen(true)
   }
 
@@ -325,7 +301,7 @@ export default function ProductsPage() {
     if (!currentType) return
     setIsSaving(true)
     try {
-      await api.put(`/tipos/${currentType.id}`, { descricao: typeName, cor: typeColor })
+      await api.put(`/tipos/${currentType.id}`, { description: typeName, color: typeColor })
       await fetchTypesAll()
       await fetchTypesPage()
       setIsEditTypeDialogOpen(false)
@@ -338,15 +314,14 @@ export default function ProductsPage() {
     }
   }
 
-  const handleDeleteType = async (id: number) => {
-    const type = productTypes.find(t => t.id === id)
-    const currentlyActive = type?.ativo ?? true
+  const handleDeleteType = async (id: number | string) => {
+    const type = productTypes.find(t => String(t.id) === String(id))
+    const currentlyActive = type?.isActive ?? true
     const action = currentlyActive ? 'inativar' : 'ativar'
     if (await confirm({ description: `Tem certeza que deseja ${action} este tipo?`, confirmLabel: currentlyActive ? "Inativar" : "Ativar", destructive: currentlyActive })) {
       setDeletingId(id)
       try {
-        // toggle ativo via PATCH endpoint, API expects { ativo: boolean }
-        await api.patch(`/tipos/${id}/ativo`, { ativo: !currentlyActive })
+        await api.patch(`/tipos/${id}/ativo`, { isActive: !currentlyActive })
         // refresh types and products because inactive types hide their products
         await fetchTypesAll()
         await fetchTypesPage()
@@ -366,8 +341,8 @@ export default function ProductsPage() {
     setTypeColor("#000000")
   }
 
-  const getType = (id: number) => {
-    return productTypes.find(t => t.id === id) || null
+  const getType = (id: number | string) => {
+    return productTypes.find(t => String(t.id) === String(id)) || null
   }
 
   return (
@@ -376,7 +351,7 @@ export default function ProductsPage() {
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
             <ShoppingBag className="h-8 w-8" />
-            {`Gerenciamento${user?.estabelecimento?.nomeFantasia ? ` do ${user.estabelecimento.nomeFantasia}` : ''}`}
+            {`Gerenciamento${user?.establishment?.tradeName ? ` do ${user.establishment.tradeName}` : ''}`}
           </h1>
           
           <div className="flex items-center gap-4">
@@ -428,7 +403,7 @@ export default function ProductsPage() {
                         <SelectContent>
                           {productTypes.map((type) => (
                             <SelectItem key={type.id} value={type.id.toString()}>
-                              {type.descricao}
+                              {type.description}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -545,36 +520,36 @@ export default function ProductsPage() {
                   ) : (
                     products
                       .filter((product) => {
-                      const t = getType(product.tipoProdutoId)
+                      const t = getType(product.productTypeId ?? 0)
                       // hide products whose type is explicitly inactive
-                      return t ? (t.ativo !== false) : true
+                      return t ? (t.isActive !== false) : true
                     })
                     .map((product, index) => (
                     <TableRow key={product.id} className="animate-in fade-in-0 duration-300">
                       <TableCell>{(page - 1) * limit + index + 1}</TableCell>
-                      <TableCell>{product.nome}</TableCell>
+                      <TableCell>{product.name}</TableCell>
                       <TableCell>
                         {(() => {
-                          const t = getType(product.tipoProdutoId)
+                          const t = getType(product.productTypeId ?? 0)
                           if (t) {
                             return (
                               <span
                                 className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
-                                style={{ backgroundColor: t.cor ?? '#111827', color: '#fff' }}
+                                style={{ backgroundColor: t.color ?? '#111827', color: '#fff' }}
                               >
-                                {t.descricao}
+                                {t.description}
                               </span>
                             )
                           }
                           return (
                             <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-secondary text-secondary-foreground">
-                              {getTypeName(product.tipoProdutoId)}
+                              {getTypeName(product.productTypeId ?? 0)}
                             </span>
                           )
                         })()}
                       </TableCell>
                       <TableCell className="text-right">
-                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(product.preco)}
+                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(product.price)}
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
@@ -672,15 +647,15 @@ export default function ProductsPage() {
                     ))
                   ) : (
                     pagedTypes.map((type, index) => (
-                    <TableRow key={type.id} className={`animate-in fade-in-0 duration-300 ${type.ativo === false ? 'opacity-60' : ''}`}>
+                    <TableRow key={type.id} className={`animate-in fade-in-0 duration-300 ${type.isActive === false ? 'opacity-60' : ''}`}>
                       <TableCell>{(typesPage - 1) * typesLimit + index + 1}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <span
                             className="inline-block h-3 w-3 rounded-full"
-                            style={{ backgroundColor: type.cor ?? '#111827' }}
+                            style={{ backgroundColor: type.color ?? '#111827' }}
                           />
-                          <span>{type.descricao}{type.ativo === false ? ' (Inativo)' : ''}</span>
+                          <span>{type.description}{type.isActive === false ? ' (Inativo)' : ''}</span>
                         </div>
                       </TableCell>
                       <TableCell>
@@ -706,13 +681,13 @@ export default function ProductsPage() {
                             size="icon"
                             onClick={() => handleDeleteType(type.id)}
                             disabled={deletingId === type.id}
-                            aria-label={type.ativo === false ? 'Ativar tipo' : 'Inativar tipo'}
+                            aria-label={type.isActive === false ? 'Ativar tipo' : 'Inativar tipo'}
                           >
                             {deletingId === type.id ? (
                               <Loader2 className="h-4 w-4 animate-spin" />
                             ) : (
                               <Power
-                                className={`h-4 w-4 ${type.ativo === false ? 'text-muted-foreground' : 'text-emerald-600'}`}
+                                className={`h-4 w-4 ${type.isActive === false ? 'text-muted-foreground' : 'text-emerald-600'}`}
                               />
                             )}
                           </Button>
@@ -779,7 +754,7 @@ export default function ProductsPage() {
                 <SelectContent>
                   {productTypes.map((type) => (
                     <SelectItem key={type.id} value={type.id.toString()}>
-                      {type.descricao}
+                      {type.description}
                     </SelectItem>
                   ))}
                 </SelectContent>

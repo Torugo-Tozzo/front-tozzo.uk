@@ -52,8 +52,8 @@ export interface PrimaryActionProps {
 export interface FiltersBarProps {
   dateRange?: DateRangeFilterProps
   status?: SelectFilterProps
-  cliente?: TextFilterProps
-  criadoPor?: TextFilterProps
+  customerName?: TextFilterProps
+  createdBy?: TextFilterProps
   totalRange?: RangeFilterProps
   primaryAction?: PrimaryActionProps
   onFilter: () => void
@@ -73,8 +73,8 @@ const WIDTH_MONEY = "w-full sm:w-[140px]"
 export function FiltersBar({
   dateRange,
   status,
-  cliente,
-  criadoPor,
+  customerName,
+  createdBy,
   totalRange,
   primaryAction,
   onFilter,
@@ -165,27 +165,27 @@ export function FiltersBar({
             </div>
           )}
 
-          {cliente && (
+          {customerName && (
             <div className={`space-y-2 ${WIDTH_TEXT}`}>
-              <Label htmlFor="filter-cliente">Cliente / Mesa</Label>
+              <Label htmlFor="filter-customerName">Cliente / Mesa</Label>
               <Input
-                id="filter-cliente"
-                placeholder={cliente.placeholder ?? "Buscar cliente/mesa..."}
-                value={cliente.value}
-                onChange={(e) => cliente.onChange(e.target.value)}
+                id="filter-customerName"
+                placeholder={customerName.placeholder ?? "Buscar cliente/mesa..."}
+                value={customerName.value}
+                onChange={(e) => customerName.onChange(e.target.value)}
                 disabled={isLoading}
               />
             </div>
           )}
 
-          {criadoPor && (
+          {createdBy && (
             <div className={`space-y-2 ${WIDTH_TEXT}`}>
-              <Label htmlFor="filter-criadoPor">Criado por</Label>
+              <Label htmlFor="filter-createdBy">Criado por</Label>
               <Input
-                id="filter-criadoPor"
-                placeholder={criadoPor.placeholder ?? "Buscar funcionário..."}
-                value={criadoPor.value}
-                onChange={(e) => criadoPor.onChange(e.target.value)}
+                id="filter-createdBy"
+                placeholder={createdBy.placeholder ?? "Buscar funcionário..."}
+                value={createdBy.value}
+                onChange={(e) => createdBy.onChange(e.target.value)}
                 disabled={isLoading}
               />
             </div>

@@ -41,12 +41,41 @@ import {
 import { BarChart3, Search, Loader2, ChevronLeft, ChevronRight, Clock } from "lucide-react"
 
 import { Skeleton } from "@/components/ui/skeleton"
+import type { ProductType } from "@/domain/models"
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884d8", "#82ca9d", "#ffc658"];
 
-type ProductType = {
-  id: number
-  descricao: string
+type ChartPoint = {
+  name: string
+  sales: number
+  revenue: number
+}
+
+type SalesSummary = {
+  totalUnitsSold: number
+  totalRevenue: number
+  totalSales: number
+}
+
+type DetailedSalesRow = {
+  id?: number | string
+  name: string
+  quantitySold: number
+  totalRevenue: number
+}
+
+type HourlySale = {
+  id?: number | string
+  soldAt: string
+  total: number | string
+  customerName?: string | null
+}
+
+type HourlyChartPoint = {
+  hour: string
+  salesCount: number
+  revenue: number
+  sales: HourlySale[]
 }
 
 export default function ChartsPage() {
@@ -68,12 +97,12 @@ export default function ChartsPage() {
   const [chartType, setChartType] = useState<"bar" | "column" | "line" | "pie">("bar")
 
   // Data
-  const [chartData, setChartData] = useState<any[]>([])
+  const [chartData, setChartData] = useState<ChartPoint[]>([])
   const [productTypes, setProductTypes] = useState<ProductType[]>([])
-  const [periodTotal, setPeriodTotal] = useState<{ totalUnidadesVendidas: number, totalFaturado: number, totalNumeroVendas: number } | null>(null)
+  const [periodTotal, setPeriodTotal] = useState<SalesSummary | null>(null)
 
   // Detailed List Data
-  const [detailedData, setDetailedData] = useState<any[]>([])
+  const [detailedData, setDetailedData] = useState<DetailedSalesRow[]>([])
   const [page, setPage] = useState(1)
   const [limit, setLimit] = useState(10)
   const [totalPages, setTotalPages] = useState(0)
@@ -95,8 +124,8 @@ export default function ChartsPage() {
   const [salesByHourStartDate, setSalesByHourStartDate] = useState(getTodayDate())
   const [salesByHourEndDate, setSalesByHourEndDate] = useState(getTodayDate())
   const [salesByHourPage, setSalesByHourPage] = useState(0) // offset in days from start date
-  const [salesByHourData, setSalesByHourData] = useState<any[]>([]) // raw API data
-  const [salesByHourChartData, setSalesByHourChartData] = useState<any[]>([]) // aggregated by hour
+  const [salesByHourData, setSalesByHourData] = useState<HourlySale[]>([])
+  const [salesByHourChartData, setSalesByHourChartData] = useState<HourlyChartPoint[]>([])
   const [isSalesByHourLoading, setIsSalesByHourLoading] = useState(false)
 
   useEffect(() => {
@@ -112,7 +141,7 @@ export default function ChartsPage() {
   const fetchTypes = async () => {
     try {
       const response = await api.get("/tipos")
-      setProductTypes(response.data)
+      setProductTypes(Array.isArray(response.data) ? response.data : response.data.types ?? [])
     } catch (error) {
       console.error("Error fetching types", error)
     }
@@ -124,30 +153,30 @@ export default function ChartsPage() {
       const params: any = {}
       
       if (startDate && startTime) {
-        params.dataInicial = new Date(`${startDate}T${startTime}:00`).toISOString()
+        params.startAt = new Date(`${startDate}T${startTime}:00`).toISOString()
       }
       
       if (endDate && endTime) {
-        params.dataFinal = new Date(`${endDate}T${endTime}:59`).toISOString()
+        params.endAt = new Date(`${endDate}T${endTime}:59`).toISOString()
       }
 
       if (selectedTypeId && selectedTypeId !== "0") {
-        params.tipoProdutoId = parseInt(selectedTypeId)
+        params.productTypeId = parseInt(selectedTypeId, 10)
       }
 
       const response = await api.get("/graficos", { params })
       
-      if (response.data && response.data.produtos) {
-        const formattedData = response.data.produtos.map((item: any) => ({
-          name: item.nome,
-          sales: item.quantidadeVendida,
-          revenue: typeof item.totalFaturado === 'string' ? parseFloat(item.totalFaturado) : item.totalFaturado
+      if (response.data && response.data.products) {
+        const formattedData = response.data.products.map((item: { name: string; quantitySold: number; totalRevenue: number | string }) => ({
+          name: item.name,
+          sales: Number(item.quantitySold) || 0,
+          revenue: typeof item.totalRevenue === 'string' ? parseFloat(item.totalRevenue) : item.totalRevenue
         }))
         setChartData(formattedData)
       }
 
-      if (response.data && response.data.fechamento) {
-        setPeriodTotal(response.data.fechamento)
+      if (response.data && response.data.closing) {
+        setPeriodTotal(response.data.closing)
       }
 
     } catch (error) {
@@ -164,32 +193,32 @@ export default function ChartsPage() {
       const params: any = { page, limit }
       
       if (startDate && startTime) {
-        params.dataInicial = new Date(`${startDate}T${startTime}:00`).toISOString()
+        params.startAt = new Date(`${startDate}T${startTime}:00`).toISOString()
       }
       
       if (endDate && endTime) {
-        params.dataFinal = new Date(`${endDate}T${endTime}:59`).toISOString()
+        params.endAt = new Date(`${endDate}T${endTime}:59`).toISOString()
       }
 
       if (selectedTypeId && selectedTypeId !== "0") {
-        params.tipoProdutoId = parseInt(selectedTypeId)
+        params.productTypeId = parseInt(selectedTypeId, 10)
       }
 
       const response = await api.get("/graficos/lista", { params })
       
-      let data = []
+      let data: DetailedSalesRow[] = []
       let total = 0
 
       if (response.data.data) {
         data = response.data.data
         total = response.data.total || response.data.count || 0
-      } else if (response.data.produtos) {
-        data = response.data.produtos
+      } else if (response.data.products) {
+        data = response.data.products
         total = response.data.total || response.data.count || 0
       } else if (Array.isArray(response.data)) {
         data = response.data
         const totalHeader = response.headers['x-total-count']
-        total = totalHeader ? parseInt(totalHeader) : 0
+        total = totalHeader ? parseInt(totalHeader, 10) : 0
       }
 
       setDetailedData(data)
@@ -220,21 +249,21 @@ export default function ChartsPage() {
     setIsSalesByHourLoading(true)
     try {
       const params: any = {
-        dataInicial: new Date(`${salesByHourStartDate}T00:00:00-03:00`).toISOString(),
+        startAt: new Date(`${salesByHourStartDate}T00:00:00-03:00`).toISOString(),
         page: salesByHourPage
       }
 
       if (salesByHourEndDate) {
-        params.dataFinal = new Date(`${salesByHourEndDate}T23:59:59-03:00`).toISOString()
+        params.endAt = new Date(`${salesByHourEndDate}T23:59:59-03:00`).toISOString()
       }
 
       const response = await api.get("/graficos/vendas-por-horario", { params })
       
-      const rawData = Array.isArray(response.data) ? response.data : []
+      const rawData = (Array.isArray(response.data) ? response.data : []) as HourlySale[]
       setSalesByHourData(rawData)
 
       // Aggregate by hour (0-23)
-      const hourCounts: { [hour: string]: { count: number, totalRevenue: number, sales: any[] } } = {}
+      const hourCounts: { [hour: string]: { count: number, totalRevenue: number, sales: HourlySale[] } } = {}
       
       // Initialize all hours
       for (let h = 0; h < 24; h++) {
@@ -243,7 +272,7 @@ export default function ChartsPage() {
       }
 
       rawData.forEach((sale: any) => {
-        const date = new Date(sale.horario)
+        const date = new Date(sale.soldAt)
         const brazilHour = ((date.getUTCHours() - 3) + 24) % 24
         const hourKey = String(brazilHour).padStart(2, '0') + ':00'
         if (hourCounts[hourKey]) {
@@ -257,8 +286,8 @@ export default function ChartsPage() {
         .sort(([a], [b]) => a.localeCompare(b))
         .map(([hour, data]) => ({
           hour,
-          vendas: data.count,
-          faturamento: data.totalRevenue,
+          salesCount: data.count,
+          revenue: data.totalRevenue,
           sales: data.sales
         }))
 
@@ -302,9 +331,9 @@ export default function ChartsPage() {
 
   const buildFilterBody = () => {
     const body: any = {}
-    if (startDate && startTime) body.dataInicial = new Date(`${startDate}T${startTime}:00`).toISOString()
-    if (endDate && endTime) body.dataFinal = new Date(`${endDate}T${endTime}:59`).toISOString()
-    if (selectedTypeId && selectedTypeId !== "0") body.tipoProdutoId = parseInt(selectedTypeId)
+    if (startDate && startTime) body.startAt = new Date(`${startDate}T${startTime}:00`).toISOString()
+    if (endDate && endTime) body.endAt = new Date(`${endDate}T${endTime}:59`).toISOString()
+    if (selectedTypeId && selectedTypeId !== "0") body.productTypeId = parseInt(selectedTypeId, 10)
     return body
   }
 
@@ -386,7 +415,7 @@ export default function ChartsPage() {
 
     try {
       const body = buildFilterBody()
-      body.tipo = tipo
+      body.reportFormat = tipo
       // no callbackUrl by default -> use polling
       const response = await api.post('/graficos/relatorio', body)
       if (response.status === 201) {
@@ -519,17 +548,17 @@ export default function ChartsPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
           <BarChart3 className="h-8 w-8" />
-          {`Relatórios e Gráficos${user?.estabelecimento?.nomeFantasia ? ` do ${user.estabelecimento.nomeFantasia}` : ''}`}
+          {`Relatórios e Gráficos${user?.establishment?.tradeName ? ` do ${user.establishment.tradeName}` : ''}`}
         </h1>
       </div>
 
-      <Tabs defaultValue="produtos" className="w-full">
+      <Tabs defaultValue="products" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="produtos">Produtos Vendidos</TabsTrigger>
-          <TabsTrigger value="horarios">Vendas por Horário</TabsTrigger>
+          <TabsTrigger value="products">Produtos Vendidos</TabsTrigger>
+          <TabsTrigger value="hours">Vendas por Horário</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="produtos" className="space-y-6">
+        <TabsContent value="products" className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle>Filtros</CardTitle>
@@ -582,7 +611,7 @@ export default function ChartsPage() {
                   <SelectItem value="0">Todos</SelectItem>
                   {productTypes.map((type) => (
                     <SelectItem key={type.id} value={type.id.toString()}>
-                      {type.descricao}
+                      {type.description}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -664,16 +693,16 @@ export default function ChartsPage() {
                   <div className="rounded-lg border p-3">
                     <div className="text-sm font-medium text-muted-foreground">Total Faturado</div>
                     <div className="text-2xl font-bold">
-                      {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(periodTotal.totalFaturado)}
+                      {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(periodTotal.totalRevenue)}
                     </div>
                   </div>
                   <div className="rounded-lg border p-3">
                     <div className="text-sm font-medium text-muted-foreground">Total de Vendas</div>
-                    <div className="text-2xl font-bold">{periodTotal.totalNumeroVendas}</div>
+                  <div className="text-2xl font-bold">{periodTotal.totalSales}</div>
                   </div>
                   <div className="rounded-lg border p-3">
                     <div className="text-sm font-medium text-muted-foreground">Unidades Vendidas</div>
-                    <div className="text-2xl font-bold">{periodTotal.totalUnidadesVendidas}</div>
+                  <div className="text-2xl font-bold">{periodTotal.totalUnitsSold}</div>
                   </div>
                 </div>
               )}
@@ -728,10 +757,10 @@ export default function ChartsPage() {
                 detailedData.map((item, index) => (
                   <TableRow key={item.id || index} className="animate-in fade-in-0 duration-300">
                     <TableCell>{(page - 1) * limit + index + 1}</TableCell>
-                    <TableCell>{item.nome}</TableCell>
-                    <TableCell className="text-right">{item.quantidadeVendida}</TableCell>
+                    <TableCell>{item.name}</TableCell>
+                    <TableCell className="text-right">{item.quantitySold}</TableCell>
                     <TableCell className="text-right">
-                      {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.totalFaturado)}
+                      {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.totalRevenue)}
                     </TableCell>
                   </TableRow>
                 ))
@@ -754,7 +783,7 @@ export default function ChartsPage() {
       </Card>
         </TabsContent>
 
-        <TabsContent value="horarios" className="space-y-6">
+        <TabsContent value="hours" className="space-y-6">
           {/* Filtros */}
           <Card>
             <CardHeader>
@@ -829,8 +858,8 @@ export default function ChartsPage() {
                     <div className="text-2xl font-bold">
                       {salesByHourChartData.reduce((max: any, curr: any) => {
                         if (!max) return curr
-                        if (curr.vendas > max.vendas) return curr
-                        if (curr.vendas === max.vendas && curr.faturamento > max.faturamento) return curr
+                        if (curr.salesCount > max.salesCount) return curr
+                        if (curr.salesCount === max.salesCount && curr.revenue > max.revenue) return curr
                         return max
                       }, null)?.hour || '-'}
                     </div>
@@ -879,18 +908,18 @@ export default function ChartsPage() {
                           return (
                             <div className="bg-white dark:bg-slate-800 p-3 rounded-lg shadow-lg border">
                               <p className="font-semibold mb-2">{label}</p>
-                              <p className="text-sm">Vendas: <span className="font-medium">{data.vendas}</span></p>
-                              <p className="text-sm">Faturamento: <span className="font-medium">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(data.faturamento)}</span></p>
+                              <p className="text-sm">Vendas: <span className="font-medium">{data.salesCount}</span></p>
+                              <p className="text-sm">Faturamento: <span className="font-medium">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(data.revenue)}</span></p>
                               {data.sales && data.sales.length > 0 && (
                                 <div className="mt-2 pt-2 border-t max-h-[150px] overflow-y-auto">
                                   <p className="text-xs text-muted-foreground mb-1">Detalhes:</p>
                                   {data.sales.slice(0, 5).map((sale: any, idx: number) => (
                                     <div key={sale.id || idx} className="text-xs py-1 border-b last:border-b-0">
                                       <div className="flex justify-between">
-                                        <span>{new Date(sale.horario).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
+                                        <span>{new Date(sale.soldAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
                                         <span className="font-medium">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(sale.total)}</span>
                                       </div>
-                                      {sale.cliente && <div className="text-muted-foreground">{sale.cliente}</div>}
+                                      {sale.customerName && <div className="text-muted-foreground">{sale.customerName}</div>}
                                     </div>
                                   ))}
                                   {data.sales.length > 5 && (
@@ -905,7 +934,7 @@ export default function ChartsPage() {
                       }}
                     />
                     <Legend />
-                    <Bar dataKey="vendas" name="Vendas" fill="#82ca9d" />
+                    <Bar dataKey="salesCount" name="Vendas" fill="#82ca9d" />
                   </BarChart>
                 </ResponsiveContainer>
               ) : (

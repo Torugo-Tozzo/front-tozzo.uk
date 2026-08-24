@@ -1,33 +1,36 @@
-export type PedidoStatus = 'ABERTO' | 'EM_PREPARO' | 'ENTREGANDO' | 'FECHADO'
+import type { OrderStatus } from '@/domain/models';
 
-export const STATUS_OPTIONS: { value: PedidoStatus; label: string }[] = [
-  { value: 'ABERTO', label: 'Aberto' },
-  { value: 'EM_PREPARO', label: 'Em Preparo' },
-  { value: 'ENTREGANDO', label: 'Entregando' },
-  { value: 'FECHADO', label: 'Fechado' },
-]
+export type { OrderStatus };
+export type OrderStatusFilter = OrderStatus | 'NOT_CLOSED';
 
-// Semantica por urgencia (nao por "fase burocratica") - decidido no
-// brainstorm 2026-08-06: ABERTO = precisa de atencao da cozinha (vermelho),
-// nao "erro/perigo" generico.
-const STATUS_COLORS: Record<PedidoStatus, string> = {
-  ABERTO: '#dc2626',
-  EM_PREPARO: '#d97706',
-  ENTREGANDO: '#2563eb',
-  FECHADO: '#6b7280',
-}
+export const STATUS_OPTIONS: { value: OrderStatus; label: string }[] = [
+  { value: 'OPEN', label: 'Aberto' },
+  { value: 'IN_PREPARATION', label: 'Em Preparo' },
+  { value: 'DELIVERING', label: 'Entregando' },
+  { value: 'CLOSED', label: 'Fechado' },
+];
 
-const STATUS_LABELS: Record<PedidoStatus, string> = {
-  ABERTO: 'Aberto',
-  EM_PREPARO: 'Em Preparo',
-  ENTREGANDO: 'Entregando',
-  FECHADO: 'Fechado',
+const STATUS_COLORS: Record<OrderStatus, string> = {
+  OPEN: '#dc2626', IN_PREPARATION: '#d97706', DELIVERING: '#2563eb', CLOSED: '#6b7280',
+};
+
+const STATUS_LABELS: Record<OrderStatus | 'NOT_CLOSED', string> = {
+  OPEN: 'Aberto', IN_PREPARATION: 'Em Preparo', DELIVERING: 'Entregando', CLOSED: 'Fechado', NOT_CLOSED: 'Não Fechados',
+};
+
+export function normalizeOrderStatus(value: string): OrderStatus {
+  const normalized = String(value ?? '').trim().toUpperCase();
+  return normalized === 'OPEN' || normalized === 'IN_PREPARATION' || normalized === 'DELIVERING' || normalized === 'CLOSED'
+    ? normalized
+    : 'CLOSED';
 }
 
 export function getStatusColor(status: string): string {
-  return STATUS_COLORS[status as PedidoStatus] ?? STATUS_COLORS.FECHADO
+  return STATUS_COLORS[normalizeOrderStatus(status)];
 }
 
 export function getStatusLabel(status: string): string {
-  return STATUS_LABELS[status as PedidoStatus] ?? status
+  const canonical = String(status ?? '').trim().toUpperCase();
+  if (canonical === 'NOT_CLOSED') return 'Não Fechados';
+  return canonical in STATUS_LABELS ? STATUS_LABELS[canonical as OrderStatus] : status;
 }

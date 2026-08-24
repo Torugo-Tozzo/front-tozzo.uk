@@ -1,11 +1,12 @@
 import { useEffect, useRef } from 'react'
 import api, { getSseToken } from '@/services/api'
+import { normalizeRealtimeEventType } from '@/lib/legacyWire'
 
-export type RealtimeTipo = 'pedidos' | 'vendas'
+export type RealtimeEvent = 'orders' | 'sales'
 
 const TOKEN_REFRESH_MS = 4 * 60 * 1000 // token expira em 5min — troca antes
 
-type Listener = (tipo: RealtimeTipo) => void
+type Listener = (event: RealtimeEvent) => void
 
 // Uma unica EventSource compartilhada por aba, nao uma por chamada do hook.
 // Antes cada useRealtimeEvents() abria a sua propria conexao - DashboardLayout
@@ -19,8 +20,8 @@ let refreshTimer: number | null = null
 let stopped = true
 const listeners = new Set<Listener>()
 
-function notify(tipo: RealtimeTipo) {
-  listeners.forEach((listener) => listener(tipo))
+function notify(event: RealtimeEvent) {
+  listeners.forEach((listener) => listener(event))
 }
 
 async function connect() {
@@ -35,8 +36,8 @@ async function connect() {
     sharedEventSource.onmessage = (event) => {
       try {
         const payload = JSON.parse(event.data)
-        const tipo = payload?.tipo as RealtimeTipo | 'connected' | undefined
-        if (tipo && tipo !== 'connected') notify(tipo)
+        const eventType = normalizeRealtimeEventType(payload?.eventType ?? payload?.type ?? payload?.tipo)
+        if (eventType) notify(eventType)
       } catch (err) {
         console.error('[useRealtimeEvents] parse error', err)
       }
@@ -70,15 +71,15 @@ function teardownConnection() {
   sharedEventSource = null
 }
 
-export function useRealtimeEvents(tipos: RealtimeTipo[], onEvent: (tipo: RealtimeTipo) => void): void {
+export function useRealtimeEvents(events: RealtimeEvent[], onEvent: (event: RealtimeEvent) => void): void {
   const onEventRef = useRef(onEvent)
   onEventRef.current = onEvent
-  const tiposRef = useRef(tipos)
-  tiposRef.current = tipos
+  const eventsRef = useRef(events)
+  eventsRef.current = events
 
   useEffect(() => {
-    const listener: Listener = (tipo) => {
-      if (tiposRef.current.includes(tipo)) onEventRef.current(tipo)
+    const listener: Listener = (event) => {
+      if (eventsRef.current.includes(event)) onEventRef.current(event)
     }
     listeners.add(listener)
     ensureConnection()

@@ -1,19 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import api from '../services/api';
-
-interface Establishment {
-  id: number;
-  nomeFantasia: string;
-  status: 'ATIVO' | 'PENDENTE_PAGAMENTO' | 'INATIVO';
-}
-
-interface User {
-  id: number;
-  nome: string;
-  email: string;
-  role?: string;
-  estabelecimento?: Establishment;
-}
+import type { Establishment, User } from '@/domain/models';
+import { fromLegacyWire, normalizeRole } from '@/lib/legacyWire';
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -44,21 +32,25 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
             return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
         }).join(''));
-        const decoded = JSON.parse(jsonPayload);
-        
-        userData = {
-          id: decoded.id || decoded.sub,
-          nome: decoded.nome || decoded.name || 'Usuário',
+        const decoded = fromLegacyWire(JSON.parse(jsonPayload)) as Partial<User> & { sub?: number | string };
+        const decodedId = decoded.id ?? decoded.sub;
+        if (decodedId == null) throw new Error('Token does not contain a user id');
+
+        const authenticatedUser: User = {
+          id: decodedId,
+          name: decoded.name || 'Usuário',
           email: decoded.email || '',
-          estabelecimento: undefined
+          role: normalizeRole(decoded.role),
+          establishment: undefined,
         };
+        userData = authenticatedUser;
 
         try {
           const userResponse = await api.get('/usuarios/me');
           if (userResponse.data) {
-            userData.nome = userResponse.data.nome || userData.nome;
-            userData.email = userResponse.data.email || userData.email;
-            userData.role = userResponse.data.role;
+            authenticatedUser.name = userResponse.data.name || authenticatedUser.name;
+            authenticatedUser.email = userResponse.data.email || authenticatedUser.email;
+            authenticatedUser.role = normalizeRole(userResponse.data.role);
           }
         } catch (error) {
           console.warn('Não foi possível buscar dados detalhados do usuário', error);
@@ -70,20 +62,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (!userData) return;
 
       try {
-        const estResponse = await api.get('/estabelecimentos');
+        const establishmentResponse = await api.get('/estabelecimentos');
         // A API pode retornar um array ou um objeto único
-        const estData = Array.isArray(estResponse.data) ? estResponse.data[0] : estResponse.data;
-        if (estData) {
-          userData.estabelecimento = estData;
+        const establishmentData = Array.isArray(establishmentResponse.data) ? establishmentResponse.data[0] : establishmentResponse.data;
+        if (establishmentData) {
+          userData.establishment = establishmentData as Establishment;
         }
       } catch (err: any) {
         console.warn('Não foi possível buscar detalhes do estabelecimento', err);
         // Se der 402, significa que o usuário existe mas está pendente de pagamento
         if (err.response && err.response.status === 402) {
-          userData.estabelecimento = {
+          userData.establishment = {
             id: 0, // ID temporário
-            nomeFantasia: 'Pagamento Pendente',
-            status: 'PENDENTE_PAGAMENTO'
+            tradeName: 'Pagamento Pendente',
+            status: 'PENDING_PAYMENT'
           };
         }
       }

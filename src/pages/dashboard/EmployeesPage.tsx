@@ -36,12 +36,13 @@ import { Pagination } from "@/components/Pagination"
 import { useAuth } from "@/contexts/AuthContext"
 import { useConfirm } from "@/contexts/ConfirmContext"
 import { useMinLoadingDuration } from "@/hooks/useMinLoadingDuration"
+import type { UserRole } from "@/domain/models"
 
 type Employee = {
-  id: number
-  nome: string
+  id: number | string
+  name: string
   email: string
-  role: string
+  role: UserRole
 }
 
 export default function EmployeesPage() {
@@ -59,7 +60,7 @@ export default function EmployeesPage() {
   const [isFetching, setIsFetching] = useState(false)
   const showSkeleton = useMinLoadingDuration(isFetching)
   const [isSaving, setIsSaving] = useState(false)
-  const [deletingId, setDeletingId] = useState<number | null>(null)
+  const [deletingId, setDeletingId] = useState<number | string | null>(null)
   const [page, setPage] = useState(1)
   const [limit, setLimit] = useState(10)
   const [totalPages, setTotalPages] = useState(0)
@@ -71,32 +72,32 @@ export default function EmployeesPage() {
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
-  const [role, setRole] = useState("FUNCIONARIO")
+  const [role, setRole] = useState<UserRole>("EMPLOYEE")
 
-  const isDono = user?.role === "DONO"
-  const isGerente = user?.role === "GERENTE"
-  const canManageUsers = isDono || isGerente
+  const isOwner = user?.role === "OWNER"
+  const isManager = user?.role === "MANAGER"
+  const canManageUsers = isOwner || isManager
 
   // Roles disponíveis para criação/edição baseado no cargo do usuário logado
   const getAvailableRoles = () => {
-    if (isDono) return ["GERENTE", "FUNCIONARIO", "CLIENTE"]
-    if (isGerente) return ["FUNCIONARIO", "CLIENTE"]
+    if (isOwner) return ["MANAGER", "EMPLOYEE", "CUSTOMER"]
+    if (isManager) return ["EMPLOYEE", "CUSTOMER"]
     return []
   }
 
   // Verifica se o usuário logado pode editar o funcionário alvo
   const canEditEmployee = (employee: Employee) => {
-    if (employee.role === "DONO") return false
-    if (isDono) return true
-    if (isGerente && (employee.role === "FUNCIONARIO" || employee.role === "CLIENTE")) return true
+    if (employee.role === "OWNER") return false
+    if (isOwner) return true
+    if (isManager && (employee.role === "EMPLOYEE" || employee.role === "CUSTOMER")) return true
     return false
   }
 
   // Verifica se o usuário logado pode excluir o funcionário alvo
   const canDeleteEmployee = (employee: Employee) => {
-    if (employee.role === "DONO") return false
-    if (isDono) return true
-    if (isGerente && (employee.role === "FUNCIONARIO" || employee.role === "CLIENTE")) return true
+    if (employee.role === "OWNER") return false
+    if (isOwner) return true
+    if (isManager && (employee.role === "EMPLOYEE" || employee.role === "CUSTOMER")) return true
     return false
   }
 
@@ -134,10 +135,10 @@ export default function EmployeesPage() {
     e.preventDefault()
     try {
       await api.post("/usuarios", {
-        nome: name,
+        name,
         email,
-        senha: password,
-        role: role
+        password,
+        role,
       })
       await fetchEmployees()
       setIsAddDialogOpen(false)
@@ -152,9 +153,9 @@ export default function EmployeesPage() {
 
   const handleEditClick = (employee: Employee) => {
     setCurrentEmployee(employee)
-    setName(employee.nome)
+    setName(employee.name)
     setEmail(employee.email)
-    setRole(employee.role || "FUNCIONARIO")
+    setRole(employee.role || "EMPLOYEE")
     setPassword("") // Reset password field
     setIsEditDialogOpen(true)
   }
@@ -166,12 +167,12 @@ export default function EmployeesPage() {
 
     try {
       const payload: any = {
-        nome: name,
+        name,
         email,
-        role: role
+        role,
       }
       if (password) {
-        payload.senha = password
+        payload.password = password
       }
 
       await api.put(`/usuarios/${currentEmployee.id}`, payload)
@@ -186,7 +187,7 @@ export default function EmployeesPage() {
     }
   }
 
-  const handleDeleteEmployee = async (id: number) => {
+  const handleDeleteEmployee = async (id: number | string) => {
     if (await confirm({ description: "Tem certeza que deseja excluir este funcionário?", confirmLabel: "Excluir", destructive: true })) {
         setDeletingId(id)
         try {
@@ -205,16 +206,16 @@ export default function EmployeesPage() {
     setName("")
     setEmail("")
     setPassword("")
-    setRole("FUNCIONARIO")
+    setRole("EMPLOYEE")
     setCurrentEmployee(null)
   }
 
   const roleLabel = (r: string) => {
     switch (r) {
-      case 'DONO': return 'Dono'
-      case 'GERENTE': return 'Gerente'
-      case 'FUNCIONARIO': return 'Funcionário'
-      case 'CLIENTE': return 'Cliente'
+      case 'OWNER': return 'Dono'
+      case 'MANAGER': return 'Gerente'
+      case 'EMPLOYEE': return 'Funcionário'
+      case 'CUSTOMER': return 'Cliente'
       default: return r || "N/A"
     }
   }
@@ -224,8 +225,7 @@ export default function EmployeesPage() {
   // Roles disponíveis para edição (pode ser diferente dependendo do alvo)
   const getEditAvailableRoles = () => {
     if (!currentEmployee) return availableRoles
-    // Se estiver editando um GERENTE, só o DONO pode e pode rebaixar
-    if (currentEmployee.role === "GERENTE" && isDono) return ["GERENTE", "FUNCIONARIO", "CLIENTE"]
+    if (currentEmployee.role === "MANAGER" && isOwner) return ["MANAGER", "EMPLOYEE", "CUSTOMER"]
     return availableRoles
   }
 
@@ -234,7 +234,7 @@ export default function EmployeesPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
           <Users className="h-8 w-8" />
-          {`Funcionários${user?.estabelecimento?.nomeFantasia ? ` do ${user.estabelecimento.nomeFantasia}` : ''}`}
+          {`Funcionários${user?.establishment?.tradeName ? ` do ${user.establishment.tradeName}` : ''}`}
         </h1>
         {canManageUsers && (
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
@@ -274,7 +274,7 @@ export default function EmployeesPage() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="role">Cargo</Label>
-                  <Select value={role} onValueChange={setRole}>
+                  <Select value={role} onValueChange={(value) => setRole(value as UserRole)}>
                     <SelectTrigger disabled={isSaving}>
                       <SelectValue placeholder="Selecione o cargo" />
                     </SelectTrigger>
@@ -365,7 +365,7 @@ export default function EmployeesPage() {
                 employees.map((employee, index) => (
                 <TableRow key={employee.id} className="animate-in fade-in-0 duration-300">
                     <TableCell className="font-medium">{(page - 1) * limit + index + 1}</TableCell>
-                    <TableCell>{employee.nome}</TableCell>
+                    <TableCell>{employee.name}</TableCell>
                     <TableCell>{employee.email}</TableCell>
                     <TableCell>
                       <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-primary/10 text-primary">
@@ -458,7 +458,7 @@ export default function EmployeesPage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="edit-role">Cargo</Label>
-              <Select value={role} onValueChange={setRole}>
+              <Select value={role} onValueChange={(value) => setRole(value as UserRole)}>
                 <SelectTrigger disabled={isSaving}>
                   <SelectValue placeholder="Selecione o cargo" />
                 </SelectTrigger>

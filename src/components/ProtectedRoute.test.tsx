@@ -39,21 +39,21 @@ describe('ProtectedRoute', () => {
     expect(screen.getByText('login page')).toBeInTheDocument()
   })
 
-  it('renders the protected content when authenticated and estabelecimento is ATIVO', () => {
+  it('renders the protected content when authenticated and establishment is ACTIVE', () => {
     mockUseAuth.mockReturnValue({
       isAuthenticated: true,
       isLoading: false,
-      user: { estabelecimento: { status: 'ATIVO' } },
+      user: { establishment: { status: 'ACTIVE' } },
     })
     renderAt('/dashboard')
     expect(screen.getByText('dashboard content')).toBeInTheDocument()
   })
 
-  it('redirects to /plan when authenticated but establishment is not ATIVO', () => {
+  it('redirects to /plan when authenticated but establishment is not ACTIVE', () => {
     mockUseAuth.mockReturnValue({
       isAuthenticated: true,
       isLoading: false,
-      user: { estabelecimento: { status: 'PENDENTE_PAGAMENTO' } },
+      user: { establishment: { status: 'PENDING_PAYMENT' } },
     })
     renderAt('/dashboard')
     expect(screen.getByText('plan page')).toBeInTheDocument()
@@ -63,7 +63,7 @@ describe('ProtectedRoute', () => {
     mockUseAuth.mockReturnValue({
       isAuthenticated: true,
       isLoading: false,
-      user: { estabelecimento: { status: 'PENDENTE_PAGAMENTO' } },
+      user: { establishment: { status: 'PENDING_PAYMENT' } },
     })
     renderAt('/dashboard', true)
     expect(screen.getByText('dashboard content')).toBeInTheDocument()

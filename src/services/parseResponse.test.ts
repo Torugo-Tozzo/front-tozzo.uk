@@ -17,9 +17,9 @@ describe('parseListResponse', () => {
     expect(parseListResponse(res)).toEqual({ data: [{ id: 1 }], total: 3 })
   })
 
-  it('parses a custom arrayKey shape (e.g. vendas/fechamento)', () => {
-    const res = makeResponse({ vendas: [{ id: 1 }], total: 7 })
-    expect(parseListResponse(res, 'vendas')).toEqual({ data: [{ id: 1 }], total: 7 })
+  it('parses a custom canonical arrayKey shape (e.g. sales/closing)', () => {
+    const res = makeResponse({ sales: [{ id: 1 }], total: 7 })
+    expect(parseListResponse(res, 'sales')).toEqual({ data: [{ id: 1 }], total: 7 })
   })
 
   it('parses a bare array with X-Total-Count header', () => {

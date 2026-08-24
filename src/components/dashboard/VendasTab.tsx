@@ -20,25 +20,11 @@ import { ProductSelectionModal } from "@/components/ProductSelectionModal"
 import { Pagination } from "@/components/Pagination"
 import { Skeleton } from "@/components/ui/skeleton"
 import { getStatusColor } from "@/lib/status"
-
-type SaleItem = {
-  produtoId: number
-  quantidade: number
-  produto?: { nome: string } | null
-}
-
-type Sale = {
-  id: number
-  cliente: string
-  total: number
-  horario: string
-  vendedor?: { id: number; nome: string } | null
-  itens?: SaleItem[]
-}
+import type { Sale, SaleItem } from "@/domain/models"
 
 type SaleFilters = {
-  cliente: string
-  criadoPor: string
+  customerName: string
+  createdBy: string
   totalMin: string
   totalMax: string
   startDate: string
@@ -54,24 +40,24 @@ function isSalesEqual(a: Sale[], b: Sale[]) {
     const bi = b[i]
     if (ai.id !== bi.id) return false
     if (ai.total !== bi.total) return false
-    if ((ai.horario || '') !== (bi.horario || '')) return false
+    if ((ai.soldAt || '') !== (bi.soldAt || '')) return false
   }
   return true
 }
 
-function formatItemsSummary(itens?: SaleItem[]): string {
-  if (!itens || itens.length === 0) return ""
-  return itens.map((i) => `${i.quantidade}x ${i.produto?.nome ?? "Produto"}`).join(", ")
+function formatItemsSummary(items?: SaleItem[]): string {
+  if (!items || items.length === 0) return ""
+  return items.map((item) => `${item.quantity}x ${item.product?.name ?? "Produto"}`).join(", ")
 }
 
 function buildSaleParams(page: number, limit: number, f: SaleFilters) {
   const params: any = { page, limit }
-  if (f.cliente) params.cliente = f.cliente
-  if (f.criadoPor) params.criadoPor = f.criadoPor
+  if (f.customerName) params.customerName = f.customerName
+  if (f.createdBy) params.createdBy = f.createdBy
   if (f.totalMin) params.totalMin = parseFloat(f.totalMin)
   if (f.totalMax) params.totalMax = parseFloat(f.totalMax)
-  if (f.startDate && f.startTime) params.dataInicial = new Date(`${f.startDate}T${f.startTime}:00`).toISOString()
-  if (f.endDate && f.endTime) params.dataFinal = new Date(`${f.endDate}T${f.endTime}:59`).toISOString()
+  if (f.startDate && f.startTime) params.startAt = new Date(`${f.startDate}T${f.startTime}:00`).toISOString()
+  if (f.endDate && f.endTime) params.endAt = new Date(`${f.endDate}T${f.endTime}:59`).toISOString()
   return params
 }
 
@@ -84,17 +70,17 @@ export function VendasTab() {
   const [totalItems, setTotalItems] = useState(0)
   const [hasMore, setHasMore] = useState(false)
 
-  const [currentSaleItems, setCurrentSaleItems] = useState<{ produtoId: number | string; quantidade: number; precoHistorico?: number; nome?: string }[]>([])
+  const [currentSaleItems, setCurrentSaleItems] = useState<{ productId: number | string; quantity: number; unitPrice?: number; name?: string }[]>([])
   const [currentSaleClient, setCurrentSaleClient] = useState("")
   const [isReadOnlyModal, setIsReadOnlyModal] = useState(false)
-  const [currentSaleId, setCurrentSaleId] = useState<number | null>(null)
+  const [currentSaleId, setCurrentSaleId] = useState<number | string | null>(null)
 
   const [isLoading, setIsLoading] = useState(false)
   const showSkeleton = useMinLoadingDuration(isLoading)
-  const [loadingSaleId, setLoadingSaleId] = useState<number | null>(null)
+  const [loadingSaleId, setLoadingSaleId] = useState<number | string | null>(null)
 
-  const [cliente, setCliente] = useState("")
-  const [criadoPor, setCriadoPor] = useState("")
+  const [customerName, setCustomerName] = useState("")
+  const [createdBy, setCreatedBy] = useState("")
   const [totalMin, setTotalMin] = useState("")
   const [totalMax, setTotalMax] = useState("")
 
@@ -120,27 +106,27 @@ export function VendasTab() {
   const [endTime, setEndTime] = useState(formatTime(now))
   const [periodTotal, setPeriodTotal] = useState(0)
   const salesRef = useRef<Sale[]>([])
-  const filterRef = useRef<SaleFilters>({ cliente, criadoPor, totalMin, totalMax, startDate, startTime, endDate, endTime })
+  const filterRef = useRef<SaleFilters>({ customerName, createdBy, totalMin, totalMax, startDate, startTime, endDate, endTime })
 
   useEffect(() => {
-    filterRef.current = { cliente, criadoPor, totalMin, totalMax, startDate, startTime, endDate, endTime }
-  }, [cliente, criadoPor, totalMin, totalMax, startDate, startTime, endDate, endTime])
+    filterRef.current = { customerName, createdBy, totalMin, totalMax, startDate, startTime, endDate, endTime }
+  }, [customerName, createdBy, totalMin, totalMax, startDate, startTime, endDate, endTime])
 
   const fetchSales = useCallback(async () => {
     setIsLoading(true)
     try {
       const params = buildSaleParams(page, limit, {
-        cliente, criadoPor, totalMin, totalMax, startDate, startTime, endDate, endTime,
+        customerName, createdBy, totalMin, totalMax, startDate, startTime, endDate, endTime,
       })
 
       const response = await api.get(`/vendas`, { params })
-      const { data, total } = parseListResponse<Sale>(response, 'vendas')
-      const fechamento = Number(response.data.fechamento) || 0
+      const { data, total } = parseListResponse<Sale>(response, 'sales')
+      const closing = Number(response.data.closing) || 0
 
       setSales(data)
       salesRef.current = data
       setTotalItems(total)
-      setPeriodTotal(fechamento)
+      setPeriodTotal(closing)
 
       if (total > 0) {
         setTotalPages(Math.ceil(total / limit))
@@ -154,7 +140,7 @@ export function VendasTab() {
     } finally {
       setIsLoading(false)
     }
-  }, [page, limit, cliente, criadoPor, totalMin, totalMax, startDate, startTime, endDate, endTime])
+  }, [page, limit, customerName, createdBy, totalMin, totalMax, startDate, startTime, endDate, endTime])
 
   useEffect(() => {
     fetchSales()
@@ -167,15 +153,15 @@ export function VendasTab() {
       const params = buildSaleParams(page, limit, f)
 
       const response = await api.get(`/vendas`, { params })
-      const { data, total } = parseListResponse<Sale>(response, 'vendas')
-      const fechamento = Number(response.data.fechamento) || 0
+      const { data, total } = parseListResponse<Sale>(response, 'sales')
+      const closing = Number(response.data.closing) || 0
 
       const previous = salesRef.current || []
       if (!isSalesEqual(previous, data)) {
         setSales(data)
         salesRef.current = data
         setTotalItems(total)
-        setPeriodTotal(fechamento)
+      setPeriodTotal(closing)
 
         if (total > 0) {
           setTotalPages(Math.ceil(total / limit))
@@ -190,7 +176,7 @@ export function VendasTab() {
     }
   }, [page, limit])
 
-  useRealtimeEvents(['vendas'], poll)
+  useRealtimeEvents(['sales'], poll)
 
   useEffect(() => {
     let interval: number | null = null
@@ -232,10 +218,10 @@ export function VendasTab() {
     }
   }, [poll])
 
-  const handleModalConfirm = async (cliente: string, itens: { produtoId: number; quantidade: number; precoHistorico?: number }[]) => {
+  const handleModalConfirm = async (customerName: string, items: { productId: number | string; quantity: number; unitPrice?: number }[]) => {
     setIsLoading(true)
     try {
-      await api.post("/vendas", { cliente, itens })
+      await api.post("/vendas", { customerName, items })
       await fetchSales()
       setIsModalOpen(false)
     } catch (error) {
@@ -249,19 +235,19 @@ export function VendasTab() {
   const handleInfoClick = async (sale: Sale) => {
     setLoadingSaleId(sale.id)
     try {
-      if (sale.itens && Array.isArray(sale.itens)) {
-        const items = sale.itens.map((item: any) => ({
-          produtoId: item.produtoId ?? (item.produto ? item.produto.id : undefined),
-          quantidade: Number(item.quantidade) || 0,
-          nome: item.produto?.nome,
-          precoHistorico: item.precoHistorico != null ? Number(item.precoHistorico) : (item.preco != null ? Number(item.preco) : (item.produto ? Number(item.produto.preco || 0) : undefined)),
-        })).filter((i: any) => i.produtoId != null && i.produtoId !== '')
-        setCurrentSaleItems(items)
+      if (sale.items && Array.isArray(sale.items)) {
+        const items = sale.items.map((item: SaleItem) => ({
+          productId: item.productId ?? (item.product ? item.product.id : undefined),
+          quantity: Number(item.quantity) || 0,
+          name: item.product?.name,
+          unitPrice: item.unitPriceAtSale != null ? Number(item.unitPriceAtSale) : (item.product ? Number(item.product.price || 0) : undefined),
+        })).filter((item) => item.productId != null && item.productId !== '')
+        setCurrentSaleItems(items as { productId: number | string; quantity: number; unitPrice?: number; name?: string }[])
       } else {
         setCurrentSaleItems([])
       }
 
-      setCurrentSaleClient(sale.cliente)
+      setCurrentSaleClient(sale.customerName ?? '')
       setCurrentSaleId(sale.id)
       setIsReadOnlyModal(true)
       setIsModalOpen(true)
@@ -281,7 +267,7 @@ export function VendasTab() {
     setIsModalOpen(true)
   }
 
-  const handleCancelSale = async (id: number) => {
+  const handleCancelSale = async (id: number | string) => {
     try {
       await api.delete(`/vendas/${id}`)
       await fetchSales()
@@ -308,8 +294,8 @@ export function VendasTab() {
           onEndDateChange: setEndDate,
           onEndTimeChange: setEndTime,
         }}
-        cliente={{ value: cliente, onChange: setCliente }}
-        criadoPor={{ value: criadoPor, onChange: setCriadoPor }}
+        customerName={{ value: customerName, onChange: setCustomerName }}
+        createdBy={{ value: createdBy, onChange: setCreatedBy }}
         totalRange={{ min: totalMin, max: totalMax, onMinChange: setTotalMin, onMaxChange: setTotalMax }}
         primaryAction={{ label: "Nova Venda", onClick: handleNewSaleClick }}
         onFilter={handleApplyFilters}
@@ -322,7 +308,7 @@ export function VendasTab() {
         onConfirm={handleModalConfirm}
         title={isReadOnlyModal ? "Detalhes da Venda" : "Nova Venda"}
         initialClientName={currentSaleClient}
-        initialOrderItems={currentSaleItems as any}
+        initialItems={currentSaleItems}
         readOnly={isReadOnlyModal}
         onCancelSale={isReadOnlyModal && currentSaleId ? async () => handleCancelSale(currentSaleId) : undefined}
       />
@@ -375,21 +361,21 @@ export function VendasTab() {
                 </TableRow>
               ) : (
                 sales.map((sale, index) => (
-                  <TableRow key={sale.id} accentColor={getStatusColor('FECHADO')} className="animate-in fade-in-0 duration-300">
+                  <TableRow key={sale.id} accentColor={getStatusColor('CLOSED')} className="animate-in fade-in-0 duration-300">
                     <TableCell className="text-center">{(page - 1) * limit + index + 1}</TableCell>
                     <TableCell>
-                      <div className="font-medium">{sale.cliente || "Não Informado"}</div>
-                      {formatItemsSummary(sale.itens) && (
+                      <div className="font-medium">{sale.customerName || "Não Informado"}</div>
+                      {formatItemsSummary(sale.items) && (
                         <div
                           className="text-sm text-muted-foreground truncate max-w-[280px]"
-                          title={formatItemsSummary(sale.itens)}
+                          title={formatItemsSummary(sale.items)}
                         >
-                          {formatItemsSummary(sale.itens)}
+                          {formatItemsSummary(sale.items)}
                         </div>
                       )}
                     </TableCell>
-                    <TableCell className="text-muted-foreground">{sale.vendedor?.nome || "-"}</TableCell>
-                    <TableCell>{sale.horario ? new Date(sale.horario).toLocaleString() : "-"}</TableCell>
+                    <TableCell className="text-muted-foreground">{sale.seller?.name || "-"}</TableCell>
+                    <TableCell>{sale.soldAt ? new Date(sale.soldAt).toLocaleString() : "-"}</TableCell>
                     <TableCell className="text-right">
                       {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(sale.total)}
                     </TableCell>

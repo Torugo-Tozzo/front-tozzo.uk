@@ -154,16 +154,16 @@ export default function DashboardLayout() {
 
   const fetchCount = useCallback(async () => {
     try {
-      const resp = await api.get('/pedidos', { params: { status: 'NAO_FECHADOS', limit: 1 } })
+      const resp = await api.get('/pedidos', { params: { status: 'NOT_CLOSED', limit: 1 } })
       const totalHeader = resp.headers['x-total-count']
-      const count = totalHeader ? parseInt(totalHeader) : (Array.isArray(resp.data) ? resp.data.length : 0)
+      const count = totalHeader ? parseInt(totalHeader, 10) : (Array.isArray(resp.data) ? resp.data.length : Array.isArray(resp.data?.orders) ? resp.data.orders.length : 0)
       setNonClosedCount(count)
     } catch (err) {
       console.error('Error fetching non-closed orders count', err)
     }
   }, [])
 
-  useRealtimeEvents(['pedidos'], fetchCount)
+  useRealtimeEvents(['orders'], fetchCount)
 
   useEffect(() => {
     fetchCount()
