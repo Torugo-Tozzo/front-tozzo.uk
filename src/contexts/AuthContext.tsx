@@ -64,9 +64,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       try {
         const establishmentResponse = await api.get('/estabelecimentos');
         // A API pode retornar um array ou um objeto único
-        const establishmentData = Array.isArray(establishmentResponse.data) ? establishmentResponse.data[0] : establishmentResponse.data;
-        if (establishmentData) {
-          userData.establishment = establishmentData as Establishment;
+        const rawEstablishmentData = Array.isArray(establishmentResponse.data) ? establishmentResponse.data[0] : establishmentResponse.data;
+        if (rawEstablishmentData) {
+          userData.establishment = fromLegacyWire<unknown>(rawEstablishmentData, 'establishment') as Establishment;
         }
       } catch (err: any) {
         console.warn('Não foi possível buscar detalhes do estabelecimento', err);

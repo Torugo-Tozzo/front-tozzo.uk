@@ -55,6 +55,44 @@ describe('legacy wire adapter', () => {
     })
   })
 
+  it('maps nested legacy produto fields for order and sale items', () => {
+    expect(fromLegacyWire<unknown>({
+      pedidos: [{
+        id: 1,
+        itens: [{
+          produto: { id: 9, nome: 'Pizza', preco: 12.5 },
+          quantidade: 2,
+          precoHistorico: 10,
+        }],
+      }],
+      vendas: [{
+        id: 2,
+        itens: [{
+          produto: { id: 9, nome: 'Pizza', preco: 12.5 },
+          quantidade: 1,
+          precoHistorico: 12.5,
+        }],
+      }],
+    })).toEqual({
+      orders: [{
+        id: 1,
+        items: [{
+          product: { id: 9, name: 'Pizza', price: 12.5 },
+          quantity: 2,
+          unitPriceAtOrder: 10,
+        }],
+      }],
+      sales: [{
+        id: 2,
+        items: [{
+          product: { id: 9, name: 'Pizza', price: 12.5 },
+          quantity: 1,
+          unitPriceAtSale: 12.5,
+        }],
+      }],
+    })
+  })
+
   it('serializes canonical requests while retaining the legacy contract', () => {
     expect(toLegacyWire<unknown>({
       name: 'Ana',

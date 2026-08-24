@@ -25,6 +25,7 @@ const fieldToLegacy: Record<string, string> = {
   productTypeId: 'tipoProdutoId',
   productType: 'tipoProduto',
   sourceProductId: 'origemProdutoId',
+  product: 'produto',
   price: 'preco',
   ingredients: 'ingredientes',
   customerName: 'cliente',
