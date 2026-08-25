@@ -465,7 +465,13 @@
     "report": {
       "generateExcel": "生成 Excel",
       "generatePdf": "生成 PDF",
+      "filename": "报告",
       "generating": "正在生成报告",
+      "generatingWithFormat": "正在生成报告（{{format}}）...",
+      "format": {
+        "excel": "Excel",
+        "pdf": "PDF"
+      },
       "viewStatus": "查看状态",
       "downloadFailed": "多次尝试后仍无法下载文件",
       "generationFailed": "生成报告时出错",
@@ -481,7 +487,8 @@
       "revenue": "收入",
       "salesCount": "销售数量",
       "revenueAndSales": "收入与销售",
-      "salesPie": "销售数量（饼图）"
+      "salesPie": "销售数量（饼图）",
+      "pieLabel": "{{name}} {{value}}"
     },
     "summary": {
       "totalRevenue": "总收入",
@@ -502,7 +509,8 @@
       "sales": "销售",
       "revenue": "收入",
       "details": "详情",
-      "more": "+{{count}} 项..."
+      "more": "+{{count}} 项...",
+      "label": "{{label}}："
     }
   },
   "settings": {

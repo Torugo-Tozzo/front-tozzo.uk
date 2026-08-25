@@ -45,7 +45,10 @@ export function Pagination({
           }}
           disabled={isLoading}
         >
-          <SelectTrigger className="h-8 w-[70px] border-0 bg-primary text-primary-foreground shadow-[inset_0_0_0_2px_hsl(var(--foreground)),inset_0_0_0_3px_hsl(var(--background))] transition-transform hover:scale-105">
+          <SelectTrigger
+            className="h-8 w-[70px] border-0 bg-primary text-primary-foreground shadow-[inset_0_0_0_2px_hsl(var(--foreground)),inset_0_0_0_3px_hsl(var(--background))] transition-transform hover:scale-105"
+            aria-label={t("pagination.rowsPerPage")}
+          >
             <SelectValue placeholder={formatNumber(pageSize, i18n.language)} />
           </SelectTrigger>
           <SelectContent side="top">

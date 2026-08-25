@@ -420,7 +420,7 @@ export default function ProductsPage() {
                     <div className="space-y-2">
                       <Label htmlFor="type">{tProducts("type")}</Label>
                       <Select value={typeId} onValueChange={setTypeId}>
-                        <SelectTrigger>
+                        <SelectTrigger aria-label={tProducts("type")}>
                           <SelectValue placeholder={tProducts("forms.typePlaceholder")} />
                         </SelectTrigger>
                         <SelectContent>
@@ -797,7 +797,7 @@ export default function ProductsPage() {
             <div className="space-y-2">
               <Label htmlFor="edit-type">{tProducts("type")}</Label>
               <Select value={typeId} onValueChange={setTypeId}>
-                <SelectTrigger>
+                <SelectTrigger aria-label={tProducts("type")}>
                   <SelectValue placeholder={tProducts("forms.typePlaceholder")} />
                 </SelectTrigger>
                 <SelectContent>

@@ -465,7 +465,13 @@
     "report": {
       "generateExcel": "Generar Excel",
       "generatePdf": "Generar PDF",
+      "filename": "informe",
       "generating": "Generando informe",
+      "generatingWithFormat": "Generando informe ({{format}})...",
+      "format": {
+        "excel": "Excel",
+        "pdf": "PDF"
+      },
       "viewStatus": "Ver estado",
       "downloadFailed": "No se pudo descargar el archivo tras varios intentos",
       "generationFailed": "Error al generar el informe",
@@ -481,7 +487,8 @@
       "revenue": "Facturación",
       "salesCount": "Número de ventas",
       "revenueAndSales": "Facturación y ventas",
-      "salesPie": "Número de ventas (gráfico circular)"
+      "salesPie": "Número de ventas (gráfico circular)",
+      "pieLabel": "{{name}} {{value}}"
     },
     "summary": {
       "totalRevenue": "Facturación total",
@@ -502,7 +509,8 @@
       "sales": "Ventas",
       "revenue": "Facturación",
       "details": "Detalles",
-      "more": "+{{count}} más..."
+      "more": "+{{count}} más...",
+      "label": "{{label}}:"
     }
   },
   "settings": {

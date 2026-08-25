@@ -465,7 +465,13 @@
     "report": {
       "generateExcel": "إنشاء Excel",
       "generatePdf": "إنشاء PDF",
+      "filename": "تقرير",
       "generating": "جارٍ إنشاء التقرير",
+      "generatingWithFormat": "جارٍ إنشاء التقرير ({{format}})...",
+      "format": {
+        "excel": "Excel",
+        "pdf": "PDF"
+      },
       "viewStatus": "عرض الحالة",
       "downloadFailed": "تعذر تنزيل الملف بعد عدة محاولات",
       "generationFailed": "حدث خطأ أثناء إنشاء التقرير",
@@ -481,7 +487,8 @@
       "revenue": "الإيرادات",
       "salesCount": "عدد المبيعات",
       "revenueAndSales": "الإيرادات والمبيعات",
-      "salesPie": "عدد المبيعات (مخطط دائري)"
+      "salesPie": "عدد المبيعات (مخطط دائري)",
+      "pieLabel": "{{name}} {{value}}"
     },
     "summary": {
       "totalRevenue": "إجمالي الإيرادات",
@@ -502,7 +509,8 @@
       "sales": "المبيعات",
       "revenue": "الإيرادات",
       "details": "التفاصيل",
-      "more": "+{{count}} أخرى..."
+      "more": "+{{count}} أخرى...",
+      "label": "{{label}}:"
     }
   },
   "settings": {

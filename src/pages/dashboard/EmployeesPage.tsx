@@ -231,7 +231,7 @@ export default function EmployeesPage() {
       case 'MANAGER': return t("role.manager")
       case 'EMPLOYEE': return t("role.employee")
       case 'CUSTOMER': return t("role.customer")
-      default: return r || tCommon("notInformed")
+      default: return tCommon("notInformed")
     }
   }
 
@@ -290,7 +290,7 @@ export default function EmployeesPage() {
                 <div className="space-y-2">
                   <Label htmlFor="role">{t("roleLabel")}</Label>
                   <Select value={role} onValueChange={(value) => setRole(value as UserRole)}>
-                    <SelectTrigger disabled={isSaving}>
+                    <SelectTrigger aria-label={t("roleLabel")} disabled={isSaving}>
                       <SelectValue placeholder={t("selectRole")} />
                     </SelectTrigger>
                     <SelectContent>
@@ -487,7 +487,7 @@ export default function EmployeesPage() {
             <div className="space-y-2">
               <Label htmlFor="edit-role">{t("roleLabel")}</Label>
               <Select value={role} onValueChange={(value) => setRole(value as UserRole)}>
-                <SelectTrigger disabled={isSaving}>
+                <SelectTrigger aria-label={t("roleLabel")} disabled={isSaving}>
                 <SelectValue placeholder={t("selectRole")} />
                 </SelectTrigger>
                 <SelectContent>

@@ -55,7 +55,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
           {isAuthenticated ? (
             <div className="flex items-center gap-4">
               <span className="text-sm font-medium hidden sm:inline-block">
-                {user?.name}
+                {user?.name || tCommon("notInformed")}
               </span>
               <Button variant="ghost" size="icon" onClick={handleLogout} title={tCommon("accessibility.logout")} className="border border-foreground text-muted-foreground hover:text-destructive">
                 <LogOut className="h-5 w-5" />

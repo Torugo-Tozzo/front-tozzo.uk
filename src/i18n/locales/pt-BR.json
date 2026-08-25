@@ -465,7 +465,13 @@
     "report": {
       "generateExcel": "Gerar Excel",
       "generatePdf": "Gerar PDF",
+      "filename": "relatorio",
       "generating": "Gerando relatório",
+      "generatingWithFormat": "Gerando relatório ({{format}})...",
+      "format": {
+        "excel": "Excel",
+        "pdf": "PDF"
+      },
       "viewStatus": "Ver status",
       "downloadFailed": "Falha ao baixar o arquivo após várias tentativas",
       "generationFailed": "Erro na geração do relatório",
@@ -481,7 +487,8 @@
       "revenue": "Faturamento",
       "salesCount": "Número de vendas",
       "revenueAndSales": "Faturamento e vendas",
-      "salesPie": "Número de vendas (pizza)"
+      "salesPie": "Número de vendas (pizza)",
+      "pieLabel": "{{name}} {{value}}"
     },
     "summary": {
       "totalRevenue": "Total faturado",
@@ -502,7 +509,8 @@
       "sales": "Vendas",
       "revenue": "Faturamento",
       "details": "Detalhes",
-      "more": "+{{count}} mais..."
+      "more": "+{{count}} mais...",
+      "label": "{{label}}:"
     }
   },
   "settings": {

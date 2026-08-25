@@ -465,7 +465,13 @@
     "report": {
       "generateExcel": "Excel बनाएँ",
       "generatePdf": "PDF बनाएँ",
+      "filename": "रिपोर्ट",
       "generating": "रिपोर्ट बनाई जा रही है",
+      "generatingWithFormat": "रिपोर्ट बनाई जा रही है ({{format}})...",
+      "format": {
+        "excel": "Excel",
+        "pdf": "PDF"
+      },
       "viewStatus": "स्थिति देखें",
       "downloadFailed": "कई प्रयासों के बाद फ़ाइल डाउनलोड नहीं हो सकी",
       "generationFailed": "रिपोर्ट बनाने में त्रुटि",
@@ -481,7 +487,8 @@
       "revenue": "राजस्व",
       "salesCount": "बिक्री की संख्या",
       "revenueAndSales": "राजस्व और बिक्री",
-      "salesPie": "बिक्री की संख्या (पाई चार्ट)"
+      "salesPie": "बिक्री की संख्या (पाई चार्ट)",
+      "pieLabel": "{{name}} {{value}}"
     },
     "summary": {
       "totalRevenue": "कुल राजस्व",
@@ -502,7 +509,8 @@
       "sales": "बिक्री",
       "revenue": "राजस्व",
       "details": "विवरण",
-      "more": "+{{count}} और..."
+      "more": "+{{count}} और...",
+      "label": "{{label}}:"
     }
   },
   "settings": {

@@ -17,7 +17,6 @@ const requiredUiInventory: InventoryEntry[] = [
   { source: "src/components/Navbar.tsx:18", key: "common.logoutConfirmation.description" },
   { source: "src/components/Navbar.tsx:18", key: "common.logoutConfirmation.confirm" },
   { source: "src/components/Navbar.tsx:30", key: "common.accessibility.openMenu" },
-  { source: "src/components/Navbar.tsx:34", key: "common.appName" },
   { source: "src/components/Navbar.tsx:50", key: "common.accessibility.logout" },
   { source: "src/components/Navbar.tsx:56", key: "navigation.login" },
   { source: "src/components/Pagination.tsx:36", key: "common.pagination.rowsPerPage" },
@@ -38,13 +37,18 @@ const requiredUiInventory: InventoryEntry[] = [
   { source: "src/components/ProductSelectionModal.tsx:308", key: "products.selection.addProduct" },
   { source: "src/components/ProductSelectionModal.tsx:336", key: "common.previous" },
   { source: "src/components/ProductSelectionModal.tsx:346", key: "common.next" },
-  { source: "src/components/ProductSelectionModal.tsx:321", key: "common.pagination.pageOf" },
+  { source: "src/components/ProductSelectionModal.tsx:321", key: "common.pageOf" },
   { source: "src/components/ProductSelectionModal.tsx:350", key: "products.selection.selected" },
   { source: "src/components/ProductSelectionModal.tsx:353", key: "products.selection.noItems" },
+  { source: "src/components/ProductSelectionModal.tsx", key: "common.unitCount.zero" },
+  { source: "src/components/ProductSelectionModal.tsx", key: "common.unitCount.one" },
+  { source: "src/components/ProductSelectionModal.tsx", key: "common.unitCount.two" },
+  { source: "src/components/ProductSelectionModal.tsx", key: "common.unitCount.few" },
+  { source: "src/components/ProductSelectionModal.tsx", key: "common.unitCount.many" },
+  { source: "src/components/ProductSelectionModal.tsx", key: "common.unitCount.other" },
   { source: "src/components/ProductSelectionModal.tsx:399", key: "products.selection.decreaseQuantity" },
   { source: "src/components/ProductSelectionModal.tsx:413", key: "products.selection.increaseQuantity" },
   { source: "src/components/ProductSelectionModal.tsx:425", key: "products.selection.removeItem" },
-  { source: "src/components/ProductSelectionModal.tsx:393", key: "products.selection.units" },
   { source: "src/components/ProductSelectionModal.tsx:401", key: "common.total" },
   { source: "src/components/ProductSelectionModal.tsx:415", key: "orders.confirm.changeStatus" },
   { source: "src/components/ProductSelectionModal.tsx:426", key: "errors.changeOrderStatus" },
@@ -150,7 +154,6 @@ const requiredUiInventory: InventoryEntry[] = [
   { source: "src/pages/LoginPage.tsx:70", key: "auth.loginFailure" },
   { source: "src/pages/LoginPage.tsx:98", key: "auth.registrationSuccess" },
   { source: "src/pages/LoginPage.tsx:102", key: "auth.registerFailure" },
-  { source: "src/pages/LoginPage.tsx:114", key: "common.appName" },
   { source: "src/pages/LoginPage.tsx:117", key: "auth.subtitle" },
   { source: "src/pages/LoginPage.tsx:123", key: "auth.login" },
   { source: "src/pages/LoginPage.tsx:124", key: "auth.register" },
@@ -277,7 +280,20 @@ const requiredUiInventory: InventoryEntry[] = [
   { source: "src/pages/dashboard/EmployeesPage.tsx:488", key: "common.saveChanges" },
   { source: "src/pages/dashboard/ChartsPage.tsx:606", key: "charts.pageTitle" },
   { source: "src/pages/dashboard/ChartsPage.tsx:609", key: "charts.title" },
+  { source: "src/pages/dashboard/ChartsPage.tsx", key: "common.recordCount.zero" },
+  { source: "src/pages/dashboard/ChartsPage.tsx", key: "common.recordCount.one" },
+  { source: "src/pages/dashboard/ChartsPage.tsx", key: "common.recordCount.two" },
+  { source: "src/pages/dashboard/ChartsPage.tsx", key: "common.recordCount.few" },
+  { source: "src/pages/dashboard/ChartsPage.tsx", key: "common.recordCount.many" },
+  { source: "src/pages/dashboard/ChartsPage.tsx", key: "common.recordCount.other" },
+  { source: "src/pages/dashboard/ChartsPage.tsx", key: "common.unitCount.zero" },
+  { source: "src/pages/dashboard/ChartsPage.tsx", key: "common.unitCount.one" },
+  { source: "src/pages/dashboard/ChartsPage.tsx", key: "common.unitCount.two" },
+  { source: "src/pages/dashboard/ChartsPage.tsx", key: "common.unitCount.few" },
+  { source: "src/pages/dashboard/ChartsPage.tsx", key: "common.unitCount.many" },
+  { source: "src/pages/dashboard/ChartsPage.tsx", key: "common.unitCount.other" },
   { source: "src/pages/dashboard/ChartsPage.tsx:939", key: "common.notInformed" },
+  { source: "src/components/Navbar.tsx", key: "common.notInformed" },
   { source: "src/pages/dashboard/ChartsPage.tsx:557", key: "charts.tabs.products" },
   { source: "src/pages/dashboard/ChartsPage.tsx:558", key: "charts.tabs.hours" },
   { source: "src/pages/dashboard/ChartsPage.tsx:564", key: "charts.filters.title" },
@@ -290,8 +306,11 @@ const requiredUiInventory: InventoryEntry[] = [
   { source: "src/pages/dashboard/ChartsPage.tsx:611", key: "charts.filters.all" },
   { source: "src/pages/dashboard/ChartsPage.tsx:626", key: "charts.report.generateExcel" },
   { source: "src/pages/dashboard/ChartsPage.tsx:634", key: "charts.report.generatePdf" },
+  { source: "src/pages/dashboard/ChartsPage.tsx", key: "charts.report.filename" },
+  { source: "src/pages/dashboard/ChartsPage.tsx", key: "charts.report.generatingWithFormat" },
+  { source: "src/pages/dashboard/ChartsPage.tsx", key: "charts.report.format.excel" },
+  { source: "src/pages/dashboard/ChartsPage.tsx", key: "charts.report.format.pdf" },
   { source: "src/pages/dashboard/ChartsPage.tsx:639", key: "charts.filters.search" },
-  { source: "src/pages/dashboard/ChartsPage.tsx:645", key: "charts.report.generating" },
   { source: "src/pages/dashboard/ChartsPage.tsx:647", key: "charts.report.viewStatus" },
   { source: "src/pages/dashboard/ChartsPage.tsx:664", key: "charts.visualization.title" },
   { source: "src/pages/dashboard/ChartsPage.tsx:668", key: "charts.visualization.select" },
@@ -299,6 +318,7 @@ const requiredUiInventory: InventoryEntry[] = [
   { source: "src/pages/dashboard/ChartsPage.tsx:672", key: "charts.visualization.salesCount" },
   { source: "src/pages/dashboard/ChartsPage.tsx:673", key: "charts.visualization.revenueAndSales" },
   { source: "src/pages/dashboard/ChartsPage.tsx:674", key: "charts.visualization.salesPie" },
+  { source: "src/pages/dashboard/ChartsPage.tsx", key: "charts.visualization.pieLabel" },
   { source: "src/pages/dashboard/ChartsPage.tsx:691", key: "charts.summary.totalRevenue" },
   { source: "src/pages/dashboard/ChartsPage.tsx:696", key: "charts.summary.totalSales" },
   { source: "src/pages/dashboard/ChartsPage.tsx:700", key: "charts.summary.unitsSold" },
@@ -322,6 +342,7 @@ const requiredUiInventory: InventoryEntry[] = [
   { source: "src/pages/dashboard/ChartsPage.tsx:912", key: "charts.tooltip.revenue" },
   { source: "src/pages/dashboard/ChartsPage.tsx:915", key: "charts.tooltip.details" },
   { source: "src/pages/dashboard/ChartsPage.tsx:926", key: "charts.tooltip.more" },
+  { source: "src/pages/dashboard/ChartsPage.tsx", key: "charts.tooltip.label" },
   { source: "src/pages/dashboard/ChartsPage.tsx:933", key: "charts.empty.noSalesForDay" },
   { source: "src/pages/dashboard/ChartsPage.tsx:933", key: "charts.empty.selectPeriod" },
   { source: "src/pages/dashboard/ChartsPage.tsx:363", key: "charts.report.downloadFailed" },
@@ -333,7 +354,6 @@ const requiredUiInventory: InventoryEntry[] = [
   { source: "src/pages/dashboard/ChartsPage.tsx:458", key: "charts.report.startFailed" },
   { source: "src/pages/dashboard/ChartsPage.tsx:463", key: "charts.report.startFailed" },
   { source: "src/components/dashboard/PedidosTab.tsx:39", key: "orders.fallback.product" },
-  { source: "src/components/dashboard/PedidosTab.tsx:56", key: "orders.statusFilter.notClosed" },
   { source: "src/components/dashboard/PedidosTab.tsx:56", key: "status.open" },
   { source: "src/components/dashboard/PedidosTab.tsx:56", key: "status.inPreparation" },
   { source: "src/components/dashboard/PedidosTab.tsx:56", key: "status.delivering" },
@@ -416,6 +436,39 @@ function hasResourceLeaf(resource: unknown, key: string): boolean {
   return typeof current === "string" && current.trim().length > 0
 }
 
+function sourceFile(source: string): string {
+  return source.replace(/:\d+$/, "")
+}
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+}
+
+function hasTranslationUsage(sourceText: string, key: string): boolean {
+  const namespace = key.split(".")[0]
+  const leaf = key.split(".").slice(1).join(".")
+  const exactUsage = new RegExp(
+    `\\bt[A-Za-z0-9_]*\\s*\\(\\s*[\"']${escapeRegExp(leaf)}[\"']`,
+  )
+  if (exactUsage.test(sourceText)) return true
+
+  // These boundaries deliberately stay small and explicit: the UI calls a
+  // stable error-code/status helper, which performs the final namespace lookup
+  // outside the component rather than repeating a literal t() call there.
+  if (namespace === "errors" && /\b(?:localizedError|translateError|getErrorTranslationKey)\s*\(/.test(sourceText)) return true
+  if (namespace === "auth" && /\btranslateError\s*\(/.test(sourceText)) return true
+  if (namespace === "status" && /\bgetStatusLabel\s*\(/.test(sourceText)) return true
+
+  // Settings renders locale labels through a template key. This small lexical
+  // exception verifies the stable namespace path without parsing TypeScript.
+  const parent = leaf.slice(0, leaf.lastIndexOf("."))
+  if (!parent) return false
+  const dynamicUsage = new RegExp(
+    "\\bt[A-Za-z0-9_]*\\s*\\(\\s*`" + escapeRegExp(parent) + "\\.\\$\\{",
+  )
+  return dynamicUsage.test(sourceText)
+}
+
 describe("current hardcoded UI inventory", () => {
   test("has a translated resource leaf for the first local inventory batch in every locale", () => {
     const missing = Object.entries(resources).flatMap(([locale, localeResource]) =>
@@ -435,5 +488,25 @@ describe("current hardcoded UI inventory", () => {
     )
 
     expect(missing).toEqual([])
+  })
+
+  test("verifies every inventory entry is used by a translation call in its source file", async () => {
+    const sourceTextCache = new Map<string, string>()
+    const missingUsage: string[] = []
+
+    for (const { source, key } of requiredUiInventory) {
+      const filename = sourceFile(source)
+      let sourceText = sourceTextCache.get(filename)
+      if (!sourceText) {
+        sourceText = await Bun.file(new URL(`../../${filename}`, import.meta.url)).text()
+        sourceTextCache.set(filename, sourceText)
+      }
+
+      if (!hasTranslationUsage(sourceText, key)) {
+        missingUsage.push(`${key} (${source})`)
+      }
+    }
+
+    expect(missingUsage).toEqual([])
   })
 })

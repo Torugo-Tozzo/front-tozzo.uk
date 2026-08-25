@@ -465,7 +465,13 @@
     "report": {
       "generateExcel": "Générer un fichier Excel",
       "generatePdf": "Générer un PDF",
+      "filename": "rapport",
       "generating": "Génération du rapport",
+      "generatingWithFormat": "Génération du rapport ({{format}})...",
+      "format": {
+        "excel": "Excel",
+        "pdf": "PDF"
+      },
       "viewStatus": "Voir le statut",
       "downloadFailed": "Échec du téléchargement du fichier après plusieurs tentatives",
       "generationFailed": "Erreur lors de la génération du rapport",
@@ -481,7 +487,8 @@
       "revenue": "Chiffre d'affaires",
       "salesCount": "Nombre de ventes",
       "revenueAndSales": "Chiffre d'affaires et ventes",
-      "salesPie": "Nombre de ventes (camembert)"
+      "salesPie": "Nombre de ventes (camembert)",
+      "pieLabel": "{{name}} {{value}}"
     },
     "summary": {
       "totalRevenue": "Chiffre d'affaires total",
@@ -502,7 +509,8 @@
       "sales": "Ventes",
       "revenue": "Chiffre d'affaires",
       "details": "Détails",
-      "more": "+{{count}} de plus..."
+      "more": "+{{count}} de plus...",
+      "label": "{{label}} :"
     }
   },
   "settings": {

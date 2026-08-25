@@ -38,7 +38,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
         const authenticatedUser: User = {
           id: decodedId,
-          name: decoded.name || 'Usuário',
+          name: decoded.name || '',
           email: decoded.email || '',
           role: normalizeRole(decoded.role),
           establishment: undefined,

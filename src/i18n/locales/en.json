@@ -465,7 +465,13 @@
     "report": {
       "generateExcel": "Generate Excel",
       "generatePdf": "Generate PDF",
+      "filename": "report",
       "generating": "Generating report",
+      "generatingWithFormat": "Generating report ({{format}})...",
+      "format": {
+        "excel": "Excel",
+        "pdf": "PDF"
+      },
       "viewStatus": "View status",
       "downloadFailed": "Failed to download the file after several attempts",
       "generationFailed": "Error generating the report",
@@ -481,7 +487,8 @@
       "revenue": "Revenue",
       "salesCount": "Number of sales",
       "revenueAndSales": "Revenue and sales",
-      "salesPie": "Number of sales (pie)"
+      "salesPie": "Number of sales (pie)",
+      "pieLabel": "{{name}} {{value}}"
     },
     "summary": {
       "totalRevenue": "Total revenue",
@@ -502,7 +509,8 @@
       "sales": "Sales",
       "revenue": "Revenue",
       "details": "Details",
-      "more": "+{{count}} more..."
+      "more": "+{{count}} more...",
+      "label": "{{label}}:"
     }
   },
   "settings": {

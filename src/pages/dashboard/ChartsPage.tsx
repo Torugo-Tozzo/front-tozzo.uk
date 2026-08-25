@@ -379,7 +379,7 @@ export default function ChartsPage() {
         const blob = response.data instanceof Blob ? response.data : new Blob([response.data])
         const link = document.createElement('a')
         link.href = window.URL.createObjectURL(blob)
-        link.download = filename || 'relatorio'
+        link.download = filename || tCharts("report.filename")
         document.body.appendChild(link)
         link.click()
         link.remove()
@@ -570,11 +570,10 @@ export default function ChartsPage() {
                 cx="50%"
                 cy="50%"
                 labelLine={false}
-                label={(entry: any) => entry.name + ' ' + formatChartValue(
-                  entry.percent ?? 0,
-                  activeLocale,
-                  'percent',
-                )}
+                label={(entry: any) => tCharts("visualization.pieLabel", {
+                  name: entry.name,
+                  value: formatChartValue(entry.percent ?? 0, activeLocale, 'percent'),
+                })}
                 outerRadius={150}
                 fill="#8884d8"
                 dataKey="sales"
@@ -622,8 +621,9 @@ export default function ChartsPage() {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="space-y-2">
-              <Label>{tCharts("filters.startDate")}</Label>
+              <Label htmlFor="charts-start-date">{tCharts("filters.startDate")}</Label>
               <Input
+                id="charts-start-date"
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
@@ -631,8 +631,9 @@ export default function ChartsPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label>{tCharts("filters.startTime")}</Label>
+              <Label htmlFor="charts-start-time">{tCharts("filters.startTime")}</Label>
               <Input
+                id="charts-start-time"
                 type="time"
                 value={startTime}
                 onChange={(e) => setStartTime(e.target.value)}
@@ -640,8 +641,9 @@ export default function ChartsPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label>{tCharts("filters.endDate")}</Label>
+              <Label htmlFor="charts-end-date">{tCharts("filters.endDate")}</Label>
               <Input
+                id="charts-end-date"
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
@@ -649,8 +651,9 @@ export default function ChartsPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label>{tCharts("filters.endTime")}</Label>
+              <Label htmlFor="charts-end-time">{tCharts("filters.endTime")}</Label>
               <Input
+                id="charts-end-time"
                 type="time"
                 value={endTime}
                 onChange={(e) => setEndTime(e.target.value)}
@@ -660,7 +663,7 @@ export default function ChartsPage() {
             <div className="space-y-2">
               <Label>{tCharts("filters.foodType")}</Label>
               <Select value={selectedTypeId} onValueChange={setSelectedTypeId} disabled={isLoading}>
-                <SelectTrigger>
+                <SelectTrigger aria-label={tCharts("filters.foodType")}>
                   <SelectValue placeholder={tCharts("filters.select")} />
                 </SelectTrigger>
                 <SelectContent>
@@ -699,7 +702,11 @@ export default function ChartsPage() {
             </div>
             {reportGeneratingType && (
               <div className="mt-2 text-sm text-muted-foreground">
-                {tCharts("report.generating")}{reportGeneratingType ? ` (${reportGeneratingType.toUpperCase()})` : ''}... {reportStatusUrl ? (
+                {tCharts("report.generatingWithFormat", {
+                  format: reportGeneratingType === "excel"
+                    ? tCharts("report.format.excel")
+                    : tCharts("report.format.pdf"),
+                })} {reportStatusUrl ? (
                   <a
                     className="underline"
                     href={reportStatusUrl?.startsWith('http') ? reportStatusUrl : window.location.origin + (reportStatusUrl || '')}
@@ -725,7 +732,7 @@ export default function ChartsPage() {
           <CardTitle>{tCharts("visualization.title")}</CardTitle>
           <div className="w-[200px]">
             <Select value={chartType} onValueChange={(value: any) => setChartType(value)} disabled={isLoading}>
-              <SelectTrigger>
+              <SelectTrigger aria-label={tCharts("visualization.title")}>
                 <SelectValue placeholder={tCharts("visualization.select")} />
               </SelectTrigger>
               <SelectContent>
@@ -864,8 +871,9 @@ export default function ChartsPage() {
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <Label>{tCharts("filters.startDate")}</Label>
+                  <Label htmlFor="charts-hourly-start-date">{tCharts("filters.startDate")}</Label>
                   <Input
+                    id="charts-hourly-start-date"
                     type="date"
                     value={salesByHourStartDate}
                     onChange={(e) => setSalesByHourStartDate(e.target.value)}
@@ -873,8 +881,9 @@ export default function ChartsPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>{tCharts("filters.endDate")}</Label>
+                  <Label htmlFor="charts-hourly-end-date">{tCharts("filters.endDate")}</Label>
                   <Input
+                    id="charts-hourly-end-date"
                     type="date"
                     value={salesByHourEndDate}
                     onChange={(e) => setSalesByHourEndDate(e.target.value)}
@@ -993,11 +1002,11 @@ export default function ChartsPage() {
                           return (
                             <div className="bg-white dark:bg-slate-800 p-3 rounded-lg shadow-lg border">
                               <p className="font-semibold mb-2">{label}</p>
-                              <p className="text-sm">{tCharts("tooltip.sales")}: <span className="font-medium">{formatCount(data.salesCount, recordCountMessages, activeLocale)}</span></p>
-                              <p className="text-sm">{tCharts("tooltip.revenue")}: <span className="font-medium">{formatCurrencyBRL(data.revenue, activeLocale)}</span></p>
+                              <p className="text-sm">{tCharts("tooltip.label", { label: tCharts("tooltip.sales") })} <span className="font-medium">{formatCount(data.salesCount, recordCountMessages, activeLocale)}</span></p>
+                              <p className="text-sm">{tCharts("tooltip.label", { label: tCharts("tooltip.revenue") })} <span className="font-medium">{formatCurrencyBRL(data.revenue, activeLocale)}</span></p>
                               {data.sales && data.sales.length > 0 && (
                                 <div className="mt-2 pt-2 border-t max-h-[150px] overflow-y-auto">
-                                  <p className="text-xs text-muted-foreground mb-1">{tCharts("tooltip.details")}:</p>
+                                  <p className="text-xs text-muted-foreground mb-1">{tCharts("tooltip.label", { label: tCharts("tooltip.details") })}</p>
                                   {data.sales.slice(0, 5).map((sale: any, idx: number) => (
                                     <div key={sale.id || idx} className="text-xs py-1 border-b last:border-b-0">
                                       <div className="flex justify-between">
