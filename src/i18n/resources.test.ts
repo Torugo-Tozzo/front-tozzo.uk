@@ -17,7 +17,7 @@ export type NumericResourceLeavesAreRejected = Assert<
   { value: number } extends I18nResource ? false : true
 >
 
-const expectedLocales = ['en', 'pt-BR', 'es', 'fr', 'zh', 'hi', 'ar'] as const
+const expectedLocales = ['en', 'pt-BR', 'es', 'fr', 'zh', 'hi'] as const
 const expectedNamespaces = [
   'common',
   'auth',

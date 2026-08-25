@@ -5,7 +5,6 @@ import es from './locales/es.json'
 import fr from './locales/fr.json'
 import zh from './locales/zh.json'
 import hi from './locales/hi.json'
-import ar from './locales/ar.json'
 
 export const NAMESPACES = [
   'common',
@@ -35,7 +34,6 @@ export const resources = {
   fr,
   zh,
   hi,
-  ar,
 } as const satisfies Record<SupportedLocale, Record<(typeof NAMESPACES)[number], I18nResource>>
 
 export type I18nResources = typeof resources

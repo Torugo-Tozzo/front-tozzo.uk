@@ -1,7 +1,6 @@
-export const SUPPORTED_LOCALES = ['en', 'pt-BR', 'es', 'fr', 'zh', 'hi', 'ar'] as const
+export const SUPPORTED_LOCALES = ['en', 'pt-BR', 'es', 'fr', 'zh', 'hi'] as const
 
 export type SupportedLocale = (typeof SUPPORTED_LOCALES)[number]
-export type LocaleDirection = 'ltr' | 'rtl'
 
 export const DEFAULT_LOCALE: SupportedLocale = 'en'
 export const LOCALE_STORAGE_KEY = 'tozzo.locale'
@@ -17,7 +16,6 @@ const localeByTag = new Map<string, SupportedLocale>([
   ['fr', 'fr'],
   ['zh', 'zh'],
   ['hi', 'hi'],
-  ['ar', 'ar'],
 ])
 
 function defaultStorage(): LocaleStorage | undefined {
@@ -46,10 +44,6 @@ function matchSupportedLocale(value: unknown): SupportedLocale | undefined {
 
 export function normalizeLocale(value: unknown): SupportedLocale {
   return matchSupportedLocale(value) ?? DEFAULT_LOCALE
-}
-
-export function getLocaleDirection(value: unknown): LocaleDirection {
-  return normalizeLocale(value) === 'ar' ? 'rtl' : 'ltr'
 }
 
 export function getStoredLocale(storage: LocaleStorage | undefined = defaultStorage()): SupportedLocale {

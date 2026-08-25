@@ -4,7 +4,6 @@ import { i18n } from './config'
 import {
   formatChartValue,
   formatCurrencyBRL,
-  formatCount,
   formatDate,
   formatNumber,
   formatPlural,
@@ -47,32 +46,6 @@ describe('active-locale helpers', () => {
     expect(formatChartValue(0.125, 'en', 'percent')).toBe(
       formatNumber(0.125, 'en', { style: 'percent', maximumFractionDigits: 0 }),
     )
-
-    await i18n.changeLanguage('ar')
-
-    expect(formatPageIndex(2, 10, 0)).toBe(formatNumber(11, 'ar'))
-    expect(formatChartValue(1234.5, 'ar', 'currency')).toBe(formatCurrencyBRL(1234.5, 'ar'))
-    expect(formatChartValue(0.125, 'ar', 'percent')).toBe(
-      formatNumber(0.125, 'ar', { style: 'percent', maximumFractionDigits: 0 }),
-    )
-  })
-
-  test('formats localized count messages with Arabic plural categories and digits', async () => {
-    await i18n.changeLanguage('ar')
-
-    const messages = {
-      zero: '{{count}} zero',
-      one: '{{count}} one',
-      two: '{{count}} two',
-      few: '{{count}} few',
-      many: '{{count}} many',
-      other: '{{count}} other',
-    }
-
-    expect(formatCount(0, messages)).toBe(`${formatNumber(0, 'ar')} zero`)
-    expect(formatCount(2, messages)).toBe(`${formatNumber(2, 'ar')} two`)
-    expect(formatCount(3, messages)).toBe(`${formatNumber(3, 'ar')} few`)
-    expect(formatCount(11, messages)).toBe(`${formatNumber(11, 'ar')} many`)
   })
 
   test('keeps the undefined-locale date overload options and timezone observable', async () => {

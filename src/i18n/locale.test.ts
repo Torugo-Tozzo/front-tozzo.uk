@@ -24,7 +24,6 @@ describe('locale foundation', () => {
     expect(locale.normalizeLocale('PT-br')).toBe('pt-BR')
     expect(locale.normalizeLocale('fr-CA')).toBe('fr')
     expect(locale.normalizeLocale('zh-CN')).toBe('zh')
-    expect(locale.normalizeLocale('ar-SA')).toBe('ar')
     expect(locale.normalizeLocale('xx')).toBe('en')
     expect(locale.normalizeLocale(undefined)).toBe('en')
   })
@@ -37,8 +36,8 @@ describe('locale foundation', () => {
     if (!locale) return
 
     expect(locale.getInitialLocale(storage)).toBe('es')
-    expect(locale.persistLocale('AR-eg', storage)).toBe('ar')
-    expect(storage.getItem('tozzo.locale')).toBe('ar')
+    expect(locale.persistLocale('ZH-cn', storage)).toBe('zh')
+    expect(storage.getItem('tozzo.locale')).toBe('zh')
   })
 
   test('checks browser language preferences in order before falling back to English', async () => {
@@ -47,7 +46,7 @@ describe('locale foundation', () => {
     expect(locale).not.toBeNull()
     if (!locale) return
 
-    expect(locale.getInitialLocale(makeStorage(), ['xx-YY', 'ar-SA'])).toBe('ar')
+    expect(locale.getInitialLocale(makeStorage(), ['xx-YY', 'zh-CN'])).toBe('zh')
     expect(locale.getInitialLocale(makeStorage(), ['fr-CA', 'pt-BR'])).toBe('fr')
   })
 
@@ -81,7 +80,7 @@ describe('locale foundation', () => {
     localStorage.removeItem('tozzo.locale')
     Object.defineProperty(navigator, 'languages', {
       configurable: true,
-      value: ['xx-YY', 'ar-SA'],
+      value: ['xx-YY', 'zh-CN'],
     })
     Object.defineProperty(navigator, 'language', {
       configurable: true,
@@ -89,7 +88,7 @@ describe('locale foundation', () => {
     })
 
     try {
-      expect(locale.getInitialLocale()).toBe('ar')
+      expect(locale.getInitialLocale()).toBe('zh')
     } finally {
       if (previousStored === null) localStorage.removeItem('tozzo.locale')
       else localStorage.setItem('tozzo.locale', previousStored)
@@ -102,15 +101,5 @@ describe('locale foundation', () => {
         value: previousLanguage,
       })
     }
-  })
-
-  test('exposes direction metadata without changing the supported locale set', async () => {
-    const locale = await import('./locale').catch(() => null)
-
-    expect(locale).not.toBeNull()
-    if (!locale) return
-
-    expect(locale.getLocaleDirection('ar')).toBe('rtl')
-    expect(locale.getLocaleDirection('pt-BR')).toBe('ltr')
   })
 })
