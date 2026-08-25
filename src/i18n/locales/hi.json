@@ -272,7 +272,58 @@
     "updateDescription": "उत्पाद का विवरण अपडेट करें।",
     "createTypeDescription": "मेनू व्यवस्थित करने के लिए उत्पाद प्रकार बनाएँ।",
     "updateTypeDescription": "उत्पाद प्रकार का विवरण अपडेट करें।",
-    "selectTypeWarning": "कृपया उत्पाद प्रकार चुनें।"
+    "selectTypeWarning": "कृपया उत्पाद प्रकार चुनें।",
+    "selection": {
+      "description": "उत्पाद चुनें और ग्राहक की जानकारी दर्ज करें।",
+      "clientPlaceholder": "उदाहरण: टेबल 10 या ग्राहक का नाम",
+      "available": "उपलब्ध उत्पाद",
+      "searchPlaceholder": "उत्पाद खोजें...",
+      "categoryPlaceholder": "श्रेणी",
+      "allCategories": "सभी श्रेणियाँ",
+      "noProducts": "कोई उत्पाद नहीं मिला।",
+      "selected": "चयनित आइटम",
+      "noItems": "कोई आइटम चयनित नहीं",
+      "units": "इकाइयाँ",
+      "statusPlaceholder": "स्थिति"
+    },
+    "confirm": {
+      "delete": "क्या आप वाकई इस उत्पाद को हटाना चाहते हैं?",
+      "toggle": "क्या आप वाकई इस प्रकार की स्थिति बदलना चाहते हैं?"
+    },
+    "managementTitle": "प्रबंधन",
+    "tabs": {
+      "products": "उत्पाद",
+      "types": "प्रकार"
+    },
+    "dialogs": {
+      "addProductTitle": "उत्पाद जोड़ें",
+      "addProductDescription": "मेनू में नया उत्पाद जोड़ने के लिए विवरण भरें।",
+      "addTypeTitle": "उत्पाद प्रकार जोड़ें",
+      "addTypeDescription": "मेनू को व्यवस्थित करने के लिए उत्पाद प्रकार बनाएँ।",
+      "editProductTitle": "उत्पाद संपादित करें",
+      "editProductDescription": "उत्पाद का विवरण अपडेट करें।",
+      "editTypeTitle": "प्रकार संपादित करें",
+      "editTypeDescription": "उत्पाद प्रकार का विवरण अपडेट करें।"
+    },
+    "forms": {
+      "pricePlaceholder": "0.00",
+      "typePlaceholder": "प्रकार चुनें",
+      "ingredientsPlaceholder": "अल्पविराम से अलग करें"
+    },
+    "newType": "नया प्रकार",
+    "table": {
+      "searchPlaceholder": "उत्पाद खोजें...",
+      "typesSearchPlaceholder": "प्रकार खोजें...",
+      "typesCaption": "पंजीकृत उत्पाद प्रकारों की सूची।",
+      "origin": "स्रोत",
+      "inactiveSuffix": "(निष्क्रिय)",
+      "systemOrigin": "सिस्टम डिफ़ॉल्ट",
+      "userOrigin": "उपयोगकर्ता द्वारा बनाया गया"
+    },
+    "accessibility": {
+      "activateType": "प्रकार सक्रिय करें",
+      "deactivateType": "प्रकार निष्क्रिय करें"
+    }
   },
   "employees": {
     "title": "कर्मचारी",
@@ -289,7 +340,27 @@
     "noResults": "कोई कर्मचारी नहीं मिला।",
     "createDescription": "सिस्टम तक पहुँच के लिए नया कर्मचारी पंजीकृत करें।",
     "updateDescription": "कर्मचारी का विवरण अपडेट करें।",
-    "leaveBlank": "वर्तमान पासवर्ड रखने के लिए खाली छोड़ें।"
+    "leaveBlank": "वर्तमान पासवर्ड रखने के लिए खाली छोड़ें।",
+    "confirm": {
+      "delete": "क्या आप वाकई इस कर्मचारी को हटाना चाहते हैं?"
+    },
+    "addButton": "नया कर्मचारी",
+    "dialog": {
+      "addTitle": "कर्मचारी जोड़ें",
+      "addDescription": "सिस्टम तक पहुँच के लिए नया कर्मचारी पंजीकृत करें।",
+      "editTitle": "कर्मचारी संपादित करें",
+      "editDescription": "कर्मचारी का विवरण अपडेट करें।"
+    },
+    "table": {
+      "searchPlaceholder": "कर्मचारी खोजें...",
+      "totalRecords": "कुल रिकॉर्ड: {{count}}"
+    },
+    "role": {
+      "owner": "मालिक",
+      "manager": "प्रबंधक",
+      "employee": "कर्मचारी",
+      "customer": "ग्राहक"
+    }
   },
   "charts": {
     "title": "रिपोर्ट",

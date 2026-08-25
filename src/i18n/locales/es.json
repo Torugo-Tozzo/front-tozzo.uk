@@ -272,7 +272,58 @@
     "updateDescription": "Actualiza los datos del producto.",
     "createTypeDescription": "Crea un tipo de producto para organizar el menú.",
     "updateTypeDescription": "Actualiza la descripción del tipo de producto.",
-    "selectTypeWarning": "Selecciona un tipo de producto."
+    "selectTypeWarning": "Selecciona un tipo de producto.",
+    "selection": {
+      "description": "Selecciona los productos e indica el cliente.",
+      "clientPlaceholder": "P. ej., Mesa 10 o nombre del cliente",
+      "available": "Productos disponibles",
+      "searchPlaceholder": "Buscar producto...",
+      "categoryPlaceholder": "Categoría",
+      "allCategories": "Todas las categorías",
+      "noProducts": "No se encontraron productos.",
+      "selected": "Artículos seleccionados",
+      "noItems": "No hay artículos seleccionados",
+      "units": "unidades",
+      "statusPlaceholder": "Estado"
+    },
+    "confirm": {
+      "delete": "¿Seguro que deseas eliminar este producto?",
+      "toggle": "¿Seguro que deseas cambiar el estado de este tipo?"
+    },
+    "managementTitle": "Gestión",
+    "tabs": {
+      "products": "Productos",
+      "types": "Tipos"
+    },
+    "dialogs": {
+      "addProductTitle": "Añadir producto",
+      "addProductDescription": "Completa los datos para añadir un producto nuevo al menú.",
+      "addTypeTitle": "Añadir tipo de producto",
+      "addTypeDescription": "Crea un tipo de producto para organizar el menú.",
+      "editProductTitle": "Editar producto",
+      "editProductDescription": "Actualiza los datos del producto.",
+      "editTypeTitle": "Editar tipo",
+      "editTypeDescription": "Actualiza la descripción del tipo de producto."
+    },
+    "forms": {
+      "pricePlaceholder": "0.00",
+      "typePlaceholder": "Selecciona el tipo",
+      "ingredientsPlaceholder": "Separa con comas"
+    },
+    "newType": "Nuevo tipo",
+    "table": {
+      "searchPlaceholder": "Buscar productos...",
+      "typesSearchPlaceholder": "Buscar tipos...",
+      "typesCaption": "Lista de tipos de productos registrados.",
+      "origin": "Origen",
+      "inactiveSuffix": "(inactivo)",
+      "systemOrigin": "Predeterminado del sistema",
+      "userOrigin": "Creado por el usuario"
+    },
+    "accessibility": {
+      "activateType": "Activar tipo",
+      "deactivateType": "Desactivar tipo"
+    }
   },
   "employees": {
     "title": "Empleados",
@@ -289,7 +340,27 @@
     "noResults": "No se encontraron empleados.",
     "createDescription": "Registra un empleado nuevo para acceder al sistema.",
     "updateDescription": "Actualiza los datos del empleado.",
-    "leaveBlank": "Déjalo vacío para conservar la contraseña actual."
+    "leaveBlank": "Déjalo vacío para conservar la contraseña actual.",
+    "confirm": {
+      "delete": "¿Seguro que deseas eliminar a este empleado?"
+    },
+    "addButton": "Nuevo empleado",
+    "dialog": {
+      "addTitle": "Añadir empleado",
+      "addDescription": "Registra un empleado nuevo para acceder al sistema.",
+      "editTitle": "Editar empleado",
+      "editDescription": "Actualiza los datos del empleado."
+    },
+    "table": {
+      "searchPlaceholder": "Buscar empleados...",
+      "totalRecords": "Total de registros: {{count}}"
+    },
+    "role": {
+      "owner": "Propietario",
+      "manager": "Gerente",
+      "employee": "Empleado",
+      "customer": "Cliente"
+    }
   },
   "charts": {
     "title": "Informes",

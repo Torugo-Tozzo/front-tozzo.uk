@@ -272,7 +272,58 @@
     "updateDescription": "Mettez à jour les informations du produit.",
     "createTypeDescription": "Créez un type de produit pour organiser le menu.",
     "updateTypeDescription": "Mettez à jour la description du type de produit.",
-    "selectTypeWarning": "Sélectionnez un type de produit."
+    "selectTypeWarning": "Sélectionnez un type de produit.",
+    "selection": {
+      "description": "Sélectionnez les produits et renseignez le client.",
+      "clientPlaceholder": "Ex. : Table 10 ou nom du client",
+      "available": "Produits disponibles",
+      "searchPlaceholder": "Rechercher un produit...",
+      "categoryPlaceholder": "Catégorie",
+      "allCategories": "Toutes les catégories",
+      "noProducts": "Aucun produit trouvé.",
+      "selected": "Articles sélectionnés",
+      "noItems": "Aucun article sélectionné",
+      "units": "unités",
+      "statusPlaceholder": "Statut"
+    },
+    "confirm": {
+      "delete": "Voulez-vous vraiment supprimer ce produit ?",
+      "toggle": "Voulez-vous vraiment modifier le statut de ce type ?"
+    },
+    "managementTitle": "Gestion",
+    "tabs": {
+      "products": "Produits",
+      "types": "Types"
+    },
+    "dialogs": {
+      "addProductTitle": "Ajouter un produit",
+      "addProductDescription": "Renseignez les informations pour ajouter un produit au menu.",
+      "addTypeTitle": "Ajouter un type de produit",
+      "addTypeDescription": "Créez un type de produit pour organiser le menu.",
+      "editProductTitle": "Modifier le produit",
+      "editProductDescription": "Mettez à jour les informations du produit.",
+      "editTypeTitle": "Modifier le type",
+      "editTypeDescription": "Mettez à jour la description du type de produit."
+    },
+    "forms": {
+      "pricePlaceholder": "0.00",
+      "typePlaceholder": "Sélectionnez le type",
+      "ingredientsPlaceholder": "Séparez par des virgules"
+    },
+    "newType": "Nouveau type",
+    "table": {
+      "searchPlaceholder": "Rechercher des produits...",
+      "typesSearchPlaceholder": "Rechercher des types...",
+      "typesCaption": "Liste des types de produits enregistrés.",
+      "origin": "Origine",
+      "inactiveSuffix": "(inactif)",
+      "systemOrigin": "Par défaut du système",
+      "userOrigin": "Créé par l'utilisateur"
+    },
+    "accessibility": {
+      "activateType": "Activer le type",
+      "deactivateType": "Désactiver le type"
+    }
   },
   "employees": {
     "title": "Employés",
@@ -289,7 +340,27 @@
     "noResults": "Aucun employé trouvé.",
     "createDescription": "Enregistrez un nouvel employé pour accéder au système.",
     "updateDescription": "Mettez à jour les informations de l'employé.",
-    "leaveBlank": "Laissez vide pour conserver le mot de passe actuel."
+    "leaveBlank": "Laissez vide pour conserver le mot de passe actuel.",
+    "confirm": {
+      "delete": "Voulez-vous vraiment supprimer cet employé ?"
+    },
+    "addButton": "Nouvel employé",
+    "dialog": {
+      "addTitle": "Ajouter un employé",
+      "addDescription": "Enregistrez un nouvel employé pour accéder au système.",
+      "editTitle": "Modifier l'employé",
+      "editDescription": "Mettez à jour les informations de l'employé."
+    },
+    "table": {
+      "searchPlaceholder": "Rechercher des employés...",
+      "totalRecords": "Total des enregistrements : {{count}}"
+    },
+    "role": {
+      "owner": "Propriétaire",
+      "manager": "Responsable",
+      "employee": "Employé",
+      "customer": "Client"
+    }
   },
   "charts": {
     "title": "Rapports",

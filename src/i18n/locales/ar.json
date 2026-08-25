@@ -272,7 +272,58 @@
     "updateDescription": "حدّث بيانات المنتج.",
     "createTypeDescription": "أنشئ نوع منتج لتنظيم القائمة.",
     "updateTypeDescription": "حدّث وصف نوع المنتج.",
-    "selectTypeWarning": "يرجى اختيار نوع المنتج."
+    "selectTypeWarning": "يرجى اختيار نوع المنتج.",
+    "selection": {
+      "description": "اختر المنتجات وأدخل بيانات العميل.",
+      "clientPlaceholder": "مثال: الطاولة 10 أو اسم العميل",
+      "available": "المنتجات المتاحة",
+      "searchPlaceholder": "بحث عن منتج...",
+      "categoryPlaceholder": "الفئة",
+      "allCategories": "جميع الفئات",
+      "noProducts": "لم يتم العثور على منتجات.",
+      "selected": "العناصر المحددة",
+      "noItems": "لم يتم تحديد أي عناصر",
+      "units": "الوحدات",
+      "statusPlaceholder": "الحالة"
+    },
+    "confirm": {
+      "delete": "هل أنت متأكد من رغبتك في حذف هذا المنتج؟",
+      "toggle": "هل أنت متأكد من رغبتك في تغيير حالة هذا النوع؟"
+    },
+    "managementTitle": "الإدارة",
+    "tabs": {
+      "products": "المنتجات",
+      "types": "الأنواع"
+    },
+    "dialogs": {
+      "addProductTitle": "إضافة منتج",
+      "addProductDescription": "املأ البيانات لإضافة منتج جديد إلى القائمة.",
+      "addTypeTitle": "إضافة نوع منتج",
+      "addTypeDescription": "أنشئ نوع منتج لتنظيم القائمة.",
+      "editProductTitle": "تعديل المنتج",
+      "editProductDescription": "حدّث بيانات المنتج.",
+      "editTypeTitle": "تعديل النوع",
+      "editTypeDescription": "حدّث وصف نوع المنتج."
+    },
+    "forms": {
+      "pricePlaceholder": "0.00",
+      "typePlaceholder": "اختر النوع",
+      "ingredientsPlaceholder": "افصل بفواصل"
+    },
+    "newType": "نوع جديد",
+    "table": {
+      "searchPlaceholder": "بحث عن منتجات...",
+      "typesSearchPlaceholder": "بحث عن أنواع...",
+      "typesCaption": "قائمة أنواع المنتجات المسجلة.",
+      "origin": "المصدر",
+      "inactiveSuffix": "(غير نشط)",
+      "systemOrigin": "الافتراضي للنظام",
+      "userOrigin": "أنشأه المستخدم"
+    },
+    "accessibility": {
+      "activateType": "تفعيل النوع",
+      "deactivateType": "تعطيل النوع"
+    }
   },
   "employees": {
     "title": "الموظفون",
@@ -289,7 +340,27 @@
     "noResults": "لم يتم العثور على موظفين.",
     "createDescription": "سجّل موظفاً جديداً للوصول إلى النظام.",
     "updateDescription": "حدّث بيانات الموظف.",
-    "leaveBlank": "اتركه فارغاً للاحتفاظ بكلمة المرور الحالية."
+    "leaveBlank": "اتركه فارغاً للاحتفاظ بكلمة المرور الحالية.",
+    "confirm": {
+      "delete": "هل أنت متأكد من رغبتك في حذف هذا الموظف؟"
+    },
+    "addButton": "موظف جديد",
+    "dialog": {
+      "addTitle": "إضافة موظف",
+      "addDescription": "سجّل موظفاً جديداً للوصول إلى النظام.",
+      "editTitle": "تعديل الموظف",
+      "editDescription": "حدّث بيانات الموظف."
+    },
+    "table": {
+      "searchPlaceholder": "بحث عن موظفين...",
+      "totalRecords": "إجمالي السجلات: {{count}}"
+    },
+    "role": {
+      "owner": "المالك",
+      "manager": "المدير",
+      "employee": "موظف",
+      "customer": "العميل"
+    }
   },
   "charts": {
     "title": "التقارير",

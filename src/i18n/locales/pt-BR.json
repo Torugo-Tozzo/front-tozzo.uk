@@ -272,7 +272,58 @@
     "updateDescription": "Atualize os dados do produto.",
     "createTypeDescription": "Cadastre um novo tipo de produto para organizar o cardápio.",
     "updateTypeDescription": "Atualize a descrição do tipo de produto.",
-    "selectTypeWarning": "Por favor, selecione um tipo de produto."
+    "selectTypeWarning": "Por favor, selecione um tipo de produto.",
+    "selection": {
+      "description": "Selecione os produtos e informe o cliente.",
+      "clientPlaceholder": "Ex.: Mesa 10 ou nome do cliente",
+      "available": "Produtos disponíveis",
+      "searchPlaceholder": "Buscar produto...",
+      "categoryPlaceholder": "Categoria",
+      "allCategories": "Todas as categorias",
+      "noProducts": "Nenhum produto encontrado.",
+      "selected": "Itens selecionados",
+      "noItems": "Nenhum item selecionado",
+      "units": "unidades",
+      "statusPlaceholder": "Status"
+    },
+    "confirm": {
+      "delete": "Tem certeza que deseja excluir este produto?",
+      "toggle": "Tem certeza que deseja alterar o status deste tipo?"
+    },
+    "managementTitle": "Gerenciamento",
+    "tabs": {
+      "products": "Produtos",
+      "types": "Tipos"
+    },
+    "dialogs": {
+      "addProductTitle": "Adicionar produto",
+      "addProductDescription": "Preencha os dados para cadastrar um novo produto no cardápio.",
+      "addTypeTitle": "Adicionar tipo de produto",
+      "addTypeDescription": "Cadastre um novo tipo de produto para categorizar o cardápio.",
+      "editProductTitle": "Editar produto",
+      "editProductDescription": "Atualize os dados do produto.",
+      "editTypeTitle": "Editar tipo",
+      "editTypeDescription": "Atualize a descrição do tipo de produto."
+    },
+    "forms": {
+      "pricePlaceholder": "0.00",
+      "typePlaceholder": "Selecione o tipo",
+      "ingredientsPlaceholder": "Separe por vírgulas"
+    },
+    "newType": "Novo tipo",
+    "table": {
+      "searchPlaceholder": "Buscar produtos...",
+      "typesSearchPlaceholder": "Buscar tipos...",
+      "typesCaption": "Lista de tipos de produtos cadastrados.",
+      "origin": "Origem",
+      "inactiveSuffix": "(inativo)",
+      "systemOrigin": "Padrão do sistema",
+      "userOrigin": "Criado pelo usuário"
+    },
+    "accessibility": {
+      "activateType": "Ativar tipo",
+      "deactivateType": "Inativar tipo"
+    }
   },
   "employees": {
     "title": "Funcionários",
@@ -289,7 +340,27 @@
     "noResults": "Nenhum funcionário encontrado.",
     "createDescription": "Cadastre um novo funcionário para acessar o sistema.",
     "updateDescription": "Atualize os dados do funcionário.",
-    "leaveBlank": "Deixe em branco para manter a senha atual."
+    "leaveBlank": "Deixe em branco para manter a senha atual.",
+    "confirm": {
+      "delete": "Tem certeza que deseja excluir este funcionário?"
+    },
+    "addButton": "Novo funcionário",
+    "dialog": {
+      "addTitle": "Adicionar funcionário",
+      "addDescription": "Cadastre um novo funcionário para acessar o sistema.",
+      "editTitle": "Editar funcionário",
+      "editDescription": "Atualize os dados do funcionário."
+    },
+    "table": {
+      "searchPlaceholder": "Buscar funcionários...",
+      "totalRecords": "Total de registros: {{count}}"
+    },
+    "role": {
+      "owner": "Dono",
+      "manager": "Gerente",
+      "employee": "Funcionário",
+      "customer": "Cliente"
+    }
   },
   "charts": {
     "title": "Relatórios",

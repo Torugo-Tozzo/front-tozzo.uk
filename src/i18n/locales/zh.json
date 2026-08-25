@@ -272,7 +272,58 @@
     "updateDescription": "更新产品信息。",
     "createTypeDescription": "创建产品类型以整理菜单。",
     "updateTypeDescription": "更新产品类型描述。",
-    "selectTypeWarning": "请选择产品类型。"
+    "selectTypeWarning": "请选择产品类型。",
+    "selection": {
+      "description": "请选择产品并填写客户信息。",
+      "clientPlaceholder": "例如：10号桌或客户姓名",
+      "available": "可用产品",
+      "searchPlaceholder": "搜索产品...",
+      "categoryPlaceholder": "类别",
+      "allCategories": "所有类别",
+      "noProducts": "未找到产品。",
+      "selected": "已选项目",
+      "noItems": "未选择任何项目",
+      "units": "单位",
+      "statusPlaceholder": "状态"
+    },
+    "confirm": {
+      "delete": "确定要删除此产品吗？",
+      "toggle": "确定要更改此类型的状态吗？"
+    },
+    "managementTitle": "管理",
+    "tabs": {
+      "products": "产品",
+      "types": "类型"
+    },
+    "dialogs": {
+      "addProductTitle": "添加产品",
+      "addProductDescription": "填写信息以向菜单添加新产品。",
+      "addTypeTitle": "添加产品类型",
+      "addTypeDescription": "创建产品类型以整理菜单。",
+      "editProductTitle": "编辑产品",
+      "editProductDescription": "更新产品信息。",
+      "editTypeTitle": "编辑类型",
+      "editTypeDescription": "更新产品类型描述。"
+    },
+    "forms": {
+      "pricePlaceholder": "0.00",
+      "typePlaceholder": "请选择类型",
+      "ingredientsPlaceholder": "用逗号分隔"
+    },
+    "newType": "新类型",
+    "table": {
+      "searchPlaceholder": "搜索产品...",
+      "typesSearchPlaceholder": "搜索类型...",
+      "typesCaption": "已登记的产品类型列表。",
+      "origin": "来源",
+      "inactiveSuffix": "（停用）",
+      "systemOrigin": "系统默认",
+      "userOrigin": "用户创建"
+    },
+    "accessibility": {
+      "activateType": "启用类型",
+      "deactivateType": "停用类型"
+    }
   },
   "employees": {
     "title": "员工",
@@ -289,7 +340,27 @@
     "noResults": "未找到员工。",
     "createDescription": "注册新员工以访问系统。",
     "updateDescription": "更新员工信息。",
-    "leaveBlank": "留空以保留当前密码。"
+    "leaveBlank": "留空以保留当前密码。",
+    "confirm": {
+      "delete": "确定要删除这名员工吗？"
+    },
+    "addButton": "新员工",
+    "dialog": {
+      "addTitle": "添加员工",
+      "addDescription": "注册新员工以访问系统。",
+      "editTitle": "编辑员工",
+      "editDescription": "更新员工信息。"
+    },
+    "table": {
+      "searchPlaceholder": "搜索员工...",
+      "totalRecords": "记录总数：{{count}}"
+    },
+    "role": {
+      "owner": "所有者",
+      "manager": "经理",
+      "employee": "员工",
+      "customer": "客户"
+    }
   },
   "charts": {
     "title": "报告",

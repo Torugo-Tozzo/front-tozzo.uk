@@ -471,3 +471,55 @@ i18n bundles OK: 7 locales, 14 namespaces
 ### Typecheck — saída exata
 
 Comando: `bunx tsc --noEmit` — exit 0, sem saída.
+
+## Fix round 6 — products/employees resource repair
+
+### Estado
+
+O lote T6-A de `products`/`employees` foi aplicado somente aos sete bundles
+locais (`en`, `pt-BR`, `es`, `fr`, `zh`, `hi` e `ar`). Foram adicionadas as 49
+folhas ausentes em cada locale: 37 folhas de `products` e 12 de `employees`,
+com traduções reais de chrome, labels, status, confirmações e erros. O
+placeholder `{{count}}` foi preservado em todos os totais de funcionários.
+Nenhum consumidor, tipo, outra família de namespace, dado de negócio,
+`audit-context/` ou `dev/main` foi alterado.
+
+A asserção ampla continua aberta para `charts`, `orders` e `sales`, conforme o
+brief; esta rodada verifica somente as famílias `products` e `employees`.
+
+### Verificação focada — saída exata
+
+Comando: `bun scripts\.t6a-products-employees-check.mjs`
+
+~~~text
+products/employees inventory GREEN: 7 locales, 62 unique leaves
+~~~
+
+### Checker de i18n — saída exata
+
+Comando: `bun run i18n:check`
+
+~~~text
+$ node scripts/check-i18n.mjs
+i18n bundles OK: 7 locales, 14 namespaces
+~~~
+
+### Typecheck — saída exata
+
+Comando: `bunx tsc --noEmit`
+
+~~~text
+(sem saída; exit 0)
+~~~
+
+### Self-review
+
+- `git diff --check -- src/i18n/locales`: exit 0.
+- O diff contém somente os sete JSONs locais; os valores existentes foram
+  preservados e as alterações ficam restritas às folhas ausentes em
+  `products`/`employees`.
+- Não foram adicionados nomes de produtos, ingredientes, estabelecimentos,
+  clientes ou descrições comerciais; apenas textos de interface foram
+  traduzidos.
+- `audit-context/` e `src/i18n/ui-inventory.test.ts` permaneceram fora do
+  staging, e `dev/main` não foram tocadas.
