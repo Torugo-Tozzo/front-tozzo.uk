@@ -237,6 +237,7 @@
   },
   "orders": {
     "title": "订单",
+    "pageTitle": "订单 — {{establishment}}",
     "recent": "最近订单",
     "new": "新订单",
     "edit": "编辑订单（添加项目）",
@@ -266,6 +267,7 @@
   },
   "sales": {
     "title": "销售",
+    "pageTitle": "销售 — {{establishment}}",
     "period": "期间销售",
     "new": "新销售",
     "details": "销售详情",
@@ -327,6 +329,11 @@
       "selected": "已选项目",
       "noItems": "未选择任何项目",
       "units": "单位",
+      "fallbackProduct": "产品",
+      "addProduct": "添加产品",
+      "decreaseQuantity": "减少数量",
+      "increaseQuantity": "增加数量",
+      "removeItem": "移除项目",
       "statusPlaceholder": "状态"
     },
     "confirm": {

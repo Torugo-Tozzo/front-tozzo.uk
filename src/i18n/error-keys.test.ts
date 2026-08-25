@@ -14,4 +14,11 @@ describe("structured API error outcomes", () => {
     expect(getErrorTranslationKey("registration", "AUTH_UNKNOWN")).toEqual({ namespace: "auth", key: "registerFailure" })
     expect(getErrorTranslationKey("payment", "PAYMENT_UNKNOWN")).toEqual({ namespace: "errors", key: "payment" })
   })
+
+  test("supports operation-specific dashboard outcomes without reading server text", () => {
+    expect(getErrorTranslationKey("saveOrder", "ORDER_LIMIT_REACHED")).toEqual({ namespace: "errors", key: "saveOrder" })
+    expect(getErrorTranslationKey("deleteOrder", "ORDER_NOT_FOUND")).toEqual({ namespace: "errors", key: "deleteOrder" })
+    expect(getErrorTranslationKey("createSale", "ORDER_NOT_FOUND")).toEqual({ namespace: "errors", key: "createSale" })
+    expect(getErrorTranslationKey("cancelSale", "SALE_NOT_FOUND")).toEqual({ namespace: "errors", key: "cancelSale" })
+  })
 })

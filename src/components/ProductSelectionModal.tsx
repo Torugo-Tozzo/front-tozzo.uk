@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Plus, Minus, Trash2, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
-import api, { getErrorMessage } from "@/services/api";
+import api, { getErrorCode } from "@/services/api";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useConfirm } from "@/contexts/ConfirmContext";
@@ -26,8 +26,9 @@ import {
 import type { Product, ProductType } from "@/domain/models";
 import type { OrderStatus } from "@/domain/models";
 import { formatCount, formatCurrencyBRL, formatNumber } from "@/i18n/format";
-import { getCatalogLabel } from "@/i18n/labels";
+import { getCatalogLabel, getStatusLabel } from "@/i18n/labels";
 import { normalizeLocale } from "@/i18n/locale";
+import { getErrorTranslationKey, type ErrorContext } from "@/i18n/error-keys";
 
 export type SelectedItem = {
   productId: number | string;
@@ -70,15 +71,27 @@ export function ProductSelectionModal({
   readOnly = false,
 }: ProductSelectionModalProps) {
   const confirm = useConfirm();
-  const { i18n, t } = useTranslation();
+  const { i18n } = useTranslation();
+  const { t: tAuth } = useTranslation("auth");
+  const { t: tCommon } = useTranslation("common");
+  const { t: tErrors } = useTranslation("errors");
+  const { t: tOrders } = useTranslation("orders");
+  const { t: tProducts } = useTranslation("products");
+  const { t: tSales } = useTranslation("sales");
   const activeLocale = normalizeLocale(i18n.language);
+  const localizedError = (context: ErrorContext, error: unknown) => {
+    const translation = getErrorTranslationKey(context, getErrorCode(error));
+    return translation.namespace === "auth"
+      ? tAuth(translation.key)
+      : tErrors(translation.key);
+  };
   const unitCountMessages = {
-    zero: t("unitCount.zero"),
-    one: t("unitCount.one"),
-    two: t("unitCount.two"),
-    few: t("unitCount.few"),
-    many: t("unitCount.many"),
-    other: t("unitCount.other"),
+    zero: tCommon("unitCount.zero"),
+    one: tCommon("unitCount.one"),
+    two: tCommon("unitCount.two"),
+    few: tCommon("unitCount.few"),
+    many: tCommon("unitCount.many"),
+    other: tCommon("unitCount.other"),
   };
   const [products, setProducts] = useState<Product[]>([]);
   const [productsTotal, setProductsTotal] = useState(0);
@@ -123,7 +136,7 @@ export function ProductSelectionModal({
           return {
             productId: item.productId,
             quantity: item.quantity,
-            name: item.name ?? "Produto",
+            name: item.name ?? tProducts("selection.fallbackProduct"),
             price,
             unitPrice: item.unitPrice != null ? Number(item.unitPrice) : price,
           };
@@ -143,7 +156,10 @@ export function ProductSelectionModal({
         const types = Array.isArray(payload) ? payload : payload?.types ?? payload?.data ?? [];
         setProductTypes(types);
       })
-      .catch((error) => console.error("Error fetching product types", error));
+      .catch((error) => {
+        console.error("Error fetching product types", error);
+        toast.error(localizedError("loadProductTypes", error));
+      });
   }, [isOpen]);
 
   // Busca produtos no servidor - nunca carrega o catalogo inteiro, so a
@@ -168,6 +184,7 @@ export function ProductSelectionModal({
       setProductsTotal(payload?.total ?? payload?.count ?? (totalHeader ? parseInt(totalHeader, 10) : data.length));
     } catch (error) {
       console.error("Error fetching products", error);
+      toast.error(localizedError("loadProducts", error));
     } finally {
       setIsProductsLoading(false);
     }
@@ -223,7 +240,7 @@ export function ProductSelectionModal({
 
   const handleConfirm = async () => {
     if (selectedItems.length === 0 && !isEditing) {
-      toast.warning("Selecione pelo menos um produto.");
+      toast.warning(tErrors("products.selectItems"));
       return;
     }
 
@@ -253,16 +270,16 @@ export function ProductSelectionModal({
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>
-            Selecione os produtos e informe o cliente.
+            {tProducts("selection.description")}
           </DialogDescription>
         </DialogHeader>
 
         <div className="flex-1 overflow-y-auto py-4 space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="client">Cliente / Mesa</Label>
+            <Label htmlFor="client">{tCommon("customer")}</Label>
             <Input
               id="client"
-              placeholder="Ex: Mesa 10 ou João"
+              placeholder={tProducts("selection.clientPlaceholder")}
               value={clientName}
               onChange={(e) => setClientName(e.target.value)}
               disabled={readOnly}
@@ -273,20 +290,20 @@ export function ProductSelectionModal({
             {/* Product List */}
             {!readOnly && (
               <div className="space-y-4 border rounded-lg p-4">
-                <h3 className="font-semibold">Produtos Disponíveis</h3>
+                <h3 className="font-semibold">{tProducts("selection.available")}</h3>
                 <div className="flex gap-2">
                   <Input
-                    placeholder="Buscar produto..."
+                    placeholder={tProducts("selection.searchPlaceholder")}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="flex-1"
                   />
                   <Select value={productTypeFilter || "all"} onValueChange={(val) => setProductTypeFilter(val === "all" ? "" : val)}>
-                    <SelectTrigger className="w-[150px]">
-                      <SelectValue placeholder="Categoria" />
+                    <SelectTrigger className="w-[150px]" aria-label={tProducts("selection.categoryPlaceholder")}>
+                      <SelectValue placeholder={tProducts("selection.categoryPlaceholder")} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">Todas categorias</SelectItem>
+                      <SelectItem value="all">{tProducts("selection.allCategories")}</SelectItem>
                       {productTypes.map((productType) => (
                         <SelectItem key={productType.id} value={String(productType.id)}>
                           {getCatalogLabel(productType.id, productType.description, activeLocale)}
@@ -307,7 +324,7 @@ export function ProductSelectionModal({
                       </div>
                     ))
                   ) : products.length === 0 ? (
-                    <p className="text-gray-500 dark:text-gray-400 text-center py-8">Nenhum produto encontrado.</p>
+                    <p className="text-gray-500 dark:text-gray-400 text-center py-8">{tProducts("selection.noProducts")}</p>
                   ) : (
                     <div
                       key={`${productsPage}-${searchTerm}-${productTypeFilter}`}
@@ -323,7 +340,7 @@ export function ProductSelectionModal({
                             <p className="font-medium">{product.name}</p>
                             <p className="text-sm text-gray-500">{formatCurrencyBRL(Number(product.price || 0), activeLocale)}</p>
                           </div>
-                          <Button size="sm" variant="ghost">
+                          <Button size="sm" variant="ghost" aria-label={tProducts("selection.addProduct")}>
                             <Plus className="h-4 w-4" />
                           </Button>
                         </div>
@@ -335,7 +352,7 @@ export function ProductSelectionModal({
                     o painel muda de altura ao trocar categoria e o modal "pula". */}
                 <div className="flex items-center justify-between pt-1 h-7">
                   <span className="text-xs text-muted-foreground">
-                    {productsTotalPages > 0 && t("pageOf", {
+                    {productsTotalPages > 0 && tCommon("pageOf", {
                       page: formatNumber(productsPage, activeLocale),
                       total: formatNumber(productsTotalPages, activeLocale),
                     })}
@@ -345,6 +362,8 @@ export function ProductSelectionModal({
                       size="icon"
                       variant="outline"
                       className="h-7 w-7"
+                      aria-label={tCommon("previous")}
+                      title={tCommon("previous")}
                       onClick={() => fetchProductsPage(productsPage - 1)}
                       disabled={productsPage <= 1 || isProductsLoading}
                     >
@@ -354,6 +373,8 @@ export function ProductSelectionModal({
                       size="icon"
                       variant="outline"
                       className="h-7 w-7"
+                      aria-label={tCommon("next")}
+                      title={tCommon("next")}
                       onClick={() => fetchProductsPage(productsPage + 1)}
                       disabled={productsPage >= productsTotalPages || isProductsLoading}
                     >
@@ -366,10 +387,10 @@ export function ProductSelectionModal({
 
             {/* Selected Items */}
             <div className="space-y-4 border rounded-lg p-4 bg-gray-50 dark:bg-gray-900/50">
-              <h3 className="font-semibold">Itens Selecionados</h3>
+              <h3 className="font-semibold">{tProducts("selection.selected")}</h3>
               <div className="h-[300px] overflow-y-auto space-y-2">
                 {selectedItems.length === 0 ? (
-                    <p className="text-gray-500 dark:text-gray-400 text-center py-8">Nenhum item selecionado</p>
+                    <p className="text-gray-500 dark:text-gray-400 text-center py-8">{tProducts("selection.noItems")}</p>
                   ) : (
                     selectedItems.map((item) => (
                       <div key={item.productId} className="flex items-center justify-between p-2 bg-white dark:bg-gray-800 rounded shadow-sm border dark:border-gray-700">
@@ -389,6 +410,8 @@ export function ProductSelectionModal({
                                 size="icon"
                                 variant="outline"
                                 className="h-6 w-6"
+                                aria-label={tProducts("selection.decreaseQuantity")}
+                                title={tProducts("selection.decreaseQuantity")}
                                 onClick={() => handleUpdateQuantity(item.productId, -1)}
                               >
                                 <Minus className="h-3 w-3" />
@@ -398,6 +421,8 @@ export function ProductSelectionModal({
                                 size="icon"
                                 variant="outline"
                                 className="h-6 w-6"
+                                aria-label={tProducts("selection.increaseQuantity")}
+                                title={tProducts("selection.increaseQuantity")}
                                 onClick={() => handleUpdateQuantity(item.productId, 1)}
                               >
                                 <Plus className="h-3 w-3" />
@@ -406,6 +431,8 @@ export function ProductSelectionModal({
                                 size="icon"
                                 variant="ghost"
                                 className="h-6 w-6 text-red-500"
+                                aria-label={tProducts("selection.removeItem")}
+                                title={tProducts("selection.removeItem")}
                                 onClick={() => handleRemoveItem(item.productId)}
                               >
                                 <Trash2 className="h-4 w-4" />
@@ -422,7 +449,7 @@ export function ProductSelectionModal({
                   )}
               </div>
               <div className="pt-4 border-t flex justify-between items-center font-bold text-lg text-gray-900 dark:text-gray-100">
-                <span>Total:</span>
+                <span>{tCommon("total")}:</span>
                 <span>{formatCurrencyBRL(total, activeLocale)}</span>
               </div>
             </div>
@@ -436,7 +463,7 @@ export function ProductSelectionModal({
                   value={status}
                   onValueChange={async (val) => {
                     if (val === status) return
-                    if (!(await confirm('Tem certeza que deseja alterar o status do pedido?'))) return
+                    if (!(await confirm(tOrders("confirm.changeStatus")))) return
                     setIsClosingOrder(true)
                     try {
                       if (onChangeStatus) {
@@ -447,20 +474,20 @@ export function ProductSelectionModal({
                       setStatus(val as OrderStatus)
                     } catch (err) {
                       console.error('Error changing status', err)
-                      toast.error(getErrorMessage(err, 'Erro ao alterar status do pedido'))
+                      toast.error(localizedError("changeOrderStatus", err))
                     } finally {
                       setIsClosingOrder(false)
                     }
                   }}
                 >
-                  <SelectTrigger className="w-[200px]">
-                    <SelectValue placeholder="Status" />
+                  <SelectTrigger className="w-[200px]" aria-label={tProducts("selection.statusPlaceholder")}>
+                    <SelectValue placeholder={tProducts("selection.statusPlaceholder")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="OPEN">Aberto</SelectItem>
-                    <SelectItem value="IN_PREPARATION">Em Preparo</SelectItem>
-                    <SelectItem value="DELIVERING">Entregando</SelectItem>
-                    <SelectItem value="CLOSED">Fechado</SelectItem>
+                    <SelectItem value="OPEN">{getStatusLabel("OPEN", activeLocale)}</SelectItem>
+                    <SelectItem value="IN_PREPARATION">{getStatusLabel("IN_PREPARATION", activeLocale)}</SelectItem>
+                    <SelectItem value="DELIVERING">{getStatusLabel("DELIVERING", activeLocale)}</SelectItem>
+                    <SelectItem value="CLOSED">{getStatusLabel("CLOSED", activeLocale)}</SelectItem>
                   </SelectContent>
                 </Select>
                 {isClosingOrder && <Loader2 className="h-4 w-4 animate-spin" />}
@@ -474,14 +501,18 @@ export function ProductSelectionModal({
                   variant="ghost"
                   className="text-destructive hover:text-destructive"
                   onClick={async () => {
-                    if (!(await confirm({ description: 'Tem certeza que deseja cancelar esta venda?', confirmLabel: 'Cancelar venda', destructive: true }))) return
+                    if (!(await confirm({
+                      description: tSales("confirm.cancel"),
+                      confirmLabel: tSales("cancel"),
+                      destructive: true,
+                    }))) return
                     setIsCancellingSale(true)
                     try {
                       await onCancelSale()
                       onClose()
                     } catch (err) {
                       console.error('Error cancelling sale', err)
-                      toast.error(getErrorMessage(err, 'Erro ao cancelar venda'))
+                      toast.error(localizedError("cancelSale", err))
                     } finally {
                       setIsCancellingSale(false)
                     }
@@ -491,26 +522,26 @@ export function ProductSelectionModal({
                   {isCancellingSale ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Cancelando...
+                      {tSales("cancelling")}
                     </>
                   ) : (
-                    'Cancelar Venda'
+                    tSales("cancelButton")
                   )}
                 </Button>
               </div>
             )}
             <Button variant="outline" onClick={onClose} disabled={isLoading || isClosingOrder}>
-              {readOnly ? "Fechar" : "Cancelar"}
+              {readOnly ? tCommon("close") : tCommon("cancel")}
             </Button>
             {!readOnly && (
               <Button onClick={handleConfirm} disabled={isLoading || isClosingOrder}>
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Salvando...
+                    {tCommon("saving")}
                   </>
                 ) : (
-                  "Confirmar"
+                  tCommon("confirm")
                 )}
               </Button>
             )}

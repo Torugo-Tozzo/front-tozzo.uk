@@ -13,7 +13,7 @@ import { StatusSelect } from "@/components/ui/status-select"
 import { IconButton } from "@/components/ui/icon-button"
 import { FiltersBar } from "@/components/dashboard/FiltersBar"
 import { Printer, Pencil, Trash2, Loader2 } from "lucide-react"
-import api, { getErrorMessage } from "@/services/api"
+import api, { getErrorCode } from "@/services/api"
 import { parseListResponse } from "@/services/parseResponse"
 import { toast } from "sonner"
 import { ProductSelectionModal } from "@/components/ProductSelectionModal"
@@ -25,6 +25,7 @@ import { useConfirm } from "@/contexts/ConfirmContext"
 import { getStatusColor, getStatusLabel, type OrderStatus, type OrderStatusFilter } from "@/lib/status"
 import { formatCurrencyBRL, formatDateTime, formatNumber } from "@/i18n/format"
 import { normalizeLocale } from "@/i18n/locale"
+import { getErrorTranslationKey, type ErrorContext } from "@/i18n/error-keys"
 import type { Order, OrderItem } from "@/domain/models"
 
 type OrderFilters = {
@@ -48,9 +49,9 @@ function isOrdersEqual(a: Order[], b: Order[]) {
   return true
 }
 
-function formatItemsSummary(items?: OrderItem[], locale?: string): string {
+function formatItemsSummary(items?: OrderItem[], locale?: string, fallbackProduct?: string): string {
   if (!items || items.length === 0) return ""
-  return items.map((item) => formatNumber(item.quantity, locale) + "x " + (item.product?.name ?? "Produto")).join(", ")
+  return items.map((item) => formatNumber(item.quantity, locale) + "x " + (item.product?.name ?? fallbackProduct)).join(", ")
 }
 
 function buildOrderParams(page: number, limit: number, f: OrderFilters) {
@@ -65,7 +66,18 @@ function buildOrderParams(page: number, limit: number, f: OrderFilters) {
 
 export function PedidosTab() {
   const { i18n } = useTranslation()
+  const { t: tAuth } = useTranslation("auth")
+  const { t: tCommon } = useTranslation("common")
+  const { t: tErrors } = useTranslation("errors")
+  const { t: tOrders } = useTranslation("orders")
+  const { t: tPrinter } = useTranslation("printer")
   const activeLocale = normalizeLocale(i18n.language)
+  const localizedError = (context: ErrorContext, error: unknown) => {
+    const translation = getErrorTranslationKey(context, getErrorCode(error))
+    return translation.namespace === "auth"
+      ? tAuth(translation.key)
+      : tErrors(translation.key)
+  }
   const confirm = useConfirm()
   const [page, setPage] = useState<number>(1)
   const [limit, setLimit] = useState<number>(10)
@@ -130,6 +142,7 @@ export function PedidosTab() {
       }
     } catch (error) {
       console.error("Error fetching orders", error)
+      toast.error(localizedError("loadOrders", error))
     } finally {
       setIsLoading(false)
     }
@@ -241,6 +254,7 @@ export function PedidosTab() {
       }
     } catch (error) {
       console.error("Error fetching order details", error)
+      toast.error(localizedError("loadOrders", error))
       setCurrentOrderItems([])
     }
     setIsModalOpen(true)
@@ -258,32 +272,32 @@ export function PedidosTab() {
       setIsModalOpen(false)
     } catch (error) {
       console.error("Error saving order", error)
-      toast.error(getErrorMessage(error, "Erro ao salvar pedido"))
+      toast.error(localizedError("saveOrder", error))
     }
   }
 
   const handleDeleteOrder = async (id: number | string) => {
-    if (!(await confirm({ description: "Tem certeza que deseja excluir este pedido?", confirmLabel: "Excluir", destructive: true }))) return
+    if (!(await confirm({ description: tOrders("confirm.delete"), confirmLabel: tCommon("delete"), destructive: true }))) return
     setDeletingId(id)
     try {
       await api.delete(`/pedidos/${id}`)
       fetchOrders()
     } catch (error) {
       console.error("Error deleting order", error)
-      toast.error(getErrorMessage(error, "Erro ao excluir pedido"))
+      toast.error(localizedError("deleteOrder", error))
     } finally {
       setDeletingId(null)
     }
   }
 
   const handleCloseOrder = async (id: number | string) => {
-    if (!(await confirm("Tem certeza que deseja fechar este pedido? Ele será transformado em venda."))) return
+    if (!(await confirm(tOrders("confirm.close")))) return
     try {
       await api.post(`/pedidos/${id}/status`, { status: 'CLOSED' })
       fetchOrders()
     } catch (error) {
       console.error("Error closing order", error)
-      toast.error(getErrorMessage(error, "Erro ao fechar pedido"))
+      toast.error(localizedError("closeOrder", error))
     }
   }
 
@@ -294,7 +308,7 @@ export function PedidosTab() {
       fetchOrders()
     } catch (error) {
       console.error('Error updating order status', error)
-      toast.error(getErrorMessage(error, 'Erro ao atualizar status do pedido'))
+      toast.error(localizedError("changeOrderStatus", error))
     } finally {
       setUpdatingStatusId(null)
     }
@@ -307,7 +321,7 @@ export function PedidosTab() {
         customerName={{ value: customerName, onChange: setCustomerName }}
         createdBy={{ value: createdBy, onChange: setCreatedBy }}
         totalRange={{ min: totalMin, max: totalMax, onMinChange: setTotalMin, onMaxChange: setTotalMax }}
-        primaryAction={{ label: "Novo Pedido", onClick: handleOpenCreateModal }}
+        primaryAction={{ label: tOrders("new"), onClick: handleOpenCreateModal }}
         onFilter={handleApplyFilters}
         isLoading={isLoading}
       />
@@ -316,7 +330,7 @@ export function PedidosTab() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onConfirm={handleModalConfirm}
-        title={currentOrder ? "Editar Pedido (Adicionar Itens)" : "Novo Pedido"}
+        title={currentOrder ? tOrders("edit") : tOrders("new")}
         initialClientName={currentOrder?.customerName || ""}
         initialItems={currentOrderItems}
         isEditing={!!currentOrder}
@@ -327,19 +341,20 @@ export function PedidosTab() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Pedidos Recentes</CardTitle>
+          <CardTitle>{tOrders("recent")}</CardTitle>
         </CardHeader>
         <CardContent>
+          <span className="sr-only" role="status">{showSkeleton ? tCommon("loading") : ""}</span>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[50px] text-center">#</TableHead>
-                <TableHead>Cliente / Mesa</TableHead>
-                <TableHead>Criado por</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Data</TableHead>
-                <TableHead className="text-right">Total</TableHead>
-                <TableHead className="text-right">Ações</TableHead>
+                <TableHead className="w-[50px] text-center">{tCommon("index")}</TableHead>
+                <TableHead>{tCommon("customer")}</TableHead>
+                <TableHead>{tCommon("createdBy")}</TableHead>
+                <TableHead>{tCommon("status")}</TableHead>
+                <TableHead>{tCommon("date")}</TableHead>
+                <TableHead className="text-right">{tCommon("total")}</TableHead>
+                <TableHead className="text-right">{tCommon("actions.label")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -362,7 +377,7 @@ export function PedidosTab() {
               ) : orders.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
-                    Nenhum pedido encontrado.
+                    {tOrders("empty")}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -370,13 +385,13 @@ export function PedidosTab() {
                   <TableRow key={order.id} accentColor={getStatusColor(order.status)} className="animate-in fade-in-0 duration-300">
                     <TableCell className="text-center">{formatNumber((page - 1) * limit + index + 1, activeLocale)}</TableCell>
                     <TableCell>
-                      <div className="font-medium">{order.customerName || "Não Informado"}</div>
-                      {formatItemsSummary(order.items, activeLocale) && (
+                      <div className="font-medium">{order.customerName || tCommon("notInformed")}</div>
+                      {formatItemsSummary(order.items, activeLocale, tOrders("fallback.product")) && (
                         <div
                           className="text-sm text-muted-foreground truncate max-w-[280px]"
-                          title={formatItemsSummary(order.items, activeLocale)}
+                          title={formatItemsSummary(order.items, activeLocale, tOrders("fallback.product"))}
                         >
-                          {formatItemsSummary(order.items, activeLocale)}
+                          {formatItemsSummary(order.items, activeLocale, tOrders("fallback.product"))}
                         </div>
                       )}
                     </TableCell>
@@ -387,7 +402,7 @@ export function PedidosTab() {
                           value={order.status}
                           disabled={order.status === 'CLOSED' || updatingStatusId === order.id}
                           onValueChange={async (val) => {
-                            if (!(await confirm('Tem certeza que deseja alterar o status do pedido?'))) return
+                            if (!(await confirm(tOrders("confirm.changeStatus")))) return
                             handleChangeStatus(order.id, val)
                           }}
                         />
@@ -400,11 +415,11 @@ export function PedidosTab() {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
-                        <IconButton icon={<Printer className="h-4 w-4" />} label="Impressão (em breve)" disabled />
-                        <IconButton icon={<Pencil className="h-4 w-4" />} label="Editar pedido" onClick={() => handleEditClick(order)} />
+                        <IconButton icon={<Printer className="h-4 w-4" />} label={tPrinter("printSoon")} disabled />
+                        <IconButton icon={<Pencil className="h-4 w-4" />} label={tOrders("editLabel")} onClick={() => handleEditClick(order)} />
                         <IconButton
                           icon={deletingId === order.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
-                          label="Excluir pedido"
+                          label={tOrders("deleteLabel")}
                           className="text-destructive hover:text-destructive"
                           onClick={() => handleDeleteOrder(order.id)}
                           disabled={deletingId === order.id}

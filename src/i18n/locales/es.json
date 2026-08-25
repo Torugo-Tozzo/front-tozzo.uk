@@ -237,6 +237,7 @@
   },
   "orders": {
     "title": "Pedidos",
+    "pageTitle": "Pedidos — {{establishment}}",
     "recent": "Pedidos recientes",
     "new": "Nuevo pedido",
     "edit": "Editar pedido (añadir artículos)",
@@ -266,6 +267,7 @@
   },
   "sales": {
     "title": "Ventas",
+    "pageTitle": "Ventas — {{establishment}}",
     "period": "Ventas del período",
     "new": "Nueva venta",
     "details": "Detalles de la venta",
@@ -327,6 +329,11 @@
       "selected": "Artículos seleccionados",
       "noItems": "No hay artículos seleccionados",
       "units": "unidades",
+      "fallbackProduct": "Producto",
+      "addProduct": "Agregar producto",
+      "decreaseQuantity": "Disminuir cantidad",
+      "increaseQuantity": "Aumentar cantidad",
+      "removeItem": "Eliminar elemento",
       "statusPlaceholder": "Estado"
     },
     "confirm": {

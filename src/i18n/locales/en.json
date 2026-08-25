@@ -237,6 +237,7 @@
   },
   "orders": {
     "title": "Orders",
+    "pageTitle": "Orders — {{establishment}}",
     "recent": "Recent orders",
     "new": "New order",
     "edit": "Edit order (add items)",
@@ -266,6 +267,7 @@
   },
   "sales": {
     "title": "Sales",
+    "pageTitle": "Sales — {{establishment}}",
     "period": "Sales for the period",
     "new": "New sale",
     "details": "Sale details",
@@ -327,6 +329,11 @@
       "selected": "Selected items",
       "noItems": "No items selected",
       "units": "units",
+      "fallbackProduct": "Product",
+      "addProduct": "Add product",
+      "decreaseQuantity": "Decrease quantity",
+      "increaseQuantity": "Increase quantity",
+      "removeItem": "Remove item",
       "statusPlaceholder": "Status"
     },
     "confirm": {

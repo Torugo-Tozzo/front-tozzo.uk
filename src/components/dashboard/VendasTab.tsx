@@ -12,7 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { IconButton } from "@/components/ui/icon-button"
 import { FiltersBar } from "@/components/dashboard/FiltersBar"
 import { Printer, Eye, Loader2 } from "lucide-react"
-import api, { getErrorMessage } from "@/services/api"
+import api, { getErrorCode } from "@/services/api"
 import { parseListResponse } from "@/services/parseResponse"
 import { toast } from "sonner"
 import { useRealtimeEvents } from "@/hooks/useRealtimeEvents"
@@ -21,8 +21,9 @@ import { ProductSelectionModal } from "@/components/ProductSelectionModal"
 import { Pagination } from "@/components/Pagination"
 import { Skeleton } from "@/components/ui/skeleton"
 import { getStatusColor } from "@/lib/status"
-import { formatCount, formatCurrencyBRL, formatDateTime, formatNumber } from "@/i18n/format"
+import { formatCurrencyBRL, formatDateTime, formatNumber } from "@/i18n/format"
 import { normalizeLocale } from "@/i18n/locale"
+import { getErrorTranslationKey, type ErrorContext } from "@/i18n/error-keys"
 import type { Sale, SaleItem } from "@/domain/models"
 
 type SaleFilters = {
@@ -48,9 +49,9 @@ function isSalesEqual(a: Sale[], b: Sale[]) {
   return true
 }
 
-function formatItemsSummary(items?: SaleItem[], locale?: string): string {
+function formatItemsSummary(items?: SaleItem[], locale?: string, fallbackProduct?: string): string {
   if (!items || items.length === 0) return ""
-  return items.map((item) => formatNumber(item.quantity, locale) + "x " + (item.product?.name ?? "Produto")).join(", ")
+  return items.map((item) => formatNumber(item.quantity, locale) + "x " + (item.product?.name ?? fallbackProduct)).join(", ")
 }
 
 function buildSaleParams(page: number, limit: number, f: SaleFilters) {
@@ -65,15 +66,18 @@ function buildSaleParams(page: number, limit: number, f: SaleFilters) {
 }
 
 export function VendasTab() {
-  const { i18n, t } = useTranslation()
+  const { i18n } = useTranslation()
+  const { t: tAuth } = useTranslation("auth")
+  const { t: tCommon } = useTranslation("common")
+  const { t: tErrors } = useTranslation("errors")
+  const { t: tPrinter } = useTranslation("printer")
+  const { t: tSales } = useTranslation("sales")
   const activeLocale = normalizeLocale(i18n.language)
-  const recordCountMessages = {
-    zero: t('recordCount.zero'),
-    one: t('recordCount.one'),
-    two: t('recordCount.two'),
-    few: t('recordCount.few'),
-    many: t('recordCount.many'),
-    other: t('recordCount.other'),
+  const localizedError = (context: ErrorContext, error: unknown) => {
+    const translation = getErrorTranslationKey(context, getErrorCode(error))
+    return translation.namespace === "auth"
+      ? tAuth(translation.key)
+      : tErrors(translation.key)
   }
   const [sales, setSales] = useState<Sale[]>([])
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -150,6 +154,7 @@ export function VendasTab() {
       }
     } catch (error) {
       console.error("Error fetching sales", error)
+      toast.error(localizedError("loadSales", error))
     } finally {
       setIsLoading(false)
     }
@@ -239,7 +244,7 @@ export function VendasTab() {
       setIsModalOpen(false)
     } catch (error) {
       console.error("Error creating sale", error)
-      toast.error(getErrorMessage(error, "Erro ao criar venda"))
+      toast.error(localizedError("createSale", error))
     } finally {
       setIsLoading(false)
     }
@@ -266,7 +271,7 @@ export function VendasTab() {
       setIsModalOpen(true)
     } catch (error) {
       console.error("Error fetching sale details", error)
-      toast.error(getErrorMessage(error, "Erro ao carregar detalhes da venda"))
+      toast.error(localizedError("saleDetails", error))
     } finally {
       setLoadingSaleId(null)
     }
@@ -288,7 +293,7 @@ export function VendasTab() {
       setCurrentSaleId(null)
     } catch (error) {
       console.error('Error cancelling sale', error)
-      toast.error(getErrorMessage(error, 'Erro ao cancelar venda'))
+      toast.error(localizedError("cancelSale", error))
     }
   }
 
@@ -310,7 +315,7 @@ export function VendasTab() {
         customerName={{ value: customerName, onChange: setCustomerName }}
         createdBy={{ value: createdBy, onChange: setCreatedBy }}
         totalRange={{ min: totalMin, max: totalMax, onMinChange: setTotalMin, onMaxChange: setTotalMax }}
-        primaryAction={{ label: "Nova Venda", onClick: handleNewSaleClick }}
+        primaryAction={{ label: tSales("new"), onClick: handleNewSaleClick }}
         onFilter={handleApplyFilters}
         isLoading={isLoading}
       />
@@ -319,7 +324,7 @@ export function VendasTab() {
         isOpen={isModalOpen}
         onClose={() => { setIsModalOpen(false); setCurrentSaleId(null); setIsReadOnlyModal(false) }}
         onConfirm={handleModalConfirm}
-        title={isReadOnlyModal ? "Detalhes da Venda" : "Nova Venda"}
+        title={isReadOnlyModal ? tSales("details") : tSales("new")}
         initialClientName={currentSaleClient}
         initialItems={currentSaleItems}
         readOnly={isReadOnlyModal}
@@ -329,28 +334,29 @@ export function VendasTab() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <div>
-            <CardTitle>Vendas no Período</CardTitle>
+            <CardTitle>{tSales("period")}</CardTitle>
             <div className="text-sm text-muted-foreground mt-1">
-              {formatCount(totalItems, recordCountMessages, activeLocale)}
+              {tSales("table.totalRecords", { count: formatNumber(totalItems, activeLocale) })}
             </div>
           </div>
           <div className="flex flex-col items-end">
-            <span className="text-sm text-muted-foreground">Fechamento do Período</span>
+            <span className="text-sm text-muted-foreground">{tSales("closingPeriod")}</span>
             <span className="text-2xl font-bold text-green-600">
               {formatCurrencyBRL(periodTotal, activeLocale)}
             </span>
           </div>
         </CardHeader>
         <CardContent>
+          <span className="sr-only" role="status">{showSkeleton ? tCommon("loading") : ""}</span>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[50px] text-center">#</TableHead>
-                <TableHead>Cliente / Mesa</TableHead>
-                <TableHead>Criado por</TableHead>
-                <TableHead>Data</TableHead>
-                <TableHead className="text-right">Total</TableHead>
-                <TableHead className="text-right">Ações</TableHead>
+                <TableHead className="w-[50px] text-center">{tCommon("index")}</TableHead>
+                <TableHead>{tCommon("customer")}</TableHead>
+                <TableHead>{tCommon("createdBy")}</TableHead>
+                <TableHead>{tCommon("date")}</TableHead>
+                <TableHead className="text-right">{tCommon("total")}</TableHead>
+                <TableHead className="text-right">{tCommon("actions.label")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -371,7 +377,7 @@ export function VendasTab() {
               ) : sales.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
-                    Nenhuma venda encontrada no período.
+                    {tSales("empty")}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -379,27 +385,27 @@ export function VendasTab() {
                   <TableRow key={sale.id} accentColor={getStatusColor('CLOSED')} className="animate-in fade-in-0 duration-300">
                     <TableCell className="text-center">{formatNumber((page - 1) * limit + index + 1, activeLocale)}</TableCell>
                     <TableCell>
-                      <div className="font-medium">{sale.customerName || "Não Informado"}</div>
-                      {formatItemsSummary(sale.items, activeLocale) && (
+                      <div className="font-medium">{sale.customerName || tCommon("notInformed")}</div>
+                      {formatItemsSummary(sale.items, activeLocale, tSales("fallback.product")) && (
                         <div
                           className="text-sm text-muted-foreground truncate max-w-[280px]"
-                          title={formatItemsSummary(sale.items, activeLocale)}
+                          title={formatItemsSummary(sale.items, activeLocale, tSales("fallback.product"))}
                         >
-                          {formatItemsSummary(sale.items, activeLocale)}
+                          {formatItemsSummary(sale.items, activeLocale, tSales("fallback.product"))}
                         </div>
                       )}
                     </TableCell>
-                    <TableCell className="text-muted-foreground">{sale.seller?.name || "-"}</TableCell>
-                    <TableCell>{sale.soldAt ? formatDateTime(sale.soldAt, activeLocale) : "-"}</TableCell>
+                    <TableCell className="text-muted-foreground">{sale.seller?.name || tCommon("notInformed")}</TableCell>
+                    <TableCell>{sale.soldAt ? formatDateTime(sale.soldAt, activeLocale) : tCommon("notInformed")}</TableCell>
                     <TableCell className="text-right">
                       {formatCurrencyBRL(sale.total, activeLocale)}
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
-                        <IconButton icon={<Printer className="h-4 w-4" />} label="Impressão (em breve)" disabled />
+                        <IconButton icon={<Printer className="h-4 w-4" />} label={tPrinter("printSoon")} disabled />
                         <IconButton
                           icon={loadingSaleId === sale.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Eye className="h-4 w-4" />}
-                          label="Ver detalhes"
+                          label={tSales("viewDetails")}
                           onClick={() => handleInfoClick(sale)}
                           disabled={loadingSaleId === sale.id}
                         />

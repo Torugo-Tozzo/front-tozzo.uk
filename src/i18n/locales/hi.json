@@ -237,6 +237,7 @@
   },
   "orders": {
     "title": "ऑर्डर",
+    "pageTitle": "ऑर्डर — {{establishment}}",
     "recent": "हाल के ऑर्डर",
     "new": "नया ऑर्डर",
     "edit": "ऑर्डर संपादित करें (आइटम जोड़ें)",
@@ -266,6 +267,7 @@
   },
   "sales": {
     "title": "बिक्री",
+    "pageTitle": "बिक्री — {{establishment}}",
     "period": "अवधि की बिक्री",
     "new": "नई बिक्री",
     "details": "बिक्री विवरण",
@@ -327,6 +329,11 @@
       "selected": "चयनित आइटम",
       "noItems": "कोई आइटम चयनित नहीं",
       "units": "इकाइयाँ",
+      "fallbackProduct": "उत्पाद",
+      "addProduct": "उत्पाद जोड़ें",
+      "decreaseQuantity": "मात्रा घटाएँ",
+      "increaseQuantity": "मात्रा बढ़ाएँ",
+      "removeItem": "आइटम हटाएँ",
       "statusPlaceholder": "स्थिति"
     },
     "confirm": {

@@ -237,6 +237,7 @@
   },
   "orders": {
     "title": "الطلبات",
+    "pageTitle": "الطلبات — {{establishment}}",
     "recent": "الطلبات الأخيرة",
     "new": "طلب جديد",
     "edit": "تعديل الطلب (إضافة عناصر)",
@@ -266,6 +267,7 @@
   },
   "sales": {
     "title": "المبيعات",
+    "pageTitle": "المبيعات — {{establishment}}",
     "period": "مبيعات الفترة",
     "new": "بيع جديد",
     "details": "تفاصيل البيع",
@@ -327,6 +329,11 @@
       "selected": "العناصر المحددة",
       "noItems": "لم يتم تحديد أي عناصر",
       "units": "الوحدات",
+      "fallbackProduct": "منتج",
+      "addProduct": "إضافة منتج",
+      "decreaseQuantity": "تقليل الكمية",
+      "increaseQuantity": "زيادة الكمية",
+      "removeItem": "إزالة العنصر",
       "statusPlaceholder": "الحالة"
     },
     "confirm": {
