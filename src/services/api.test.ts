@@ -1,18 +1,26 @@
-import { describe, it, expect, vi, afterEach } from 'bun:test'
+import { describe, it, expect, vi } from 'bun:test'
 import api, { getSseToken, normalizeResponseData, serializeRequestData } from './api'
 
 describe('getSseToken', () => {
-  afterEach(() => {
-    vi.restoreAllMocks()
-  })
-
   it('faz POST /auth/sse-token e retorna o token da resposta', async () => {
-    vi.spyOn(api, 'post').mockResolvedValue({ data: { token: 'token-curto' } } as any)
+    const originalAdapter = api.defaults.adapter
+    const adapter = vi.fn().mockResolvedValue({
+      data: { token: 'token-curto' },
+      status: 200,
+      statusText: 'OK',
+      headers: {},
+      config: {},
+    } as any)
+    api.defaults.adapter = adapter as typeof api.defaults.adapter
 
-    const token = await getSseToken()
+    try {
+      const token = await getSseToken()
 
-    expect(api.post).toHaveBeenCalledWith('/auth/sse-token')
-    expect(token).toBe('token-curto')
+      expect(adapter).toHaveBeenCalledWith(expect.objectContaining({ method: 'post', url: '/auth/sse-token' }))
+      expect(token).toBe('token-curto')
+    } finally {
+      api.defaults.adapter = originalAdapter
+    }
   })
 })
 

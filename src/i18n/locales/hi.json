@@ -86,7 +86,8 @@
     },
     "placeholders": {
       "customer": "ग्राहक/टेबल खोजें...",
-      "employee": "कर्मचारी खोजें..."
+      "employee": "कर्मचारी खोजें...",
+      "amount": "0.00"
     },
     "minimumTotal": "न्यूनतम कुल राशि",
     "maximumTotal": "अधिकतम कुल राशि",

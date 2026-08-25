@@ -2,6 +2,10 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'bun:test'
 import { renderHook, waitFor } from '@testing-library/react'
 import { useRealtimeEvents } from './useRealtimeEvents'
 import api from '@/services/api'
+import { replaceProperty } from '@/test/replace-property'
+
+let restorePost: (() => void) | undefined
+let originalEventSource: typeof EventSource | undefined
 
 class FakeEventSource {
   static instances: FakeEventSource[] = []
@@ -24,12 +28,17 @@ class FakeEventSource {
 describe('useRealtimeEvents', () => {
   beforeEach(() => {
     FakeEventSource.instances = []
+    originalEventSource = (globalThis as any).EventSource
     ;(globalThis as any).EventSource = FakeEventSource
-    vi.spyOn(api, 'post').mockResolvedValue({ data: { token: 'fake-token' } } as any)
+    const postMock = vi.fn().mockResolvedValue({ data: { token: 'fake-token' } } as any)
+    restorePost = replaceProperty(api, 'post', postMock as typeof api.post)
   })
 
   afterEach(() => {
-    vi.restoreAllMocks()
+    restorePost?.()
+    restorePost = undefined
+    ;(globalThis as any).EventSource = originalEventSource
+    originalEventSource = undefined
     vi.useRealTimers()
   })
 

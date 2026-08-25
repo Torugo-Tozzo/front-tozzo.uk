@@ -1,12 +1,29 @@
 import { describe, it, expect, beforeEach, vi } from 'bun:test'
 import { act, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import i18next from 'i18next'
+import { I18nextProvider } from 'react-i18next'
 import { I18nProvider } from '@/i18n/provider'
 import { i18n } from '@/i18n/config'
+import { NAMESPACES, resources } from '@/i18n/resources'
 import { FiltersBar } from './FiltersBar'
 
 function renderWithI18n(ui: React.ReactElement) {
   return render(<I18nProvider>{ui}</I18nProvider>)
+}
+
+async function renderWithLocale(ui: React.ReactElement, locale: 'pt-BR') {
+  const localI18n = i18next.createInstance()
+  await localI18n.init({
+    resources,
+    lng: locale,
+    fallbackLng: 'en',
+    ns: [...NAMESPACES],
+    defaultNS: 'common',
+    interpolation: { escapeValue: false },
+    returnNull: false,
+  })
+  return render(<I18nextProvider i18n={localI18n}>{ui}</I18nextProvider>)
 }
 
 describe('FiltersBar', () => {
@@ -43,6 +60,20 @@ describe('FiltersBar', () => {
     expect(screen.getByLabelText('Maximum total')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Search' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Expand filters' })).toBeInTheDocument()
+  })
+
+  it('localizes monetary input placeholders', async () => {
+    await renderWithLocale(
+      <FiltersBar
+        totalRange={{ min: '', max: '', onMinChange: vi.fn(), onMaxChange: vi.fn() }}
+        onFilter={vi.fn()}
+      />,
+      'pt-BR',
+    )
+
+    const totalInputs = screen.getAllByRole('textbox')
+    expect(totalInputs[0].getAttribute('placeholder')).toBe('0,00')
+    expect(totalInputs[1].getAttribute('placeholder')).toBe('0,00')
   })
 
   it('renders only the sections whose props are provided', () => {

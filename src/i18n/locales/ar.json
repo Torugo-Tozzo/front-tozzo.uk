@@ -86,7 +86,8 @@
     },
     "placeholders": {
       "customer": "ابحث عن العميل/الطاولة...",
-      "employee": "ابحث عن الموظف..."
+      "employee": "ابحث عن الموظف...",
+      "amount": "٠٫٠٠"
     },
     "minimumTotal": "الحد الأدنى للإجمالي",
     "maximumTotal": "الحد الأقصى للإجمالي",

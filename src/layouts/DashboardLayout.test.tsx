@@ -1,12 +1,14 @@
 import { act, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { beforeEach, describe, expect, it, vi } from 'bun:test'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'bun:test'
 import { MemoryRouter } from 'react-router-dom'
 
 import { ConfirmProvider } from '@/contexts/ConfirmContext'
 import { ThemeProvider } from '@/components/theme-provider'
 import { I18nProvider } from '@/i18n/provider'
 import { i18n } from '@/i18n/config'
+import api from '@/services/api'
+import { replaceProperty } from '@/test/replace-property'
 import DashboardLayout from './DashboardLayout'
 
 const mockLogout = vi.fn()
@@ -21,12 +23,6 @@ vi.mock('@/contexts/AuthContext', () => ({
 
 vi.mock('@/hooks/useRealtimeEvents', () => ({
   useRealtimeEvents: vi.fn(),
-}))
-
-vi.mock('@/services/api', () => ({
-  default: {
-    get: vi.fn().mockResolvedValue({ headers: {}, data: [] }),
-  },
 }))
 
 function renderLayout() {
@@ -44,12 +40,20 @@ function renderLayout() {
 }
 
 describe('DashboardLayout', () => {
+  let restoreGet: (() => void) | undefined
+
   beforeEach(async () => {
     localStorage.clear()
     mockLogout.mockReset()
+    restoreGet = replaceProperty(api, 'get', vi.fn().mockResolvedValue({ headers: {}, data: [] }) as typeof api.get)
     await act(async () => {
       await i18n.changeLanguage('en')
     })
+  })
+
+  afterEach(() => {
+    restoreGet?.()
+    restoreGet = undefined
   })
 
   it('renders translated navigation and accessible collapse controls', async () => {

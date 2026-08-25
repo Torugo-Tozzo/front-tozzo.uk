@@ -86,7 +86,8 @@
     },
     "placeholders": {
       "customer": "搜索客户/桌号...",
-      "employee": "搜索员工..."
+      "employee": "搜索员工...",
+      "amount": "0.00"
     },
     "minimumTotal": "最低总额",
     "maximumTotal": "最高总额",

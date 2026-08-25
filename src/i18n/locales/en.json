@@ -86,7 +86,8 @@
     },
     "placeholders": {
       "customer": "Search customer/table...",
-      "employee": "Search employee..."
+      "employee": "Search employee...",
+      "amount": "0.00"
     },
     "minimumTotal": "Minimum total",
     "maximumTotal": "Maximum total",

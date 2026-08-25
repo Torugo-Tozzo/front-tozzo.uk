@@ -7,6 +7,7 @@ import { ConfirmProvider } from "@/contexts/ConfirmContext"
 import api from "@/services/api"
 import { i18n } from "@/i18n/config"
 import { I18nProvider } from "@/i18n/provider"
+import { replaceProperty } from "@/test/replace-property"
 import LandingPage from "./LandingPage"
 import LoginPage from "./LoginPage"
 import NotFoundPage from "./NotFoundPage"
@@ -51,7 +52,6 @@ describe("public and auth chrome", () => {
 
   afterEach(() => {
     cleanup()
-    vi.restoreAllMocks()
   })
 
   test("renders the landing page chrome in the active locale", () => {
@@ -107,8 +107,8 @@ describe("public and auth chrome", () => {
   })
 
   test("shows a localized login error selected by API code", async () => {
-    vi.spyOn(console, "error").mockImplementation(() => {})
-    vi.spyOn(api, "post").mockRejectedValue({
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {})
+    const postMock = vi.fn().mockRejectedValue({
       response: {
         status: 400,
         data: {
@@ -117,20 +117,26 @@ describe("public and auth chrome", () => {
         },
       },
     })
+    const restorePost = replaceProperty(api, "post", postMock as typeof api.post)
 
-    renderRoute(
-      <>
-        <LoginPage />
-        <Toaster />
-      </>,
-      "/login",
-    )
+    try {
+      renderRoute(
+        <>
+          <LoginPage />
+          <Toaster />
+        </>,
+        "/login",
+      )
 
-    fireEvent.submit(document.querySelector("form")!)
+      fireEvent.submit(document.querySelector("form")!)
 
-    await waitFor(() => {
-      expect(screen.getByText("Login failed. Check your credentials.")).toBeInTheDocument()
-    })
-    expect(screen.queryByText("Invalid credentials.")).not.toBeInTheDocument()
+      await waitFor(() => {
+        expect(screen.getByText("Login failed. Check your credentials.")).toBeInTheDocument()
+      })
+      expect(screen.queryByText("Invalid credentials.")).not.toBeInTheDocument()
+    } finally {
+      consoleError.mockRestore()
+      restorePost()
+    }
   })
 })

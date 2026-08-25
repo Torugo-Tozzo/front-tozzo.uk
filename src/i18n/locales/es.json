@@ -86,7 +86,8 @@
     },
     "placeholders": {
       "customer": "Buscar cliente/mesa...",
-      "employee": "Buscar empleado..."
+      "employee": "Buscar empleado...",
+      "amount": "0,00"
     },
     "minimumTotal": "Total mínimo",
     "maximumTotal": "Total máximo",

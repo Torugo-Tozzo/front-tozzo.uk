@@ -202,7 +202,7 @@ export function FiltersBar({
                 <Input
                   id="filter-totalMin"
                   inputMode="numeric"
-                  placeholder="0.00"
+                  placeholder={tCommon("placeholders.amount")}
                   value={totalRange.min}
                   onChange={(e) => totalRange.onMinChange(maskCentsInput(e.target.value))}
                   disabled={isLoading}
@@ -213,7 +213,7 @@ export function FiltersBar({
                 <Input
                   id="filter-totalMax"
                   inputMode="numeric"
-                  placeholder="0.00"
+                  placeholder={tCommon("placeholders.amount")}
                   value={totalRange.max}
                   onChange={(e) => totalRange.onMaxChange(maskCentsInput(e.target.value))}
                   disabled={isLoading}
