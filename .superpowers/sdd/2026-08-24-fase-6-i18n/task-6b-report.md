@@ -194,3 +194,94 @@ error: script "lint" exited with code 1
   Browserslist e de chunks maiores que 500 kB.
 - Aplicação de layout RTL (dir e ajustes visuais) permanece explicitamente
   fora do escopo e deve ser tratada em T8.
+
+## Rodada de correção do reviewer — fechamento
+
+Base da correção: commit 2f5491c, sem alteração de dev/main. O reviewer havia
+apontado três itens Important e dois Minor; todos foram tratados nesta rodada:
+
+- O catálogo agora resolve códigos estáveis e os IDs numéricos reais 1–10 do
+  seed (burger, artisanalBurger, chicken, hotDog, drink, fries, extra, other,
+  pizza, sushi) em ProductsPage, ChartsPage e ProductSelectionModal. IDs
+  desconhecidos preservam a descrição customizada, sem traduzir dados de
+  negócio.
+- formatCount foi integrado ao chrome de contagens em vendas, produtos e
+  gráficos; formatNumber cobre quantidades, índices, paginação e o contador
+  do menu. Os bundles receberam recordCount e unitCount em todas as sete
+  localidades, com pluralização real via Intl.PluralRules/i18next.
+- Leitura e persistência de locale são best-effort e protegidas contra
+  SecurityError/QuotaExceededError; navigator.languages é consultado antes do
+  fallback e seleciona a primeira preferência suportada.
+- O overload formatDate(value, undefined, options) preserva options; o teste
+  observa a mudança de dia entre UTC e America/Sao_Paulo.
+
+### RED da correção
+
+Teste inicial, antes de implementar os helpers/guards:
+
+~~~text
+$ bun test src\i18n\format.test.ts src\i18n\locale.test.ts
+bun test v1.4.0 (34cbb9a40)
+3 pass
+4 fail
+1 error
+20 expect() calls
+Ran 7 tests across 2 files. [309.00ms]
+Falhas: export formatCount ausente; preferência do browser e
+navigator.languages retornavam en em vez de ar; SecurityError propagava.
+~~~
+
+Após adicionar o caso de descrição customizada com ID desconhecido, o RED
+específico reproduziu a tradução indevida:
+
+~~~text
+$ bun test src\i18n\format.test.ts
+4 pass
+1 fail
+23 expect() calls
+Ran 5 tests across 1 file. [346.00ms]
+Expected: "Bebida"
+Received: "Bebidas"
+~~~
+
+### GREEN e regressão final
+
+~~~text
+$ bun test src\i18n\format.test.ts src\i18n\locale.test.ts
+11 pass
+0 fail
+47 expect() calls
+Ran 11 tests across 2 files. [483.00ms]
+
+$ bun test src\i18n
+15 pass
+0 fail
+162 expect() calls
+Ran 15 tests across 5 files. [513.00ms]
+
+$ bun test --parallel
+71 pass
+0 fail
+272 expect() calls
+Ran 71 tests across 19 files. [3.09s]
+
+$ bun run i18n:check
+$ node scripts/check-i18n.mjs
+i18n bundles OK: 7 locales, 14 namespaces
+
+$ bunx tsc --noEmit
+exit code 0
+
+$ bun run build
+$ tsc && vite build
+vite v5.4.21 building for production...
+Browserslist: browsers data (caniuse-lite) is 8 months old.
+✓ 2369 modules transformed.
+✓ built in 5.90s
+exit code 0
+~~~
+
+git diff --check também terminou com exit code 0. O build manteve apenas os
+avisos conhecidos de Browserslist e de chunks maiores que 500 kB. O commit de
+fechamento desta rodada usa o prefixo fix/front; audit-context/, o scratch da
+rodada e a alteração pré-existente em task-6a-report.md ficam fora do stage.

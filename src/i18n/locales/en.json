@@ -33,6 +33,22 @@
     "pageOf": "Page {{page}} of {{total}}",
     "more": "+{{count}} more...",
     "units": "units",
+    "recordCount": {
+      "zero": "{{count}} records",
+      "one": "{{count}} record",
+      "two": "{{count}} records",
+      "few": "{{count}} records",
+      "many": "{{count}} records",
+      "other": "{{count}} records"
+    },
+    "unitCount": {
+      "zero": "{{count}} units",
+      "one": "{{count}} unit",
+      "two": "{{count}} units",
+      "few": "{{count}} units",
+      "many": "{{count}} units",
+      "other": "{{count}} units"
+    },
     "total": "Total",
     "date": "Date",
     "time": "Time",
@@ -577,10 +593,18 @@
     }
   },
   "catalog": {
+    "burger": "Burger",
+    "artisanalBurger": "Artisanal burger",
+    "chicken": "Chicken",
+    "hotDog": "Hot dog",
     "food": "Food",
     "drink": "Drinks",
+    "fries": "French fries",
+    "extra": "Extra",
     "dessert": "Desserts",
     "side": "Side dishes",
+    "pizza": "Pizza",
+    "sushi": "Sushi",
     "other": "Other",
     "defaultType": "Default catalog type"
   }

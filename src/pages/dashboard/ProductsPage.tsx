@@ -39,7 +39,7 @@ import { Pagination } from "@/components/Pagination"
 import { useAuth } from "@/contexts/AuthContext"
 import { useConfirm } from "@/contexts/ConfirmContext"
 import { useMinLoadingDuration } from "@/hooks/useMinLoadingDuration"
-import { formatCurrencyBRL } from "@/i18n/format"
+import { formatCount, formatCurrencyBRL, formatNumber } from "@/i18n/format"
 import { getCatalogLabel } from "@/i18n/labels"
 import { normalizeLocale } from "@/i18n/locale"
 import type { Product, ProductType } from "@/domain/models"
@@ -47,8 +47,16 @@ import type { Product, ProductType } from "@/domain/models"
 type EditableProductType = ProductType & { isEditable?: boolean }
 
 export default function ProductsPage() {
-  const { i18n } = useTranslation()
+  const { i18n, t } = useTranslation()
   const activeLocale = normalizeLocale(i18n.language)
+  const recordCountMessages = {
+    zero: t('recordCount.zero'),
+    one: t('recordCount.one'),
+    two: t('recordCount.two'),
+    few: t('recordCount.few'),
+    many: t('recordCount.many'),
+    other: t('recordCount.other'),
+  }
   const { user } = useAuth()
   const confirm = useConfirm()
   const [products, setProducts] = useState<Product[]>([])
@@ -497,7 +505,7 @@ export default function ProductsPage() {
             </CardHeader>
             <CardContent>
               <div className="mb-4 text-sm text-muted-foreground">
-                Total de registros: {totalItems}
+                {formatCount(totalItems, recordCountMessages, activeLocale)}
               </div>
               <Table>
                 <TableHeader>
@@ -532,7 +540,7 @@ export default function ProductsPage() {
                     })
                     .map((product, index) => (
                     <TableRow key={product.id} className="animate-in fade-in-0 duration-300">
-                      <TableCell>{(page - 1) * limit + index + 1}</TableCell>
+                    <TableCell>{formatNumber((page - 1) * limit + index + 1, activeLocale)}</TableCell>
                       <TableCell>{product.name}</TableCell>
                       <TableCell>
                         {(() => {
@@ -654,7 +662,7 @@ export default function ProductsPage() {
                   ) : (
                     pagedTypes.map((type, index) => (
                     <TableRow key={type.id} className={`animate-in fade-in-0 duration-300 ${type.isActive === false ? 'opacity-60' : ''}`}>
-                      <TableCell>{(typesPage - 1) * typesLimit + index + 1}</TableCell>
+                      <TableCell>{formatNumber((typesPage - 1) * typesLimit + index + 1, activeLocale)}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <span
@@ -705,7 +713,7 @@ export default function ProductsPage() {
                 </TableBody>
               </Table>
               <div className="mb-4 text-sm text-muted-foreground">
-                Total de registros: {typesTotalItems}
+                {formatCount(typesTotalItems, recordCountMessages, activeLocale)}
               </div>
               <Pagination
                 currentPage={typesPage}

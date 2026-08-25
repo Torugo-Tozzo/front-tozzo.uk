@@ -19,8 +19,10 @@ import { Footer } from "@/components/Footer"
 import { LoadingOverlay } from "@/components/LoadingOverlay"
 import { useAuth } from "@/contexts/AuthContext"
 import { useConfirm } from "@/contexts/ConfirmContext"
+import { useTranslation } from "react-i18next"
 import api from "@/services/api"
 import { useRealtimeEvents } from "@/hooks/useRealtimeEvents"
+import { formatNumber } from "@/i18n/format"
 
 const SIDEBAR_COLLAPSED_KEY = "sidebar-collapsed"
 const MOBILE_MENU_ANIMATION_MS = 200
@@ -29,6 +31,7 @@ export default function DashboardLayout() {
   const location = useLocation()
   const { logout } = useAuth()
   const confirm = useConfirm()
+  const { i18n } = useTranslation()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   // Fica montado durante a animacao de saida - sem isso o drawer some na
   // hora ao fechar (isMobileMenuOpen vira false -> desmonta -> sem tempo
@@ -115,7 +118,7 @@ export default function DashboardLayout() {
                         "inline-flex items-center justify-center text-xs font-medium rounded-full h-6 w-6",
                         isActive ? "bg-background text-foreground" : "bg-primary text-primary-foreground"
                       )}>
-                        {nonClosedCount}
+                        {formatNumber(nonClosedCount, i18n.language)}
                       </span>
                     </div>
                   )}

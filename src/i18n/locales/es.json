@@ -33,6 +33,22 @@
     "pageOf": "Página {{page}} de {{total}}",
     "more": "+{{count}} más...",
     "units": "unidades",
+    "recordCount": {
+      "zero": "{{count}} registros",
+      "one": "{{count}} registro",
+      "two": "{{count}} registros",
+      "few": "{{count}} registros",
+      "many": "{{count}} registros",
+      "other": "{{count}} registros"
+    },
+    "unitCount": {
+      "zero": "{{count}} unidades",
+      "one": "{{count}} unidad",
+      "two": "{{count}} unidades",
+      "few": "{{count}} unidades",
+      "many": "{{count}} unidades",
+      "other": "{{count}} unidades"
+    },
     "total": "Total",
     "date": "Fecha",
     "time": "Hora",
@@ -577,10 +593,18 @@
     }
   },
   "catalog": {
+    "burger": "Hamburguesa",
+    "artisanalBurger": "Hamburguesa artesanal",
+    "chicken": "Pollo",
+    "hotDog": "Perrito caliente",
     "food": "Comida",
     "drink": "Bebidas",
+    "fries": "Papas fritas",
+    "extra": "Extra",
     "dessert": "Postres",
     "side": "Acompañamientos",
+    "pizza": "Pizza",
+    "sushi": "Sushi",
     "other": "Otros",
     "defaultType": "Tipo predeterminado del catálogo"
   }

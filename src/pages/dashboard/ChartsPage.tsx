@@ -42,7 +42,8 @@ import {
 import { BarChart3, Search, Loader2, ChevronLeft, ChevronRight, Clock } from "lucide-react"
 
 import { Skeleton } from "@/components/ui/skeleton"
-import { formatCurrencyBRL, formatDate, formatTime } from "@/i18n/format"
+import { formatCount, formatCurrencyBRL, formatDate, formatNumber, formatTime } from "@/i18n/format"
+import { getCatalogLabel } from "@/i18n/labels"
 import { normalizeLocale } from "@/i18n/locale"
 import type { ProductType } from "@/domain/models"
 
@@ -82,8 +83,24 @@ type HourlyChartPoint = {
 }
 
 export default function ChartsPage() {
-  const { i18n } = useTranslation()
+  const { i18n, t } = useTranslation()
   const activeLocale = normalizeLocale(i18n.language)
+  const recordCountMessages = {
+    zero: t('recordCount.zero'),
+    one: t('recordCount.one'),
+    two: t('recordCount.two'),
+    few: t('recordCount.few'),
+    many: t('recordCount.many'),
+    other: t('recordCount.other'),
+  }
+  const unitCountMessages = {
+    zero: t('unitCount.zero'),
+    one: t('unitCount.one'),
+    two: t('unitCount.two'),
+    few: t('unitCount.few'),
+    many: t('unitCount.many'),
+    other: t('unitCount.other'),
+  }
   const { user } = useAuth()
   const getTodayDate = () => {
     const today = new Date()
@@ -616,7 +633,7 @@ export default function ChartsPage() {
                   <SelectItem value="0">Todos</SelectItem>
                   {productTypes.map((type) => (
                     <SelectItem key={type.id} value={type.id.toString()}>
-                      {type.description}
+                      {getCatalogLabel(type.id, type.description, activeLocale)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -703,11 +720,15 @@ export default function ChartsPage() {
                   </div>
                   <div className="rounded-lg border p-3">
                     <div className="text-sm font-medium text-muted-foreground">Total de Vendas</div>
-                  <div className="text-2xl font-bold">{periodTotal.totalSales}</div>
+                  <div className="text-2xl font-bold">
+                    {formatCount(periodTotal.totalSales, recordCountMessages, activeLocale)}
+                  </div>
                   </div>
                   <div className="rounded-lg border p-3">
                     <div className="text-sm font-medium text-muted-foreground">Unidades Vendidas</div>
-                  <div className="text-2xl font-bold">{periodTotal.totalUnitsSold}</div>
+                  <div className="text-2xl font-bold">
+                    {formatCount(periodTotal.totalUnitsSold, unitCountMessages, activeLocale)}
+                  </div>
                   </div>
                 </div>
               )}
@@ -729,7 +750,7 @@ export default function ChartsPage() {
         </CardHeader>
         <CardContent>
           <div className="mb-4 text-sm text-muted-foreground">
-            Total de registros: {totalItems}
+            {formatCount(totalItems, recordCountMessages, activeLocale)}
           </div>
           <Table>
             <TableHeader>
@@ -761,9 +782,9 @@ export default function ChartsPage() {
               ) : (
                 detailedData.map((item, index) => (
                   <TableRow key={item.id || index} className="animate-in fade-in-0 duration-300">
-                    <TableCell>{(page - 1) * limit + index + 1}</TableCell>
+                    <TableCell>{formatNumber((page - 1) * limit + index + 1, activeLocale)}</TableCell>
                     <TableCell>{item.name}</TableCell>
-                    <TableCell className="text-right">{item.quantitySold}</TableCell>
+                    <TableCell className="text-right">{formatNumber(item.quantitySold, activeLocale)}</TableCell>
                     <TableCell className="text-right">
                       {formatCurrencyBRL(item.totalRevenue, activeLocale)}
                     </TableCell>
@@ -848,7 +869,9 @@ export default function ChartsPage() {
                 <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3">
                   <div className="rounded-lg border p-3">
                     <div className="text-sm font-medium text-muted-foreground">Total de Vendas</div>
-                    <div className="text-2xl font-bold">{salesByHourData.length}</div>
+                    <div className="text-2xl font-bold">
+                      {formatCount(salesByHourData.length, recordCountMessages, activeLocale)}
+                    </div>
                   </div>
                   <div className="rounded-lg border p-3">
                     <div className="text-sm font-medium text-muted-foreground">Faturamento do Dia</div>
@@ -886,7 +909,7 @@ export default function ChartsPage() {
                 <div className="text-center min-w-[250px]">
                   <div className="font-medium capitalize">{getCurrentSalesByHourDate()}</div>
                   <div className="text-sm text-muted-foreground">
-                    Dia {salesByHourPage + 1} de {getSalesByHourMaxPage() + 1}
+                    Dia {formatNumber(salesByHourPage + 1, activeLocale)} de {formatNumber(getSalesByHourMaxPage() + 1, activeLocale)}
                   </div>
                 </div>
                 <Button
@@ -914,7 +937,7 @@ export default function ChartsPage() {
                           return (
                             <div className="bg-white dark:bg-slate-800 p-3 rounded-lg shadow-lg border">
                               <p className="font-semibold mb-2">{label}</p>
-                              <p className="text-sm">Vendas: <span className="font-medium">{data.salesCount}</span></p>
+                              <p className="text-sm">Vendas: <span className="font-medium">{formatCount(data.salesCount, recordCountMessages, activeLocale)}</span></p>
                               <p className="text-sm">Faturamento: <span className="font-medium">{formatCurrencyBRL(data.revenue, activeLocale)}</span></p>
                               {data.sales && data.sales.length > 0 && (
                                 <div className="mt-2 pt-2 border-t max-h-[150px] overflow-y-auto">
@@ -929,7 +952,7 @@ export default function ChartsPage() {
                                     </div>
                                   ))}
                                   {data.sales.length > 5 && (
-                                    <p className="text-xs text-muted-foreground mt-1">+{data.sales.length - 5} mais...</p>
+                                    <p className="text-xs text-muted-foreground mt-1">+{formatNumber(data.sales.length - 5, activeLocale)} mais...</p>
                                   )}
                                 </div>
                               )}

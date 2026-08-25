@@ -21,7 +21,7 @@ import { ProductSelectionModal } from "@/components/ProductSelectionModal"
 import { Pagination } from "@/components/Pagination"
 import { Skeleton } from "@/components/ui/skeleton"
 import { getStatusColor } from "@/lib/status"
-import { formatCurrencyBRL, formatDateTime } from "@/i18n/format"
+import { formatCount, formatCurrencyBRL, formatDateTime, formatNumber } from "@/i18n/format"
 import { normalizeLocale } from "@/i18n/locale"
 import type { Sale, SaleItem } from "@/domain/models"
 
@@ -48,9 +48,9 @@ function isSalesEqual(a: Sale[], b: Sale[]) {
   return true
 }
 
-function formatItemsSummary(items?: SaleItem[]): string {
+function formatItemsSummary(items?: SaleItem[], locale?: string): string {
   if (!items || items.length === 0) return ""
-  return items.map((item) => `${item.quantity}x ${item.product?.name ?? "Produto"}`).join(", ")
+  return items.map((item) => formatNumber(item.quantity, locale) + "x " + (item.product?.name ?? "Produto")).join(", ")
 }
 
 function buildSaleParams(page: number, limit: number, f: SaleFilters) {
@@ -65,8 +65,16 @@ function buildSaleParams(page: number, limit: number, f: SaleFilters) {
 }
 
 export function VendasTab() {
-  const { i18n } = useTranslation()
+  const { i18n, t } = useTranslation()
   const activeLocale = normalizeLocale(i18n.language)
+  const recordCountMessages = {
+    zero: t('recordCount.zero'),
+    one: t('recordCount.one'),
+    two: t('recordCount.two'),
+    few: t('recordCount.few'),
+    many: t('recordCount.many'),
+    other: t('recordCount.other'),
+  }
   const [sales, setSales] = useState<Sale[]>([])
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [page, setPage] = useState(1)
@@ -322,7 +330,9 @@ export function VendasTab() {
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <div>
             <CardTitle>Vendas no Período</CardTitle>
-            <div className="text-sm text-muted-foreground mt-1">Total de registros: {totalItems}</div>
+            <div className="text-sm text-muted-foreground mt-1">
+              {formatCount(totalItems, recordCountMessages, activeLocale)}
+            </div>
           </div>
           <div className="flex flex-col items-end">
             <span className="text-sm text-muted-foreground">Fechamento do Período</span>
@@ -367,15 +377,15 @@ export function VendasTab() {
               ) : (
                 sales.map((sale, index) => (
                   <TableRow key={sale.id} accentColor={getStatusColor('CLOSED')} className="animate-in fade-in-0 duration-300">
-                    <TableCell className="text-center">{(page - 1) * limit + index + 1}</TableCell>
+                    <TableCell className="text-center">{formatNumber((page - 1) * limit + index + 1, activeLocale)}</TableCell>
                     <TableCell>
                       <div className="font-medium">{sale.customerName || "Não Informado"}</div>
-                      {formatItemsSummary(sale.items) && (
+                      {formatItemsSummary(sale.items, activeLocale) && (
                         <div
                           className="text-sm text-muted-foreground truncate max-w-[280px]"
-                          title={formatItemsSummary(sale.items)}
+                          title={formatItemsSummary(sale.items, activeLocale)}
                         >
-                          {formatItemsSummary(sale.items)}
+                          {formatItemsSummary(sale.items, activeLocale)}
                         </div>
                       )}
                     </TableCell>

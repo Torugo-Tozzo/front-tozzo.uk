@@ -23,7 +23,7 @@ import { useRealtimeEvents } from "@/hooks/useRealtimeEvents"
 import { useMinLoadingDuration } from "@/hooks/useMinLoadingDuration"
 import { useConfirm } from "@/contexts/ConfirmContext"
 import { getStatusColor, getStatusLabel, type OrderStatus, type OrderStatusFilter } from "@/lib/status"
-import { formatCurrencyBRL, formatDateTime } from "@/i18n/format"
+import { formatCurrencyBRL, formatDateTime, formatNumber } from "@/i18n/format"
 import { normalizeLocale } from "@/i18n/locale"
 import type { Order, OrderItem } from "@/domain/models"
 
@@ -48,9 +48,9 @@ function isOrdersEqual(a: Order[], b: Order[]) {
   return true
 }
 
-function formatItemsSummary(items?: OrderItem[]): string {
+function formatItemsSummary(items?: OrderItem[], locale?: string): string {
   if (!items || items.length === 0) return ""
-  return items.map((item) => `${item.quantity}x ${item.product?.name ?? "Produto"}`).join(", ")
+  return items.map((item) => formatNumber(item.quantity, locale) + "x " + (item.product?.name ?? "Produto")).join(", ")
 }
 
 function buildOrderParams(page: number, limit: number, f: OrderFilters) {
@@ -368,15 +368,15 @@ export function PedidosTab() {
               ) : (
                 orders.map((order, index) => (
                   <TableRow key={order.id} accentColor={getStatusColor(order.status)} className="animate-in fade-in-0 duration-300">
-                    <TableCell className="text-center">{(page - 1) * limit + index + 1}</TableCell>
+                    <TableCell className="text-center">{formatNumber((page - 1) * limit + index + 1, activeLocale)}</TableCell>
                     <TableCell>
                       <div className="font-medium">{order.customerName || "Não Informado"}</div>
-                      {formatItemsSummary(order.items) && (
+                      {formatItemsSummary(order.items, activeLocale) && (
                         <div
                           className="text-sm text-muted-foreground truncate max-w-[280px]"
-                          title={formatItemsSummary(order.items)}
+                          title={formatItemsSummary(order.items, activeLocale)}
                         >
-                          {formatItemsSummary(order.items)}
+                          {formatItemsSummary(order.items, activeLocale)}
                         </div>
                       )}
                     </TableCell>

@@ -33,6 +33,22 @@
     "pageOf": "第 {{page}} 页，共 {{total}} 页",
     "more": "还有 {{count}} 项...",
     "units": "件",
+    "recordCount": {
+      "zero": "{{count}} 条记录",
+      "one": "{{count}} 条记录",
+      "two": "{{count}} 条记录",
+      "few": "{{count}} 条记录",
+      "many": "{{count}} 条记录",
+      "other": "{{count}} 条记录"
+    },
+    "unitCount": {
+      "zero": "{{count}} 个单位",
+      "one": "{{count}} 个单位",
+      "two": "{{count}} 个单位",
+      "few": "{{count}} 个单位",
+      "many": "{{count}} 个单位",
+      "other": "{{count}} 个单位"
+    },
     "total": "总计",
     "date": "日期",
     "time": "时间",
@@ -577,10 +593,18 @@
     }
   },
   "catalog": {
+    "burger": "汉堡包",
+    "artisanalBurger": "手工汉堡",
+    "chicken": "鸡肉",
+    "hotDog": "热狗",
     "food": "食物",
     "drink": "饮料",
+    "fries": "炸薯条",
+    "extra": "额外配料",
     "dessert": "甜点",
     "side": "配菜",
+    "pizza": "披萨",
+    "sushi": "寿司",
     "other": "其他",
     "defaultType": "默认目录类型"
   }

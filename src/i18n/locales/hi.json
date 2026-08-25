@@ -33,6 +33,22 @@
     "pageOf": "पृष्ठ {{page}}, कुल {{total}}",
     "more": "+{{count}} और...",
     "units": "इकाइयाँ",
+    "recordCount": {
+      "zero": "{{count}} रिकॉर्ड",
+      "one": "{{count}} रिकॉर्ड",
+      "two": "{{count}} रिकॉर्ड",
+      "few": "{{count}} रिकॉर्ड",
+      "many": "{{count}} रिकॉर्ड",
+      "other": "{{count}} रिकॉर्ड"
+    },
+    "unitCount": {
+      "zero": "{{count}} इकाइयाँ",
+      "one": "{{count}} इकाई",
+      "two": "{{count}} इकाइयाँ",
+      "few": "{{count}} इकाइयाँ",
+      "many": "{{count}} इकाइयाँ",
+      "other": "{{count}} इकाइयाँ"
+    },
     "total": "कुल",
     "date": "तारीख",
     "time": "समय",
@@ -577,10 +593,18 @@
     }
   },
   "catalog": {
+    "burger": "बर्गर",
+    "artisanalBurger": "आर्टिसनल बर्गर",
+    "chicken": "चिकन",
+    "hotDog": "हॉट डॉग",
     "food": "भोजन",
     "drink": "पेय",
+    "fries": "फ्रेंच फ्राइज़",
+    "extra": "अतिरिक्त",
     "dessert": "मिठाई",
     "side": "सहायक व्यंजन",
+    "pizza": "पिज़्ज़ा",
+    "sushi": "सुशी",
     "other": "अन्य",
     "defaultType": "डिफ़ॉल्ट कैटलॉग प्रकार"
   }

@@ -33,6 +33,22 @@
     "pageOf": "الصفحة {{page}} من {{total}}",
     "more": "+{{count}} أخرى...",
     "units": "وحدات",
+    "recordCount": {
+      "zero": "{{count}} سجل",
+      "one": "{{count}} سجل",
+      "two": "{{count}} سجلان",
+      "few": "{{count}} سجلات",
+      "many": "{{count}} سجل",
+      "other": "{{count}} سجل"
+    },
+    "unitCount": {
+      "zero": "{{count}} وحدة",
+      "one": "{{count}} وحدة",
+      "two": "{{count}} وحدتان",
+      "few": "{{count}} وحدات",
+      "many": "{{count}} وحدة",
+      "other": "{{count}} وحدة"
+    },
     "total": "الإجمالي",
     "date": "التاريخ",
     "time": "الوقت",
@@ -577,10 +593,18 @@
     }
   },
   "catalog": {
+    "burger": "برغر",
+    "artisanalBurger": "برغر حرفي",
+    "chicken": "دجاج",
+    "hotDog": "هوت دوغ",
     "food": "طعام",
     "drink": "مشروبات",
+    "fries": "بطاطس مقلية",
+    "extra": "إضافة",
     "dessert": "حلويات",
     "side": "أطباق جانبية",
+    "pizza": "بيتزا",
+    "sushi": "سوشي",
     "other": "أخرى",
     "defaultType": "نوع الكتالوج الافتراضي"
   }

@@ -5,7 +5,7 @@ export type LocaleInput = SupportedLocale | string | undefined
 
 type NumberOptions = Intl.NumberFormatOptions
 type DateOptions = Intl.DateTimeFormatOptions
-type PluralCategory = 'zero' | 'one' | 'two' | 'few' | 'many' | 'other'
+export type PluralCategory = 'zero' | 'one' | 'two' | 'few' | 'many' | 'other'
 
 export type PluralMessages = Partial<Record<PluralCategory, string>> & {
   other: string
@@ -73,7 +73,7 @@ function resolveDateArguments(
 
   return {
     locale: typeof optionsOrLocale === 'string' ? resolveLocale(optionsOrLocale) : activeLocale(),
-    options: localeOrOptions,
+    options: localeOrOptions ?? (typeof optionsOrLocale === 'object' ? optionsOrLocale : undefined),
   }
 }
 
@@ -142,4 +142,23 @@ export function formatPlural(
   locale?: LocaleInput,
 ): string {
   return messages[getPluralCategory(count, locale)] ?? messages.other
+}
+
+export function formatCount(
+  count: number,
+  messages: PluralMessages,
+  locale?: LocaleInput,
+): string {
+  const formattedCount = formatNumber(count, locale)
+  const interpolate = (message: string | undefined): string | undefined =>
+    message?.replace(/\{\{count\}\}/g, formattedCount)
+
+  return formatPlural(count, {
+    zero: interpolate(messages.zero),
+    one: interpolate(messages.one),
+    two: interpolate(messages.two),
+    few: interpolate(messages.few),
+    many: interpolate(messages.many),
+    other: interpolate(messages.other) ?? messages.other,
+  }, locale)
 }

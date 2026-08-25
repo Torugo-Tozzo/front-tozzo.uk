@@ -7,6 +7,7 @@ export const DEFAULT_LOCALE: SupportedLocale = 'en'
 export const LOCALE_STORAGE_KEY = 'tozzo.locale'
 
 export type LocaleStorage = Pick<Storage, 'getItem' | 'setItem'>
+export type BrowserLocaleInput = string | readonly string[] | undefined
 
 const localeByTag = new Map<string, SupportedLocale>([
   ['en', 'en'],
@@ -20,21 +21,31 @@ const localeByTag = new Map<string, SupportedLocale>([
 ])
 
 function defaultStorage(): LocaleStorage | undefined {
-  return typeof window === 'undefined' ? undefined : window.localStorage
+  if (typeof window === 'undefined') return undefined
+  try {
+    return window.localStorage
+  } catch {
+    return undefined
+  }
 }
 
-function defaultBrowserLocale(): string | undefined {
-  return typeof navigator === 'undefined' ? undefined : navigator.language
+function defaultBrowserLocale(): readonly string[] {
+  if (typeof navigator === 'undefined') return []
+  if (Array.isArray(navigator.languages) && navigator.languages.length > 0) {
+    return navigator.languages
+  }
+  return navigator.language ? [navigator.language] : []
+}
+
+function matchSupportedLocale(value: unknown): SupportedLocale | undefined {
+  const raw = String(value ?? '').trim().replace(/_/g, '-').toLowerCase()
+  if (!raw) return undefined
+
+  return localeByTag.get(raw) ?? localeByTag.get(raw.split('-')[0])
 }
 
 export function normalizeLocale(value: unknown): SupportedLocale {
-  const raw = String(value ?? '').trim().replace(/_/g, '-').toLowerCase()
-  if (!raw) return DEFAULT_LOCALE
-
-  const exact = localeByTag.get(raw)
-  if (exact) return exact
-
-  return localeByTag.get(raw.split('-')[0]) ?? DEFAULT_LOCALE
+  return matchSupportedLocale(value) ?? DEFAULT_LOCALE
 }
 
 export function getLocaleDirection(value: unknown): LocaleDirection {
@@ -42,15 +53,34 @@ export function getLocaleDirection(value: unknown): LocaleDirection {
 }
 
 export function getStoredLocale(storage: LocaleStorage | undefined = defaultStorage()): SupportedLocale {
-  return normalizeLocale(storage?.getItem(LOCALE_STORAGE_KEY))
+  try {
+    return normalizeLocale(storage?.getItem(LOCALE_STORAGE_KEY))
+  } catch {
+    return DEFAULT_LOCALE
+  }
 }
 
 export function getInitialLocale(
   storage: LocaleStorage | undefined = defaultStorage(),
-  browserLocale: string | undefined = defaultBrowserLocale(),
+  browserLocale: BrowserLocaleInput = defaultBrowserLocale(),
 ): SupportedLocale {
-  const stored = storage?.getItem(LOCALE_STORAGE_KEY)
-  return normalizeLocale(stored || browserLocale)
+  let stored: string | null = null
+  try {
+    stored = storage?.getItem(LOCALE_STORAGE_KEY) ?? null
+  } catch {
+    stored = null
+  }
+
+  const storedLocale = matchSupportedLocale(stored)
+  if (storedLocale) return storedLocale
+
+  const browserLocales = Array.isArray(browserLocale) ? browserLocale : [browserLocale]
+  for (const candidate of browserLocales) {
+    const locale = matchSupportedLocale(candidate)
+    if (locale) return locale
+  }
+
+  return DEFAULT_LOCALE
 }
 
 export function persistLocale(
@@ -58,6 +88,10 @@ export function persistLocale(
   storage: LocaleStorage | undefined = defaultStorage(),
 ): SupportedLocale {
   const locale = normalizeLocale(value)
-  storage?.setItem(LOCALE_STORAGE_KEY, locale)
+  try {
+    storage?.setItem(LOCALE_STORAGE_KEY, locale)
+  } catch {
+    // Locale preference is best-effort; an unavailable storage must not break the UI.
+  }
   return locale
 }

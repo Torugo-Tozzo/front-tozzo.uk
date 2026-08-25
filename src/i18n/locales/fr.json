@@ -33,6 +33,22 @@
     "pageOf": "Page {{page}} sur {{total}}",
     "more": "+{{count}} de plus...",
     "units": "unités",
+    "recordCount": {
+      "zero": "{{count}} enregistrements",
+      "one": "{{count}} enregistrement",
+      "two": "{{count}} enregistrements",
+      "few": "{{count}} enregistrements",
+      "many": "{{count}} enregistrements",
+      "other": "{{count}} enregistrements"
+    },
+    "unitCount": {
+      "zero": "{{count}} unités",
+      "one": "{{count}} unité",
+      "two": "{{count}} unités",
+      "few": "{{count}} unités",
+      "many": "{{count}} unités",
+      "other": "{{count}} unités"
+    },
     "total": "Total",
     "date": "Date",
     "time": "Heure",
@@ -577,10 +593,18 @@
     }
   },
   "catalog": {
+    "burger": "Hamburger",
+    "artisanalBurger": "Hamburger artisanal",
+    "chicken": "Poulet",
+    "hotDog": "Hot-dog",
     "food": "Nourriture",
     "drink": "Boissons",
+    "fries": "Frites",
+    "extra": "Supplément",
     "dessert": "Desserts",
     "side": "Accompagnements",
+    "pizza": "Pizza",
+    "sushi": "Sushi",
     "other": "Autre",
     "defaultType": "Type de catalogue par défaut"
   }

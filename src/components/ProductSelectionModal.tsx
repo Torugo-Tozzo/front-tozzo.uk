@@ -15,6 +15,7 @@ import api, { getErrorMessage } from "@/services/api";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useConfirm } from "@/contexts/ConfirmContext";
+import { useTranslation } from "react-i18next";
 import {
   Select,
   SelectContent,
@@ -24,6 +25,9 @@ import {
 } from "@/components/ui/select";
 import type { Product, ProductType } from "@/domain/models";
 import type { OrderStatus } from "@/domain/models";
+import { formatCount, formatCurrencyBRL, formatNumber } from "@/i18n/format";
+import { getCatalogLabel } from "@/i18n/labels";
+import { normalizeLocale } from "@/i18n/locale";
 
 export type SelectedItem = {
   productId: number | string;
@@ -66,6 +70,16 @@ export function ProductSelectionModal({
   readOnly = false,
 }: ProductSelectionModalProps) {
   const confirm = useConfirm();
+  const { i18n, t } = useTranslation();
+  const activeLocale = normalizeLocale(i18n.language);
+  const unitCountMessages = {
+    zero: t("unitCount.zero"),
+    one: t("unitCount.one"),
+    two: t("unitCount.two"),
+    few: t("unitCount.few"),
+    many: t("unitCount.many"),
+    other: t("unitCount.other"),
+  };
   const [products, setProducts] = useState<Product[]>([]);
   const [productsTotal, setProductsTotal] = useState(0);
   const [productsPage, setProductsPage] = useState(1);
@@ -274,7 +288,9 @@ export function ProductSelectionModal({
                     <SelectContent>
                       <SelectItem value="all">Todas categorias</SelectItem>
                       {productTypes.map((productType) => (
-                        <SelectItem key={productType.id} value={String(productType.id)}>{productType.description}</SelectItem>
+                        <SelectItem key={productType.id} value={String(productType.id)}>
+                          {getCatalogLabel(productType.id, productType.description, activeLocale)}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -305,7 +321,7 @@ export function ProductSelectionModal({
                         >
                           <div>
                             <p className="font-medium">{product.name}</p>
-                            <p className="text-sm text-gray-500">R$ {Number(product.price || 0).toFixed(2)}</p>
+                            <p className="text-sm text-gray-500">{formatCurrencyBRL(Number(product.price || 0), activeLocale)}</p>
                           </div>
                           <Button size="sm" variant="ghost">
                             <Plus className="h-4 w-4" />
@@ -319,7 +335,10 @@ export function ProductSelectionModal({
                     o painel muda de altura ao trocar categoria e o modal "pula". */}
                 <div className="flex items-center justify-between pt-1 h-7">
                   <span className="text-xs text-muted-foreground">
-                    {productsTotalPages > 0 && `Página ${productsPage} de ${productsTotalPages}`}
+                    {productsTotalPages > 0 && t("pageOf", {
+                      page: formatNumber(productsPage, activeLocale),
+                      total: formatNumber(productsTotalPages, activeLocale),
+                    })}
                   </span>
                   <div className="flex gap-1">
                     <Button
@@ -357,7 +376,10 @@ export function ProductSelectionModal({
                         <div className="flex-1">
                           <p className="font-medium">{item.name}</p>
                           <p className="text-sm text-gray-500 dark:text-gray-400">
-                            {item.quantity} x R$ {Number((item.unitPrice != null ? item.unitPrice : item.price) || 0).toFixed(2)}
+                            {formatNumber(item.quantity, activeLocale)} x {formatCurrencyBRL(
+                              Number((item.unitPrice != null ? item.unitPrice : item.price) || 0),
+                              activeLocale,
+                            )}
                           </p>
                         </div>
                         <div className="flex items-center gap-2">
@@ -371,7 +393,7 @@ export function ProductSelectionModal({
                               >
                                 <Minus className="h-3 w-3" />
                               </Button>
-                              <span className="w-4 text-center">{item.quantity}</span>
+                              <span className="w-4 text-center">{formatNumber(item.quantity, activeLocale)}</span>
                               <Button
                                 size="icon"
                                 variant="outline"
@@ -390,7 +412,9 @@ export function ProductSelectionModal({
                               </Button>
                             </>
                           ) : (
-                            <span className="font-bold px-4">{item.quantity} un</span>
+                            <span className="font-bold px-4">
+                              {formatCount(item.quantity, unitCountMessages, activeLocale)}
+                            </span>
                           )}
                         </div>
                       </div>
@@ -399,7 +423,7 @@ export function ProductSelectionModal({
               </div>
               <div className="pt-4 border-t flex justify-between items-center font-bold text-lg text-gray-900 dark:text-gray-100">
                 <span>Total:</span>
-                <span>R$ {total.toFixed(2)}</span>
+                <span>{formatCurrencyBRL(total, activeLocale)}</span>
               </div>
             </div>
           </div>

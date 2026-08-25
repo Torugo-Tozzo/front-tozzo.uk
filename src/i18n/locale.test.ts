@@ -41,6 +41,69 @@ describe('locale foundation', () => {
     expect(storage.getItem('tozzo.locale')).toBe('ar')
   })
 
+  test('checks browser language preferences in order before falling back to English', async () => {
+    const locale = await import('./locale').catch(() => null)
+
+    expect(locale).not.toBeNull()
+    if (!locale) return
+
+    expect(locale.getInitialLocale(makeStorage(), ['xx-YY', 'ar-SA'])).toBe('ar')
+    expect(locale.getInitialLocale(makeStorage(), ['fr-CA', 'pt-BR'])).toBe('fr')
+  })
+
+  test('does not let storage read or write errors break locale selection', async () => {
+    const locale = await import('./locale').catch(() => null)
+    const throwingStorage = {
+      getItem: () => {
+        throw new Error('SecurityError')
+      },
+      setItem: () => {
+        throw new Error('QuotaExceededError')
+      },
+    }
+
+    expect(locale).not.toBeNull()
+    if (!locale) return
+
+    expect(locale.getInitialLocale(throwingStorage, ['xx', 'hi-IN'])).toBe('hi')
+    expect(locale.persistLocale('pt-BR', throwingStorage)).toBe('pt-BR')
+  })
+
+  test('uses navigator.languages before navigator.language when no preference is stored', async () => {
+    const locale = await import('./locale').catch(() => null)
+    const previousStored = localStorage.getItem('tozzo.locale')
+    const previousLanguages = navigator.languages
+    const previousLanguage = navigator.language
+
+    expect(locale).not.toBeNull()
+    if (!locale) return
+
+    localStorage.removeItem('tozzo.locale')
+    Object.defineProperty(navigator, 'languages', {
+      configurable: true,
+      value: ['xx-YY', 'ar-SA'],
+    })
+    Object.defineProperty(navigator, 'language', {
+      configurable: true,
+      value: 'en-US',
+    })
+
+    try {
+      expect(locale.getInitialLocale()).toBe('ar')
+    } finally {
+      if (previousStored === null) localStorage.removeItem('tozzo.locale')
+      else localStorage.setItem('tozzo.locale', previousStored)
+      Object.defineProperty(navigator, 'languages', {
+        configurable: true,
+        value: previousLanguages,
+      })
+      Object.defineProperty(navigator, 'language', {
+        configurable: true,
+        value: previousLanguage,
+      })
+    }
+  })
+
   test('exposes direction metadata without changing the supported locale set', async () => {
     const locale = await import('./locale').catch(() => null)
 
