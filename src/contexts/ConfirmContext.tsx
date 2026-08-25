@@ -8,6 +8,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
+import { useTranslation } from "react-i18next"
 
 export interface ConfirmOptions {
   title?: string
@@ -29,6 +30,7 @@ export function useConfirm(): ConfirmFn {
 
 export function ConfirmProvider({ children }: { children: ReactNode }) {
   const [pending, setPending] = useState<{ options: ConfirmOptions; resolve: (v: boolean) => void } | null>(null)
+  const { t } = useTranslation("common")
 
   const confirm = useCallback<ConfirmFn>((options) => {
     const normalized: ConfirmOptions = typeof options === "string" ? { description: options } : options
@@ -48,18 +50,18 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
       <Dialog open={!!pending} onOpenChange={(open) => { if (!open) settle(false) }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{pending?.options.title ?? "Tem certeza?"}</DialogTitle>
+          <DialogTitle>{pending?.options.title ?? t("confirmQuestion")}</DialogTitle>
             <DialogDescription>{pending?.options.description}</DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => settle(false)}>
-              {pending?.options.cancelLabel ?? "Cancelar"}
+              {pending?.options.cancelLabel ?? t("cancel")}
             </Button>
             <Button
               variant={pending?.options.destructive ? "destructive" : "default"}
               onClick={() => settle(true)}
             >
-              {pending?.options.confirmLabel ?? "Sim"}
+              {pending?.options.confirmLabel ?? t("yes")}
             </Button>
           </DialogFooter>
         </DialogContent>

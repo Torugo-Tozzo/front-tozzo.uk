@@ -1,9 +1,11 @@
 import { Button } from "@/components/ui/button"
 import { Ghost } from "lucide-react"
 import { useNavigate } from "react-router-dom"
+import { useTranslation } from "react-i18next"
 
 export default function NotFoundPage() {
   const navigate = useNavigate()
+  const { t } = useTranslation("common")
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-muted/40 p-4 text-center">
@@ -16,21 +18,21 @@ export default function NotFoundPage() {
         </div>
         
         <div className="space-y-2">
-          <h1 className="text-4xl font-bold tracking-tight">Ops... 404</h1>
+          <h1 className="text-4xl font-bold tracking-tight">{t("notFound.code")}</h1>
           <h2 className="text-2xl font-semibold text-muted-foreground">
-            Página não encontrada
+            {t("notFound.title")}
           </h2>
           <p className="text-muted-foreground">
-            Parece que a página que você está procurando sumiu do mapa ou nunca existiu.
+            {t("notFound.description")}
           </p>
         </div>
 
         <div className="flex gap-4 justify-center">
           <Button onClick={() => navigate(-1)} variant="outline">
-            Voltar
+            {t("notFound.back")}
           </Button>
           <Button onClick={() => navigate("/")}>
-            Ir para o Início
+            {t("notFound.home")}
           </Button>
         </div>
       </div>

@@ -13,14 +13,25 @@ import {
 } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import logo from "@/assets/images/logo.svg"
-import api, { getErrorMessage } from "@/services/api"
+import api, { getErrorCode } from "@/services/api"
 import { toast } from "sonner"
 import { useAuth } from "@/contexts/AuthContext"
+import { useTranslation } from "react-i18next"
+import { getErrorTranslationKey } from "@/i18n/error-keys"
 
 export default function LoginPage() {
   const navigate = useNavigate()
   const { login, isAuthenticated, user } = useAuth()
+  const { t: tAuth } = useTranslation("auth")
+  const { t: tErrors } = useTranslation("errors")
   const [isLoading, setIsLoading] = useState(false)
+
+  const translateError = (context: "login" | "registration", error: unknown) => {
+    const translation = getErrorTranslationKey(context, getErrorCode(error))
+    return translation.namespace === "auth"
+      ? tAuth(translation.key)
+      : tErrors(translation.key)
+  }
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -67,7 +78,7 @@ export default function LoginPage() {
         }
       }
 
-      toast.error(getErrorMessage(error, "Falha no login. Verifique suas credenciais."))
+      toast.error(translateError("login", error))
     } finally {
       setIsLoading(false)
     }
@@ -95,11 +106,11 @@ export default function LoginPage() {
           navigate("/plan")
         }
       } else {
-        toast.success("Cadastro realizado com sucesso! Faça login para continuar.")
+        toast.success(tAuth("registrationSuccess"))
       }
     } catch (error) {
       console.error("Registration failed", error)
-      toast.error(getErrorMessage(error, "Falha no cadastro. Verifique os dados."))
+      toast.error(translateError("registration", error))
     } finally {
       setIsLoading(false)
     }
@@ -114,39 +125,39 @@ export default function LoginPage() {
             <span>Tozzo.uk</span>
           </div>
           <p className="text-muted-foreground">
-            Gerencie seu estabelecimento com facilidade
+            {tAuth("subtitle")}
           </p>
         </div>
 
         <Tabs defaultValue="login" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="login">Login</TabsTrigger>
-            <TabsTrigger value="register">Cadastrar</TabsTrigger>
+            <TabsTrigger value="login">{tAuth("login")}</TabsTrigger>
+            <TabsTrigger value="register">{tAuth("register")}</TabsTrigger>
           </TabsList>
           
           <TabsContent value="login">
             <Card>
               <CardHeader>
-                <CardTitle>Login</CardTitle>
+                <CardTitle>{tAuth("login")}</CardTitle>
                 <CardDescription>
-                  Entre com suas credenciais para acessar o sistema.
+                  {tAuth("loginDescription")}
                 </CardDescription>
               </CardHeader>
               <form onSubmit={handleLogin}>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
+                    <Label htmlFor="email">{tAuth("email")}</Label>
                     <Input 
                       id="email" 
                       type="email" 
-                      placeholder="seu@email.com" 
+                      placeholder={tAuth("emailPlaceholder")}
                       required 
                       value={loginEmail}
                       onChange={(e) => setLoginEmail(e.target.value)}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="password">Senha</Label>
+                    <Label htmlFor="password">{tAuth("password")}</Label>
                     <Input 
                       id="password" 
                       type="password" 
@@ -158,7 +169,7 @@ export default function LoginPage() {
                 </CardContent>
                 <CardFooter>
                   <Button className="w-full" type="submit" disabled={isLoading}>
-                    {isLoading ? "Entrando..." : "Entrar"}
+                    {isLoading ? tAuth("entering") : tAuth("enter")}
                   </Button>
                 </CardFooter>
               </form>
@@ -168,18 +179,18 @@ export default function LoginPage() {
           <TabsContent value="register">
             <Card>
               <CardHeader>
-                <CardTitle>Criar conta</CardTitle>
+                <CardTitle>{tAuth("createAccount")}</CardTitle>
                 <CardDescription>
-                  Preencha os dados abaixo para começar.
+                  {tAuth("registerDescription")}
                 </CardDescription>
               </CardHeader>
               <form onSubmit={handleRegister}>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="register-name">Nome do Responsável</Label>
+                    <Label htmlFor="register-name">{tAuth("responsibleName")}</Label>
                     <Input 
                       id="register-name" 
-                      placeholder="Seu nome" 
+                      placeholder={tAuth("responsiblePlaceholder")}
                       required 
                       value={registerName}
                       onChange={(e) => setRegisterName(e.target.value)}
@@ -187,10 +198,10 @@ export default function LoginPage() {
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="establishment-name">Nome do Estabelecimento</Label>
+                    <Label htmlFor="establishment-name">{tAuth("establishmentName")}</Label>
                     <Input 
                       id="establishment-name" 
-                      placeholder="Bar do Zé" 
+                      placeholder={tAuth("establishmentPlaceholder")}
                       required 
                       value={registerEstablishment}
                       onChange={(e) => setRegisterEstablishment(e.target.value)}
@@ -198,18 +209,18 @@ export default function LoginPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="register-email">Email</Label>
+                    <Label htmlFor="register-email">{tAuth("email")}</Label>
                     <Input 
                       id="register-email" 
                       type="email" 
-                      placeholder="seu@email.com" 
+                      placeholder={tAuth("emailPlaceholder")}
                       required 
                       value={registerEmail}
                       onChange={(e) => setRegisterEmail(e.target.value)}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="register-password">Senha</Label>
+                    <Label htmlFor="register-password">{tAuth("password")}</Label>
                     <Input 
                       id="register-password" 
                       type="password" 
@@ -228,16 +239,16 @@ export default function LoginPage() {
                       className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
                     />
                     <Label htmlFor="has-key" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                      Possuo chave de registro (Acesso Gratuito)
+                      {tAuth("freeAccessLabel")}
                     </Label>
                   </div>
 
                   {hasKey && (
                     <div className="space-y-2">
-                      <Label htmlFor="registration-key">Chave de Registro</Label>
+                      <Label htmlFor="registration-key">{tAuth("registrationKey")}</Label>
                       <Input 
                         id="registration-key" 
-                        placeholder="Chave de acesso" 
+                        placeholder={tAuth("registrationKeyPlaceholder")}
                         required={hasKey}
                         value={registrationKey}
                         onChange={(e) => setRegistrationKey(e.target.value)}
@@ -247,7 +258,9 @@ export default function LoginPage() {
                 </CardContent>
                 <CardFooter>
                   <Button className="w-full" type="submit" disabled={isLoading}>
-                    {isLoading ? "Criando conta..." : (hasKey ? "Criar conta" : "Criar e Assinar")}
+                    {isLoading
+                      ? tAuth("createAccountLoading")
+                      : (hasKey ? tAuth("createAccount") : tAuth("createAndSubscribe"))}
                   </Button>
                 </CardFooter>
               </form>

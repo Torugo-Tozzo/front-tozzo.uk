@@ -3,10 +3,13 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Link, useNavigate } from "react-router-dom"
 import { UtensilsCrossed, ChefHat, Beer, Wifi, BarChart3, History, Rocket, Smartphone, Check } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
+import { useTranslation } from "react-i18next"
+import { formatCurrencyBRL } from "@/i18n/format"
 
 export default function LandingPage() {
   const { isAuthenticated, user } = useAuth()
   const navigate = useNavigate()
+  const { t } = useTranslation("common")
 
   const handleSubscribe = () => {
     if (isAuthenticated) {
@@ -34,7 +37,7 @@ export default function LandingPage() {
           <div className="absolute inset-0 z-0">
             <img 
               src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=2070&auto=format&fit=crop" 
-              alt="Restaurant Interior" 
+              alt={t("landing.heroImageAlt")}
               className="w-full h-full object-cover"
             />
             <div className="absolute inset-0 bg-white/75 dark:bg-background/75 backdrop-blur-[2px]"></div>
@@ -42,16 +45,16 @@ export default function LandingPage() {
 
           <div className="container relative z-10 mx-auto px-4 text-center">
             <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-6">
-              Gestão Inteligente para <br className="hidden md:block" />
-              <span className="text-primary">Restaurantes e Bares</span>
+              {t("landing.heroTitle")} <br className="hidden md:block" />
+              <span className="text-primary">{t("landing.heroHighlight")}</span>
             </h1>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-10">
-              Simplifique seus pedidos, controle seu estoque e aumente suas vendas com nossa plataforma completa de gestão.
+              {t("landing.heroDescription")}
             </p>
             <div className="flex justify-center gap-4">
               <Link to="/login">
                 <Button size="lg" className="h-12 px-8 text-lg">
-                  Comece a usar
+                  {t("landing.startUsing")}
                 </Button>
               </Link>
               <Button 
@@ -60,7 +63,7 @@ export default function LandingPage() {
                 className="h-12 px-8 text-lg bg-background/50 backdrop-blur-sm"
                 onClick={scrollToPricing}
               >
-                Ver Planos
+                {t("landing.viewPlans")}
               </Button>
             </div>
           </div>
@@ -75,16 +78,15 @@ export default function LandingPage() {
                 <div className="inline-flex items-center justify-center p-4 bg-primary/10 rounded-2xl">
                   <ChefHat className="h-10 w-10 text-primary" />
                 </div>
-                <h3 className="text-3xl md:text-4xl font-bold">Gestão de Cozinha</h3>
+                <h3 className="text-3xl md:text-4xl font-bold">{t("landing.features.kitchen.title")}</h3>
                 <p className="text-xl text-muted-foreground leading-relaxed">
-                  Envie pedidos diretamente para a cozinha sem erros e atrasos. 
-                  Otimize o fluxo de trabalho da sua equipe e garanta que cada pedido saia perfeito e no tempo certo.
+                  {t("landing.features.kitchen.description")}
                 </p>
               </div>
               <div className="flex-1">
                 <img 
                   src="https://images.unsplash.com/photo-1577106263724-2c8e03bfe9cf?q=80&w=2070&auto=format&fit=crop" 
-                  alt="Gestão de Cozinha" 
+                  alt={t("landing.features.kitchen.imageAlt")}
                   className="rounded-2xl shadow-2xl w-full object-cover h-[400px] hover:scale-105 transition-transform duration-500"
                 />
               </div>
@@ -96,16 +98,15 @@ export default function LandingPage() {
                 <div className="inline-flex items-center justify-center p-4 bg-primary/10 rounded-2xl">
                   <Beer className="h-10 w-10 text-primary" />
                 </div>
-                <h3 className="text-3xl md:text-4xl font-bold">Controle de Bar</h3>
+                <h3 className="text-3xl md:text-4xl font-bold">{t("landing.features.bar.title")}</h3>
                 <p className="text-xl text-muted-foreground leading-relaxed">
-                  Gerencie bebidas e drinks com precisão e evite desperdícios. 
-                  Tenha controle total sobre o estoque do seu bar e aumente sua lucratividade.
+                  {t("landing.features.bar.description")}
                 </p>
               </div>
               <div className="flex-1">
                 <img 
                   src="https://images.unsplash.com/photo-1470337458703-46ad1756a187?q=80&w=2069&auto=format&fit=crop" 
-                  alt="Controle de Bar" 
+                  alt={t("landing.features.bar.imageAlt")}
                   className="rounded-2xl shadow-2xl w-full object-cover h-[400px] hover:scale-105 transition-transform duration-500"
                 />
               </div>
@@ -117,16 +118,15 @@ export default function LandingPage() {
                 <div className="inline-flex items-center justify-center p-4 bg-primary/10 rounded-2xl">
                   <UtensilsCrossed className="h-10 w-10 text-primary" />
                 </div>
-                <h3 className="text-3xl md:text-4xl font-bold">Cardápio Digital</h3>
+                <h3 className="text-3xl md:text-4xl font-bold">{t("landing.features.menu.title")}</h3>
                 <p className="text-xl text-muted-foreground leading-relaxed">
-                  Atualize seu cardápio em tempo real e facilite a escolha do cliente.
-                  Adicione fotos, descrições detalhadas e altere preços instantaneamente.
+                  {t("landing.features.menu.description")}
                 </p>
               </div>
               <div className="flex-1">
                 <img 
                   src="https://images.unsplash.com/photo-1559339352-11d035aa65de?q=80&w=1974&auto=format&fit=crop" 
-                  alt="Cardápio Digital" 
+                  alt={t("landing.features.menu.imageAlt")}
                   className="rounded-2xl shadow-2xl w-full object-cover h-[400px] hover:scale-105 transition-transform duration-500"
                 />
               </div>
@@ -138,16 +138,15 @@ export default function LandingPage() {
                 <div className="inline-flex items-center justify-center p-4 bg-primary/10 rounded-2xl">
                   <Wifi className="h-10 w-10 text-primary" />
                 </div>
-                <h3 className="text-3xl md:text-4xl font-bold">Pedidos Conectados</h3>
+                <h3 className="text-3xl md:text-4xl font-bold">{t("landing.features.orders.title")}</h3>
                 <p className="text-xl text-muted-foreground leading-relaxed">
-                  O pedido anotado pelo garçom aparece instantaneamente no sistema para o dono e na cozinha.
-                  Agilidade e comunicação integrada para seu restaurante.
+                  {t("landing.features.orders.description")}
                 </p>
               </div>
               <div className="flex-1">
                 <img 
                   src="https://images.unsplash.com/photo-1556740738-b6a63e27c4df?q=80&w=2070&auto=format&fit=crop" 
-                  alt="Pedidos Conectados" 
+                  alt={t("landing.features.orders.imageAlt")}
                   className="rounded-2xl shadow-2xl w-full object-cover h-[400px] hover:scale-105 transition-transform duration-500"
                 />
               </div>
@@ -159,16 +158,15 @@ export default function LandingPage() {
                 <div className="inline-flex items-center justify-center p-4 bg-primary/10 rounded-2xl">
                   <BarChart3 className="h-10 w-10 text-primary" />
                 </div>
-                <h3 className="text-3xl md:text-4xl font-bold">Dashboards Intuitivos</h3>
+                <h3 className="text-3xl md:text-4xl font-bold">{t("landing.features.dashboard.title")}</h3>
                 <p className="text-xl text-muted-foreground leading-relaxed">
-                  Visualize suas vendas e números através de gráficos detalhados.
-                  Tome decisões baseadas em dados reais e acompanhe o crescimento do seu negócio.
+                  {t("landing.features.dashboard.description")}
                 </p>
               </div>
               <div className="flex-1">
                 <img 
                   src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=2070&auto=format&fit=crop" 
-                  alt="Dashboards Intuitivos" 
+                  alt={t("landing.features.dashboard.imageAlt")}
                   className="rounded-2xl shadow-2xl w-full object-cover h-[400px] hover:scale-105 transition-transform duration-500"
                 />
               </div>
@@ -180,16 +178,15 @@ export default function LandingPage() {
                 <div className="inline-flex items-center justify-center p-4 bg-primary/10 rounded-2xl">
                   <History className="h-10 w-10 text-primary" />
                 </div>
-                <h3 className="text-3xl md:text-4xl font-bold">Histórico Completo</h3>
+                <h3 className="text-3xl md:text-4xl font-bold">{t("landing.features.history.title")}</h3>
                 <p className="text-xl text-muted-foreground leading-relaxed">
-                  Consulte o histórico de todas as vendas realizadas para melhor controle.
-                  Acesse dados antigos e entenda o comportamento dos seus clientes ao longo do tempo.
+                  {t("landing.features.history.description")}
                 </p>
               </div>
               <div className="flex-1">
                 <img 
                   src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?q=80&w=2070&auto=format&fit=crop" 
-                  alt="Histórico Completo" 
+                  alt={t("landing.features.history.imageAlt")}
                   className="rounded-2xl shadow-2xl w-full object-cover h-[400px] hover:scale-105 transition-transform duration-500"
                 />
               </div>
@@ -201,16 +198,15 @@ export default function LandingPage() {
                 <div className="inline-flex items-center justify-center p-4 bg-primary/10 rounded-2xl">
                   <Rocket className="h-10 w-10 text-primary" />
                 </div>
-                <h3 className="text-3xl md:text-4xl font-bold">Gestão Inovadora</h3>
+                <h3 className="text-3xl md:text-4xl font-bold">{t("landing.features.innovation.title")}</h3>
                 <p className="text-xl text-muted-foreground leading-relaxed">
-                  Inove o gerenciamento do seu negócio com tecnologia e inteligência.
-                  Esteja à frente da concorrência com ferramentas modernas e eficientes.
+                  {t("landing.features.innovation.description")}
                 </p>
               </div>
               <div className="flex-1">
                 <img 
                   src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=2070&auto=format&fit=crop" 
-                  alt="Gestão Inovadora" 
+                  alt={t("landing.features.innovation.imageAlt")}
                   className="rounded-2xl shadow-2xl w-full object-cover h-[400px] hover:scale-105 transition-transform duration-500"
                 />
               </div>
@@ -222,16 +218,15 @@ export default function LandingPage() {
                 <div className="inline-flex items-center justify-center p-4 bg-primary/10 rounded-2xl">
                   <Smartphone className="h-10 w-10 text-primary" />
                 </div>
-                <h3 className="text-3xl md:text-4xl font-bold">Apps Integrados</h3>
+                <h3 className="text-3xl md:text-4xl font-bold">{t("landing.features.apps.title")}</h3>
                 <p className="text-xl text-muted-foreground leading-relaxed">
-                  Versões exclusivas para garçons e clientes realizarem pedidos.
-                  Facilite a vida do seu cliente e da sua equipe com aplicativos dedicados.
+                  {t("landing.features.apps.description")}
                 </p>
               </div>
               <div className="flex-1">
                 <img 
                   src="https://images.unsplash.com/photo-1556742031-c6961e8560b0?q=80&w=2070&auto=format&fit=crop" 
-                  alt="Apps Integrados" 
+                  alt={t("landing.features.apps.imageAlt")}
                   className="rounded-2xl shadow-2xl w-full object-cover h-[400px] hover:scale-105 transition-transform duration-500"
                 />
               </div>
@@ -243,9 +238,9 @@ export default function LandingPage() {
         <section id="pricing" className="py-20 bg-muted/50">
           <div className="container mx-auto px-4">
             <div className="text-center mb-16">
-              <h2 className="text-3xl font-bold tracking-tight mb-4">Planos Flexíveis</h2>
+              <h2 className="text-3xl font-bold tracking-tight mb-4">{t("plans.title")}</h2>
               <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-                Escolha o plano ideal para o seu negócio crescer.
+                {t("plans.description")}
               </p>
             </div>
 
@@ -253,32 +248,32 @@ export default function LandingPage() {
               {/* Monthly Plan */}
               <Card className="relative flex flex-col border-2 border-transparent hover:border-primary/50 transition-all duration-300 hover:scale-105 hover:shadow-xl bg-card">
                 <CardHeader>
-                  <CardTitle className="text-2xl">Mensal</CardTitle>
-                  <CardDescription>Flexibilidade total para seu negócio</CardDescription>
+                  <CardTitle className="text-2xl">{t("plans.monthly")}</CardTitle>
+                  <CardDescription>{t("plans.monthlyDescription")}</CardDescription>
                 </CardHeader>
                 <CardContent className="flex-1">
                   <div className="mb-4">
-                    <span className="text-4xl font-bold">R$ 6,90</span>
-                    <span className="text-muted-foreground ml-2">/mês</span>
+                    <span className="text-4xl font-bold">{formatCurrencyBRL(6.9)}</span>
+                    <span className="text-muted-foreground ml-2">{t("plans.monthlyUnit")}</span>
                   </div>
                   <ul className="space-y-3 mb-8">
                     <li className="flex items-center gap-2">
                       <Check className="h-4 w-4 text-primary" />
-                      <span>Acesso completo ao sistema</span>
+                      <span>{t("plans.features.fullAccess")}</span>
                     </li>
                     <li className="flex items-center gap-2">
                       <Check className="h-4 w-4 text-primary" />
-                      <span>Suporte prioritário</span>
+                      <span>{t("plans.features.prioritySupport")}</span>
                     </li>
                     <li className="flex items-center gap-2">
                       <Check className="h-4 w-4 text-primary" />
-                      <span>Cancele quando quiser</span>
+                      <span>{t("plans.features.cancelAnytime")}</span>
                     </li>
                   </ul>
                 </CardContent>
                 <CardFooter>
                   <Button size="lg" className="w-full" onClick={handleSubscribe}>
-                    Assinar Mensal
+                    {t("plans.subscribeMonthly")}
                   </Button>
                 </CardFooter>
               </Card>
@@ -286,36 +281,38 @@ export default function LandingPage() {
               {/* Annual Plan */}
               <Card className="relative flex flex-col border-2 border-green-500 shadow-lg z-10 transition-all duration-300 hover:scale-110 hover:shadow-2xl bg-card">
                 <div className="absolute top-0 right-0 bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-bl-lg rounded-tr-lg">
-                  MAIS POPULAR
+                  {t("plans.popular")}
                 </div>
                 <CardHeader>
-                  <CardTitle className="text-2xl">Anual</CardTitle>
-                  <CardDescription>Economize com pagamento anual</CardDescription>
+                  <CardTitle className="text-2xl">{t("plans.annual")}</CardTitle>
+                  <CardDescription>{t("plans.annualDescription")}</CardDescription>
                 </CardHeader>
                 <CardContent className="flex-1">
                   <div className="mb-4">
-                    <span className="text-4xl font-bold">R$ 60,91</span>
-                    <span className="text-muted-foreground ml-2">/ano</span>
+                    <span className="text-4xl font-bold">{formatCurrencyBRL(60.91)}</span>
+                    <span className="text-muted-foreground ml-2">{t("plans.annualUnit")}</span>
                   </div>
-                  <p className="text-sm text-green-600 font-medium mb-4">Equivalente a R$ 5,07/mês</p>
+                  <p className="text-sm text-green-600 font-medium mb-4">
+                    {t("plans.equivalentMonthly", { price: formatCurrencyBRL(5.07) })}
+                  </p>
                   <ul className="space-y-3 mb-8">
                     <li className="flex items-center gap-2">
                       <Check className="h-4 w-4 text-green-500" />
-                      <span>Tudo do plano mensal</span>
+                      <span>{t("plans.features.sameAsMonthly")}</span>
                     </li>
                     <li className="flex items-center gap-2">
                       <Check className="h-4 w-4 text-green-500" />
-                      <span>Desconto de ~27%</span>
+                      <span>{t("plans.features.discount")}</span>
                     </li>
                     <li className="flex items-center gap-2">
                       <Check className="h-4 w-4 text-green-500" />
-                      <span>Cobrança anual</span>
+                      <span>{t("plans.features.annualBilling")}</span>
                     </li>
                   </ul>
                 </CardContent>
                 <CardFooter>
                   <Button size="lg" className="w-full bg-green-600 hover:bg-green-700" onClick={handleSubscribe}>
-                    Assinar Anual
+                    {t("plans.subscribeAnnual")}
                   </Button>
                 </CardFooter>
               </Card>

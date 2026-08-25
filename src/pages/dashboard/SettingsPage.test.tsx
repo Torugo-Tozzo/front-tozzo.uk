@@ -40,7 +40,8 @@ describe('SettingsPage', () => {
     // system theme resolves to "light" (matchMedia mocked to matches: false)
     expect(document.documentElement.classList.contains('light')).toBe(true)
 
-    await user.click(screen.getByRole('button', { name: /toggle theme/i }))
+    const toggleThemeLabel = i18n.t('accessibility.toggleTheme', { ns: 'common' })
+    await user.click(screen.getByRole('button', { name: toggleThemeLabel }))
 
     expect(document.documentElement.classList.contains('dark')).toBe(true)
     expect(localStorage.getItem('vite-ui-theme')).toBe('dark')
