@@ -189,7 +189,18 @@
     "verifyCredentials": "Check your credentials.",
     "verifyData": "Check your details.",
     "pendingPayment": "Payment pending",
-    "continueToPlan": "Continue to plan selection"
+    "continueToPlan": "Continue to plan selection",
+    "registrationSuccess": "Registration successful! Sign in to continue.",
+    "registrationErrorFallback": "Registration failed. Check your details.",
+    "subtitle": "Manage your establishment with ease",
+    "loginDescription": "Enter your credentials to access the system.",
+    "emailPlaceholder": "you@example.com",
+    "registerDescription": "Fill in the details below to get started.",
+    "responsiblePlaceholder": "Your name",
+    "establishmentPlaceholder": "Bar do Zé",
+    "freeAccessLabel": "I have a registration key (Free access)",
+    "registrationKeyPlaceholder": "Access key",
+    "createAccountLoading": "Creating account..."
   },
   "navigation": {
     "dashboard": "Dashboard",
@@ -317,7 +328,8 @@
     "system": "System",
     "language": "Language",
     "currentLanguage": "Current language",
-    "localeIndicator": "Language: {{locale}}"
+    "localeIndicator": "Language: {{locale}}",
+    "moreComingSoon": "More settings coming soon..."
   },
   "sync": {
     "syncing": "Synchronizing...",
@@ -334,7 +346,8 @@
     "printSale": "Print sale",
     "printing": "Printing...",
     "printSuccess": "Print job sent.",
-    "printError": "Unable to print."
+    "printError": "Unable to print.",
+    "printSoon": "Printing (coming soon)"
   },
   "status": {
     "open": "Open",
@@ -378,7 +391,19 @@
     "downloadReport": "The file could not be downloaded after several attempts.",
     "invalidResponse": "Invalid server response.",
     "paymentUrl": "Unable to start payment: URL not found.",
-    "payment": "Error processing payment. Check that your session is active."
+    "payment": "Error processing payment. Check that your session is active.",
+    "products": {
+      "selectType": "Please select a product type.",
+      "create": "Error creating product",
+      "update": "Error updating product",
+      "delete": "Error deleting product",
+      "createType": "Error creating type",
+      "updateType": "Error updating type",
+      "updateTypeStatus": "Error updating the type status."
+    },
+    "employees": {
+      "delete": "Error deleting employee"
+    }
   },
   "catalog": {
     "food": "Food",

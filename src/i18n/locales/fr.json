@@ -189,7 +189,18 @@
     "verifyCredentials": "Vérifiez vos identifiants.",
     "verifyData": "Vérifiez vos informations.",
     "pendingPayment": "Paiement en attente",
-    "continueToPlan": "Continuer vers le choix du forfait"
+    "continueToPlan": "Continuer vers le choix du forfait",
+    "registrationSuccess": "Inscription réussie ! Connectez-vous pour continuer.",
+    "registrationErrorFallback": "Échec de l'inscription. Vérifiez vos informations.",
+    "subtitle": "Gérez votre établissement en toute simplicité",
+    "loginDescription": "Connectez-vous avec vos identifiants pour accéder au système.",
+    "emailPlaceholder": "vous@exemple.com",
+    "registerDescription": "Remplissez les informations ci-dessous pour commencer.",
+    "responsiblePlaceholder": "Votre nom",
+    "establishmentPlaceholder": "Bar do Zé",
+    "freeAccessLabel": "J’ai une clé d’inscription (Accès gratuit)",
+    "registrationKeyPlaceholder": "Clé d'accès",
+    "createAccountLoading": "Création du compte..."
   },
   "navigation": {
     "dashboard": "Tableau de bord",
@@ -317,7 +328,8 @@
     "system": "Système",
     "language": "Langue",
     "currentLanguage": "Langue actuelle",
-    "localeIndicator": "Langue : {{locale}}"
+    "localeIndicator": "Langue : {{locale}}",
+    "moreComingSoon": "D'autres paramètres bientôt disponibles..."
   },
   "sync": {
     "syncing": "Synchronisation...",
@@ -334,7 +346,8 @@
     "printSale": "Imprimer la vente",
     "printing": "Impression...",
     "printSuccess": "Tâche d'impression envoyée.",
-    "printError": "Impossible d'imprimer."
+    "printError": "Impossible d'imprimer.",
+    "printSoon": "Impression (bientôt disponible)"
   },
   "status": {
     "open": "Ouvert",
@@ -378,7 +391,19 @@
     "downloadReport": "Impossible de télécharger le fichier après plusieurs tentatives.",
     "invalidResponse": "Réponse invalide du serveur.",
     "paymentUrl": "Impossible de démarrer le paiement : URL introuvable.",
-    "payment": "Erreur lors du traitement du paiement. Vérifiez que votre session est active."
+    "payment": "Erreur lors du traitement du paiement. Vérifiez que votre session est active.",
+    "products": {
+      "selectType": "Veuillez sélectionner un type de produit.",
+      "create": "Erreur lors de la création du produit",
+      "update": "Erreur lors de la mise à jour du produit",
+      "delete": "Erreur lors de la suppression du produit",
+      "createType": "Erreur lors de la création du type",
+      "updateType": "Erreur lors de la mise à jour du type",
+      "updateTypeStatus": "Erreur lors de la mise à jour du statut du type"
+    },
+    "employees": {
+      "delete": "Erreur lors de la suppression de l'employé"
+    }
   },
   "catalog": {
     "food": "Nourriture",

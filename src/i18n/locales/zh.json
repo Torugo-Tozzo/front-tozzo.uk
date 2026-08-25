@@ -189,7 +189,18 @@
     "verifyCredentials": "请检查您的凭据。",
     "verifyData": "请检查您的信息。",
     "pendingPayment": "付款待处理",
-    "continueToPlan": "继续选择方案"
+    "continueToPlan": "继续选择方案",
+    "registrationSuccess": "注册成功！请登录以继续。",
+    "registrationErrorFallback": "注册失败。请检查信息。",
+    "subtitle": "轻松管理您的店铺",
+    "loginDescription": "使用您的凭据登录系统。",
+    "emailPlaceholder": "your@example.com",
+    "registerDescription": "填写以下信息即可开始。",
+    "responsiblePlaceholder": "您的姓名",
+    "establishmentPlaceholder": "Bar do Zé",
+    "freeAccessLabel": "我有注册密钥（免费访问）",
+    "registrationKeyPlaceholder": "访问密钥",
+    "createAccountLoading": "正在创建账户..."
   },
   "navigation": {
     "dashboard": "仪表板",
@@ -317,7 +328,8 @@
     "system": "系统",
     "language": "语言",
     "currentLanguage": "当前语言",
-    "localeIndicator": "语言：{{locale}}"
+    "localeIndicator": "语言：{{locale}}",
+    "moreComingSoon": "更多设置即将推出……"
   },
   "sync": {
     "syncing": "同步中...",
@@ -334,7 +346,8 @@
     "printSale": "打印销售单",
     "printing": "打印中...",
     "printSuccess": "打印任务已发送。",
-    "printError": "无法打印。"
+    "printError": "无法打印。",
+    "printSoon": "打印（即将推出）"
   },
   "status": {
     "open": "开放",
@@ -378,7 +391,19 @@
     "downloadReport": "多次尝试后仍无法下载文件。",
     "invalidResponse": "服务器响应无效。",
     "paymentUrl": "无法开始付款：找不到地址。",
-    "payment": "处理付款时出错。请检查会话是否有效。"
+    "payment": "处理付款时出错。请检查会话是否有效。",
+    "products": {
+      "selectType": "请选择产品类型。",
+      "create": "创建产品时出错",
+      "update": "更新产品时出错",
+      "delete": "删除产品时出错",
+      "createType": "创建类型时出错",
+      "updateType": "更新类型时出错",
+      "updateTypeStatus": "更新类型状态时出错"
+    },
+    "employees": {
+      "delete": "删除员工时出错"
+    }
   },
   "catalog": {
     "food": "食物",

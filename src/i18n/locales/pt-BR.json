@@ -189,7 +189,18 @@
     "verifyCredentials": "Verifique suas credenciais.",
     "verifyData": "Verifique os dados.",
     "pendingPayment": "Pagamento pendente",
-    "continueToPlan": "Continuar para seleção de plano"
+    "continueToPlan": "Continuar para seleção de plano",
+    "registrationSuccess": "Cadastro realizado com sucesso! Faça login para continuar.",
+    "registrationErrorFallback": "Falha no cadastro. Verifique os dados.",
+    "subtitle": "Gerencie seu estabelecimento com facilidade",
+    "loginDescription": "Entre com suas credenciais para acessar o sistema.",
+    "emailPlaceholder": "seu@email.com",
+    "registerDescription": "Preencha os dados abaixo para começar.",
+    "responsiblePlaceholder": "Seu nome",
+    "establishmentPlaceholder": "Bar do Zé",
+    "freeAccessLabel": "Possuo chave de registro (Acesso Gratuito)",
+    "registrationKeyPlaceholder": "Chave de acesso",
+    "createAccountLoading": "Criando conta..."
   },
   "navigation": {
     "dashboard": "Dashboard",
@@ -317,7 +328,8 @@
     "system": "Sistema",
     "language": "Idioma",
     "currentLanguage": "Idioma atual",
-    "localeIndicator": "Idioma: {{locale}}"
+    "localeIndicator": "Idioma: {{locale}}",
+    "moreComingSoon": "Mais configurações em breve..."
   },
   "sync": {
     "syncing": "Sincronizando...",
@@ -334,7 +346,8 @@
     "printSale": "Imprimir venda",
     "printing": "Imprimindo...",
     "printSuccess": "Impressão enviada.",
-    "printError": "Não foi possível imprimir."
+    "printError": "Não foi possível imprimir.",
+    "printSoon": "Impressão (em breve)"
   },
   "status": {
     "open": "Aberto",
@@ -378,7 +391,19 @@
     "downloadReport": "Não foi possível baixar o arquivo após várias tentativas.",
     "invalidResponse": "Resposta inválida do servidor.",
     "paymentUrl": "Erro ao iniciar pagamento: URL não encontrada.",
-    "payment": "Erro ao processar pagamento. Verifique se sua sessão está ativa."
+    "payment": "Erro ao processar pagamento. Verifique se sua sessão está ativa.",
+    "products": {
+      "selectType": "Por favor, selecione um tipo de produto.",
+      "create": "Erro ao criar produto",
+      "update": "Erro ao atualizar produto",
+      "delete": "Erro ao excluir produto",
+      "createType": "Erro ao criar tipo",
+      "updateType": "Erro ao atualizar tipo",
+      "updateTypeStatus": "Erro ao atualizar status do tipo"
+    },
+    "employees": {
+      "delete": "Erro ao excluir funcionário"
+    }
   },
   "catalog": {
     "food": "Comida",

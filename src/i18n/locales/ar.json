@@ -189,7 +189,18 @@
     "verifyCredentials": "تحقق من بيانات الدخول.",
     "verifyData": "تحقق من المعلومات.",
     "pendingPayment": "الدفع معلق",
-    "continueToPlan": "المتابعة إلى اختيار الخطة"
+    "continueToPlan": "المتابعة إلى اختيار الخطة",
+    "registrationSuccess": "تم التسجيل بنجاح! سجّل الدخول للمتابعة.",
+    "registrationErrorFallback": "فشل التسجيل. تحقق من معلوماتك.",
+    "subtitle": "أدر منشأتك بسهولة",
+    "loginDescription": "سجّل الدخول باستخدام بياناتك للوصول إلى النظام.",
+    "emailPlaceholder": "you@example.com",
+    "registerDescription": "املأ البيانات أدناه للبدء.",
+    "responsiblePlaceholder": "اسمك",
+    "establishmentPlaceholder": "Bar do Zé",
+    "freeAccessLabel": "لدي مفتاح تسجيل (وصول مجاني)",
+    "registrationKeyPlaceholder": "مفتاح الوصول",
+    "createAccountLoading": "جارٍ إنشاء الحساب..."
   },
   "navigation": {
     "dashboard": "لوحة التحكم",
@@ -317,7 +328,8 @@
     "system": "النظام",
     "language": "اللغة",
     "currentLanguage": "اللغة الحالية",
-    "localeIndicator": "اللغة: {{locale}}"
+    "localeIndicator": "اللغة: {{locale}}",
+    "moreComingSoon": "المزيد من الإعدادات قريبًا..."
   },
   "sync": {
     "syncing": "جارٍ المزامنة...",
@@ -334,7 +346,8 @@
     "printSale": "طباعة البيع",
     "printing": "جارٍ الطباعة...",
     "printSuccess": "تم إرسال مهمة الطباعة.",
-    "printError": "تعذرت الطباعة."
+    "printError": "تعذرت الطباعة.",
+    "printSoon": "الطباعة (قريبًا)"
   },
   "status": {
     "open": "مفتوح",
@@ -378,7 +391,19 @@
     "downloadReport": "تعذر تنزيل الملف بعد عدة محاولات.",
     "invalidResponse": "استجابة الخادم غير صالحة.",
     "paymentUrl": "تعذر بدء الدفع: لم يتم العثور على الرابط.",
-    "payment": "حدث خطأ أثناء معالجة الدفع. تحقق من نشاط جلستك."
+    "payment": "حدث خطأ أثناء معالجة الدفع. تحقق من نشاط جلستك.",
+    "products": {
+      "selectType": "يرجى اختيار نوع المنتج.",
+      "create": "حدث خطأ أثناء إنشاء المنتج",
+      "update": "حدث خطأ أثناء تحديث المنتج",
+      "delete": "حدث خطأ أثناء حذف المنتج",
+      "createType": "حدث خطأ أثناء إنشاء النوع",
+      "updateType": "حدث خطأ أثناء تحديث النوع",
+      "updateTypeStatus": "حدث خطأ أثناء تحديث حالة النوع"
+    },
+    "employees": {
+      "delete": "حدث خطأ أثناء حذف الموظف"
+    }
   },
   "catalog": {
     "food": "طعام",

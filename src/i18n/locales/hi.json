@@ -189,7 +189,18 @@
     "verifyCredentials": "अपनी जानकारी जाँचें।",
     "verifyData": "अपना डेटा जाँचें।",
     "pendingPayment": "भुगतान लंबित",
-    "continueToPlan": "योजना चयन पर जाएँ"
+    "continueToPlan": "योजना चयन पर जाएँ",
+    "registrationSuccess": "पंजीकरण सफल हुआ! जारी रखने के लिए लॉग इन करें।",
+    "registrationErrorFallback": "पंजीकरण विफल। अपनी जानकारी जाँचें।",
+    "subtitle": "अपने प्रतिष्ठान को आसानी से प्रबंधित करें",
+    "loginDescription": "सिस्टम तक पहुँचने के लिए अपनी जानकारी से लॉग इन करें।",
+    "emailPlaceholder": "your@example.com",
+    "registerDescription": "शुरू करने के लिए नीचे दी गई जानकारी भरें।",
+    "responsiblePlaceholder": "आपका नाम",
+    "establishmentPlaceholder": "Bar do Zé",
+    "freeAccessLabel": "मेरे पास पंजीकरण कुंजी है (मुफ़्त पहुँच)",
+    "registrationKeyPlaceholder": "पहुँच कुंजी",
+    "createAccountLoading": "खाता बनाया जा रहा है..."
   },
   "navigation": {
     "dashboard": "डैशबोर्ड",
@@ -317,7 +328,8 @@
     "system": "सिस्टम",
     "language": "भाषा",
     "currentLanguage": "वर्तमान भाषा",
-    "localeIndicator": "भाषा: {{locale}}"
+    "localeIndicator": "भाषा: {{locale}}",
+    "moreComingSoon": "और सेटिंग्स जल्द आ रही हैं..."
   },
   "sync": {
     "syncing": "सिंक हो रहा है...",
@@ -334,7 +346,8 @@
     "printSale": "बिक्री प्रिंट करें",
     "printing": "प्रिंट हो रहा है...",
     "printSuccess": "प्रिंट कार्य भेज दिया गया।",
-    "printError": "प्रिंट नहीं कर सके।"
+    "printError": "प्रिंट नहीं कर सके।",
+    "printSoon": "प्रिंट (जल्द उपलब्ध)"
   },
   "status": {
     "open": "खुला",
@@ -378,7 +391,19 @@
     "downloadReport": "कई प्रयासों के बाद फ़ाइल डाउनलोड नहीं हो सकी।",
     "invalidResponse": "सर्वर की प्रतिक्रिया अमान्य है।",
     "paymentUrl": "भुगतान शुरू नहीं कर सके: URL नहीं मिला।",
-    "payment": "भुगतान संसाधित करने में त्रुटि। अपना सत्र जाँचें।"
+    "payment": "भुगतान संसाधित करने में त्रुटि। अपना सत्र जाँचें।",
+    "products": {
+      "selectType": "कृपया उत्पाद का प्रकार चुनें।",
+      "create": "उत्पाद बनाने में त्रुटि।",
+      "update": "उत्पाद अपडेट करने में त्रुटि।",
+      "delete": "उत्पाद हटाने में त्रुटि।",
+      "createType": "प्रकार बनाने में त्रुटि।",
+      "updateType": "प्रकार अपडेट करने में त्रुटि।",
+      "updateTypeStatus": "प्रकार की स्थिति अपडेट करने में त्रुटि।"
+    },
+    "employees": {
+      "delete": "कर्मचारी हटाने में त्रुटि।"
+    }
   },
   "catalog": {
     "food": "भोजन",

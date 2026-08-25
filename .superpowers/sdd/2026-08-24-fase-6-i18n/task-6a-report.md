@@ -426,3 +426,48 @@ nested common runtime namespaces preserved: accessibility, landing, plans
   flattening de `common.accessibility`, `common.landing` ou `common.plans`.
 - `audit-context/`, `src/i18n/ui-inventory.test.ts`, consumidores e
   `dev/main` permanecem intocados.
+
+## Fix round 5 — auth/navigation/settings/status/printer/errors resource repair
+
+### Estado
+
+O lote T6-A foi aplicado somente aos sete bundles locais (`en`, `pt-BR`, `es`,
+`fr`, `zh`, `hi` e `ar`). Foram adicionadas apenas as 21 folhas ausentes do
+inventário focado: 11 folhas `auth`, `settings.moreComingSoon`,
+`printer.printSoon` e oito folhas aninhadas em `errors.products`/
+`errors.employees`. `navigation` e `status` já estavam completos e não foram
+alterados. Os placeholders existentes permanecem consistentes; não foram
+alterados consumidores, dados de negócio ou outras famílias de namespace.
+
+A asserção ampla continua aberta para `products`, `employees`, `charts`,
+`orders` e `sales`, conforme esperado para as próximas microtarefas.
+
+### Verificação focada — saída exata
+
+Comando: `bun test src/i18n/ui-inventory.test.ts --test-name-pattern first.*batch`
+
+~~~text
+bun test v1.4.0 (34cbb9a40)
+
+src\i18n\ui-inventory.test.ts:
+(pass) current hardcoded UI inventory > has a translated resource leaf for the first local inventory batch in every locale [0.88ms]
+
+ 1 pass
+ 1 filtered out
+ 0 fail
+ 1 expect() calls
+Ran 1 test across 1 file. [267.00ms]
+~~~
+
+### Checker de i18n — saída exata
+
+Comando: `bun run i18n:check`
+
+~~~text
+$ node scripts/check-i18n.mjs
+i18n bundles OK: 7 locales, 14 namespaces
+~~~
+
+### Typecheck — saída exata
+
+Comando: `bunx tsc --noEmit` — exit 0, sem saída.
