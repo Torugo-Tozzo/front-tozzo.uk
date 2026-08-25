@@ -36,6 +36,8 @@ import { Pagination } from "@/components/Pagination"
 import { useAuth } from "@/contexts/AuthContext"
 import { useConfirm } from "@/contexts/ConfirmContext"
 import { useMinLoadingDuration } from "@/hooks/useMinLoadingDuration"
+import { useTranslation } from "react-i18next"
+import { formatNumber, formatPageIndex } from "@/i18n/format"
 import type { UserRole } from "@/domain/models"
 
 type Employee = {
@@ -48,6 +50,7 @@ type Employee = {
 export default function EmployeesPage() {
   const { user } = useAuth()
   const confirm = useConfirm()
+  const { i18n } = useTranslation()
   const [employees, setEmployees] = useState<Employee[]>([])
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
@@ -364,7 +367,9 @@ export default function EmployeesPage() {
               ) : (
                 employees.map((employee, index) => (
                 <TableRow key={employee.id} className="animate-in fade-in-0 duration-300">
-                    <TableCell className="font-medium">{(page - 1) * limit + index + 1}</TableCell>
+                    <TableCell className="font-medium">
+                      {formatPageIndex(page, limit, index, i18n.language)}
+                    </TableCell>
                     <TableCell>{employee.name}</TableCell>
                     <TableCell>{employee.email}</TableCell>
                     <TableCell>
@@ -408,7 +413,9 @@ export default function EmployeesPage() {
             </TableBody>
           </Table>
           <div className="mt-4 flex items-center justify-between">
-            <div className="text-sm text-muted-foreground">Total de registros: {totalItems}</div>
+            <div className="text-sm text-muted-foreground">
+              Total de registros: {formatNumber(totalItems, i18n.language)}
+            </div>
             <Pagination
               currentPage={page}
               totalPages={totalPages}

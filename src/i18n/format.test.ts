@@ -2,11 +2,13 @@ import { beforeEach, describe, expect, test } from 'bun:test'
 
 import { i18n } from './config'
 import {
+  formatChartValue,
   formatCurrencyBRL,
   formatCount,
   formatDate,
   formatNumber,
   formatPlural,
+  formatPageIndex,
   getActiveLocale,
 } from './format'
 import { getCatalogLabel, getStatusLabel } from './labels'
@@ -35,6 +37,24 @@ describe('active-locale helpers', () => {
 
     expect(formatPlural(1, { one: 'item', other: 'items' })).toBe('item')
     expect(formatPlural(2, { one: 'item', other: 'items' })).toBe('items')
+  })
+
+  test('formats paged indexes and chart values for the active locale', async () => {
+    await i18n.changeLanguage('en')
+
+    expect(formatPageIndex(2, 10, 0)).toBe('11')
+    expect(formatChartValue(1234.5, 'en', 'currency')).toBe(formatCurrencyBRL(1234.5, 'en'))
+    expect(formatChartValue(0.125, 'en', 'percent')).toBe(
+      formatNumber(0.125, 'en', { style: 'percent', maximumFractionDigits: 0 }),
+    )
+
+    await i18n.changeLanguage('ar')
+
+    expect(formatPageIndex(2, 10, 0)).toBe(formatNumber(11, 'ar'))
+    expect(formatChartValue(1234.5, 'ar', 'currency')).toBe(formatCurrencyBRL(1234.5, 'ar'))
+    expect(formatChartValue(0.125, 'ar', 'percent')).toBe(
+      formatNumber(0.125, 'ar', { style: 'percent', maximumFractionDigits: 0 }),
+    )
   })
 
   test('formats localized count messages with Arabic plural categories and digits', async () => {

@@ -42,7 +42,7 @@ import {
 import { BarChart3, Search, Loader2, ChevronLeft, ChevronRight, Clock } from "lucide-react"
 
 import { Skeleton } from "@/components/ui/skeleton"
-import { formatCount, formatCurrencyBRL, formatDate, formatNumber, formatTime } from "@/i18n/format"
+import { formatChartValue, formatCount, formatCurrencyBRL, formatDate, formatNumber, formatTime } from "@/i18n/format"
 import { getCatalogLabel } from "@/i18n/labels"
 import { normalizeLocale } from "@/i18n/locale"
 import type { ProductType } from "@/domain/models"
@@ -501,9 +501,15 @@ export default function ChartsPage() {
           <ResponsiveContainer width="100%" height={400}>
             <BarChart layout="vertical" data={chartData} margin={{ top: 20, right: 30, left: 40, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis type="number" />
+              <XAxis
+                type="number"
+                tickFormatter={(value) => formatChartValue(value, activeLocale, 'currency')}
+              />
               <YAxis dataKey="name" type="category" width={100} />
-              <Tooltip formatter={(value) => `R$ ${value}`} contentStyle={tooltipStyle} />
+              <Tooltip
+                formatter={(value) => formatChartValue(value, activeLocale, 'currency')}
+                contentStyle={tooltipStyle}
+              />
               <Legend />
               <Bar dataKey="revenue" name="Receita" fill="#8884d8" />
             </BarChart>
@@ -515,8 +521,11 @@ export default function ChartsPage() {
             <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip contentStyle={tooltipStyle} />
+              <YAxis tickFormatter={(value) => formatChartValue(value, activeLocale)} />
+              <Tooltip
+                formatter={(value) => formatChartValue(value, activeLocale)}
+                contentStyle={tooltipStyle}
+              />
               <Legend />
               <Bar dataKey="sales" name="Vendas" fill="#82ca9d" />
             </BarChart>
@@ -528,8 +537,15 @@ export default function ChartsPage() {
             <LineChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip formatter={(value, name) => name === 'Receita' ? `R$ ${value}` : value} contentStyle={tooltipStyle} />
+              <YAxis tickFormatter={(value) => formatChartValue(value, activeLocale)} />
+              <Tooltip
+                formatter={(value, name) => formatChartValue(
+                  value,
+                  activeLocale,
+                  name === 'Receita' ? 'currency' : 'number',
+                )}
+                contentStyle={tooltipStyle}
+              />
               <Legend />
               <Line type="monotone" dataKey="revenue" name="Receita" stroke="#8884d8" activeDot={{ r: 8 }} />
               <Line type="monotone" dataKey="sales" name="Vendas (Qtd)" stroke="#82ca9d" />
@@ -545,7 +561,11 @@ export default function ChartsPage() {
                 cx="50%"
                 cy="50%"
                 labelLine={false}
-                label={(entry: any) => `${entry.name} ${((entry.percent ?? 0) * 100).toFixed(0)}%`}
+                label={(entry: any) => entry.name + ' ' + formatChartValue(
+                  entry.percent ?? 0,
+                  activeLocale,
+                  'percent',
+                )}
                 outerRadius={150}
                 fill="#8884d8"
                 dataKey="sales"
@@ -555,7 +575,10 @@ export default function ChartsPage() {
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
-              <Tooltip contentStyle={tooltipStyle} />
+              <Tooltip
+                formatter={(value) => formatChartValue(value, activeLocale)}
+                contentStyle={tooltipStyle}
+              />
               <Legend />
             </PieChart>
           </ResponsiveContainer>
@@ -929,7 +952,10 @@ export default function ChartsPage() {
                   <BarChart data={salesByHourChartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="hour" />
-                    <YAxis allowDecimals={false} />
+                    <YAxis
+                      allowDecimals={false}
+                      tickFormatter={(value) => formatChartValue(value, activeLocale)}
+                    />
                     <Tooltip
                       content={({ active, payload, label }) => {
                         if (active && payload && payload.length) {

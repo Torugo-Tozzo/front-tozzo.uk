@@ -38,6 +38,37 @@ export function formatNumber(
   return new Intl.NumberFormat(locale, numberOptions).format(value)
 }
 
+export type ChartValueKind = 'number' | 'currency' | 'percent'
+
+export function formatChartValue(
+  value: unknown,
+  locale?: LocaleInput,
+  kind: ChartValueKind = 'number',
+): string {
+  if (value === null || value === undefined || value === '') return ''
+
+  const numericValue = Number(value)
+  if (!Number.isFinite(numericValue)) return ''
+
+  if (kind === 'currency') return formatCurrencyBRL(numericValue, locale)
+  if (kind === 'percent') {
+    return formatNumber(numericValue, locale, {
+      style: 'percent',
+      maximumFractionDigits: 0,
+    })
+  }
+  return formatNumber(numericValue, locale)
+}
+
+export function formatPageIndex(
+  page: number,
+  pageSize: number,
+  rowIndex: number,
+  locale?: LocaleInput,
+): string {
+  return formatNumber((page - 1) * pageSize + rowIndex + 1, locale)
+}
+
 export function formatCurrencyBRL(
   value: number,
   localeOrOptions?: LocaleInput | NumberOptions,
