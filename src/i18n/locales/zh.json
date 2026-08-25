@@ -45,7 +45,128 @@
     "createdBy": "创建人",
     "optional": "可选",
     "allCategories": "所有类别",
-    "copyright": "版权所有。"
+    "copyright": "版权所有。",
+    "footerCopyright": "© {{year}} Tozzo.uk。保留所有权利。",
+    "accessibility": {
+      "linkedin": "LinkedIn",
+      "github": "GitHub",
+      "email": "电子邮箱",
+      "openMenu": "打开菜单",
+      "logout": "退出登录",
+      "collapseFilters": "收起筛选条件",
+      "expandFilters": "展开筛选条件",
+      "toggleTheme": "切换主题",
+      "close": "关闭"
+    },
+    "logoutConfirmation": {
+      "title": "退出登录？",
+      "description": "确定要退出登录吗？",
+      "confirm": "退出登录"
+    },
+    "pagination": {
+      "rowsPerPage": "每页行数",
+      "page": "页",
+      "pageOf": "第 {{page}} 页，共 {{total}} 页"
+    },
+    "placeholders": {
+      "customer": "搜索客户/桌号...",
+      "employee": "搜索员工..."
+    },
+    "minimumTotal": "最低总额",
+    "maximumTotal": "最高总额",
+    "confirmQuestion": "确定吗？",
+    "landing": {
+      "heroImageAlt": "餐厅内部",
+      "heroTitle": "智能管理",
+      "heroHighlight": "餐厅与酒吧",
+      "heroDescription": "使用我们的完整管理平台，简化订单、管理库存并提升销售额。",
+      "startUsing": "开始使用",
+      "viewPlans": "查看方案",
+      "features": {
+        "kitchen": {
+          "title": "厨房管理",
+          "description": "将订单直接发送到厨房，避免错误和延误。优化团队工作流程，确保每份订单都完美并及时完成。",
+          "imageAlt": "厨房管理"
+        },
+        "bar": {
+          "title": "酒吧管理",
+          "description": "精准管理饮品和鸡尾酒，减少浪费。全面掌控酒吧库存，提高盈利能力。",
+          "imageAlt": "酒吧管理"
+        },
+        "menu": {
+          "title": "数字菜单",
+          "description": "实时更新菜单，方便顾客选择。添加照片和详细描述，并即时调整价格。",
+          "imageAlt": "数字菜单"
+        },
+        "orders": {
+          "title": "订单互联",
+          "description": "服务员记录的订单会立即显示在系统和厨房中，让餐厅运营更高效、沟通更顺畅。",
+          "imageAlt": "互联的餐厅订单"
+        },
+        "dashboard": {
+          "title": "直观的仪表板",
+          "description": "通过详细图表查看销售和关键数据。根据真实数据做出决策，并跟踪业务增长。",
+          "imageAlt": "餐厅管理仪表板"
+        },
+        "history": {
+          "title": "完整历史记录",
+          "description": "查看所有销售记录，以便更好地管理。访问历史数据，了解客户行为随时间的变化。",
+          "imageAlt": "销售历史记录"
+        },
+        "innovation": {
+          "title": "创新管理",
+          "description": "利用技术和智能创新业务管理。使用现代高效的工具，保持竞争优势。",
+          "imageAlt": "创新的餐厅管理"
+        },
+        "apps": {
+          "title": "集成应用",
+          "description": "使用专为服务员和顾客打造的版本来下单。通过专用应用让顾客和团队的工作更加轻松。",
+          "imageAlt": "餐厅集成应用"
+        }
+      }
+    },
+    "plans": {
+      "title": "灵活方案",
+      "description": "选择最适合您业务发展的方案。",
+      "monthly": "月付",
+      "monthlyDescription": "为您的业务提供完全灵活的方案",
+      "monthlyUnit": "/月",
+      "features": {
+        "fullAccess": "完整使用系统的所有功能",
+        "prioritySupport": "优先支持",
+        "cancelAnytime": "随时取消",
+        "sameAsMonthly": "包含月付方案的全部内容",
+        "discount": "约 27% 折扣",
+        "annualBilling": "按年计费"
+      },
+      "subscribeMonthly": "订阅月付方案",
+      "popular": "最受欢迎",
+      "annual": "年付",
+      "annualDescription": "按年付费，节省更多",
+      "annualUnit": "/年",
+      "equivalentMonthly": "月均 {{price}}",
+      "subscribeAnnual": "订阅年付方案",
+      "noPlanTitle": "您似乎还没有方案，或您的订阅尚未续期",
+      "noPlanDescription": "选择以下方案之一，改善您的餐厅管理。"
+    },
+    "notFound": {
+      "code": "404",
+      "title": "页面未找到",
+      "description": "您要查找的页面似乎已从地图上消失，或从未存在。",
+      "back": "返回",
+      "home": "前往首页"
+    },
+    "paymentSuccess": {
+      "title": "支付已确认！",
+      "preparing": "我们正在准备您的环境...",
+      "redirecting": "您将在片刻后被重定向。"
+    },
+    "recordsTotal": "记录总数：{{count}}",
+    "index": "#",
+    "actions": {
+      "label": "操作"
+    },
+    "saveChanges": "保存更改"
   },
   "auth": {
     "login": "登录",

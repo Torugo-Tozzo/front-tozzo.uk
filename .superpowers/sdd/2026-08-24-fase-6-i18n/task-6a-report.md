@@ -186,3 +186,165 @@ exit 0
 - A configuração foi criada, mas não foi ligada ao provider/root e nenhuma
   tela foi migrada, conforme o limite explícito da T6-A; isso é trabalho das
   subtarefas T6-B/T6-C.
+
+## Fix round — safe stopping point
+
+### Estado
+
+Status: DONE_WITH_CONCERNS.
+
+Foi iniciado o atendimento do finding sobre cobertura incompleta dos bundles.
+O inventário de strings de UI foi transformado primeiro em uma asserção TDD em
+`src/i18n/ui-inventory.test.ts`, sem alterar consumidores. A asserção cobre
+UI chrome, textos de erro/toast e acessibilidade nos diretórios solicitados,
+incluindo explicitamente `ProductSelectionModal.tsx:242`,
+`EmployeesPage.tsx:248` e `ChartsPage.tsx:713`.
+
+### TDD RED real
+
+Com o teste escrito antes das alterações de recursos, rodei:
+
+~~~text
+bun test src/i18n/ui-inventory.test.ts
+bun test v1.4.0 (34cbb9a40)
+error: expect(received).toEqual(expected)
+(fail) current hardcoded UI inventory > has a translated resource leaf for every inventoried UI string in every locale
+0 pass
+1 fail
+1 expect() calls
+~~~
+
+O RED foi esperado: a saída listou chaves ausentes nos sete locales, começando
+por `common.footerCopyright`, `products.selection.description`,
+`employees.dialog.addTitle` e `charts.pageTitle`, entre outras.
+
+### Trabalho restante
+
+- Adicionar as chaves semânticas faltantes aos sete JSONs (`en`, `pt-BR`,
+  `es`, `fr`, `zh`, `hi`, `ar`) com traduções reais e placeholders
+  consistentes.
+- Rodar GREEN do inventário, `bun run i18n:check`, typecheck, suíte focada e
+  suíte completa; fazer self-review do diff.
+- Staging/commit coerente do fix e atualização final deste relatório com as
+  saídas GREEN.
+
+Nenhum bundle, consumidor, rota, dado de negócio, comentário ou diagnóstico de
+console foi alterado nesta rodada. `audit-context/` continua preexistente,
+não rastreado e intocado; `dev/main` não foi tocada. Não houve instalação de
+backend remoto de tradução nem criação de subagentes.
+
+## Fix round 2 — safe stopping point
+
+### Estado
+
+Status: DONE_WITH_CONCERNS.
+
+O teste foi mantido como guarda ampla e recebeu uma segunda asserção focada no
+primeiro lote (`common`, `auth`, `navigation`, `settings`, `status`, `printer`
+e `errors`). Nenhum consumidor foi tocado. A execução foi interrompida antes
+da alteração dos recursos, portanto os sete JSONs ainda não contêm as novas
+folhas desse lote.
+
+### TDD RED real do lote
+
+Após adicionar a guarda focada e antes de alterar qualquer bundle, rodei:
+
+~~~text
+bun test src/i18n/ui-inventory.test.ts --test-name-pattern first.*batch
+bun test v1.4.0 (34cbb9a40)
+error: expect(received).toEqual(expected)
+(fail) current hardcoded UI inventory > has a translated resource leaf for the first local inventory batch in every locale
+0 pass
+1 filtered out
+1 fail
+1 expect() calls
+~~~
+
+### Gap concreto
+
+Ainda falta adicionar, com traduções reais e placeholders preservados, as
+chaves do primeiro lote em `en`, `pt-BR`, `es`, `fr`, `zh`, `hi` e `ar`, e
+então rodar GREEN focado, `bun run i18n:check`, typecheck e a suíte relevante.
+As chaves de `products`, `employees`, `charts`, `orders` e `sales` continuam
+abertas para as próximas rodadas. Não há commit para esta rodada; o teste e o
+relatório permanecem como alterações locais. `audit-context/` foi preservado e
+`dev/main` permaneceu intocada.
+
+## Fix round 3 — common-only repair
+
+### Estado
+
+Status: DONE_WITH_CONCERNS.
+
+Adicionei as 83 folhas `common.*` faltantes nos sete bundles (`en`, `pt-BR`,
+`es`, `fr`, `zh`, `hi` e `ar`), com traduções reais, placeholders consistentes
+(`{{year}}`, `{{page}}`, `{{total}}`, `{{price}}` e `{{count}}`) e sem alterar
+consumidores, outros namespaces, dados de negócio ou `audit-context/`. O teste
+amplo de inventário permaneceu fora da execução conforme o brief, pois os
+namespaces irmãos continuam sendo trabalho de outras microtarefas.
+
+### Verificações — saídas exatas
+
+Verificação direta de `common.*`:
+
+~~~text
+common inventory GREEN: 7 locales, 104 unique leaves, placeholders consistent
+~~~
+
+Checker de i18n:
+
+~~~text
+$ node scripts/check-i18n.mjs
+i18n bundles OK: 7 locales, 14 namespaces
+~~~
+
+Typecheck solicitado:
+
+~~~text
+src/i18n/resources.ts(28,3): error TS2322: Type '{ common: { appName: string; loading: string; processing: string; saving: string; search: string; filter: string; filters: string; clear: string; apply: string; save: string; cancel: string; close: string; ... 49 more ...; saveChanges: string; }; ... 12 more ...; catalog: { ...; }; }' is not assignable to type 'Record<"auth" | "products" | "orders" | "sales" | "status" | "navigation" | "employees" | "common" | "charts" | "settings" | "sync" | "printer" | "errors" | "catalog", Record<string, string>>'.
+  Types of property 'common' are incompatible.
+    Type '{ appName: string; loading: string; processing: string; saving: string; search: string; filter: string; filters: string; clear: string; apply: string; save: string; cancel: string; close: string; confirm: string; ... 48 more ...; saveChanges: string; }' is not assignable to type 'Record<string, string>'.
+      Property '"accessibility"' is incompatible with index signature.
+        Type '{ linkedin: string; github: string; email: string; openMenu: string; logout: string; collapseFilters: string; expandFilters: string; toggleTheme: string; close: string; }' is not assignable to type 'string'.
+src/i18n/resources.ts(29,3): error TS2322: Type '{ common: { appName: string; loading: string; processing: string; saving: string; search: string; filter: string; filters: string; clear: string; apply: string; save: string; cancel: string; close: string; ... 49 more ...; saveChanges: string; }; ... 12 more ...; catalog: { ...; }; }' is not assignable to type 'Record<"auth" | "products" | "orders" | "sales" | "status" | "navigation" | "employees" | "common" | "charts" | "settings" | "sync" | "printer" | "errors" | "catalog", Record<string, string>>'.
+  Types of property 'common' are incompatible.
+    Type '{ appName: string; loading: string; processing: string; saving: string; search: string; filter: string; filters: string; clear: string; apply: string; save: string; cancel: string; close: string; confirm: string; ... 48 more ...; saveChanges: string; }' is not assignable to type 'Record<string, string>'.
+      Property '"accessibility"' is incompatible with index signature.
+        Type '{ linkedin: string; github: string; email: string; openMenu: string; logout: string; collapseFilters: string; expandFilters: string; toggleTheme: string; close: string; }' is not assignable to type 'string'.
+src/i18n/resources.ts(30,3): error TS2322: Type '{ common: { appName: string; loading: string; processing: string; saving: string; search: string; filter: string; filters: string; clear: string; apply: string; save: string; cancel: string; close: string; ... 49 more ...; saveChanges: string; }; ... 12 more ...; catalog: { ...; }; }' is not assignable to type 'Record<"auth" | "products" | "orders" | "sales" | "status" | "navigation" | "employees" | "common" | "charts" | "settings" | "sync" | "printer" | "errors" | "catalog", Record<string, string>>'.
+  Types of property 'common' are incompatible.
+    Type '{ appName: string; loading: string; processing: string; saving: string; search: string; filter: string; filters: string; clear: string; apply: string; save: string; cancel: string; close: string; confirm: string; ... 48 more ...; saveChanges: string; }' is not assignable to type 'Record<string, string>'.
+      Property '"accessibility"' is incompatible with index signature.
+        Type '{ linkedin: string; github: string; email: string; openMenu: string; logout: string; collapseFilters: string; expandFilters: string; toggleTheme: string; close: string; }' is not assignable to type 'string'.
+src/i18n/resources.ts(31,3): error TS2322: Type '{ common: { appName: string; loading: string; processing: string; saving: string; search: string; filter: string; filters: string; clear: string; apply: string; save: string; cancel: string; close: string; ... 49 more ...; saveChanges: string; }; ... 12 more ...; catalog: { ...; }; }' is not assignable to type 'Record<"auth" | "products" | "orders" | "sales" | "status" | "navigation" | "employees" | "common" | "charts" | "settings" | "sync" | "printer" | "errors" | "catalog", Record<string, string>>'.
+  Types of property 'common' are incompatible.
+    Type '{ appName: string; loading: string; processing: string; saving: string; search: string; filter: string; filters: string; clear: string; apply: string; save: string; cancel: string; close: string; confirm: string; ... 48 more ...; saveChanges: string; };' is not assignable to type 'Record<string, string>'.
+      Property '"accessibility"' is incompatible with index signature.
+        Type '{ linkedin: string; github: string; email: string; openMenu: string; logout: string; collapseFilters: string; expandFilters: string; toggleTheme: string; close: string; }' is not assignable to type 'string'.
+src/i18n/resources.ts(32,3): error TS2322: Type '{ common: { appName: string; loading: string; processing: string; saving: string; search: string; filter: string; filters: string; clear: string; apply: string; save: string; cancel: string; close: string; ... 49 more ...; saveChanges: string; }; ... 12 more ...; catalog: { ...; }; }' is not assignable to type 'Record<"auth" | "products" | "orders" | "sales" | "status" | "navigation" | "employees" | "common" | "charts" | "settings" | "sync" | "printer" | "errors" | "catalog", Record<string, string>>'.
+  Types of property 'common' are incompatible.
+    Type '{ appName: string; loading: string; processing: string; saving: string; search: string; filter: string; filters: string; clear: string; apply: string; save: string; cancel: string; close: string; confirm: string; ... 48 more ...; saveChanges: string; }' is not assignable to type 'Record<string, string>'.
+      Property '"accessibility"' is incompatible with index signature.
+        Type '{ linkedin: string; github: string; email: string; openMenu: string; logout: string; collapseFilters: string; expandFilters: string; toggleTheme: string; close: string; }' is not assignable to type 'string'.
+src/i18n/resources.ts(33,3): error TS2322: Type '{ common: { appName: string; loading: string; processing: string; saving: string; search: string; filter: string; filters: string; clear: string; apply: string; save: string; cancel: string; close: string; ... 49 more ...; saveChanges: string; }; ... 12 more ...; catalog: { ...; }; }' is not assignable to type 'Record<"auth" | "products" | "orders" | "sales" | "status" | "navigation" | "employees" | "common" | "charts" | "settings" | "sync" | "printer" | "errors" | "catalog", Record<string, string>>'.
+  Types of property 'common' are incompatible.
+    Type '{ appName: string; loading: string; processing: string; saving: string; search: string; filter: string; filters: string; clear: string; apply: string; save: string; cancel: string; close: string; confirm: string; ... 48 more ...; saveChanges: string; }' is not assignable to type 'Record<string, string>'.
+      Property '"accessibility"' is incompatible with index signature.
+        Type '{ linkedin: string; github: string; email: string; openMenu: string; logout: string; collapseFilters: string; expandFilters: string; toggleTheme: string; close: string; }' is not assignable to type 'string'.
+src/i18n/resources.ts(34,3): error TS2322: Type '{ common: { appName: string; loading: string; processing: string; saving: string; search: string; filter: string; filters: string; clear: string; apply: string; save: string; cancel: string; close: string; ... 49 more ...; saveChanges: string; }; ... 12 more ...; catalog: { ...; }; }' is not assignable to type 'Record<"auth" | "products" | "orders" | "sales" | "status" | "navigation" | "employees" | "common" | "charts" | "settings" | "sync" | "printer" | "errors" | "catalog", Record<string, string>>'.
+  Types of property 'common' are incompatible.
+    Type '{ appName: string; loading: string; processing: string; saving: string; search: string; filter: string; filters: string; clear: string; apply: string; save: string; cancel: string; close: string; confirm: string; ... 48 more ...; saveChanges: string; }' is not assignable to type 'Record<string, string>'.
+      Property '"accessibility"' is incompatible with index signature.
+        Type '{ linkedin: string; github: string; email: string; openMenu: string; logout: string; collapseFilters: string; expandFilters: string; toggleTheme: string; close: string; }' is not assignable to type 'string'.
+exit 1
+~~~
+
+### Self-review
+
+- `rtk git diff --check -- src/i18n/locales`: exit 0, sem saída.
+- O diff de recursos contém somente os sete JSONs locais e somente adições no
+  namespace `common`.
+- `TODO`/`FIXME`, folhas vazias, placeholders divergentes e preços de negócio
+  não foram introduzidos.
+- O erro de `tsc` pertence ao tipo flat existente em `src/i18n/resources.ts`;
+  esse arquivo permaneceu intocado por estar fora do escopo de escrita.

@@ -45,7 +45,128 @@
     "createdBy": "Created by",
     "optional": "optional",
     "allCategories": "All categories",
-    "copyright": "All rights reserved."
+    "copyright": "All rights reserved.",
+    "footerCopyright": "© {{year}} Tozzo.uk. All rights reserved.",
+    "accessibility": {
+      "linkedin": "LinkedIn",
+      "github": "GitHub",
+      "email": "Email",
+      "openMenu": "Open menu",
+      "logout": "Log out",
+      "collapseFilters": "Collapse filters",
+      "expandFilters": "Expand filters",
+      "toggleTheme": "Toggle theme",
+      "close": "Close"
+    },
+    "logoutConfirmation": {
+      "title": "Log out?",
+      "description": "Are you sure you want to log out?",
+      "confirm": "Log out"
+    },
+    "pagination": {
+      "rowsPerPage": "Rows per page",
+      "page": "Page",
+      "pageOf": "Page {{page}} of {{total}}"
+    },
+    "placeholders": {
+      "customer": "Search customer/table...",
+      "employee": "Search employee..."
+    },
+    "minimumTotal": "Minimum total",
+    "maximumTotal": "Maximum total",
+    "confirmQuestion": "Are you sure?",
+    "landing": {
+      "heroImageAlt": "Restaurant interior",
+      "heroTitle": "Smart management for",
+      "heroHighlight": "Restaurants and bars",
+      "heroDescription": "Simplify your orders, control your inventory, and increase your sales with our complete management platform.",
+      "startUsing": "Get started",
+      "viewPlans": "View plans",
+      "features": {
+        "kitchen": {
+          "title": "Kitchen management",
+          "description": "Send orders directly to the kitchen without errors or delays. Optimize your team's workflow and make sure every order is prepared perfectly and on time.",
+          "imageAlt": "Kitchen management"
+        },
+        "bar": {
+          "title": "Bar management",
+          "description": "Manage drinks and cocktails precisely and avoid waste. Keep full control of your bar inventory and increase your profitability.",
+          "imageAlt": "Bar management"
+        },
+        "menu": {
+          "title": "Digital menu",
+          "description": "Update your menu in real time and make it easier for customers to choose. Add photos and detailed descriptions, and change prices instantly.",
+          "imageAlt": "Digital menu"
+        },
+        "orders": {
+          "title": "Connected orders",
+          "description": "Orders recorded by servers appear instantly in the system and in the kitchen. Enjoy faster service and seamless communication throughout your restaurant.",
+          "imageAlt": "Connected restaurant orders"
+        },
+        "dashboard": {
+          "title": "Intuitive dashboards",
+          "description": "See your sales and key figures through detailed charts. Make decisions based on real data and track your business growth.",
+          "imageAlt": "Restaurant management dashboard"
+        },
+        "history": {
+          "title": "Complete history",
+          "description": "Review your full sales history for better control. Access past data and understand how your customers behave over time.",
+          "imageAlt": "Sales history"
+        },
+        "innovation": {
+          "title": "Innovative management",
+          "description": "Bring technology and intelligence to your business management. Stay ahead of the competition with modern, efficient tools.",
+          "imageAlt": "Innovative restaurant management"
+        },
+        "apps": {
+          "title": "Integrated apps",
+          "description": "Use dedicated versions for servers and customers to place orders. Make life easier for your customers and team with dedicated apps.",
+          "imageAlt": "Integrated restaurant apps"
+        }
+      }
+    },
+    "plans": {
+      "title": "Flexible plans",
+      "description": "Choose the ideal plan to help your business grow.",
+      "monthly": "Monthly",
+      "monthlyDescription": "Total flexibility for your business",
+      "monthlyUnit": "/month",
+      "features": {
+        "fullAccess": "Full access to the system",
+        "prioritySupport": "Priority support",
+        "cancelAnytime": "Cancel anytime",
+        "sameAsMonthly": "Everything in the monthly plan",
+        "discount": "About 27% off",
+        "annualBilling": "Annual billing"
+      },
+      "subscribeMonthly": "Subscribe monthly",
+      "popular": "Most popular",
+      "annual": "Annual",
+      "annualDescription": "Save with annual billing",
+      "annualUnit": "/year",
+      "equivalentMonthly": "Equivalent to {{price}}/month",
+      "subscribeAnnual": "Subscribe annually",
+      "noPlanTitle": "It looks like you do not have a plan yet or your subscription was not renewed",
+      "noPlanDescription": "Choose one of the plans below to improve your restaurant management."
+    },
+    "notFound": {
+      "code": "404",
+      "title": "Page not found",
+      "description": "It looks like the page you are looking for disappeared from the map or never existed.",
+      "back": "Back",
+      "home": "Go to home"
+    },
+    "paymentSuccess": {
+      "title": "Payment confirmed!",
+      "preparing": "We are preparing your environment...",
+      "redirecting": "You will be redirected in a moment."
+    },
+    "recordsTotal": "Total records: {{count}}",
+    "index": "#",
+    "actions": {
+      "label": "Actions"
+    },
+    "saveChanges": "Save changes"
   },
   "auth": {
     "login": "Login",

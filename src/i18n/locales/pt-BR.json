@@ -45,7 +45,128 @@
     "createdBy": "Criado por",
     "optional": "opcional",
     "allCategories": "Todas as categorias",
-    "copyright": "Todos os direitos reservados."
+    "copyright": "Todos os direitos reservados.",
+    "footerCopyright": "© {{year}} Tozzo.uk. Todos os direitos reservados.",
+    "accessibility": {
+      "linkedin": "LinkedIn",
+      "github": "GitHub",
+      "email": "E-mail",
+      "openMenu": "Abrir menu",
+      "logout": "Sair",
+      "collapseFilters": "Recolher filtros",
+      "expandFilters": "Expandir filtros",
+      "toggleTheme": "Alternar tema",
+      "close": "Fechar"
+    },
+    "logoutConfirmation": {
+      "title": "Sair?",
+      "description": "Tem certeza de que deseja sair?",
+      "confirm": "Sair"
+    },
+    "pagination": {
+      "rowsPerPage": "Linhas por página",
+      "page": "Página",
+      "pageOf": "Página {{page}} de {{total}}"
+    },
+    "placeholders": {
+      "customer": "Buscar cliente/mesa...",
+      "employee": "Buscar funcionário..."
+    },
+    "minimumTotal": "Valor mínimo",
+    "maximumTotal": "Valor máximo",
+    "confirmQuestion": "Tem certeza?",
+    "landing": {
+      "heroImageAlt": "Interior de restaurante",
+      "heroTitle": "Gestão inteligente para",
+      "heroHighlight": "Restaurantes e bares",
+      "heroDescription": "Simplifique seus pedidos, controle seu estoque e aumente suas vendas com nossa plataforma completa de gestão.",
+      "startUsing": "Comece a usar",
+      "viewPlans": "Ver planos",
+      "features": {
+        "kitchen": {
+          "title": "Gestão de cozinha",
+          "description": "Envie pedidos diretamente para a cozinha sem erros e atrasos. Otimize o fluxo de trabalho da sua equipe e garanta que cada pedido saia perfeito e no tempo certo.",
+          "imageAlt": "Gestão de cozinha"
+        },
+        "bar": {
+          "title": "Controle de bar",
+          "description": "Gerencie bebidas e drinks com precisão e evite desperdícios. Tenha controle total sobre o estoque do seu bar e aumente sua lucratividade.",
+          "imageAlt": "Controle de bar"
+        },
+        "menu": {
+          "title": "Cardápio digital",
+          "description": "Atualize seu cardápio em tempo real e facilite a escolha do cliente. Adicione fotos, descrições detalhadas e altere preços instantaneamente.",
+          "imageAlt": "Cardápio digital"
+        },
+        "orders": {
+          "title": "Pedidos conectados",
+          "description": "O pedido anotado pelo garçom aparece instantaneamente no sistema e na cozinha. Tenha mais agilidade e comunicação integrada no seu restaurante.",
+          "imageAlt": "Pedidos conectados"
+        },
+        "dashboard": {
+          "title": "Dashboards intuitivos",
+          "description": "Visualize suas vendas e números através de gráficos detalhados. Tome decisões baseadas em dados reais e acompanhe o crescimento do seu negócio.",
+          "imageAlt": "Dashboard de gestão de restaurante"
+        },
+        "history": {
+          "title": "Histórico completo",
+          "description": "Consulte o histórico de todas as vendas realizadas para melhor controle. Acesse dados antigos e entenda o comportamento dos seus clientes ao longo do tempo.",
+          "imageAlt": "Histórico de vendas"
+        },
+        "innovation": {
+          "title": "Gestão inovadora",
+          "description": "Inove o gerenciamento do seu negócio com tecnologia e inteligência. Esteja à frente da concorrência com ferramentas modernas e eficientes.",
+          "imageAlt": "Gestão inovadora de restaurante"
+        },
+        "apps": {
+          "title": "Apps integrados",
+          "description": "Use versões exclusivas para garçons e clientes realizarem pedidos. Facilite a vida do seu cliente e da sua equipe com aplicativos dedicados.",
+          "imageAlt": "Apps integrados para restaurantes"
+        }
+      }
+    },
+    "plans": {
+      "title": "Planos flexíveis",
+      "description": "Escolha o plano ideal para o seu negócio crescer.",
+      "monthly": "Mensal",
+      "monthlyDescription": "Flexibilidade total para seu negócio",
+      "monthlyUnit": "/mês",
+      "features": {
+        "fullAccess": "Acesso completo ao sistema",
+        "prioritySupport": "Suporte prioritário",
+        "cancelAnytime": "Cancele quando quiser",
+        "sameAsMonthly": "Tudo do plano mensal",
+        "discount": "Desconto de aproximadamente 27%",
+        "annualBilling": "Cobrança anual"
+      },
+      "subscribeMonthly": "Assinar mensal",
+      "popular": "Mais popular",
+      "annual": "Anual",
+      "annualDescription": "Economize com pagamento anual",
+      "annualUnit": "/ano",
+      "equivalentMonthly": "Equivalente a {{price}}/mês",
+      "subscribeAnnual": "Assinar anual",
+      "noPlanTitle": "Parece que você ainda não possui um plano ou sua assinatura não foi renovada",
+      "noPlanDescription": "Escolha um dos planos abaixo para melhorar a gestão do seu restaurante."
+    },
+    "notFound": {
+      "code": "404",
+      "title": "Página não encontrada",
+      "description": "Parece que a página que você está procurando sumiu do mapa ou nunca existiu.",
+      "back": "Voltar",
+      "home": "Ir para o início"
+    },
+    "paymentSuccess": {
+      "title": "Pagamento confirmado!",
+      "preparing": "Estamos preparando seu ambiente...",
+      "redirecting": "Você será redirecionado em instantes."
+    },
+    "recordsTotal": "Total de registros: {{count}}",
+    "index": "#",
+    "actions": {
+      "label": "Ações"
+    },
+    "saveChanges": "Salvar alterações"
   },
   "auth": {
     "login": "Login",
