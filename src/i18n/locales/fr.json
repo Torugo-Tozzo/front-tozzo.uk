@@ -233,7 +233,19 @@
     "deleteConfirm": "Voulez-vous vraiment supprimer cette commande ?",
     "changeStatusConfirm": "Voulez-vous vraiment modifier le statut de la commande ?",
     "editLabel": "Modifier la commande",
-    "deleteLabel": "Supprimer la commande"
+    "deleteLabel": "Supprimer la commande",
+    "fallback": {
+      "product": "Produit"
+    },
+    "statusFilter": {
+      "notClosed": "Non clôturées"
+    },
+    "confirm": {
+      "delete": "Voulez-vous vraiment supprimer cette commande ?",
+      "close": "Voulez-vous vraiment clôturer cette commande ? Elle deviendra une vente.",
+      "changeStatus": "Voulez-vous vraiment modifier le statut de la commande ?"
+    },
+    "empty": "Aucune commande trouvée."
   },
   "sales": {
     "title": "Ventes",
@@ -245,7 +257,21 @@
     "total": "Total",
     "noResults": "Aucune vente trouvée pour cette période.",
     "cancel": "Annuler la vente",
-    "cancelConfirm": "Voulez-vous vraiment annuler cette vente ?"
+    "cancelConfirm": "Voulez-vous vraiment annuler cette vente ?",
+    "confirm": {
+      "cancel": "Voulez-vous vraiment annuler cette vente ?"
+    },
+    "cancelling": "Annulation en cours...",
+    "cancelButton": "Annuler la vente",
+    "fallback": {
+      "product": "Produit"
+    },
+    "table": {
+      "totalRecords": "Total des enregistrements : {{count}}"
+    },
+    "closingPeriod": "Clôture de la période",
+    "empty": "Aucune vente trouvée pour cette période.",
+    "viewDetails": "Voir les détails"
   },
   "products": {
     "title": "Produits",
@@ -364,9 +390,24 @@
   },
   "charts": {
     "title": "Rapports",
+    "pageTitle": "Rapports",
     "productsSold": "Produits vendus",
     "salesByHour": "Ventes par heure",
-    "filters": "Filtres",
+    "tabs": {
+      "products": "Produits vendus",
+      "hours": "Ventes par heure"
+    },
+    "filters": {
+      "title": "Filtres",
+      "startDate": "Date de début",
+      "startTime": "Heure de début",
+      "endDate": "Date de fin",
+      "endTime": "Heure de fin",
+      "foodType": "Type d'aliment",
+      "select": "Sélectionnez",
+      "all": "Tous",
+      "search": "Rechercher"
+    },
     "startDate": "Date de début",
     "startTime": "Heure de début",
     "endDate": "Date de fin",
@@ -378,7 +419,12 @@
     "revenue": "Chiffre d'affaires",
     "salesCount": "Nombre de ventes",
     "revenueAndSales": "Chiffre d'affaires et ventes",
-    "details": "Détails",
+    "details": {
+      "title": "Détail des ventes",
+      "totalRecords": "Total des enregistrements : {{count}}",
+      "quantitySold": "Quantité vendue",
+      "totalRevenue": "Chiffre d'affaires total"
+    },
     "detailSales": "Détail des ventes",
     "generatingReport": "Génération du rapport",
     "viewStatus": "Voir le statut",
@@ -388,7 +434,49 @@
     "selectPeriod": "Sélectionnez une période et cliquez sur Rechercher.",
     "dayOf": "Jour {{day}} sur {{total}}",
     "sales": "Ventes",
-    "moreSales": "+{{count}} de plus..."
+    "moreSales": "+{{count}} de plus...",
+    "report": {
+      "generateExcel": "Générer un fichier Excel",
+      "generatePdf": "Générer un PDF",
+      "generating": "Génération du rapport",
+      "viewStatus": "Voir le statut",
+      "downloadFailed": "Échec du téléchargement du fichier après plusieurs tentatives",
+      "generationFailed": "Erreur lors de la génération du rapport",
+      "timeout": "Délai dépassé lors de la vérification du statut du rapport",
+      "readyWithoutUrl": "Rapport prêt, mais aucune URL de téléchargement n'a été reçue",
+      "pollingFailed": "Erreur lors de la vérification du statut du rapport",
+      "invalidResponse": "Réponse du serveur invalide",
+      "startFailed": "Échec du démarrage de la génération du rapport"
+    },
+    "visualization": {
+      "title": "Visualisation des ventes",
+      "select": "Sélectionnez le graphique",
+      "revenue": "Chiffre d'affaires",
+      "salesCount": "Nombre de ventes",
+      "revenueAndSales": "Chiffre d'affaires et ventes",
+      "salesPie": "Nombre de ventes (camembert)"
+    },
+    "summary": {
+      "totalRevenue": "Chiffre d'affaires total",
+      "totalSales": "Nombre total de ventes",
+      "unitsSold": "Unités vendues",
+      "dayRevenue": "Chiffre d'affaires du jour",
+      "peakHour": "Heure de pointe"
+    },
+    "empty": {
+      "filtered": "Aucune donnée trouvée pour les filtres sélectionnés.",
+      "noSalesForDay": "Aucune vente trouvée pour ce jour.",
+      "selectPeriod": "Sélectionnez une période et cliquez sur Rechercher."
+    },
+    "hourly": {
+      "title": "Ventes par heure"
+    },
+    "tooltip": {
+      "sales": "Ventes",
+      "revenue": "Chiffre d'affaires",
+      "details": "Détails",
+      "more": "+{{count}} de plus..."
+    }
   },
   "settings": {
     "title": "Paramètres",

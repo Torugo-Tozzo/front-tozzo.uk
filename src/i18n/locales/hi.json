@@ -233,7 +233,19 @@
     "deleteConfirm": "क्या आप यह ऑर्डर हटाना चाहते हैं?",
     "changeStatusConfirm": "क्या आप ऑर्डर की स्थिति बदलना चाहते हैं?",
     "editLabel": "ऑर्डर संपादित करें",
-    "deleteLabel": "ऑर्डर हटाएँ"
+    "deleteLabel": "ऑर्डर हटाएँ",
+    "fallback": {
+      "product": "उत्पाद"
+    },
+    "statusFilter": {
+      "notClosed": "बंद नहीं किए गए"
+    },
+    "confirm": {
+      "delete": "क्या आप यह ऑर्डर हटाना चाहते हैं?",
+      "close": "क्या आप यह ऑर्डर बंद करना चाहते हैं? यह बिक्री में बदल जाएगा।",
+      "changeStatus": "क्या आप ऑर्डर की स्थिति बदलना चाहते हैं?"
+    },
+    "empty": "कोई ऑर्डर नहीं मिला।"
   },
   "sales": {
     "title": "बिक्री",
@@ -245,7 +257,21 @@
     "total": "कुल",
     "noResults": "इस अवधि में कोई बिक्री नहीं मिली।",
     "cancel": "बिक्री रद्द करें",
-    "cancelConfirm": "क्या आप यह बिक्री रद्द करना चाहते हैं?"
+    "cancelConfirm": "क्या आप यह बिक्री रद्द करना चाहते हैं?",
+    "confirm": {
+      "cancel": "क्या आप यह बिक्री रद्द करना चाहते हैं?"
+    },
+    "cancelling": "रद्द किया जा रहा है...",
+    "cancelButton": "बिक्री रद्द करें",
+    "fallback": {
+      "product": "उत्पाद"
+    },
+    "table": {
+      "totalRecords": "कुल रिकॉर्ड: {{count}}"
+    },
+    "closingPeriod": "अवधि का समापन",
+    "empty": "इस अवधि में कोई बिक्री नहीं मिली।",
+    "viewDetails": "विवरण देखें"
   },
   "products": {
     "title": "उत्पाद",
@@ -364,9 +390,24 @@
   },
   "charts": {
     "title": "रिपोर्ट",
+    "pageTitle": "रिपोर्ट",
     "productsSold": "बेचे गए उत्पाद",
     "salesByHour": "घंटे के अनुसार बिक्री",
-    "filters": "फ़िल्टर",
+    "tabs": {
+      "products": "बेचे गए उत्पाद",
+      "hours": "घंटे के अनुसार बिक्री"
+    },
+    "filters": {
+      "title": "फ़िल्टर",
+      "startDate": "आरंभ तारीख",
+      "startTime": "आरंभ समय",
+      "endDate": "अंतिम तारीख",
+      "endTime": "अंतिम समय",
+      "foodType": "भोजन प्रकार",
+      "select": "चुनें",
+      "all": "सभी",
+      "search": "खोजें"
+    },
     "startDate": "आरंभ तारीख",
     "startTime": "आरंभ समय",
     "endDate": "अंतिम तारीख",
@@ -378,7 +419,12 @@
     "revenue": "राजस्व",
     "salesCount": "बिक्री की संख्या",
     "revenueAndSales": "राजस्व और बिक्री",
-    "details": "विवरण",
+    "details": {
+      "title": "बिक्री विवरण",
+      "totalRecords": "कुल रिकॉर्ड: {{count}}",
+      "quantitySold": "बेची गई मात्रा",
+      "totalRevenue": "कुल राजस्व"
+    },
     "detailSales": "बिक्री विवरण",
     "generatingReport": "रिपोर्ट बनाई जा रही है",
     "viewStatus": "स्थिति देखें",
@@ -388,7 +434,49 @@
     "selectPeriod": "अवधि चुनें और खोजें पर क्लिक करें।",
     "dayOf": "दिन {{day}}, कुल {{total}}",
     "sales": "बिक्री",
-    "moreSales": "+{{count}} और..."
+    "moreSales": "+{{count}} और...",
+    "report": {
+      "generateExcel": "Excel बनाएँ",
+      "generatePdf": "PDF बनाएँ",
+      "generating": "रिपोर्ट बनाई जा रही है",
+      "viewStatus": "स्थिति देखें",
+      "downloadFailed": "कई प्रयासों के बाद फ़ाइल डाउनलोड नहीं हो सकी",
+      "generationFailed": "रिपोर्ट बनाने में त्रुटि",
+      "timeout": "रिपोर्ट की स्थिति जाँचने का समय समाप्त हो गया",
+      "readyWithoutUrl": "रिपोर्ट तैयार है, लेकिन डाउनलोड URL नहीं मिला",
+      "pollingFailed": "रिपोर्ट की स्थिति जाँचने में त्रुटि",
+      "invalidResponse": "सर्वर की अमान्य प्रतिक्रिया",
+      "startFailed": "रिपोर्ट बनाना शुरू नहीं किया जा सका"
+    },
+    "visualization": {
+      "title": "बिक्री दृश्य",
+      "select": "चार्ट चुनें",
+      "revenue": "राजस्व",
+      "salesCount": "बिक्री की संख्या",
+      "revenueAndSales": "राजस्व और बिक्री",
+      "salesPie": "बिक्री की संख्या (पाई चार्ट)"
+    },
+    "summary": {
+      "totalRevenue": "कुल राजस्व",
+      "totalSales": "कुल बिक्री",
+      "unitsSold": "बेची गई इकाइयाँ",
+      "dayRevenue": "दिन का राजस्व",
+      "peakHour": "व्यस्ततम समय"
+    },
+    "empty": {
+      "filtered": "चयनित फ़िल्टर के लिए कोई डेटा नहीं मिला।",
+      "noSalesForDay": "इस दिन कोई बिक्री नहीं मिली।",
+      "selectPeriod": "अवधि चुनें और खोजें पर क्लिक करें।"
+    },
+    "hourly": {
+      "title": "घंटे के अनुसार बिक्री"
+    },
+    "tooltip": {
+      "sales": "बिक्री",
+      "revenue": "राजस्व",
+      "details": "विवरण",
+      "more": "+{{count}} और..."
+    }
   },
   "settings": {
     "title": "सेटिंग्स",

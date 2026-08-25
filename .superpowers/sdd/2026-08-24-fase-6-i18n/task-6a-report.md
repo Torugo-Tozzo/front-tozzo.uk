@@ -523,3 +523,71 @@ Comando: `bunx tsc --noEmit`
   traduzidos.
 - `audit-context/` e `src/i18n/ui-inventory.test.ts` permaneceram fora do
   staging, e `dev/main` não foram tocadas.
+
+## Fix round 7 — charts/orders/sales resource repair
+
+### Estado
+
+O lote final de T6-A foi aplicado somente aos sete bundles locais (en,
+pt-BR, es, fr, zh, hi e ar). Foram adicionadas as 60 folhas ausentes por
+locale: 46 de charts, seis de orders e oito de sales, com traduções reais de
+chrome, filtros, relatórios, visualizações, confirmações, estados vazios,
+tooltips e erros. Os placeholders {{count}}, {{day}} e {{total}} foram
+preservados; nenhum dado de negócio foi traduzido.
+
+Para suportar os caminhos aninhados do inventário, os rótulos escalares
+existentes charts.filters e charts.details foram promovidos aos objetos
+filters.title e details.title; os demais leaves legados foram preservados.
+Não foram alterados consumidores, checker, tipos, outras famílias de
+namespace, audit-context/ ou dev/main.
+
+### Verificação focada — saída exata
+
+Asserção inline das famílias charts, orders e sales:
+
+~~~text
+charts/orders/sales inventory GREEN: 7 locales, 70 unique leaves, placeholders consistent
+~~~
+
+### Inventário completo — saída exata
+
+Comando: bun test src/i18n/ui-inventory.test.ts
+
+~~~text
+bun test v1.4.0 (34cbb9a40)
+
+src\i18n\ui-inventory.test.ts:
+(pass) current hardcoded UI inventory > has a translated resource leaf for the first local inventory batch in every locale [0.90ms]
+(pass) current hardcoded UI inventory > has a translated resource leaf for every inventoried UI string in every locale [0.93ms]
+
+ 2 pass
+ 0 fail
+ 2 expect() calls
+Ran 2 tests across 1 file. [270.00ms]
+~~~
+
+### Checker de i18n — saída exata
+
+Comando: bun run i18n:check
+
+~~~text
+$ node scripts/check-i18n.mjs
+i18n bundles OK: 7 locales, 14 namespaces
+~~~
+
+### Typecheck — saída exata
+
+Comando: bunx tsc --noEmit
+
+~~~text
+(sem saída; exit 0)
+~~~
+
+### Self-review
+
+- git diff --check -- src/i18n/locales: exit 0; o diff ficou restrito aos
+  sete bundles locais.
+- As alterações ficam em charts, orders e sales, sem consumidores, dados de
+  negócio, tipos ou outras famílias de namespace.
+- Os sete bundles mantêm a mesma topologia; folhas não vazias e placeholders
+  foram validados pela asserção focada e pelo checker.

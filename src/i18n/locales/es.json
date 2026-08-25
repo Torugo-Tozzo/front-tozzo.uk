@@ -233,7 +233,19 @@
     "deleteConfirm": "¿Seguro que quieres eliminar este pedido?",
     "changeStatusConfirm": "¿Seguro que quieres cambiar el estado del pedido?",
     "editLabel": "Editar pedido",
-    "deleteLabel": "Eliminar pedido"
+    "deleteLabel": "Eliminar pedido",
+    "fallback": {
+      "product": "Producto"
+    },
+    "statusFilter": {
+      "notClosed": "No cerrados"
+    },
+    "confirm": {
+      "delete": "¿Seguro que quieres eliminar este pedido?",
+      "close": "¿Seguro que quieres cerrar este pedido? Se convertirá en una venta.",
+      "changeStatus": "¿Seguro que quieres cambiar el estado del pedido?"
+    },
+    "empty": "No se encontraron pedidos."
   },
   "sales": {
     "title": "Ventas",
@@ -245,7 +257,21 @@
     "total": "Total",
     "noResults": "No se encontraron ventas en el período.",
     "cancel": "Cancelar venta",
-    "cancelConfirm": "¿Seguro que quieres cancelar esta venta?"
+    "cancelConfirm": "¿Seguro que quieres cancelar esta venta?",
+    "confirm": {
+      "cancel": "¿Seguro que quieres cancelar esta venta?"
+    },
+    "cancelling": "Cancelando...",
+    "cancelButton": "Cancelar venta",
+    "fallback": {
+      "product": "Producto"
+    },
+    "table": {
+      "totalRecords": "Total de registros: {{count}}"
+    },
+    "closingPeriod": "Cierre del período",
+    "empty": "No se encontraron ventas en el período.",
+    "viewDetails": "Ver detalles"
   },
   "products": {
     "title": "Productos",
@@ -364,9 +390,24 @@
   },
   "charts": {
     "title": "Informes",
+    "pageTitle": "Informes",
     "productsSold": "Productos vendidos",
     "salesByHour": "Ventas por hora",
-    "filters": "Filtros",
+    "tabs": {
+      "products": "Productos vendidos",
+      "hours": "Ventas por hora"
+    },
+    "filters": {
+      "title": "Filtros",
+      "startDate": "Fecha inicial",
+      "startTime": "Hora inicial",
+      "endDate": "Fecha final",
+      "endTime": "Hora final",
+      "foodType": "Tipo de alimento",
+      "select": "Selecciona",
+      "all": "Todos",
+      "search": "Buscar"
+    },
     "startDate": "Fecha inicial",
     "startTime": "Hora inicial",
     "endDate": "Fecha final",
@@ -378,7 +419,12 @@
     "revenue": "Facturación",
     "salesCount": "Número de ventas",
     "revenueAndSales": "Facturación y ventas",
-    "details": "Detalles",
+    "details": {
+      "title": "Detalles de ventas",
+      "totalRecords": "Total de registros: {{count}}",
+      "quantitySold": "Cantidad vendida",
+      "totalRevenue": "Facturación total"
+    },
     "detailSales": "Detalles de ventas",
     "generatingReport": "Generando informe",
     "viewStatus": "Ver estado",
@@ -388,7 +434,49 @@
     "selectPeriod": "Selecciona un período y pulsa Buscar.",
     "dayOf": "Día {{day}} de {{total}}",
     "sales": "Ventas",
-    "moreSales": "+{{count}} más..."
+    "moreSales": "+{{count}} más...",
+    "report": {
+      "generateExcel": "Generar Excel",
+      "generatePdf": "Generar PDF",
+      "generating": "Generando informe",
+      "viewStatus": "Ver estado",
+      "downloadFailed": "No se pudo descargar el archivo tras varios intentos",
+      "generationFailed": "Error al generar el informe",
+      "timeout": "Se agotó el tiempo al comprobar el estado del informe",
+      "readyWithoutUrl": "Informe listo, pero no se recibió una URL de descarga",
+      "pollingFailed": "Error al consultar el estado del informe",
+      "invalidResponse": "Respuesta del servidor no válida",
+      "startFailed": "No se pudo iniciar la generación del informe"
+    },
+    "visualization": {
+      "title": "Visualización de ventas",
+      "select": "Selecciona el gráfico",
+      "revenue": "Facturación",
+      "salesCount": "Número de ventas",
+      "revenueAndSales": "Facturación y ventas",
+      "salesPie": "Número de ventas (gráfico circular)"
+    },
+    "summary": {
+      "totalRevenue": "Facturación total",
+      "totalSales": "Total de ventas",
+      "unitsSold": "Unidades vendidas",
+      "dayRevenue": "Facturación del día",
+      "peakHour": "Hora punta"
+    },
+    "empty": {
+      "filtered": "No se encontraron datos para los filtros seleccionados.",
+      "noSalesForDay": "No se encontraron ventas para este día.",
+      "selectPeriod": "Selecciona un período y pulsa Buscar."
+    },
+    "hourly": {
+      "title": "Ventas por hora"
+    },
+    "tooltip": {
+      "sales": "Ventas",
+      "revenue": "Facturación",
+      "details": "Detalles",
+      "more": "+{{count}} más..."
+    }
   },
   "settings": {
     "title": "Configuración",

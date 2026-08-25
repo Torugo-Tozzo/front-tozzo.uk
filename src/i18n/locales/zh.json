@@ -233,7 +233,19 @@
     "deleteConfirm": "确定要删除此订单吗？",
     "changeStatusConfirm": "确定要更改订单状态吗？",
     "editLabel": "编辑订单",
-    "deleteLabel": "删除订单"
+    "deleteLabel": "删除订单",
+    "fallback": {
+      "product": "产品"
+    },
+    "statusFilter": {
+      "notClosed": "未关闭"
+    },
+    "confirm": {
+      "delete": "确定要删除此订单吗？",
+      "close": "确定要关闭此订单吗？它将变为销售记录。",
+      "changeStatus": "确定要更改订单状态吗？"
+    },
+    "empty": "未找到订单。"
   },
   "sales": {
     "title": "销售",
@@ -245,7 +257,21 @@
     "total": "总计",
     "noResults": "该期间未找到销售记录。",
     "cancel": "取消销售",
-    "cancelConfirm": "确定要取消此销售吗？"
+    "cancelConfirm": "确定要取消此销售吗？",
+    "confirm": {
+      "cancel": "确定要取消此销售吗？"
+    },
+    "cancelling": "正在取消...",
+    "cancelButton": "取消销售",
+    "fallback": {
+      "product": "产品"
+    },
+    "table": {
+      "totalRecords": "记录总数：{{count}}"
+    },
+    "closingPeriod": "期间结算",
+    "empty": "该期间未找到销售记录。",
+    "viewDetails": "查看详情"
   },
   "products": {
     "title": "产品",
@@ -364,9 +390,24 @@
   },
   "charts": {
     "title": "报告",
+    "pageTitle": "报告",
     "productsSold": "已售产品",
     "salesByHour": "按小时销售",
-    "filters": "筛选条件",
+    "tabs": {
+      "products": "已售产品",
+      "hours": "按小时销售"
+    },
+    "filters": {
+      "title": "筛选条件",
+      "startDate": "开始日期",
+      "startTime": "开始时间",
+      "endDate": "结束日期",
+      "endTime": "结束时间",
+      "foodType": "食品类型",
+      "select": "请选择",
+      "all": "全部",
+      "search": "搜索"
+    },
     "startDate": "开始日期",
     "startTime": "开始时间",
     "endDate": "结束日期",
@@ -378,7 +419,12 @@
     "revenue": "收入",
     "salesCount": "销售数量",
     "revenueAndSales": "收入与销售",
-    "details": "详情",
+    "details": {
+      "title": "销售明细",
+      "totalRecords": "记录总数：{{count}}",
+      "quantitySold": "售出数量",
+      "totalRevenue": "总收入"
+    },
     "detailSales": "销售明细",
     "generatingReport": "正在生成报告",
     "viewStatus": "查看状态",
@@ -388,7 +434,49 @@
     "selectPeriod": "请选择期间并点击搜索。",
     "dayOf": "第 {{day}} 天，共 {{total}} 天",
     "sales": "销售",
-    "moreSales": "还有 {{count}} 项..."
+    "moreSales": "还有 {{count}} 项...",
+    "report": {
+      "generateExcel": "生成 Excel",
+      "generatePdf": "生成 PDF",
+      "generating": "正在生成报告",
+      "viewStatus": "查看状态",
+      "downloadFailed": "多次尝试后仍无法下载文件",
+      "generationFailed": "生成报告时出错",
+      "timeout": "检查报告状态超时",
+      "readyWithoutUrl": "报告已准备好，但没有下载地址",
+      "pollingFailed": "查询报告状态时出错",
+      "invalidResponse": "服务器响应无效",
+      "startFailed": "无法开始生成报告"
+    },
+    "visualization": {
+      "title": "销售视图",
+      "select": "请选择图表",
+      "revenue": "收入",
+      "salesCount": "销售数量",
+      "revenueAndSales": "收入与销售",
+      "salesPie": "销售数量（饼图）"
+    },
+    "summary": {
+      "totalRevenue": "总收入",
+      "totalSales": "销售总数",
+      "unitsSold": "售出单位数",
+      "dayRevenue": "当日收入",
+      "peakHour": "高峰时段"
+    },
+    "empty": {
+      "filtered": "未找到符合筛选条件的数据。",
+      "noSalesForDay": "当天未找到销售记录。",
+      "selectPeriod": "请选择期间并点击搜索。"
+    },
+    "hourly": {
+      "title": "按小时销售"
+    },
+    "tooltip": {
+      "sales": "销售",
+      "revenue": "收入",
+      "details": "详情",
+      "more": "+{{count}} 项..."
+    }
   },
   "settings": {
     "title": "设置",

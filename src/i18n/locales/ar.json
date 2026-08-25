@@ -233,7 +233,19 @@
     "deleteConfirm": "هل تريد حذف هذا الطلب؟",
     "changeStatusConfirm": "هل تريد تغيير حالة الطلب؟",
     "editLabel": "تعديل الطلب",
-    "deleteLabel": "حذف الطلب"
+    "deleteLabel": "حذف الطلب",
+    "fallback": {
+      "product": "منتج"
+    },
+    "statusFilter": {
+      "notClosed": "غير مغلقة"
+    },
+    "confirm": {
+      "delete": "هل تريد حذف هذا الطلب؟",
+      "close": "هل تريد إغلاق هذا الطلب؟ سيتحول إلى عملية بيع.",
+      "changeStatus": "هل تريد تغيير حالة الطلب؟"
+    },
+    "empty": "لم يتم العثور على طلبات."
   },
   "sales": {
     "title": "المبيعات",
@@ -245,7 +257,21 @@
     "total": "الإجمالي",
     "noResults": "لم يتم العثور على مبيعات لهذه الفترة.",
     "cancel": "إلغاء البيع",
-    "cancelConfirm": "هل تريد إلغاء هذا البيع؟"
+    "cancelConfirm": "هل تريد إلغاء هذا البيع؟",
+    "confirm": {
+      "cancel": "هل تريد إلغاء هذا البيع؟"
+    },
+    "cancelling": "جارٍ إلغاء البيع...",
+    "cancelButton": "إلغاء البيع",
+    "fallback": {
+      "product": "منتج"
+    },
+    "table": {
+      "totalRecords": "إجمالي السجلات: {{count}}"
+    },
+    "closingPeriod": "إقفال الفترة",
+    "empty": "لم يتم العثور على مبيعات لهذه الفترة.",
+    "viewDetails": "عرض التفاصيل"
   },
   "products": {
     "title": "المنتجات",
@@ -364,9 +390,24 @@
   },
   "charts": {
     "title": "التقارير",
+    "pageTitle": "التقارير",
     "productsSold": "المنتجات المباعة",
     "salesByHour": "المبيعات حسب الساعة",
-    "filters": "الفلاتر",
+    "tabs": {
+      "products": "المنتجات المباعة",
+      "hours": "المبيعات حسب الساعة"
+    },
+    "filters": {
+      "title": "الفلاتر",
+      "startDate": "تاريخ البداية",
+      "startTime": "وقت البداية",
+      "endDate": "تاريخ النهاية",
+      "endTime": "وقت النهاية",
+      "foodType": "نوع الطعام",
+      "select": "اختر",
+      "all": "الكل",
+      "search": "بحث"
+    },
     "startDate": "تاريخ البداية",
     "startTime": "وقت البداية",
     "endDate": "تاريخ النهاية",
@@ -378,7 +419,12 @@
     "revenue": "الإيرادات",
     "salesCount": "عدد المبيعات",
     "revenueAndSales": "الإيرادات والمبيعات",
-    "details": "التفاصيل",
+    "details": {
+      "title": "تفاصيل المبيعات",
+      "totalRecords": "إجمالي السجلات: {{count}}",
+      "quantitySold": "الكمية المباعة",
+      "totalRevenue": "إجمالي الإيرادات"
+    },
     "detailSales": "تفاصيل المبيعات",
     "generatingReport": "جارٍ إنشاء التقرير",
     "viewStatus": "عرض الحالة",
@@ -388,7 +434,49 @@
     "selectPeriod": "اختر فترة واضغط على بحث.",
     "dayOf": "اليوم {{day}} من {{total}}",
     "sales": "المبيعات",
-    "moreSales": "+{{count}} أخرى..."
+    "moreSales": "+{{count}} أخرى...",
+    "report": {
+      "generateExcel": "إنشاء Excel",
+      "generatePdf": "إنشاء PDF",
+      "generating": "جارٍ إنشاء التقرير",
+      "viewStatus": "عرض الحالة",
+      "downloadFailed": "تعذر تنزيل الملف بعد عدة محاولات",
+      "generationFailed": "حدث خطأ أثناء إنشاء التقرير",
+      "timeout": "انتهت مهلة التحقق من حالة التقرير",
+      "readyWithoutUrl": "التقرير جاهز، لكن لم يتم إرجاع رابط تنزيل",
+      "pollingFailed": "حدث خطأ أثناء التحقق من حالة التقرير",
+      "invalidResponse": "استجابة الخادم غير صالحة",
+      "startFailed": "تعذر بدء إنشاء التقرير"
+    },
+    "visualization": {
+      "title": "عرض المبيعات",
+      "select": "اختر الرسم البياني",
+      "revenue": "الإيرادات",
+      "salesCount": "عدد المبيعات",
+      "revenueAndSales": "الإيرادات والمبيعات",
+      "salesPie": "عدد المبيعات (مخطط دائري)"
+    },
+    "summary": {
+      "totalRevenue": "إجمالي الإيرادات",
+      "totalSales": "إجمالي المبيعات",
+      "unitsSold": "الوحدات المباعة",
+      "dayRevenue": "إيرادات اليوم",
+      "peakHour": "ساعة الذروة"
+    },
+    "empty": {
+      "filtered": "لم يتم العثور على بيانات للفلاتر المحددة.",
+      "noSalesForDay": "لم يتم العثور على مبيعات لهذا اليوم.",
+      "selectPeriod": "اختر فترة واضغط على بحث."
+    },
+    "hourly": {
+      "title": "المبيعات حسب الساعة"
+    },
+    "tooltip": {
+      "sales": "المبيعات",
+      "revenue": "الإيرادات",
+      "details": "التفاصيل",
+      "more": "+{{count}} أخرى..."
+    }
   },
   "settings": {
     "title": "الإعدادات",

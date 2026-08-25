@@ -233,7 +233,19 @@
     "deleteConfirm": "Are you sure you want to delete this order?",
     "changeStatusConfirm": "Are you sure you want to change the order status?",
     "editLabel": "Edit order",
-    "deleteLabel": "Delete order"
+    "deleteLabel": "Delete order",
+    "fallback": {
+      "product": "Product"
+    },
+    "statusFilter": {
+      "notClosed": "Not closed"
+    },
+    "confirm": {
+      "delete": "Are you sure you want to delete this order?",
+      "close": "Are you sure you want to close this order? It will become a sale.",
+      "changeStatus": "Are you sure you want to change the order status?"
+    },
+    "empty": "No orders found."
   },
   "sales": {
     "title": "Sales",
@@ -245,7 +257,21 @@
     "total": "Total",
     "noResults": "No sales found for this period.",
     "cancel": "Cancel sale",
-    "cancelConfirm": "Are you sure you want to cancel this sale?"
+    "cancelConfirm": "Are you sure you want to cancel this sale?",
+    "confirm": {
+      "cancel": "Are you sure you want to cancel this sale?"
+    },
+    "cancelling": "Cancelling...",
+    "cancelButton": "Cancel sale",
+    "fallback": {
+      "product": "Product"
+    },
+    "table": {
+      "totalRecords": "Total records: {{count}}"
+    },
+    "closingPeriod": "Period closing",
+    "empty": "No sales found for this period.",
+    "viewDetails": "View details"
   },
   "products": {
     "title": "Products",
@@ -364,9 +390,24 @@
   },
   "charts": {
     "title": "Reports",
+    "pageTitle": "Reports",
     "productsSold": "Products sold",
     "salesByHour": "Sales by hour",
-    "filters": "Filters",
+    "tabs": {
+      "products": "Products sold",
+      "hours": "Sales by hour"
+    },
+    "filters": {
+      "title": "Filters",
+      "startDate": "Start date",
+      "startTime": "Start time",
+      "endDate": "End date",
+      "endTime": "End time",
+      "foodType": "Food type",
+      "select": "Select",
+      "all": "All",
+      "search": "Search"
+    },
     "startDate": "Start date",
     "startTime": "Start time",
     "endDate": "End date",
@@ -378,7 +419,12 @@
     "revenue": "Revenue",
     "salesCount": "Number of sales",
     "revenueAndSales": "Revenue and sales",
-    "details": "Details",
+    "details": {
+      "title": "Sales details",
+      "totalRecords": "Total records: {{count}}",
+      "quantitySold": "Quantity sold",
+      "totalRevenue": "Total revenue"
+    },
     "detailSales": "Sales details",
     "generatingReport": "Generating report",
     "viewStatus": "View status",
@@ -388,7 +434,49 @@
     "selectPeriod": "Select a period and click Search.",
     "dayOf": "Day {{day}} of {{total}}",
     "sales": "Sales",
-    "moreSales": "+{{count}} more..."
+    "moreSales": "+{{count}} more...",
+    "report": {
+      "generateExcel": "Generate Excel",
+      "generatePdf": "Generate PDF",
+      "generating": "Generating report",
+      "viewStatus": "View status",
+      "downloadFailed": "Failed to download the file after several attempts",
+      "generationFailed": "Error generating the report",
+      "timeout": "Timed out while checking report status",
+      "readyWithoutUrl": "Report ready, but no download URL was returned.",
+      "pollingFailed": "Error polling report status",
+      "invalidResponse": "Invalid server response.",
+      "startFailed": "Failed to start report generation."
+    },
+    "visualization": {
+      "title": "Sales visualization",
+      "select": "Select a chart",
+      "revenue": "Revenue",
+      "salesCount": "Number of sales",
+      "revenueAndSales": "Revenue and sales",
+      "salesPie": "Number of sales (pie)"
+    },
+    "summary": {
+      "totalRevenue": "Total revenue",
+      "totalSales": "Total sales",
+      "unitsSold": "Units sold",
+      "dayRevenue": "Revenue for the day",
+      "peakHour": "Peak hour"
+    },
+    "empty": {
+      "filtered": "No data found for the selected filters.",
+      "noSalesForDay": "No sales found for this day.",
+      "selectPeriod": "Select a period and click Search."
+    },
+    "hourly": {
+      "title": "Sales by hour"
+    },
+    "tooltip": {
+      "sales": "Sales",
+      "revenue": "Revenue",
+      "details": "Details",
+      "more": "+{{count}} more..."
+    }
   },
   "settings": {
     "title": "Settings",
