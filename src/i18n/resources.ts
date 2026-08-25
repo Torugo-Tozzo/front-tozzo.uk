@@ -24,6 +24,10 @@ export const NAMESPACES = [
   'catalog',
 ] as const
 
+export type I18nResource = {
+  [key: string]: string | I18nResource
+}
+
 export const resources = {
   en,
   'pt-BR': ptBR,
@@ -32,6 +36,6 @@ export const resources = {
   zh,
   hi,
   ar,
-} as const satisfies Record<SupportedLocale, Record<(typeof NAMESPACES)[number], Record<string, string>>>
+} as const satisfies Record<SupportedLocale, Record<(typeof NAMESPACES)[number], I18nResource>>
 
 export type I18nResources = typeof resources

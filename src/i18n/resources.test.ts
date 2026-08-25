@@ -1,4 +1,21 @@
 import { describe, expect, test } from 'bun:test'
+import { resources, type I18nResource } from './resources'
+
+type Assert<T extends true> = T
+type IsString<T> = T extends string ? true : false
+
+export type CommonAccessibilityLeafIsString = Assert<
+  IsString<typeof resources.en.common.accessibility.linkedin>
+>
+export type CommonLandingLeafIsString = Assert<
+  IsString<typeof resources.en.common.landing.features.kitchen.description>
+>
+export type NestedCommonResourceIsAccepted = Assert<
+  { accessibility: { linkedin: string } } extends I18nResource ? true : false
+>
+export type NumericResourceLeavesAreRejected = Assert<
+  { value: number } extends I18nResource ? false : true
+>
 
 const expectedLocales = ['en', 'pt-BR', 'es', 'fr', 'zh', 'hi', 'ar'] as const
 const expectedNamespaces = [

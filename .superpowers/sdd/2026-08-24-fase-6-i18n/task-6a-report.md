@@ -348,3 +348,81 @@ exit 1
   não foram introduzidos.
 - O erro de `tsc` pertence ao tipo flat existente em `src/i18n/resources.ts`;
   esse arquivo permaneceu intocado por estar fora do escopo de escrita.
+
+## Fix round 4 — common resource type safety
+
+### Estado
+
+Status: DONE.
+
+Corrigi o finding TS2322 na fundação sem achatar os namespaces em runtime. O
+novo `I18nResource` aceita recursivamente somente folhas `string` ou outros
+recursos `I18nResource`; `resources` continua usando `satisfies`, preservando
+as chaves aninhadas inferidas dos JSONs. O contrato TDD em
+`src/i18n/resources.test.ts` confirma folhas comuns como `string`, aceita um
+nó aninhado e rejeita folhas numéricas. Consumidores, outros namespaces e o
+lote de traduções comum não foram alterados.
+
+### TDD — RED/GREEN
+
+Depois de adicionar o contrato, o RED real de `bunx tsc --noEmit` saiu com
+`I18nResource` ainda não exportado, a asserção de rejeição numérica falhando e
+os TS2322 em `resources.ts:28-34`. Após o modelo recursivo, o GREEN foi:
+
+~~~text
+bunx tsc --noEmit
+exit 0
+sem saída
+~~~
+
+### Verificações — saídas exatas
+
+Testes i18n relevantes:
+
+~~~text
+bun test v1.4.0 (34cbb9a40)
+
+scripts\check-i18n.test.mjs:
+(pass) i18n bundle checker > reports a missing leaf instead of accepting fallback completion [13.41ms]
+(pass) i18n bundle checker > reports placeholder incompatibility and extra leaves with their location [0.12ms]
+
+src\i18n\locale.test.ts:
+(pass) locale foundation > normalizes supported exact and regional locale values to the closed set [0.56ms]
+(pass) locale foundation > reads and persists only normalized supported locales [0.21ms]
+
+src\i18n\resources.test.ts:
+(pass) local i18n resources > contains the closed locale set and exactly the required namespaces [1.80ms]
+
+ 5 pass
+ 0 fail
+ 123 expect() calls
+Ran 5 tests across 3 files. [819.00ms]
+~~~
+
+Checker de i18n:
+
+~~~text
+$ node scripts/check-i18n.mjs
+i18n bundles OK: 7 locales, 14 namespaces
+~~~
+
+Verificação direta do lote comum:
+
+~~~text
+common inventory GREEN: 7 locales, 104 unique leaves, placeholders consistent
+~~~
+
+Preservação das namespaces aninhadas em runtime:
+
+~~~text
+nested common runtime namespaces preserved: accessibility, landing, plans
+~~~
+
+### Self-review
+
+- O diff desta rodada está limitado a `src/i18n/resources.ts`,
+  `src/i18n/resources.test.ts` e este relatório.
+- O modelo não aceita folhas numéricas, arrays ou valores `unknown`; não há
+  flattening de `common.accessibility`, `common.landing` ou `common.plans`.
+- `audit-context/`, `src/i18n/ui-inventory.test.ts`, consumidores e
+  `dev/main` permanecem intocados.
