@@ -553,6 +553,7 @@
     "payment": "Erro ao processar pagamento. Verifique se sua sessão está ativa.",
     "products": {
       "selectType": "Por favor, selecione um tipo de produto.",
+      "selectItems": "Selecione pelo menos um produto.",
       "create": "Erro ao criar produto",
       "update": "Erro ao atualizar produto",
       "delete": "Erro ao excluir produto",
@@ -561,6 +562,8 @@
       "updateTypeStatus": "Erro ao atualizar status do tipo"
     },
     "employees": {
+      "create": "Erro ao criar funcionário",
+      "update": "Erro ao atualizar funcionário",
       "delete": "Erro ao excluir funcionário"
     }
   },

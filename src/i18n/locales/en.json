@@ -553,6 +553,7 @@
     "payment": "Error processing payment. Check that your session is active.",
     "products": {
       "selectType": "Please select a product type.",
+      "selectItems": "Please select at least one product.",
       "create": "Error creating product",
       "update": "Error updating product",
       "delete": "Error deleting product",
@@ -561,6 +562,8 @@
       "updateTypeStatus": "Error updating the type status."
     },
     "employees": {
+      "create": "Error creating employee",
+      "update": "Error updating employee",
       "delete": "Error deleting employee"
     }
   },

@@ -553,6 +553,7 @@
     "payment": "处理付款时出错。请检查会话是否有效。",
     "products": {
       "selectType": "请选择产品类型。",
+      "selectItems": "请至少选择一个产品。",
       "create": "创建产品时出错",
       "update": "更新产品时出错",
       "delete": "删除产品时出错",
@@ -561,6 +562,8 @@
       "updateTypeStatus": "更新类型状态时出错"
     },
     "employees": {
+      "create": "创建员工时出错",
+      "update": "更新员工时出错",
       "delete": "删除员工时出错"
     }
   },

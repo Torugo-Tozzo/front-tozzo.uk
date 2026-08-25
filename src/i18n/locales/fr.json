@@ -553,6 +553,7 @@
     "payment": "Erreur lors du traitement du paiement. Vérifiez que votre session est active.",
     "products": {
       "selectType": "Veuillez sélectionner un type de produit.",
+      "selectItems": "Veuillez sélectionner au moins un produit.",
       "create": "Erreur lors de la création du produit",
       "update": "Erreur lors de la mise à jour du produit",
       "delete": "Erreur lors de la suppression du produit",
@@ -561,6 +562,8 @@
       "updateTypeStatus": "Erreur lors de la mise à jour du statut du type"
     },
     "employees": {
+      "create": "Erreur lors de la création de l'employé",
+      "update": "Erreur lors de la mise à jour de l'employé",
       "delete": "Erreur lors de la suppression de l'employé"
     }
   },
