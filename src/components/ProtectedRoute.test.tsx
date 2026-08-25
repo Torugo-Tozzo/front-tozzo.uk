@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'bun:test'
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter, Routes, Route } from 'react-router-dom'
+import { I18nProvider } from '@/i18n/provider'
 import ProtectedRoute from './ProtectedRoute'
 
 const mockUseAuth = vi.fn()
@@ -10,15 +11,17 @@ vi.mock('@/contexts/AuthContext', () => ({
 
 function renderAt(path: string, allowPending = false) {
   return render(
-    <MemoryRouter initialEntries={[path]}>
-      <Routes>
-        <Route path="/login" element={<div>login page</div>} />
-        <Route path="/plan" element={<div>plan page</div>} />
-        <Route element={<ProtectedRoute allowPending={allowPending} />}>
-          <Route path="/dashboard" element={<div>dashboard content</div>} />
-        </Route>
-      </Routes>
-    </MemoryRouter>
+    <I18nProvider>
+      <MemoryRouter initialEntries={[path]}>
+        <Routes>
+          <Route path="/login" element={<div>login page</div>} />
+          <Route path="/plan" element={<div>plan page</div>} />
+          <Route element={<ProtectedRoute allowPending={allowPending} />}>
+            <Route path="/dashboard" element={<div>dashboard content</div>} />
+          </Route>
+        </Routes>
+      </MemoryRouter>
+    </I18nProvider>
   )
 }
 

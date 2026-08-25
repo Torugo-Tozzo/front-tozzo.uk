@@ -81,7 +81,7 @@
     },
     "pagination": {
       "rowsPerPage": "الصفوف في الصفحة",
-      "page": "الصفحة",
+      "page": "الصفحة {{page}}",
       "pageOf": "الصفحة {{page}} من {{total}}"
     },
     "placeholders": {

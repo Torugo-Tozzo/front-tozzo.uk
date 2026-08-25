@@ -150,7 +150,7 @@ const requiredUiInventory: InventoryEntry[] = [
   { source: "src/pages/LandingPage.tsx:314", key: "common.plans.features.sameAsMonthly" },
   { source: "src/pages/LandingPage.tsx:318", key: "common.plans.features.discount" },
   { source: "src/pages/LandingPage.tsx:322", key: "common.plans.features.annualBilling" },
-  { source: "src/pages/LandingPage.tsx:329", key: "common.plans.subscribeAnnual" },
+  { source: "src/pages/LandingPage.tsx:315", key: "common.plans.subscribeAnnual" },
   { source: "src/pages/LoginPage.tsx:70", key: "auth.loginFailure" },
   { source: "src/pages/LoginPage.tsx:98", key: "auth.registrationSuccess" },
   { source: "src/pages/LoginPage.tsx:102", key: "auth.registerFailure" },
@@ -294,6 +294,7 @@ const requiredUiInventory: InventoryEntry[] = [
   { source: "src/pages/dashboard/ChartsPage.tsx", key: "common.unitCount.other" },
   { source: "src/pages/dashboard/ChartsPage.tsx:939", key: "common.notInformed" },
   { source: "src/components/Navbar.tsx", key: "common.notInformed" },
+  { source: "src/components/Navbar.tsx", key: "auth.pendingPayment" },
   { source: "src/pages/dashboard/ChartsPage.tsx:557", key: "charts.tabs.products" },
   { source: "src/pages/dashboard/ChartsPage.tsx:558", key: "charts.tabs.hours" },
   { source: "src/pages/dashboard/ChartsPage.tsx:564", key: "charts.filters.title" },
@@ -426,6 +427,9 @@ const requiredUiInventory: InventoryEntry[] = [
 
 const firstBatchNamespaces = new Set(["common", "auth", "navigation", "settings", "status", "printer", "errors"])
 const firstBatchUiInventory = requiredUiInventory.filter(({ key }) => firstBatchNamespaces.has(key.split(".")[0]))
+const requiredSourceCoordinates = [
+  { source: "src/contexts/AuthContext.tsx:78", marker: "PENDING_PAYMENT" },
+]
 
 function hasResourceLeaf(resource: unknown, key: string): boolean {
   let current: unknown = resource
@@ -438,6 +442,11 @@ function hasResourceLeaf(resource: unknown, key: string): boolean {
 
 function sourceFile(source: string): string {
   return source.replace(/:\d+$/, "")
+}
+
+function sourceLine(source: string): number | undefined {
+  const match = source.match(/:(\d+)$/)
+  return match ? Number(match[1]) : undefined
 }
 
 function escapeRegExp(value: string): string {
@@ -508,5 +517,40 @@ describe("current hardcoded UI inventory", () => {
     }
 
     expect(missingUsage).toEqual([])
+  })
+
+  test("keeps inventoried coordinates and structured auth coverage anchored to source lines", async () => {
+    const sourceTextCache = new Map<string, string>()
+    const coordinateIssues: string[] = []
+    const readSource = async (filename: string) => {
+      const cached = sourceTextCache.get(filename)
+      if (cached !== undefined) return cached
+      const sourceText = await Bun.file(new URL(`../../${filename}`, import.meta.url)).text()
+      sourceTextCache.set(filename, sourceText)
+      return sourceText
+    }
+
+    for (const { source } of requiredUiInventory) {
+      const filename = sourceFile(source)
+      const line = sourceLine(source)
+      if (line === undefined) continue
+      const lines = (await readSource(filename)).split(/\r?\n/)
+      if (line < 1 || line > lines.length) coordinateIssues.push(`${source}: out of bounds`)
+    }
+
+    for (const { source, marker } of requiredSourceCoordinates) {
+      const filename = sourceFile(source)
+      const line = sourceLine(source)
+      const lines = (await readSource(filename)).split(/\r?\n/)
+      if (line === undefined || line < 1 || line > lines.length) {
+        coordinateIssues.push(`${source}: out of bounds`)
+        continue
+      }
+      if (!lines[line - 1].includes(marker)) {
+        coordinateIssues.push(`${source}: missing ${marker}`)
+      }
+    }
+
+    expect(coordinateIssues).toEqual([])
   })
 })

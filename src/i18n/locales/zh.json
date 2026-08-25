@@ -81,7 +81,7 @@
     },
     "pagination": {
       "rowsPerPage": "每页行数",
-      "page": "页",
+      "page": "第 {{page}} 页",
       "pageOf": "第 {{page}} 页，共 {{total}} 页"
     },
     "placeholders": {

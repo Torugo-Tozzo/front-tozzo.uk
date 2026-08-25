@@ -81,7 +81,7 @@
     },
     "pagination": {
       "rowsPerPage": "प्रति पृष्ठ पंक्तियाँ",
-      "page": "पृष्ठ",
+      "page": "पृष्ठ {{page}}",
       "pageOf": "पृष्ठ {{page}}, कुल {{total}}"
     },
     "placeholders": {

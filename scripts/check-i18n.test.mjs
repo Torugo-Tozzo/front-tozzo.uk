@@ -52,4 +52,26 @@ describe('i18n bundle checker', () => {
       },
     ])
   })
+
+  test('reports empty and TODO-style translation leaves', async () => {
+    const checker = await checkerPromise
+    const resources = {
+      en: { common: { empty: '', todo: 'TODO', ok: 'Hello' } },
+      'pt-BR': { common: { empty: '   ', todo: 'PLACEHOLDER', ok: 'Olá' } },
+    }
+
+    expect(checker).not.toBeNull()
+    if (!checker) return
+
+    const invalidValues = checker.checkBundles(resources)
+      .filter((issue) => issue.type === 'invalid-value')
+      .map(({ locale, key, reason }) => ({ locale, key, reason }))
+
+    expect(invalidValues).toEqual([
+      { locale: 'en', key: 'empty', reason: 'empty' },
+      { locale: 'en', key: 'todo', reason: 'placeholder' },
+      { locale: 'pt-BR', key: 'empty', reason: 'empty' },
+      { locale: 'pt-BR', key: 'todo', reason: 'placeholder' },
+    ])
+  })
 })

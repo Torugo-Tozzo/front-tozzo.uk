@@ -17,7 +17,13 @@ export function Navbar({ onMenuClick }: NavbarProps) {
   const { isAuthenticated, user, logout } = useAuth()
   const confirm = useConfirm()
   const { t: tCommon } = useTranslation("common")
+  const { t: tAuth } = useTranslation("auth")
   const { t: tNavigation } = useTranslation("navigation")
+
+  const establishmentLabel = user?.establishment?.tradeName
+    || (user?.establishment?.status === "PENDING_PAYMENT"
+      ? tAuth("pendingPayment")
+      : tCommon("notInformed"))
 
   const handleLogout = async () => {
     if (!(await confirm({
@@ -46,7 +52,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
 
         {isAuthenticated && user?.establishment && (
           <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 hidden md:block">
-            <span className="font-semibold text-lg">{user.establishment.tradeName}</span>
+            <span className="font-semibold text-lg">{establishmentLabel}</span>
           </div>
         )}
 

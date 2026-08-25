@@ -50,4 +50,12 @@ describe('local i18n resources', () => {
       }
     }
   })
+
+  test('requires the standalone pagination page label to interpolate the page number', () => {
+    const missingPlaceholder = Object.entries(resources)
+      .filter(([, resource]) => !resource.common.pagination.page.includes('{{page}}'))
+      .map(([locale]) => locale)
+
+    expect(missingPlaceholder).toEqual([])
+  })
 })

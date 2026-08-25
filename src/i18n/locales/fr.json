@@ -81,7 +81,7 @@
     },
     "pagination": {
       "rowsPerPage": "Lignes par page",
-      "page": "Page",
+      "page": "Page {{page}}",
       "pageOf": "Page {{page}} sur {{total}}"
     },
     "placeholders": {

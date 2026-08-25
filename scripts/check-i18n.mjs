@@ -20,6 +20,7 @@ export const NAMESPACES = [
   'catalog',
 ]
 export const DEFAULT_LOCALE = 'en'
+const PLACEHOLDER_TRANSLATION_VALUE = /^\s*(?:TODO|TBD|FIXME|PLACEHOLDER|TRANSLATE_ME|TRANSLATION_NEEDED)(?:\s*[:_-].*)?\s*$/i
 
 function isLeaf(value) {
   return value === null || typeof value !== 'object'
@@ -47,6 +48,13 @@ export function extractPlaceholders(value) {
   return [...placeholders].sort()
 }
 
+export function getInvalidLeafReason(value) {
+  if (typeof value !== 'string') return 'non-string'
+  if (value.trim().length === 0) return 'empty'
+  if (PLACEHOLDER_TRANSLATION_VALUE.test(value.trim())) return 'placeholder'
+  return undefined
+}
+
 function flattenBundle(bundle) {
   const leaves = new Map()
   for (const namespace of Object.keys(bundle).sort()) {
@@ -67,8 +75,22 @@ export function checkBundles(resources, { baseLocale = DEFAULT_LOCALE } = {}) {
   const issues = []
 
   for (const locale of Object.keys(resources).sort()) {
-    if (locale === baseLocale) continue
     const localeLeaves = flattenBundle(resources[locale])
+
+    for (const [fullKey, localeLeaf] of localeLeaves) {
+      const reason = getInvalidLeafReason(localeLeaf.value)
+      if (reason) {
+        issues.push({
+          type: 'invalid-value',
+          locale,
+          namespace: localeLeaf.namespace,
+          key: localeLeaf.key,
+          reason,
+        })
+      }
+    }
+
+    if (locale === baseLocale) continue
     const allKeys = new Set([...baseLeaves.keys(), ...localeLeaves.keys()])
 
     for (const fullKey of [...allKeys].sort()) {
@@ -120,6 +142,7 @@ export function formatIssues(issues) {
       const location = `${issue.locale}/${issue.namespace}/${issue.key}`
       if (issue.type === 'missing-key') return `${location}: missing key`
       if (issue.type === 'extra-key') return `${location}: extra key`
+      if (issue.type === 'invalid-value') return `${location}: invalid translation value (${issue.reason})`
       return `${location}: placeholders expected [${issue.expected.join(', ')}], received [${issue.received.join(', ')}]`
     })
     .join('\n')

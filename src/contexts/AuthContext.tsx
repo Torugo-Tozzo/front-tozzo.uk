@@ -74,7 +74,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         if (err.response && err.response.status === 402) {
           userData.establishment = {
             id: 0, // ID temporário
-            tradeName: 'Pagamento Pendente',
+            tradeName: '',
             status: 'PENDING_PAYMENT'
           };
         }

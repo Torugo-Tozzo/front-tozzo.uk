@@ -69,7 +69,9 @@ export function Pagination({
               page: formatNumber(currentPage, i18n.language),
               total: formatNumber(totalPages, i18n.language),
             })
-            : <>{t("pagination.page")} {formatNumber(currentPage, i18n.language)}</>}
+            : t("pagination.page", {
+              page: formatNumber(currentPage, i18n.language),
+            })}
         </div>
         <Button
           variant="default"
