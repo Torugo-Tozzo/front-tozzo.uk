@@ -294,6 +294,7 @@
   },
   "products": {
     "title": "उत्पाद",
+    "pageTitle": "प्रबंधन — {{establishment}}",
     "menu": "मेनू",
     "types": "उत्पाद प्रकार",
     "new": "नया उत्पाद",
@@ -377,6 +378,7 @@
   },
   "employees": {
     "title": "कर्मचारी",
+    "pageTitle": "कर्मचारी — {{establishment}}",
     "team": "टीम",
     "new": "नया कर्मचारी",
     "edit": "कर्मचारी संपादित करें",
@@ -410,11 +412,12 @@
       "manager": "प्रबंधक",
       "employee": "कर्मचारी",
       "customer": "ग्राहक"
-    }
+    },
+    "roleLabel": "भूमिका"
   },
   "charts": {
     "title": "रिपोर्ट",
-    "pageTitle": "रिपोर्ट",
+    "pageTitle": "रिपोर्ट — {{establishment}}",
     "productsSold": "बेचे गए उत्पाद",
     "salesByHour": "घंटे के अनुसार बिक्री",
     "tabs": {

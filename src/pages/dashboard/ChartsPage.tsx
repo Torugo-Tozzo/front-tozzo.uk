@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import api from "@/services/api"
+import { toast } from "sonner"
 import {
   Select,
   SelectContent,
@@ -83,23 +84,27 @@ type HourlyChartPoint = {
 }
 
 export default function ChartsPage() {
-  const { i18n, t } = useTranslation()
+  const { i18n } = useTranslation()
+  const { t: tCharts } = useTranslation("charts")
+  const { t: tCommon } = useTranslation("common")
+  const { t: tProducts } = useTranslation("products")
+  const { t: tErrors } = useTranslation("errors")
   const activeLocale = normalizeLocale(i18n.language)
   const recordCountMessages = {
-    zero: t('recordCount.zero'),
-    one: t('recordCount.one'),
-    two: t('recordCount.two'),
-    few: t('recordCount.few'),
-    many: t('recordCount.many'),
-    other: t('recordCount.other'),
+    zero: tCommon('recordCount.zero'),
+    one: tCommon('recordCount.one'),
+    two: tCommon('recordCount.two'),
+    few: tCommon('recordCount.few'),
+    many: tCommon('recordCount.many'),
+    other: tCommon('recordCount.other'),
   }
   const unitCountMessages = {
-    zero: t('unitCount.zero'),
-    one: t('unitCount.one'),
-    two: t('unitCount.two'),
-    few: t('unitCount.few'),
-    many: t('unitCount.many'),
-    other: t('unitCount.other'),
+    zero: tCommon('unitCount.zero'),
+    one: tCommon('unitCount.one'),
+    two: tCommon('unitCount.two'),
+    few: tCommon('unitCount.few'),
+    many: tCommon('unitCount.many'),
+    other: tCommon('unitCount.other'),
   }
   const { user } = useAuth()
   const getTodayDate = () => {
@@ -166,6 +171,7 @@ export default function ChartsPage() {
       setProductTypes(Array.isArray(response.data) ? response.data : response.data.types ?? [])
     } catch (error) {
       console.error("Error fetching types", error)
+      toast.error(tErrors("generic"))
     }
   }
 
@@ -203,6 +209,7 @@ export default function ChartsPage() {
 
     } catch (error) {
       console.error("Error fetching chart data", error)
+      toast.error(tErrors("generic"))
       setChartData([])
     } finally {
       setIsChartLoading(false)
@@ -255,6 +262,7 @@ export default function ChartsPage() {
       }
     } catch (error) {
       console.error("Error fetching detailed data", error)
+      toast.error(tErrors("generic"))
       setDetailedData([])
     } finally {
       setIsTableLoading(false)
@@ -316,6 +324,7 @@ export default function ChartsPage() {
       setSalesByHourChartData(aggregatedData)
     } catch (error) {
       console.error("Error fetching sales by hour", error)
+      toast.error(tErrors("generic"))
       setSalesByHourData([])
       setSalesByHourChartData([])
     } finally {
@@ -382,7 +391,7 @@ export default function ChartsPage() {
       }
     }
     console.error('All download attempts failed', lastErr)
-    setReportError('Falha ao baixar o arquivo após várias tentativas')
+    setReportError(tCharts("report.downloadFailed"))
     throw lastErr
   }
 
@@ -414,16 +423,16 @@ export default function ChartsPage() {
           } else if (data?.status === 'error') {
             stopPolling()
             setReportGeneratingType(null)
-            setReportError(data.error || 'Erro na geração do relatório')
-            reject(new Error(data.error || 'Erro na geração do relatório'))
+            setReportError(tCharts("report.generationFailed"))
+            reject(new Error(tCharts("report.generationFailed")))
           }
         } catch (err) {
           console.error('Error polling report status', err)
           if (attempts >= maxAttempts) {
             stopPolling()
             setReportGeneratingType(null)
-            setReportError('Tempo esgotado ao verificar status do relatório')
-            reject(new Error('Tempo esgotado ao verificar status do relatório'))
+            setReportError(tCharts("report.timeout"))
+            reject(new Error(tCharts("report.timeout")))
           }
         }
       }, intervalMs)
@@ -457,12 +466,12 @@ export default function ChartsPage() {
               setReportGeneratingType(null)
             } else {
               setReportGeneratingType(null)
-              setReportError('Relatório pronto, mas sem URL de download')
+              setReportError(tCharts("report.readyWithoutUrl"))
             }
           } catch (err: any) {
             console.error('Polling failed', err)
             setReportGeneratingType(null)
-            setReportError(err?.message || 'Erro no polling do relatório')
+            setReportError(tCharts("report.pollingFailed"))
           }
         } else if (downloadUrl) {
           // No taskId (backend provided immediate download URL). Try download with retry.
@@ -473,16 +482,16 @@ export default function ChartsPage() {
           }
         } else {
           setReportGeneratingType(null)
-          setReportError('Resposta inválida do servidor')
+          setReportError(tCharts("report.invalidResponse"))
         }
       } else {
         setReportGeneratingType(null)
-        setReportError('Falha ao iniciar geração do relatório')
+        setReportError(tCharts("report.startFailed"))
       }
     } catch (err: any) {
       console.error('Error generating report', err)
       setReportGeneratingType(null)
-      setReportError(err?.response?.data?.message || 'Erro ao iniciar geração do relatório')
+      setReportError(tCharts("report.startFailed"))
     }
   }
 
@@ -496,7 +505,7 @@ export default function ChartsPage() {
     const tooltipStyle = { backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #e2e8f0', color: '#0f172a' }
 
     switch (chartType) {
-      case "bar": // Faturamento
+      case "bar":
         return (
           <ResponsiveContainer width="100%" height={400}>
             <BarChart layout="vertical" data={chartData} margin={{ top: 20, right: 30, left: 40, bottom: 5 }}>
@@ -511,11 +520,11 @@ export default function ChartsPage() {
                 contentStyle={tooltipStyle}
               />
               <Legend />
-              <Bar dataKey="revenue" name="Receita" fill="#8884d8" />
+              <Bar dataKey="revenue" name={tCharts("revenue")} fill="#8884d8" />
             </BarChart>
           </ResponsiveContainer>
         )
-      case "column": // № de Vendas
+      case "column":
         return (
           <ResponsiveContainer width="100%" height={400}>
             <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
@@ -527,11 +536,11 @@ export default function ChartsPage() {
                 contentStyle={tooltipStyle}
               />
               <Legend />
-              <Bar dataKey="sales" name="Vendas" fill="#82ca9d" />
+              <Bar dataKey="sales" name={tCharts("sales")} fill="#82ca9d" />
             </BarChart>
           </ResponsiveContainer>
         )
-      case "line": // Faturamento e Vendas
+      case "line":
         return (
           <ResponsiveContainer width="100%" height={400}>
             <LineChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
@@ -542,17 +551,17 @@ export default function ChartsPage() {
                 formatter={(value, name) => formatChartValue(
                   value,
                   activeLocale,
-                  name === 'Receita' ? 'currency' : 'number',
+                  name === tCharts("revenue") ? 'currency' : 'number',
                 )}
                 contentStyle={tooltipStyle}
               />
               <Legend />
-              <Line type="monotone" dataKey="revenue" name="Receita" stroke="#8884d8" activeDot={{ r: 8 }} />
-              <Line type="monotone" dataKey="sales" name="Vendas (Qtd)" stroke="#82ca9d" />
+              <Line type="monotone" dataKey="revenue" name={tCharts("revenue")} stroke="#8884d8" activeDot={{ r: 8 }} />
+              <Line type="monotone" dataKey="sales" name={tCharts("salesCount")} stroke="#82ca9d" />
             </LineChart>
           </ResponsiveContainer>
         )
-      case "pie": // № de Vendas (Pizza)
+      case "pie":
         return (
           <ResponsiveContainer width="100%" height={400}>
             <PieChart>
@@ -593,25 +602,27 @@ export default function ChartsPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
           <BarChart3 className="h-8 w-8" />
-          {`Relatórios e Gráficos${user?.establishment?.tradeName ? ` do ${user.establishment.tradeName}` : ''}`}
+          {user?.establishment?.tradeName
+            ? tCharts("pageTitle", { establishment: user.establishment.tradeName })
+            : tCharts("title")}
         </h1>
       </div>
 
       <Tabs defaultValue="products" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="products">Produtos Vendidos</TabsTrigger>
-          <TabsTrigger value="hours">Vendas por Horário</TabsTrigger>
+          <TabsTrigger value="products">{tCharts("tabs.products")}</TabsTrigger>
+          <TabsTrigger value="hours">{tCharts("tabs.hours")}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="products" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Filtros</CardTitle>
+              <CardTitle>{tCharts("filters.title")}</CardTitle>
             </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="space-y-2">
-              <Label>Data Inicial</Label>
+              <Label>{tCharts("filters.startDate")}</Label>
               <Input
                 type="date"
                 value={startDate}
@@ -620,7 +631,7 @@ export default function ChartsPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label>Hora Inicial</Label>
+              <Label>{tCharts("filters.startTime")}</Label>
               <Input
                 type="time"
                 value={startTime}
@@ -629,7 +640,7 @@ export default function ChartsPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label>Data Final</Label>
+              <Label>{tCharts("filters.endDate")}</Label>
               <Input
                 type="date"
                 value={endDate}
@@ -638,7 +649,7 @@ export default function ChartsPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label>Hora Final</Label>
+              <Label>{tCharts("filters.endTime")}</Label>
               <Input
                 type="time"
                 value={endTime}
@@ -647,13 +658,13 @@ export default function ChartsPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label>Tipo de Alimento</Label>
+              <Label>{tCharts("filters.foodType")}</Label>
               <Select value={selectedTypeId} onValueChange={setSelectedTypeId} disabled={isLoading}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecione" />
+                  <SelectValue placeholder={tCharts("filters.select")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="0">Todos</SelectItem>
+                  <SelectItem value="0">{tCharts("filters.all")}</SelectItem>
                   {productTypes.map((type) => (
                     <SelectItem key={type.id} value={type.id.toString()}>
                       {getCatalogLabel(type.id, type.description, activeLocale)}
@@ -671,7 +682,7 @@ export default function ChartsPage() {
                 disabled={!!reportGeneratingType || isLoading || detailedData.length === 0}
               >
                 {reportGeneratingType === 'excel' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                Gerar Excel
+                {tCharts("report.generateExcel")}
               </Button>
               <Button
                 className="w-full md:w-auto"
@@ -679,20 +690,25 @@ export default function ChartsPage() {
                 disabled={!!reportGeneratingType || isLoading || detailedData.length === 0}
               >
                 {reportGeneratingType === 'pdf' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                Gerar PDF
+                {tCharts("report.generatePdf")}
               </Button>
               <Button className="w-full md:w-auto" onClick={handleSearch} disabled={isLoading}>
                 {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
-                Pesquisar
+                {tCharts("filters.search")}
               </Button>
             </div>
             {reportGeneratingType && (
               <div className="mt-2 text-sm text-muted-foreground">
-                Gerando relatório{reportGeneratingType ? ` (${reportGeneratingType.toUpperCase()})` : ''}... {reportStatusUrl ? (
-                  <>
-                    Ver status em{' '}
-                    <a className="underline" href={reportStatusUrl?.startsWith('http') ? reportStatusUrl : window.location.origin + (reportStatusUrl || '')} target="_blank" rel="noreferrer">status</a>
-                  </>
+                {tCharts("report.generating")}{reportGeneratingType ? ` (${reportGeneratingType.toUpperCase()})` : ''}... {reportStatusUrl ? (
+                  <a
+                    className="underline"
+                    href={reportStatusUrl?.startsWith('http') ? reportStatusUrl : window.location.origin + (reportStatusUrl || '')}
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label={tCharts("report.viewStatus")}
+                  >
+                    {tCharts("report.viewStatus")}
+                  </a>
                 ) : null}
               </div>
             )}
@@ -706,17 +722,17 @@ export default function ChartsPage() {
 
       <Card className="min-h-[500px]">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle>Visualização de Vendas</CardTitle>
+          <CardTitle>{tCharts("visualization.title")}</CardTitle>
           <div className="w-[200px]">
             <Select value={chartType} onValueChange={(value: any) => setChartType(value)} disabled={isLoading}>
               <SelectTrigger>
-                <SelectValue placeholder="Selecione o gráfico" />
+                <SelectValue placeholder={tCharts("visualization.select")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="bar">Faturamento</SelectItem>
-                <SelectItem value="column">№ de Vendas</SelectItem>
-                <SelectItem value="line">Faturamento e Vendas</SelectItem>
-                <SelectItem value="pie">№ de Vendas (Pizza)</SelectItem>
+                <SelectItem value="bar">{tCharts("visualization.revenue")}</SelectItem>
+                <SelectItem value="column">{tCharts("visualization.salesCount")}</SelectItem>
+                <SelectItem value="line">{tCharts("visualization.revenueAndSales")}</SelectItem>
+                <SelectItem value="pie">{tCharts("visualization.salesPie")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -736,19 +752,19 @@ export default function ChartsPage() {
               {periodTotal && (
                 <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3">
                   <div className="rounded-lg border p-3">
-                    <div className="text-sm font-medium text-muted-foreground">Total Faturado</div>
+                    <div className="text-sm font-medium text-muted-foreground">{tCharts("summary.totalRevenue")}</div>
                     <div className="text-2xl font-bold">
                       {formatCurrencyBRL(periodTotal.totalRevenue, activeLocale)}
                     </div>
                   </div>
                   <div className="rounded-lg border p-3">
-                    <div className="text-sm font-medium text-muted-foreground">Total de Vendas</div>
+                    <div className="text-sm font-medium text-muted-foreground">{tCharts("summary.totalSales")}</div>
                   <div className="text-2xl font-bold">
                     {formatCount(periodTotal.totalSales, recordCountMessages, activeLocale)}
                   </div>
                   </div>
                   <div className="rounded-lg border p-3">
-                    <div className="text-sm font-medium text-muted-foreground">Unidades Vendidas</div>
+                    <div className="text-sm font-medium text-muted-foreground">{tCharts("summary.unitsSold")}</div>
                   <div className="text-2xl font-bold">
                     {formatCount(periodTotal.totalUnitsSold, unitCountMessages, activeLocale)}
                   </div>
@@ -759,7 +775,7 @@ export default function ChartsPage() {
                 renderChart()
               ) : (
                 <div className="flex h-[400px] items-center justify-center text-muted-foreground">
-                  Nenhum dado encontrado para os filtros selecionados.
+                  {tCharts("empty.filtered")}
                 </div>
               )}
             </>
@@ -769,19 +785,20 @@ export default function ChartsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Detalhamento de Vendas</CardTitle>
+          <CardTitle>{tCharts("details.title")}</CardTitle>
         </CardHeader>
         <CardContent>
+          <span className="sr-only" role="status">{isLoading ? tCommon("loading") : ""}</span>
           <div className="mb-4 text-sm text-muted-foreground">
-            {formatCount(totalItems, recordCountMessages, activeLocale)}
+            {tCharts("details.totalRecords", { count: formatNumber(totalItems, activeLocale) })}
           </div>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[50px]">#</TableHead>
-                <TableHead>Produto</TableHead>
-                <TableHead className="text-right">Qtd. Vendida</TableHead>
-                <TableHead className="text-right">Total Faturado</TableHead>
+                <TableHead className="w-[50px]">{tCommon("index")}</TableHead>
+                <TableHead>{tProducts("name")}</TableHead>
+                <TableHead className="text-right">{tCharts("details.quantitySold")}</TableHead>
+                <TableHead className="text-right">{tCharts("details.totalRevenue")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -802,6 +819,12 @@ export default function ChartsPage() {
                     </TableCell>
                   </TableRow>
                 ))
+              ) : detailedData.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={4} className="py-8 text-center text-muted-foreground">
+                    {tCharts("empty.filtered")}
+                  </TableCell>
+                </TableRow>
               ) : (
                 detailedData.map((item, index) => (
                   <TableRow key={item.id || index} className="animate-in fade-in-0 duration-300">
@@ -836,12 +859,12 @@ export default function ChartsPage() {
           {/* Filtros */}
           <Card>
             <CardHeader>
-              <CardTitle>Filtros</CardTitle>
+              <CardTitle>{tCharts("filters.title")}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <Label>Data Inicial</Label>
+                  <Label>{tCharts("filters.startDate")}</Label>
                   <Input
                     type="date"
                     value={salesByHourStartDate}
@@ -850,7 +873,7 @@ export default function ChartsPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Data Final</Label>
+                  <Label>{tCharts("filters.endDate")}</Label>
                   <Input
                     type="date"
                     value={salesByHourEndDate}
@@ -865,7 +888,7 @@ export default function ChartsPage() {
                     disabled={isSalesByHourLoading}
                   >
                     {isSalesByHourLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
-                    Pesquisar
+                    {tCharts("filters.search")}
                   </Button>
                 </div>
               </div>
@@ -877,7 +900,7 @@ export default function ChartsPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Clock className="h-5 w-5" />
-                Vendas por Horário
+                {tCharts("hourly.title")}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -891,13 +914,13 @@ export default function ChartsPage() {
               ) : salesByHourData.length > 0 && (
                 <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3">
                   <div className="rounded-lg border p-3">
-                    <div className="text-sm font-medium text-muted-foreground">Total de Vendas</div>
+                    <div className="text-sm font-medium text-muted-foreground">{tCharts("summary.totalSales")}</div>
                     <div className="text-2xl font-bold">
                       {formatCount(salesByHourData.length, recordCountMessages, activeLocale)}
                     </div>
                   </div>
                   <div className="rounded-lg border p-3">
-                    <div className="text-sm font-medium text-muted-foreground">Faturamento do Dia</div>
+                    <div className="text-sm font-medium text-muted-foreground">{tCharts("summary.dayRevenue")}</div>
                     <div className="text-2xl font-bold">
                       {formatCurrencyBRL(
                         salesByHourData.reduce((sum: number, sale: any) => sum + (parseFloat(sale.total) || 0), 0),
@@ -906,14 +929,14 @@ export default function ChartsPage() {
                     </div>
                   </div>
                   <div className="rounded-lg border p-3">
-                    <div className="text-sm font-medium text-muted-foreground">Horário de Pico</div>
+                    <div className="text-sm font-medium text-muted-foreground">{tCharts("summary.peakHour")}</div>
                     <div className="text-2xl font-bold">
                       {salesByHourChartData.reduce((max: any, curr: any) => {
                         if (!max) return curr
                         if (curr.salesCount > max.salesCount) return curr
                         if (curr.salesCount === max.salesCount && curr.revenue > max.revenue) return curr
                         return max
-                      }, null)?.hour || '-'}
+                      }, null)?.hour || tCommon("notInformed")}
                     </div>
                   </div>
                 </div>
@@ -926,13 +949,18 @@ export default function ChartsPage() {
                   size="icon"
                   onClick={() => setSalesByHourPage(Math.max(0, salesByHourPage - 1))}
                   disabled={salesByHourPage === 0 || isSalesByHourLoading}
+                  aria-label={tCommon("previous")}
+                  title={tCommon("previous")}
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
                 <div className="text-center min-w-[250px]">
                   <div className="font-medium capitalize">{getCurrentSalesByHourDate()}</div>
                   <div className="text-sm text-muted-foreground">
-                    Dia {formatNumber(salesByHourPage + 1, activeLocale)} de {formatNumber(getSalesByHourMaxPage() + 1, activeLocale)}
+                    {tCharts("dayOf", {
+                      day: formatNumber(salesByHourPage + 1, activeLocale),
+                      total: formatNumber(getSalesByHourMaxPage() + 1, activeLocale),
+                    })}
                   </div>
                 </div>
                 <Button
@@ -940,6 +968,8 @@ export default function ChartsPage() {
                   size="icon"
                   onClick={() => setSalesByHourPage(Math.min(getSalesByHourMaxPage(), salesByHourPage + 1))}
                   disabled={salesByHourPage >= getSalesByHourMaxPage() || isSalesByHourLoading}
+                  aria-label={tCommon("next")}
+                  title={tCommon("next")}
                 >
                   <ChevronRight className="h-4 w-4" />
                 </Button>
@@ -963,11 +993,11 @@ export default function ChartsPage() {
                           return (
                             <div className="bg-white dark:bg-slate-800 p-3 rounded-lg shadow-lg border">
                               <p className="font-semibold mb-2">{label}</p>
-                              <p className="text-sm">Vendas: <span className="font-medium">{formatCount(data.salesCount, recordCountMessages, activeLocale)}</span></p>
-                              <p className="text-sm">Faturamento: <span className="font-medium">{formatCurrencyBRL(data.revenue, activeLocale)}</span></p>
+                              <p className="text-sm">{tCharts("tooltip.sales")}: <span className="font-medium">{formatCount(data.salesCount, recordCountMessages, activeLocale)}</span></p>
+                              <p className="text-sm">{tCharts("tooltip.revenue")}: <span className="font-medium">{formatCurrencyBRL(data.revenue, activeLocale)}</span></p>
                               {data.sales && data.sales.length > 0 && (
                                 <div className="mt-2 pt-2 border-t max-h-[150px] overflow-y-auto">
-                                  <p className="text-xs text-muted-foreground mb-1">Detalhes:</p>
+                                  <p className="text-xs text-muted-foreground mb-1">{tCharts("tooltip.details")}:</p>
                                   {data.sales.slice(0, 5).map((sale: any, idx: number) => (
                                     <div key={sale.id || idx} className="text-xs py-1 border-b last:border-b-0">
                                       <div className="flex justify-between">
@@ -978,7 +1008,9 @@ export default function ChartsPage() {
                                     </div>
                                   ))}
                                   {data.sales.length > 5 && (
-                                    <p className="text-xs text-muted-foreground mt-1">+{formatNumber(data.sales.length - 5, activeLocale)} mais...</p>
+                                    <p className="text-xs text-muted-foreground mt-1">
+                                      {tCharts("tooltip.more", { count: formatNumber(data.sales.length - 5, activeLocale) })}
+                                    </p>
                                   )}
                                 </div>
                               )}
@@ -989,12 +1021,14 @@ export default function ChartsPage() {
                       }}
                     />
                     <Legend />
-                    <Bar dataKey="salesCount" name="Vendas" fill="#82ca9d" />
+                    <Bar dataKey="salesCount" name={tCharts("sales")} fill="#82ca9d" />
                   </BarChart>
                 </ResponsiveContainer>
               ) : (
                 <div className="flex h-[400px] items-center justify-center text-muted-foreground">
-                  {salesByHourData.length === 0 ? 'Nenhuma venda encontrada para este dia.' : 'Selecione um período e clique em Pesquisar.'}
+                  {salesByHourData.length === 0
+                    ? tCharts("empty.noSalesForDay")
+                    : tCharts("empty.selectPeriod")}
                 </div>
               )}
             </CardContent>

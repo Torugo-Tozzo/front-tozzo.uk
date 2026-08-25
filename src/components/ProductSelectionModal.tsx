@@ -246,7 +246,7 @@ export function ProductSelectionModal({
 
     setIsLoading(true);
     try {
-      const finalCustomerName = clientName.trim() || "Não Informado";
+      const finalCustomerName = clientName.trim();
       const itemsPayload = selectedItems.map(({ productId, quantity, unitPrice, price }) => ({
         productId,
         quantity,

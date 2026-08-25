@@ -294,6 +294,7 @@
   },
   "products": {
     "title": "Productos",
+    "pageTitle": "Gestión — {{establishment}}",
     "menu": "Menú",
     "types": "Tipos de productos",
     "new": "Nuevo producto",
@@ -377,6 +378,7 @@
   },
   "employees": {
     "title": "Empleados",
+    "pageTitle": "Empleados — {{establishment}}",
     "team": "Equipo",
     "new": "Nuevo empleado",
     "edit": "Editar empleado",
@@ -410,11 +412,12 @@
       "manager": "Gerente",
       "employee": "Empleado",
       "customer": "Cliente"
-    }
+    },
+    "roleLabel": "Rol"
   },
   "charts": {
     "title": "Informes",
-    "pageTitle": "Informes",
+    "pageTitle": "Informes — {{establishment}}",
     "productsSold": "Productos vendidos",
     "salesByHour": "Ventas por hora",
     "tabs": {

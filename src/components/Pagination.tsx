@@ -29,7 +29,7 @@ export function Pagination({
   onPageSizeChange,
   isLoading = false
 }: PaginationProps) {
-  const { i18n } = useTranslation()
+  const { i18n, t } = useTranslation("common")
   const isNextDisabled = (totalPages && totalPages > 0 
     ? currentPage >= totalPages 
     : !hasMore) || isLoading;
@@ -37,7 +37,7 @@ export function Pagination({
   return (
     <div className="flex items-center justify-end space-x-4 py-4">
       <div className="flex items-center space-x-2">
-        <p className="text-sm font-medium">Linhas por página</p>
+        <p className="text-sm font-medium">{t("pagination.rowsPerPage")}</p>
         <Select
           value={pageSize.toString()}
           onValueChange={(value) => {
@@ -61,26 +61,33 @@ export function Pagination({
 
       <div className="flex items-center space-x-2">
         <div className="text-sm text-muted-foreground">
-          Página {formatNumber(currentPage, i18n.language)} {totalPages && totalPages > 0
-            ? "de " + formatNumber(totalPages, i18n.language)
-            : ''}
+          {totalPages && totalPages > 0
+            ? t("pagination.pageOf", {
+              page: formatNumber(currentPage, i18n.language),
+              total: formatNumber(totalPages, i18n.language),
+            })
+            : <>{t("pagination.page")} {formatNumber(currentPage, i18n.language)}</>}
         </div>
         <Button
           variant="default"
           size="sm"
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage <= 1 || isLoading}
+          aria-label={t("previous")}
+          title={t("previous")}
         >
           <ChevronLeft className="h-4 w-4" />
-          Anterior
+          {t("previous")}
         </Button>
         <Button
           variant="default"
           size="sm"
           onClick={() => onPageChange(currentPage + 1)}
           disabled={isNextDisabled}
+          aria-label={t("next")}
+          title={t("next")}
         >
-          Próximo
+          {t("next")}
           <ChevronRight className="h-4 w-4" />
         </Button>
       </div>

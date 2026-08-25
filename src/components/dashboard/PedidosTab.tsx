@@ -395,7 +395,7 @@ export function PedidosTab() {
                         </div>
                       )}
                     </TableCell>
-                    <TableCell className="text-muted-foreground">{order.seller?.name || "-"}</TableCell>
+                    <TableCell className="text-muted-foreground">{order.seller?.name || tCommon("notInformed")}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <StatusSelect

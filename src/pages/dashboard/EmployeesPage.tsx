@@ -29,7 +29,7 @@ import {
 } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Plus, Pencil, Trash2, Users, Loader2, Search } from "lucide-react"
-import api, { getErrorMessage } from "@/services/api"
+import api, { getErrorCode } from "@/services/api"
 import { parseListResponse } from "@/services/parseResponse"
 import { toast } from "sonner"
 import { Pagination } from "@/components/Pagination"
@@ -37,6 +37,7 @@ import { useAuth } from "@/contexts/AuthContext"
 import { useConfirm } from "@/contexts/ConfirmContext"
 import { useMinLoadingDuration } from "@/hooks/useMinLoadingDuration"
 import { useTranslation } from "react-i18next"
+import { getErrorTranslationKey, type ErrorContext } from "@/i18n/error-keys"
 import { formatNumber, formatPageIndex } from "@/i18n/format"
 import type { UserRole } from "@/domain/models"
 
@@ -51,6 +52,16 @@ export default function EmployeesPage() {
   const { user } = useAuth()
   const confirm = useConfirm()
   const { i18n } = useTranslation()
+  const { t: tAuth } = useTranslation("auth")
+  const { t } = useTranslation("employees")
+  const { t: tCommon } = useTranslation("common")
+  const { t: tErrors } = useTranslation("errors")
+  const localizedError = (context: ErrorContext, error: unknown) => {
+    const translation = getErrorTranslationKey(context, getErrorCode(error))
+    return translation.namespace === "auth"
+      ? tAuth(translation.key)
+      : tErrors(translation.key)
+  }
   const [employees, setEmployees] = useState<Employee[]>([])
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
@@ -130,6 +141,7 @@ export default function EmployeesPage() {
       }
     } catch (error) {
       console.error("Error fetching employees", error)
+      toast.error(localizedError("loadEmployees", error))
     }
   }
 
@@ -148,7 +160,7 @@ export default function EmployeesPage() {
       resetForm()
     } catch (error) {
       console.error("Error creating employee", error)
-      toast.error(getErrorMessage(error, "Erro ao criar funcionário"))
+      toast.error(localizedError("createEmployee", error))
     } finally {
       setIsSaving(false)
     }
@@ -184,21 +196,21 @@ export default function EmployeesPage() {
       resetForm()
     } catch (error) {
       console.error("Error updating employee", error)
-      toast.error(getErrorMessage(error, "Erro ao atualizar funcionário"))
+      toast.error(localizedError("updateEmployee", error))
     } finally {
       setIsSaving(false)
     }
   }
 
   const handleDeleteEmployee = async (id: number | string) => {
-    if (await confirm({ description: "Tem certeza que deseja excluir este funcionário?", confirmLabel: "Excluir", destructive: true })) {
+    if (await confirm({ description: t("confirm.delete"), confirmLabel: tCommon("delete"), destructive: true })) {
         setDeletingId(id)
         try {
           await api.delete(`/usuarios/${id}`)
           await fetchEmployees()
         } catch (error) {
           console.error("Error deleting employee", error)
-          toast.error(getErrorMessage(error, "Erro ao excluir funcionário"))
+          toast.error(localizedError("deleteEmployee", error))
         } finally {
           setDeletingId(null)
         }
@@ -215,11 +227,11 @@ export default function EmployeesPage() {
 
   const roleLabel = (r: string) => {
     switch (r) {
-      case 'OWNER': return 'Dono'
-      case 'MANAGER': return 'Gerente'
-      case 'EMPLOYEE': return 'Funcionário'
-      case 'CUSTOMER': return 'Cliente'
-      default: return r || "N/A"
+      case 'OWNER': return t("role.owner")
+      case 'MANAGER': return t("role.manager")
+      case 'EMPLOYEE': return t("role.employee")
+      case 'CUSTOMER': return t("role.customer")
+      default: return r || tCommon("notInformed")
     }
   }
 
@@ -237,25 +249,25 @@ export default function EmployeesPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
           <Users className="h-8 w-8" />
-          {`Funcionários${user?.establishment?.tradeName ? ` do ${user.establishment.tradeName}` : ''}`}
+          {user?.establishment?.tradeName
+            ? t("pageTitle", { establishment: user.establishment.tradeName })
+            : t("title")}
         </h1>
         {canManageUsers && (
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
               <Button onClick={resetForm} disabled={isSaving}>
-                <Plus className="mr-2 h-4 w-4" /> Novo Funcionário
+                <Plus className="mr-2 h-4 w-4" /> {t("addButton")}
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Adicionar Funcionário</DialogTitle>
-                <DialogDescription>
-                  Cadastre um novo funcionário para acessar o sistema.
-                </DialogDescription>
+                <DialogTitle>{t("dialog.addTitle")}</DialogTitle>
+                <DialogDescription>{t("dialog.addDescription")}</DialogDescription>
               </DialogHeader>
               <form onSubmit={handleAddEmployee} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="name">Nome</Label>
+                  <Label htmlFor="name">{t("name")}</Label>
                   <Input
                     id="name"
                     value={name}
@@ -265,7 +277,7 @@ export default function EmployeesPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="email">{t("email")}</Label>
                   <Input
                     id="email"
                     type="email"
@@ -276,10 +288,10 @@ export default function EmployeesPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="role">Cargo</Label>
+                  <Label htmlFor="role">{t("roleLabel")}</Label>
                   <Select value={role} onValueChange={(value) => setRole(value as UserRole)}>
                     <SelectTrigger disabled={isSaving}>
-                      <SelectValue placeholder="Selecione o cargo" />
+                      <SelectValue placeholder={t("selectRole")} />
                     </SelectTrigger>
                     <SelectContent>
                       {availableRoles.map((r) => (
@@ -289,7 +301,7 @@ export default function EmployeesPage() {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="password">Senha</Label>
+                  <Label htmlFor="password">{t("password")}</Label>
                   <Input
                     id="password"
                     type="password"
@@ -304,10 +316,10 @@ export default function EmployeesPage() {
                     {isSaving ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Salvar
+                        {tCommon("save")}
                       </>
                     ) : (
-                      "Salvar"
+                      tCommon("save")
                     )}
                   </Button>
                 </DialogFooter>
@@ -320,11 +332,11 @@ export default function EmployeesPage() {
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between w-full">
-            <CardTitle>Equipe</CardTitle>
+            <CardTitle>{t("team")}</CardTitle>
             <div className="relative w-[250px]">
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Buscar funcionários..."
+                placeholder={t("table.searchPlaceholder")}
                 value={search}
                 onChange={(e) => {
                   setSearch(e.target.value)
@@ -336,15 +348,16 @@ export default function EmployeesPage() {
           </div>
         </CardHeader>
         <CardContent>
+          <span className="sr-only" role="status">{showSkeleton ? tCommon("loading") : ""}</span>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[50px]">#</TableHead>
-                <TableHead>Nome</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Cargo</TableHead>
+                <TableHead className="w-[50px]">{tCommon("index")}</TableHead>
+                <TableHead>{t("name")}</TableHead>
+                <TableHead>{t("email")}</TableHead>
+                <TableHead>{t("roleLabel")}</TableHead>
                 {canManageUsers && (
-                  <TableHead className="text-right">Ações</TableHead>
+                  <TableHead className="text-right">{tCommon("actions.label")}</TableHead>
                 )}
               </TableRow>
             </TableHeader>
@@ -364,6 +377,12 @@ export default function EmployeesPage() {
                       )}
                     </TableRow>
                   ))
+              ) : employees.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={canManageUsers ? 5 : 4} className="py-8 text-center text-muted-foreground">
+                    {t("noResults")}
+                  </TableCell>
+                </TableRow>
               ) : (
                 employees.map((employee, index) => (
                 <TableRow key={employee.id} className="animate-in fade-in-0 duration-300">
@@ -386,6 +405,8 @@ export default function EmployeesPage() {
                             size="icon"
                             onClick={() => handleEditClick(employee)}
                             disabled={deletingId === employee.id}
+                            aria-label={tCommon("edit")}
+                            title={tCommon("edit")}
                           >
                             <Pencil className="h-4 w-4" />
                           </Button>
@@ -397,6 +418,8 @@ export default function EmployeesPage() {
                             className="text-destructive hover:text-destructive"
                             onClick={() => handleDeleteEmployee(employee.id)}
                             disabled={deletingId === employee.id}
+                            aria-label={tCommon("delete")}
+                            title={tCommon("delete")}
                           >
                             {deletingId === employee.id ? (
                               <Loader2 className="h-4 w-4 animate-spin" />
@@ -414,7 +437,7 @@ export default function EmployeesPage() {
           </Table>
           <div className="mt-4 flex items-center justify-between">
             <div className="text-sm text-muted-foreground">
-              Total de registros: {formatNumber(totalItems, i18n.language)}
+              {t("table.totalRecords", { count: formatNumber(totalItems, i18n.language) })}
             </div>
             <Pagination
               currentPage={page}
@@ -436,14 +459,12 @@ export default function EmployeesPage() {
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Editar Funcionário</DialogTitle>
-            <DialogDescription>
-              Atualize os dados do funcionário.
-            </DialogDescription>
+            <DialogTitle>{t("dialog.editTitle")}</DialogTitle>
+            <DialogDescription>{t("dialog.editDescription")}</DialogDescription>
           </DialogHeader>
           <form onSubmit={handleUpdateEmployee} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="edit-name">Nome</Label>
+              <Label htmlFor="edit-name">{t("name")}</Label>
               <Input
                 id="edit-name"
                 value={name}
@@ -453,7 +474,7 @@ export default function EmployeesPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="edit-email">Email</Label>
+              <Label htmlFor="edit-email">{t("email")}</Label>
               <Input
                 id="edit-email"
                 type="email"
@@ -464,10 +485,10 @@ export default function EmployeesPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="edit-role">Cargo</Label>
+              <Label htmlFor="edit-role">{t("roleLabel")}</Label>
               <Select value={role} onValueChange={(value) => setRole(value as UserRole)}>
                 <SelectTrigger disabled={isSaving}>
-                  <SelectValue placeholder="Selecione o cargo" />
+                <SelectValue placeholder={t("selectRole")} />
                 </SelectTrigger>
                 <SelectContent>
                   {getEditAvailableRoles().map((r) => (
@@ -477,13 +498,13 @@ export default function EmployeesPage() {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="edit-password">Nova Senha (opcional)</Label>
+              <Label htmlFor="edit-password">{t("newPassword")}</Label>
               <Input
                 id="edit-password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Deixe em branco para manter"
+                placeholder={t("leaveBlank")}
                 disabled={isSaving}
               />
             </div>
@@ -492,10 +513,10 @@ export default function EmployeesPage() {
                 {isSaving ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Salvar Alterações
+                    {tCommon("saveChanges")}
                   </>
                 ) : (
-                  "Salvar Alterações"
+                  tCommon("saveChanges")
                 )}
               </Button>
             </DialogFooter>

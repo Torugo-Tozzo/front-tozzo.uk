@@ -13,6 +13,16 @@ export type ErrorContext =
   | "cancelSale"
   | "loadProducts"
   | "loadProductTypes"
+  | "loadEmployees"
+  | "createProduct"
+  | "updateProduct"
+  | "deleteProduct"
+  | "createType"
+  | "updateType"
+  | "updateTypeStatus"
+  | "createEmployee"
+  | "updateEmployee"
+  | "deleteEmployee"
 
 type ErrorKey =
   | "generic"
@@ -27,6 +37,16 @@ type ErrorKey =
   | "saleDetails"
   | "cancelSale"
   | "loadProducts"
+  | "loadEmployees"
+  | "createProduct"
+  | "updateProduct"
+  | "deleteProduct"
+  | "createType"
+  | "updateType"
+  | "updateTypeStatus"
+  | "createEmployee"
+  | "updateEmployee"
+  | "deleteEmployee"
 export type ErrorTranslation =
   | { namespace: "auth"; key: "loginFailure" | "registerFailure" }
   | { namespace: "errors"; key: ErrorKey }
@@ -46,6 +66,16 @@ const fallbackByContext: Record<ErrorContext, ErrorTranslation> = {
   cancelSale: { namespace: "errors", key: "cancelSale" },
   loadProducts: { namespace: "errors", key: "loadProducts" },
   loadProductTypes: { namespace: "errors", key: "loadProducts" },
+  loadEmployees: { namespace: "errors", key: "loadEmployees" },
+  createProduct: { namespace: "errors", key: "createProduct" },
+  updateProduct: { namespace: "errors", key: "updateProduct" },
+  deleteProduct: { namespace: "errors", key: "deleteProduct" },
+  createType: { namespace: "errors", key: "createType" },
+  updateType: { namespace: "errors", key: "updateType" },
+  updateTypeStatus: { namespace: "errors", key: "updateTypeStatus" },
+  createEmployee: { namespace: "errors", key: "createEmployee" },
+  updateEmployee: { namespace: "errors", key: "updateEmployee" },
+  deleteEmployee: { namespace: "errors", key: "deleteEmployee" },
 }
 
 const errorKeyByContext: Partial<Record<ErrorContext, Record<string, ErrorTranslation>>> = {

@@ -294,6 +294,7 @@
   },
   "products": {
     "title": "المنتجات",
+    "pageTitle": "الإدارة — {{establishment}}",
     "menu": "القائمة",
     "types": "أنواع المنتجات",
     "new": "منتج جديد",
@@ -377,6 +378,7 @@
   },
   "employees": {
     "title": "الموظفون",
+    "pageTitle": "الموظفون — {{establishment}}",
     "team": "الفريق",
     "new": "موظف جديد",
     "edit": "تعديل الموظف",
@@ -410,11 +412,12 @@
       "manager": "المدير",
       "employee": "موظف",
       "customer": "العميل"
-    }
+    },
+    "roleLabel": "الدور"
   },
   "charts": {
     "title": "التقارير",
-    "pageTitle": "التقارير",
+    "pageTitle": "التقارير — {{establishment}}",
     "productsSold": "المنتجات المباعة",
     "salesByHour": "المبيعات حسب الساعة",
     "tabs": {
