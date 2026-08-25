@@ -18,6 +18,7 @@ i18next.use(initReactI18next).init({
   supportedLngs: [...SUPPORTED_LOCALES],
   ns: [...NAMESPACES],
   defaultNS: 'common',
+  nsSeparator: '.',
   interpolation: {
     escapeValue: false,
   },

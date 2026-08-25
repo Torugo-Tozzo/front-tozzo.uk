@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react"
+import { useTranslation } from "react-i18next"
 import {
   Table,
   TableBody,
@@ -21,7 +22,9 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { useRealtimeEvents } from "@/hooks/useRealtimeEvents"
 import { useMinLoadingDuration } from "@/hooks/useMinLoadingDuration"
 import { useConfirm } from "@/contexts/ConfirmContext"
-import { getStatusColor, type OrderStatus, type OrderStatusFilter } from "@/lib/status"
+import { getStatusColor, getStatusLabel, type OrderStatus, type OrderStatusFilter } from "@/lib/status"
+import { formatCurrencyBRL, formatDateTime } from "@/i18n/format"
+import { normalizeLocale } from "@/i18n/locale"
 import type { Order, OrderItem } from "@/domain/models"
 
 type OrderFilters = {
@@ -31,14 +34,6 @@ type OrderFilters = {
   totalMin: string
   totalMax: string
 }
-
-const STATUS_FILTER_OPTIONS: { value: OrderStatusFilter; label: string }[] = [
-  { value: "NOT_CLOSED", label: "Não Fechados" },
-  { value: "OPEN", label: "Aberto" },
-  { value: "IN_PREPARATION", label: "Em Preparo" },
-  { value: "DELIVERING", label: "Entregando" },
-  { value: "CLOSED", label: "Fechado" },
-]
 
 function isOrdersEqual(a: Order[], b: Order[]) {
   if (a.length !== b.length) return false
@@ -69,6 +64,8 @@ function buildOrderParams(page: number, limit: number, f: OrderFilters) {
 }
 
 export function PedidosTab() {
+  const { i18n } = useTranslation()
+  const activeLocale = normalizeLocale(i18n.language)
   const confirm = useConfirm()
   const [page, setPage] = useState<number>(1)
   const [limit, setLimit] = useState<number>(10)
@@ -89,6 +86,13 @@ export function PedidosTab() {
   const [createdBy, setCreatedBy] = useState("")
   const [totalMin, setTotalMin] = useState("")
   const [totalMax, setTotalMax] = useState("")
+  const statusFilterOptions: { value: OrderStatusFilter; label: string }[] = [
+    "NOT_CLOSED",
+    "OPEN",
+    "IN_PREPARATION",
+    "DELIVERING",
+    "CLOSED",
+  ].map((value) => ({ value: value as OrderStatusFilter, label: getStatusLabel(value, activeLocale) }))
 
   const filterRef = useRef<OrderFilters>({ statusFilter, customerName, createdBy, totalMin, totalMax })
   useEffect(() => {
@@ -299,7 +303,7 @@ export function PedidosTab() {
   return (
     <div className="space-y-4">
       <FiltersBar
-        status={{ value: statusFilter, onChange: (value) => setStatusFilter(value as OrderStatusFilter), options: STATUS_FILTER_OPTIONS }}
+        status={{ value: statusFilter, onChange: (value) => setStatusFilter(value as OrderStatusFilter), options: statusFilterOptions }}
         customerName={{ value: customerName, onChange: setCustomerName }}
         createdBy={{ value: createdBy, onChange: setCreatedBy }}
         totalRange={{ min: totalMin, max: totalMax, onMinChange: setTotalMin, onMaxChange: setTotalMax }}
@@ -390,9 +394,9 @@ export function PedidosTab() {
                         {updatingStatusId === order.id && <Loader2 className="h-4 w-4 animate-spin" />}
                       </div>
                     </TableCell>
-                    <TableCell>{new Date(order.updatedAt || order.openedAt || '').toLocaleString()}</TableCell>
+                    <TableCell>{formatDateTime(order.updatedAt || order.openedAt || '', activeLocale)}</TableCell>
                     <TableCell className="text-right">
-                      {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(order.total)}
+                      {formatCurrencyBRL(order.total, activeLocale)}
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">

@@ -488,6 +488,15 @@
     "language": "Language",
     "currentLanguage": "Current language",
     "localeIndicator": "Language: {{locale}}",
+    "locales": {
+      "en": "English",
+      "pt-BR": "Portuguese (Brazil)",
+      "es": "Spanish",
+      "fr": "French",
+      "zh": "Chinese",
+      "hi": "Hindi",
+      "ar": "Arabic"
+    },
     "moreComingSoon": "More settings coming soon..."
   },
   "sync": {

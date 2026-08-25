@@ -1,6 +1,7 @@
 export const SUPPORTED_LOCALES = ['en', 'pt-BR', 'es', 'fr', 'zh', 'hi', 'ar'] as const
 
 export type SupportedLocale = (typeof SUPPORTED_LOCALES)[number]
+export type LocaleDirection = 'ltr' | 'rtl'
 
 export const DEFAULT_LOCALE: SupportedLocale = 'en'
 export const LOCALE_STORAGE_KEY = 'tozzo.locale'
@@ -34,6 +35,10 @@ export function normalizeLocale(value: unknown): SupportedLocale {
   if (exact) return exact
 
   return localeByTag.get(raw.split('-')[0]) ?? DEFAULT_LOCALE
+}
+
+export function getLocaleDirection(value: unknown): LocaleDirection {
+  return normalizeLocale(value) === 'ar' ? 'rtl' : 'ltr'
 }
 
 export function getStoredLocale(storage: LocaleStorage | undefined = defaultStorage()): SupportedLocale {

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react"
+import { useTranslation } from "react-i18next"
 import { useAuth } from "@/contexts/AuthContext"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -41,6 +42,8 @@ import {
 import { BarChart3, Search, Loader2, ChevronLeft, ChevronRight, Clock } from "lucide-react"
 
 import { Skeleton } from "@/components/ui/skeleton"
+import { formatCurrencyBRL, formatDate, formatTime } from "@/i18n/format"
+import { normalizeLocale } from "@/i18n/locale"
 import type { ProductType } from "@/domain/models"
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884d8", "#82ca9d", "#ffc658"];
@@ -79,6 +82,8 @@ type HourlyChartPoint = {
 }
 
 export default function ChartsPage() {
+  const { i18n } = useTranslation()
+  const activeLocale = normalizeLocale(i18n.language)
   const { user } = useAuth()
   const getTodayDate = () => {
     const today = new Date()
@@ -305,7 +310,7 @@ export default function ChartsPage() {
   const getCurrentSalesByHourDate = () => {
     const startDateObj = new Date(salesByHourStartDate + 'T00:00:00')
     startDateObj.setDate(startDateObj.getDate() + salesByHourPage)
-    return startDateObj.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' })
+    return formatDate(startDateObj, activeLocale, { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' })
   }
 
   // Calculate max page (days between start and end date)
@@ -693,7 +698,7 @@ export default function ChartsPage() {
                   <div className="rounded-lg border p-3">
                     <div className="text-sm font-medium text-muted-foreground">Total Faturado</div>
                     <div className="text-2xl font-bold">
-                      {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(periodTotal.totalRevenue)}
+                      {formatCurrencyBRL(periodTotal.totalRevenue, activeLocale)}
                     </div>
                   </div>
                   <div className="rounded-lg border p-3">
@@ -760,7 +765,7 @@ export default function ChartsPage() {
                     <TableCell>{item.name}</TableCell>
                     <TableCell className="text-right">{item.quantitySold}</TableCell>
                     <TableCell className="text-right">
-                      {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.totalRevenue)}
+                      {formatCurrencyBRL(item.totalRevenue, activeLocale)}
                     </TableCell>
                   </TableRow>
                 ))
@@ -848,8 +853,9 @@ export default function ChartsPage() {
                   <div className="rounded-lg border p-3">
                     <div className="text-sm font-medium text-muted-foreground">Faturamento do Dia</div>
                     <div className="text-2xl font-bold">
-                      {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(
-                        salesByHourData.reduce((sum: number, sale: any) => sum + (parseFloat(sale.total) || 0), 0)
+                      {formatCurrencyBRL(
+                        salesByHourData.reduce((sum: number, sale: any) => sum + (parseFloat(sale.total) || 0), 0),
+                        activeLocale,
                       )}
                     </div>
                   </div>
@@ -909,15 +915,15 @@ export default function ChartsPage() {
                             <div className="bg-white dark:bg-slate-800 p-3 rounded-lg shadow-lg border">
                               <p className="font-semibold mb-2">{label}</p>
                               <p className="text-sm">Vendas: <span className="font-medium">{data.salesCount}</span></p>
-                              <p className="text-sm">Faturamento: <span className="font-medium">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(data.revenue)}</span></p>
+                              <p className="text-sm">Faturamento: <span className="font-medium">{formatCurrencyBRL(data.revenue, activeLocale)}</span></p>
                               {data.sales && data.sales.length > 0 && (
                                 <div className="mt-2 pt-2 border-t max-h-[150px] overflow-y-auto">
                                   <p className="text-xs text-muted-foreground mb-1">Detalhes:</p>
                                   {data.sales.slice(0, 5).map((sale: any, idx: number) => (
                                     <div key={sale.id || idx} className="text-xs py-1 border-b last:border-b-0">
                                       <div className="flex justify-between">
-                                        <span>{new Date(sale.soldAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
-                                        <span className="font-medium">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(sale.total)}</span>
+                                        <span>{formatTime(sale.soldAt, activeLocale, { hour: '2-digit', minute: '2-digit' })}</span>
+                                        <span className="font-medium">{formatCurrencyBRL(Number(sale.total), activeLocale)}</span>
                                       </div>
                                       {sale.customerName && <div className="text-muted-foreground">{sale.customerName}</div>}
                                     </div>

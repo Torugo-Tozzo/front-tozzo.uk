@@ -40,4 +40,14 @@ describe('locale foundation', () => {
     expect(locale.persistLocale('AR-eg', storage)).toBe('ar')
     expect(storage.getItem('tozzo.locale')).toBe('ar')
   })
+
+  test('exposes direction metadata without changing the supported locale set', async () => {
+    const locale = await import('./locale').catch(() => null)
+
+    expect(locale).not.toBeNull()
+    if (!locale) return
+
+    expect(locale.getLocaleDirection('ar')).toBe('rtl')
+    expect(locale.getLocaleDirection('pt-BR')).toBe('ltr')
+  })
 })

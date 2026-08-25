@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react"
+import { useTranslation } from "react-i18next"
 import {
   Table,
   TableBody,
@@ -20,6 +21,8 @@ import { ProductSelectionModal } from "@/components/ProductSelectionModal"
 import { Pagination } from "@/components/Pagination"
 import { Skeleton } from "@/components/ui/skeleton"
 import { getStatusColor } from "@/lib/status"
+import { formatCurrencyBRL, formatDateTime } from "@/i18n/format"
+import { normalizeLocale } from "@/i18n/locale"
 import type { Sale, SaleItem } from "@/domain/models"
 
 type SaleFilters = {
@@ -62,6 +65,8 @@ function buildSaleParams(page: number, limit: number, f: SaleFilters) {
 }
 
 export function VendasTab() {
+  const { i18n } = useTranslation()
+  const activeLocale = normalizeLocale(i18n.language)
   const [sales, setSales] = useState<Sale[]>([])
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [page, setPage] = useState(1)
@@ -322,7 +327,7 @@ export function VendasTab() {
           <div className="flex flex-col items-end">
             <span className="text-sm text-muted-foreground">Fechamento do Período</span>
             <span className="text-2xl font-bold text-green-600">
-              {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(periodTotal)}
+              {formatCurrencyBRL(periodTotal, activeLocale)}
             </span>
           </div>
         </CardHeader>
@@ -375,9 +380,9 @@ export function VendasTab() {
                       )}
                     </TableCell>
                     <TableCell className="text-muted-foreground">{sale.seller?.name || "-"}</TableCell>
-                    <TableCell>{sale.soldAt ? new Date(sale.soldAt).toLocaleString() : "-"}</TableCell>
+                    <TableCell>{sale.soldAt ? formatDateTime(sale.soldAt, activeLocale) : "-"}</TableCell>
                     <TableCell className="text-right">
-                      {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(sale.total)}
+                      {formatCurrencyBRL(sale.total, activeLocale)}
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react"
+import { useTranslation } from "react-i18next"
 import {
   Table,
   TableBody,
@@ -38,11 +39,16 @@ import { Pagination } from "@/components/Pagination"
 import { useAuth } from "@/contexts/AuthContext"
 import { useConfirm } from "@/contexts/ConfirmContext"
 import { useMinLoadingDuration } from "@/hooks/useMinLoadingDuration"
+import { formatCurrencyBRL } from "@/i18n/format"
+import { getCatalogLabel } from "@/i18n/labels"
+import { normalizeLocale } from "@/i18n/locale"
 import type { Product, ProductType } from "@/domain/models"
 
 type EditableProductType = ProductType & { isEditable?: boolean }
 
 export default function ProductsPage() {
+  const { i18n } = useTranslation()
+  const activeLocale = normalizeLocale(i18n.language)
   const { user } = useAuth()
   const confirm = useConfirm()
   const [products, setProducts] = useState<Product[]>([])
@@ -269,7 +275,7 @@ export default function ProductsPage() {
 
   const getTypeName = (id: number | string) => {
     const type = productTypes.find(t => String(t.id) === String(id))
-    return type ? type.description : "-"
+    return type ? getCatalogLabel(type.id, type.description, activeLocale) : "-"
   }
 
   const handleAddType = async (e: React.FormEvent) => {
@@ -403,7 +409,7 @@ export default function ProductsPage() {
                         <SelectContent>
                           {productTypes.map((type) => (
                             <SelectItem key={type.id} value={type.id.toString()}>
-                              {type.description}
+                              {getCatalogLabel(type.id, type.description, activeLocale)}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -537,7 +543,7 @@ export default function ProductsPage() {
                                 className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
                                 style={{ backgroundColor: t.color ?? '#111827', color: '#fff' }}
                               >
-                                {t.description}
+                                {getCatalogLabel(t.id, t.description, activeLocale)}
                               </span>
                             )
                           }
@@ -549,7 +555,7 @@ export default function ProductsPage() {
                         })()}
                       </TableCell>
                       <TableCell className="text-right">
-                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(product.price)}
+                        {formatCurrencyBRL(product.price, activeLocale)}
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
@@ -655,7 +661,7 @@ export default function ProductsPage() {
                             className="inline-block h-3 w-3 rounded-full"
                             style={{ backgroundColor: type.color ?? '#111827' }}
                           />
-                          <span>{type.description}{type.isActive === false ? ' (Inativo)' : ''}</span>
+                          <span>{getCatalogLabel(type.id, type.description, activeLocale)}{type.isActive === false ? ' (Inativo)' : ''}</span>
                         </div>
                       </TableCell>
                       <TableCell>
@@ -754,7 +760,7 @@ export default function ProductsPage() {
                 <SelectContent>
                   {productTypes.map((type) => (
                     <SelectItem key={type.id} value={type.id.toString()}>
-                      {type.description}
+                      {getCatalogLabel(type.id, type.description, activeLocale)}
                     </SelectItem>
                   ))}
                 </SelectContent>
