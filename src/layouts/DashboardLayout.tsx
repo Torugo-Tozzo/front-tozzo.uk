@@ -31,7 +31,8 @@ export default function DashboardLayout() {
   const location = useLocation()
   const { logout } = useAuth()
   const confirm = useConfirm()
-  const { i18n } = useTranslation()
+  const { i18n, t: tCommon } = useTranslation("common")
+  const { t: tNavigation } = useTranslation("navigation")
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   // Fica montado durante a animacao de saida - sem isso o drawer some na
   // hora ao fechar (isMobileMenuOpen vira false -> desmonta -> sem tempo
@@ -56,24 +57,28 @@ export default function DashboardLayout() {
   }, [isCollapsed])
 
   const handleLogout = async () => {
-    if (!(await confirm({ title: "Sair", description: "Tem certeza que deseja sair?", confirmLabel: "Sair" }))) return
+    if (!(await confirm({
+      title: tCommon("logoutConfirmation.title"),
+      description: tCommon("logoutConfirmation.description"),
+      confirmLabel: tCommon("logoutConfirmation.confirm"),
+    }))) return
     logout()
   }
 
   const navItems = [
-    { href: "/dashboard/orders", label: "Pedidos", icon: ClipboardList },
-    { href: "/dashboard/sales", label: "Vendas", icon: LayoutDashboard },
-    { href: "/dashboard/products", label: "Produtos", icon: ShoppingBag },
-    { href: "/dashboard/employees", label: "Funcionários", icon: Users },
-    { href: "/dashboard/charts", label: "Relatórios", icon: BarChart3 },
-    { href: "/dashboard/settings", label: "Configurações", icon: Settings },
+    { href: "/dashboard/orders", label: tNavigation("orders"), icon: ClipboardList },
+    { href: "/dashboard/sales", label: tNavigation("sales"), icon: LayoutDashboard },
+    { href: "/dashboard/products", label: tNavigation("products"), icon: ShoppingBag },
+    { href: "/dashboard/employees", label: tNavigation("employees"), icon: Users },
+    { href: "/dashboard/charts", label: tNavigation("reports"), icon: BarChart3 },
+    { href: "/dashboard/settings", label: tNavigation("settings"), icon: Settings },
   ]
 
   // Logo/"Tozzo.uk" ja aparecem na Navbar (topo, compartilhada com o resto
   // do site) - sidebar nao duplica mais isso, so nav + toggle de colapsar.
   const NavContent = ({ collapsed = false, showToggle = false }: { collapsed?: boolean; showToggle?: boolean }) => (
     <>
-      <nav className="flex-1 space-y-4 overflow-y-auto">
+      <nav aria-label={tNavigation("dashboard")} className="flex-1 space-y-4 overflow-y-auto">
         {navItems.map((item) => {
           const Icon = item.icon
           const isActive = location.pathname === item.href || (item.href === "/dashboard/orders" && location.pathname === "/dashboard")
@@ -87,6 +92,7 @@ export default function DashboardLayout() {
             >
               <Button
                 variant="ghost"
+                aria-label={collapsed ? item.label : undefined}
                 className={cn(
                   // hover:text-foreground trava a cor da letra no hover -
                   // variant="ghost" ja vem com hover:text-accent-foreground,
@@ -135,7 +141,8 @@ export default function DashboardLayout() {
             variant="ghost"
             onClick={() => setIsCollapsed((v) => !v)}
             className={cn("gap-3 border border-foreground text-muted-foreground hover:text-foreground shrink-0", collapsed ? "w-full justify-center px-0" : "px-3")}
-            title={collapsed ? "Expandir menu" : "Recolher menu"}
+            title={collapsed ? tNavigation("expandMenu") : tNavigation("collapseMenu")}
+            aria-label={collapsed ? tNavigation("expandMenu") : tNavigation("collapseMenu")}
           >
             {collapsed ? <PanelLeftOpen className="h-5 w-5 shrink-0" /> : <PanelLeftClose className="h-5 w-5 shrink-0" />}
           </Button>
@@ -146,9 +153,10 @@ export default function DashboardLayout() {
             variant="ghost"
             className="flex-1 gap-3 border border-foreground text-muted-foreground hover:text-destructive justify-start"
             onClick={handleLogout}
+            aria-label={tNavigation("logout")}
           >
             <LogOut className="h-5 w-5 shrink-0" />
-            Sair
+            {tNavigation("logout")}
           </Button>
         )}
       </div>
@@ -204,7 +212,13 @@ export default function DashboardLayout() {
               )}
             >
                <div className="flex justify-end p-2 border-b shrink-0">
-                  <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(false)}>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    aria-label={tNavigation("closeMenu")}
+                    title={tNavigation("closeMenu")}
+                  >
                     <X className="h-5 w-5" />
                   </Button>
                </div>

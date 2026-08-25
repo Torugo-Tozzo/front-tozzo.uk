@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/select"
 import { Search, Loader2, Plus, ChevronDown, ChevronUp } from "lucide-react"
 import { maskCentsInput } from "@/lib/currency"
+import { useTranslation } from "react-i18next"
 
 export interface DateRangeFilterProps {
   startDate: string
@@ -80,6 +81,9 @@ export function FiltersBar({
   onFilter,
   isLoading,
 }: FiltersBarProps) {
+  const { t: tCommon } = useTranslation("common")
+  const { t: tCharts } = useTranslation("charts")
+
   // Colapsado por padrao so importa no mobile (abaixo do breakpoint sm) -
   // o botao de expandir/recolher tambem so aparece la (sm:hidden). Em
   // telas maiores o painel fica sempre visivel via sm:block, ignorando
@@ -89,7 +93,7 @@ export function FiltersBar({
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0">
-        <CardTitle>Filtros</CardTitle>
+        <CardTitle>{tCommon("filters")}</CardTitle>
         <Button
           type="button"
           variant="ghost"
@@ -97,7 +101,7 @@ export function FiltersBar({
           className="sm:hidden"
           onClick={() => setIsExpanded((v) => !v)}
           aria-expanded={isExpanded}
-          aria-label={isExpanded ? "Recolher filtros" : "Expandir filtros"}
+          aria-label={isExpanded ? tCommon("accessibility.collapseFilters") : tCommon("accessibility.expandFilters")}
         >
           {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
         </Button>
@@ -107,7 +111,7 @@ export function FiltersBar({
           {dateRange && (
             <>
               <div className={`space-y-2 ${WIDTH_DATE}`}>
-                <Label htmlFor="filter-startDate">Data Inicial</Label>
+                <Label htmlFor="filter-startDate">{tCharts("filters.startDate")}</Label>
                 <Input
                   id="filter-startDate"
                   type="date"
@@ -117,7 +121,7 @@ export function FiltersBar({
                 />
               </div>
               <div className={`space-y-2 ${WIDTH_TIME}`}>
-                <Label htmlFor="filter-startTime">Hora Inicial</Label>
+                <Label htmlFor="filter-startTime">{tCharts("filters.startTime")}</Label>
                 <Input
                   id="filter-startTime"
                   type="time"
@@ -127,7 +131,7 @@ export function FiltersBar({
                 />
               </div>
               <div className={`space-y-2 ${WIDTH_DATE}`}>
-                <Label htmlFor="filter-endDate">Data Final</Label>
+                <Label htmlFor="filter-endDate">{tCharts("filters.endDate")}</Label>
                 <Input
                   id="filter-endDate"
                   type="date"
@@ -137,7 +141,7 @@ export function FiltersBar({
                 />
               </div>
               <div className={`space-y-2 ${WIDTH_TIME}`}>
-                <Label htmlFor="filter-endTime">Hora Final</Label>
+                <Label htmlFor="filter-endTime">{tCharts("filters.endTime")}</Label>
                 <Input
                   id="filter-endTime"
                   type="time"
@@ -151,10 +155,10 @@ export function FiltersBar({
 
           {status && (
             <div className={`space-y-2 ${WIDTH_SELECT}`}>
-              <Label htmlFor="filter-status">Status</Label>
+              <Label htmlFor="filter-status">{tCommon("status")}</Label>
               <Select value={status.value} onValueChange={status.onChange}>
                 <SelectTrigger id="filter-status">
-                  <SelectValue placeholder={status.placeholder ?? "Status"} />
+                  <SelectValue placeholder={status.placeholder ?? tCommon("status")} />
                 </SelectTrigger>
                 <SelectContent>
                   {status.options.map((opt) => (
@@ -167,10 +171,10 @@ export function FiltersBar({
 
           {customerName && (
             <div className={`space-y-2 ${WIDTH_TEXT}`}>
-              <Label htmlFor="filter-customerName">Cliente / Mesa</Label>
+              <Label htmlFor="filter-customerName">{tCommon("customer")}</Label>
               <Input
                 id="filter-customerName"
-                placeholder={customerName.placeholder ?? "Buscar cliente/mesa..."}
+                placeholder={customerName.placeholder ?? tCommon("placeholders.customer")}
                 value={customerName.value}
                 onChange={(e) => customerName.onChange(e.target.value)}
                 disabled={isLoading}
@@ -180,10 +184,10 @@ export function FiltersBar({
 
           {createdBy && (
             <div className={`space-y-2 ${WIDTH_TEXT}`}>
-              <Label htmlFor="filter-createdBy">Criado por</Label>
+              <Label htmlFor="filter-createdBy">{tCommon("createdBy")}</Label>
               <Input
                 id="filter-createdBy"
-                placeholder={createdBy.placeholder ?? "Buscar funcionário..."}
+                placeholder={createdBy.placeholder ?? tCommon("placeholders.employee")}
                 value={createdBy.value}
                 onChange={(e) => createdBy.onChange(e.target.value)}
                 disabled={isLoading}
@@ -194,7 +198,7 @@ export function FiltersBar({
           {totalRange && (
             <>
               <div className={`space-y-2 ${WIDTH_MONEY}`}>
-                <Label htmlFor="filter-totalMin">Total mínimo</Label>
+                <Label htmlFor="filter-totalMin">{tCommon("minimumTotal")}</Label>
                 <Input
                   id="filter-totalMin"
                   inputMode="numeric"
@@ -205,7 +209,7 @@ export function FiltersBar({
                 />
               </div>
               <div className={`space-y-2 ${WIDTH_MONEY}`}>
-                <Label htmlFor="filter-totalMax">Total máximo</Label>
+                <Label htmlFor="filter-totalMax">{tCommon("maximumTotal")}</Label>
                 <Input
                   id="filter-totalMax"
                   inputMode="numeric"
@@ -227,7 +231,7 @@ export function FiltersBar({
           )}
           <Button onClick={onFilter} className="w-full sm:w-auto" disabled={isLoading}>
             {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
-            Buscar
+            {tCommon("search")}
           </Button>
         </div>
       </CardContent>
