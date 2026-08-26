@@ -430,6 +430,7 @@ export function PedidosTab() {
                                 unitPrice: item.unitPriceAtOrder ?? item.product?.price ?? 0,
                               })),
                               total: order.total,
+                              totalLabel: tPrinter("receiptTotal"),
                               locale: activeLocale,
                             })
                           }

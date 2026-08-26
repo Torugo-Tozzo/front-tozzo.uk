@@ -19,6 +19,7 @@ describe('printReceipt', () => {
       dateLabel: '2026-08-26 10:00',
       items: [{ name: 'Burger', quantity: 2, unitPrice: 10 }],
       total: 20,
+      totalLabel: 'Total',
     })
 
     await new Promise((resolve) => requestAnimationFrame(resolve))

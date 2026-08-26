@@ -13,6 +13,7 @@ export interface ReceiptData {
   dateLabel: string
   items: ReceiptLineItem[]
   total: number
+  totalLabel: string
   locale?: string
 }
 
@@ -41,7 +42,7 @@ export function ReceiptPrintView({ data, width }: ReceiptPrintViewProps) {
       ))}
       <hr className="receipt__rule" />
       <div className="receipt__total">
-        <span>Total</span>
+        <span>{data.totalLabel}</span>
         <span>{formatCurrencyBRL(data.total, data.locale)}</span>
       </div>
     </div>

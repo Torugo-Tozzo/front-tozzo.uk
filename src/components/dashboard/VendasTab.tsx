@@ -417,6 +417,7 @@ export function VendasTab() {
                                 unitPrice: item.unitPriceAtSale ?? item.product?.price ?? 0,
                               })),
                               total: sale.total,
+                              totalLabel: tPrinter("receiptTotal"),
                               locale: activeLocale,
                             })
                           }
