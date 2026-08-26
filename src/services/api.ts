@@ -1,20 +1,41 @@
 import axios from 'axios';
+import { fromLegacyWire, resolveWireContext, toLegacyWire } from '@/lib/legacyWire';
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3001',
 });
+
+export function serializeRequestData(url: string | undefined, value: unknown): unknown {
+  return toLegacyWire(value, resolveWireContext(url));
+}
+
+export function normalizeResponseData(url: string | undefined, value: unknown): unknown {
+  return fromLegacyWire(value, resolveWireContext(url));
+}
 
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('tozzo_token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+  if (config.data && typeof config.data === 'object' && !(config.data instanceof FormData) && !(config.data instanceof Blob)) {
+    config.data = serializeRequestData(config.url, config.data);
+  }
+  if (config.params && typeof config.params === 'object') {
+    config.params = serializeRequestData(config.url, config.params);
+  }
   return config;
 });
 
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    response.data = normalizeResponseData(response.config.url, response.data);
+    return response;
+  },
   (error) => {
+    if (error.response?.data) {
+      error.response.data = fromLegacyWire(error.response.data);
+    }
     if (error.response && error.response.status === 401) {
       // Token expired or invalid
       localStorage.removeItem('tozzo_token');
@@ -27,9 +48,24 @@ api.interceptors.response.use(
   }
 );
 
-export function getErrorMessage(error: any, fallback: string): string {
-  const msg = error?.response?.data?.message;
-  return msg ? String(msg) : fallback;
+export function getErrorCode(error: unknown): string | undefined {
+  if (!error || typeof error !== 'object') return undefined;
+  const response = (error as { response?: { data?: unknown } }).response;
+  const data = response?.data;
+  if (!data || typeof data !== 'object') return undefined;
+  const code = (data as { code?: unknown }).code;
+  return typeof code === 'string' && code.length > 0 ? code : undefined;
+}
+
+export function getErrorMessage(error: unknown, fallback: string): string {
+  if (!error || typeof error !== 'object') return fallback;
+  const response = (error as { response?: { data?: unknown } }).response;
+  const data = response?.data;
+  if (data && typeof data === 'object') {
+    const message = (data as { message?: unknown }).message;
+    if (typeof message === 'string' && message.length > 0) return message;
+  }
+  return fallback;
 }
 
 export async function getSseToken(): Promise<string> {

@@ -5,6 +5,7 @@ import logo from "@/assets/images/logo.svg"
 import { useAuth } from "@/contexts/AuthContext"
 import { useConfirm } from "@/contexts/ConfirmContext"
 import { LogOut, Menu } from "lucide-react"
+import { useTranslation } from "react-i18next"
 
 interface NavbarProps {
   // So usado pelo DashboardLayout (abrir o drawer da sidebar no mobile).
@@ -15,9 +16,21 @@ interface NavbarProps {
 export function Navbar({ onMenuClick }: NavbarProps) {
   const { isAuthenticated, user, logout } = useAuth()
   const confirm = useConfirm()
+  const { t: tCommon } = useTranslation("common")
+  const { t: tAuth } = useTranslation("auth")
+  const { t: tNavigation } = useTranslation("navigation")
+
+  const establishmentLabel = user?.establishment?.tradeName
+    || (user?.establishment?.status === "PENDING_PAYMENT"
+      ? tAuth("pendingPayment")
+      : tCommon("notInformed"))
 
   const handleLogout = async () => {
-    if (!(await confirm({ title: "Sair", description: "Tem certeza que deseja sair?", confirmLabel: "Sair" }))) return
+    if (!(await confirm({
+      title: tCommon("logoutConfirmation.title"),
+      description: tCommon("logoutConfirmation.description"),
+      confirmLabel: tCommon("logoutConfirmation.confirm"),
+    }))) return
     logout()
   }
 
@@ -28,7 +41,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
           {onMenuClick && (
             <Button variant="ghost" size="icon" className="md:hidden -ml-2" onClick={onMenuClick}>
               <Menu className="h-5 w-5" />
-              <span className="sr-only">Abrir menu</span>
+              <span className="sr-only">{tCommon("accessibility.openMenu")}</span>
             </Button>
           )}
           <Link to="/" className="flex items-center gap-2 font-bold text-xl">
@@ -37,9 +50,9 @@ export function Navbar({ onMenuClick }: NavbarProps) {
           </Link>
         </div>
 
-        {isAuthenticated && user?.estabelecimento && (
+        {isAuthenticated && user?.establishment && (
           <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 hidden md:block">
-            <span className="font-semibold text-lg">{user.estabelecimento.nomeFantasia}</span>
+            <span className="font-semibold text-lg">{establishmentLabel}</span>
           </div>
         )}
 
@@ -48,16 +61,16 @@ export function Navbar({ onMenuClick }: NavbarProps) {
           {isAuthenticated ? (
             <div className="flex items-center gap-4">
               <span className="text-sm font-medium hidden sm:inline-block">
-                {user?.nome}
+                {user?.name || tCommon("notInformed")}
               </span>
-              <Button variant="ghost" size="icon" onClick={handleLogout} title="Sair" className="border border-foreground text-muted-foreground hover:text-destructive">
+              <Button variant="ghost" size="icon" onClick={handleLogout} title={tCommon("accessibility.logout")} className="border border-foreground text-muted-foreground hover:text-destructive">
                 <LogOut className="h-5 w-5" />
-                <span className="sr-only">Sair</span>
+                <span className="sr-only">{tCommon("accessibility.logout")}</span>
               </Button>
             </div>
           ) : (
             <Link to="/login">
-              <Button variant="outline">Fazer Login</Button>
+              <Button variant="outline">{tNavigation("login")}</Button>
             </Link>
           )}
         </nav>

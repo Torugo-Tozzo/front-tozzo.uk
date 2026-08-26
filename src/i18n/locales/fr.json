@@ -1,0 +1,630 @@
+{
+  "common": {
+    "appName": "Tozzo.uk",
+    "loading": "Chargement...",
+    "processing": "Traitement...",
+    "saving": "Enregistrement...",
+    "search": "Rechercher",
+    "filter": "Filtrer",
+    "filters": "Filtres",
+    "clear": "Effacer",
+    "apply": "Appliquer",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "close": "Fermer",
+    "confirm": "Confirmer",
+    "yes": "Oui",
+    "no": "Non",
+    "back": "Retour",
+    "next": "Suivant",
+    "previous": "Précédent",
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "add": "Ajouter",
+    "create": "Créer",
+    "update": "Mettre à jour",
+    "activate": "Activer",
+    "deactivate": "Désactiver",
+    "select": "Sélectionner",
+    "all": "Tous",
+    "none": "Aucun",
+    "notInformed": "Non renseigné",
+    "noResults": "Aucun résultat trouvé.",
+    "pageOf": "Page {{page}} sur {{total}}",
+    "more": "+{{count}} de plus...",
+    "units": "unités",
+    "recordCount": {
+      "zero": "{{count}} enregistrements",
+      "one": "{{count}} enregistrement",
+      "two": "{{count}} enregistrements",
+      "few": "{{count}} enregistrements",
+      "many": "{{count}} enregistrements",
+      "other": "{{count}} enregistrements"
+    },
+    "unitCount": {
+      "zero": "{{count}} unités",
+      "one": "{{count}} unité",
+      "two": "{{count}} unités",
+      "few": "{{count}} unités",
+      "many": "{{count}} unités",
+      "other": "{{count}} unités"
+    },
+    "total": "Total",
+    "date": "Date",
+    "time": "Heure",
+    "email": "E-mail",
+    "name": "Nom",
+    "description": "Description",
+    "price": "Prix",
+    "status": "Statut",
+    "customer": "Client / Table",
+    "createdBy": "Créé par",
+    "optional": "facultatif",
+    "allCategories": "Toutes les catégories",
+    "copyright": "Tous droits réservés.",
+    "footerCopyright": "© {{year}} Tozzo.uk. Tous droits réservés.",
+    "accessibility": {
+      "linkedin": "LinkedIn",
+      "github": "GitHub",
+      "email": "E-mail",
+      "openMenu": "Ouvrir le menu",
+      "logout": "Se déconnecter",
+      "collapseFilters": "Réduire les filtres",
+      "expandFilters": "Développer les filtres",
+      "toggleTheme": "Changer de thème",
+      "close": "Fermer"
+    },
+    "logoutConfirmation": {
+      "title": "Se déconnecter ?",
+      "description": "Êtes-vous sûr de vouloir vous déconnecter ?",
+      "confirm": "Se déconnecter"
+    },
+    "pagination": {
+      "rowsPerPage": "Lignes par page",
+      "page": "Page {{page}}",
+      "pageOf": "Page {{page}} sur {{total}}"
+    },
+    "placeholders": {
+      "customer": "Rechercher un client/une table...",
+      "employee": "Rechercher un employé...",
+      "amount": "0,00"
+    },
+    "minimumTotal": "Total minimum",
+    "maximumTotal": "Total maximum",
+    "confirmQuestion": "Êtes-vous sûr ?",
+    "landing": {
+      "heroImageAlt": "Intérieur d'un restaurant",
+      "heroTitle": "Une gestion intelligente pour",
+      "heroHighlight": "les restaurants et les bars",
+      "heroDescription": "Simplifiez vos commandes, gérez vos stocks et augmentez vos ventes grâce à notre plateforme complète de gestion.",
+      "startUsing": "Commencer",
+      "viewPlans": "Voir les plans",
+      "features": {
+        "kitchen": {
+          "title": "Gestion de la cuisine",
+          "description": "Envoyez les commandes directement en cuisine, sans erreurs ni retards. Optimisez le flux de travail de votre équipe et veillez à ce que chaque commande soit parfaite et servie à temps.",
+          "imageAlt": "Gestion de la cuisine"
+        },
+        "bar": {
+          "title": "Gestion du bar",
+          "description": "Gérez les boissons et les cocktails avec précision et évitez le gaspillage. Gardez le contrôle total du stock de votre bar et augmentez votre rentabilité.",
+          "imageAlt": "Gestion du bar"
+        },
+        "menu": {
+          "title": "Menu numérique",
+          "description": "Mettez votre menu à jour en temps réel et facilitez le choix de vos clients. Ajoutez des photos et des descriptions détaillées, et modifiez les prix instantanément.",
+          "imageAlt": "Menu numérique"
+        },
+        "orders": {
+          "title": "Commandes connectées",
+          "description": "La commande saisie par le serveur apparaît instantanément dans le système et en cuisine. Gagnez en rapidité et profitez d'une communication intégrée dans votre restaurant.",
+          "imageAlt": "Commandes connectées"
+        },
+        "dashboard": {
+          "title": "Tableaux de bord intuitifs",
+          "description": "Visualisez vos ventes et vos chiffres grâce à des graphiques détaillés. Prenez des décisions fondées sur des données réelles et suivez la croissance de votre activité.",
+          "imageAlt": "Tableau de bord de gestion de restaurant"
+        },
+        "history": {
+          "title": "Historique complet",
+          "description": "Consultez l'historique de toutes vos ventes pour mieux les contrôler. Accédez aux anciennes données et comprenez le comportement de vos clients au fil du temps.",
+          "imageAlt": "Historique des ventes"
+        },
+        "innovation": {
+          "title": "Gestion innovante",
+          "description": "Innovez dans la gestion de votre activité grâce à la technologie et à l'intelligence. Prenez une longueur d'avance sur la concurrence avec des outils modernes et efficaces.",
+          "imageAlt": "Gestion innovante de restaurant"
+        },
+        "apps": {
+          "title": "Applications intégrées",
+          "description": "Utilisez des versions dédiées aux serveurs et aux clients pour passer des commandes. Facilitez la vie de vos clients et de votre équipe grâce à des applications dédiées.",
+          "imageAlt": "Applications intégrées pour restaurants"
+        }
+      }
+    },
+    "plans": {
+      "title": "Plans flexibles",
+      "description": "Choisissez le plan idéal pour faire grandir votre établissement.",
+      "monthly": "Mensuel",
+      "monthlyDescription": "Une flexibilité totale pour votre établissement",
+      "monthlyUnit": "/mois",
+      "features": {
+        "fullAccess": "Accès complet au système",
+        "prioritySupport": "Assistance prioritaire",
+        "cancelAnytime": "Résiliez quand vous voulez",
+        "sameAsMonthly": "Tout ce qui est inclus dans le plan mensuel",
+        "discount": "Remise d'environ 27 %",
+        "annualBilling": "Facturation annuelle"
+      },
+      "subscribeMonthly": "S'abonner au plan mensuel",
+      "popular": "Le plus populaire",
+      "annual": "Annuel",
+      "annualDescription": "Économisez avec la facturation annuelle",
+      "annualUnit": "/an",
+      "equivalentMonthly": "Équivalent à {{price}}/mois",
+      "subscribeAnnual": "S'abonner au plan annuel",
+      "noPlanTitle": "Vous n'avez pas encore de plan ou votre abonnement n'a pas été renouvelé",
+      "noPlanDescription": "Choisissez l'un des plans ci-dessous pour améliorer la gestion de votre restaurant."
+    },
+    "notFound": {
+      "code": "404",
+      "title": "Page introuvable",
+      "description": "Il semble que la page que vous recherchez ait disparu de la carte ou n'ait jamais existé.",
+      "back": "Retour",
+      "home": "Accéder à l'accueil"
+    },
+    "paymentSuccess": {
+      "title": "Paiement confirmé !",
+      "preparing": "Nous préparons votre environnement...",
+      "redirecting": "Vous serez redirigé dans un instant."
+    },
+    "recordsTotal": "Total des enregistrements : {{count}}",
+    "index": "#",
+    "actions": {
+      "label": "Actions"
+    },
+    "saveChanges": "Enregistrer les modifications"
+  },
+  "auth": {
+    "login": "Connexion",
+    "register": "Inscription",
+    "createAccount": "Créer un compte",
+    "enter": "Se connecter",
+    "entering": "Connexion...",
+    "email": "E-mail",
+    "password": "Mot de passe",
+    "responsibleName": "Nom du responsable",
+    "establishmentName": "Nom de l'établissement",
+    "registrationKey": "Clé d'inscription",
+    "accessKey": "Clé d'accès",
+    "haveRegistrationKey": "J'ai une clé d'inscription",
+    "noRegistrationKey": "Je n'ai pas de clé d'inscription",
+    "createAndSubscribe": "Créer et s'abonner",
+    "loginSuccess": "Inscription réussie. Connectez-vous pour continuer.",
+    "loginFailure": "Échec de la connexion. Vérifiez vos identifiants.",
+    "registerFailure": "Échec de l'inscription. Vérifiez vos informations.",
+    "verifyCredentials": "Vérifiez vos identifiants.",
+    "verifyData": "Vérifiez vos informations.",
+    "pendingPayment": "Paiement en attente",
+    "continueToPlan": "Continuer vers le choix du forfait",
+    "registrationSuccess": "Inscription réussie ! Connectez-vous pour continuer.",
+    "registrationErrorFallback": "Échec de l'inscription. Vérifiez vos informations.",
+    "subtitle": "Gérez votre établissement en toute simplicité",
+    "loginDescription": "Connectez-vous avec vos identifiants pour accéder au système.",
+    "emailPlaceholder": "vous@exemple.com",
+    "registerDescription": "Remplissez les informations ci-dessous pour commencer.",
+    "responsiblePlaceholder": "Votre nom",
+    "establishmentPlaceholder": "Bar do Zé",
+    "freeAccessLabel": "J’ai une clé d’inscription (Accès gratuit)",
+    "registrationKeyPlaceholder": "Clé d'accès",
+    "createAccountLoading": "Création du compte..."
+  },
+  "navigation": {
+    "dashboard": "Tableau de bord",
+    "orders": "Commandes",
+    "sales": "Ventes",
+    "products": "Produits",
+    "employees": "Employés",
+    "reports": "Rapports",
+    "settings": "Paramètres",
+    "login": "Se connecter",
+    "logout": "Se déconnecter",
+    "expandMenu": "Développer le menu",
+    "collapseMenu": "Réduire le menu",
+    "openMenu": "Ouvrir le menu",
+    "closeMenu": "Fermer le menu",
+    "theme": "Thème"
+  },
+  "orders": {
+    "title": "Commandes",
+    "pageTitle": "Commandes — {{establishment}}",
+    "recent": "Commandes récentes",
+    "new": "Nouvelle commande",
+    "edit": "Modifier la commande (ajouter des articles)",
+    "details": "Détails de la commande",
+    "customer": "Client / Table",
+    "date": "Date",
+    "total": "Total",
+    "noResults": "Aucune commande trouvée.",
+    "close": "Clôturer la commande",
+    "closeConfirm": "Voulez-vous vraiment clôturer cette commande ? Elle deviendra une vente.",
+    "deleteConfirm": "Voulez-vous vraiment supprimer cette commande ?",
+    "changeStatusConfirm": "Voulez-vous vraiment modifier le statut de la commande ?",
+    "editLabel": "Modifier la commande",
+    "deleteLabel": "Supprimer la commande",
+    "fallback": {
+      "product": "Produit"
+    },
+    "statusFilter": {
+      "notClosed": "Non clôturées"
+    },
+    "confirm": {
+      "delete": "Voulez-vous vraiment supprimer cette commande ?",
+      "close": "Voulez-vous vraiment clôturer cette commande ? Elle deviendra une vente.",
+      "changeStatus": "Voulez-vous vraiment modifier le statut de la commande ?"
+    },
+    "empty": "Aucune commande trouvée."
+  },
+  "sales": {
+    "title": "Ventes",
+    "pageTitle": "Ventes — {{establishment}}",
+    "period": "Ventes sur la période",
+    "new": "Nouvelle vente",
+    "details": "Détails de la vente",
+    "customer": "Client / Table",
+    "date": "Date",
+    "total": "Total",
+    "noResults": "Aucune vente trouvée pour cette période.",
+    "cancel": "Annuler la vente",
+    "cancelConfirm": "Voulez-vous vraiment annuler cette vente ?",
+    "confirm": {
+      "cancel": "Voulez-vous vraiment annuler cette vente ?"
+    },
+    "cancelling": "Annulation en cours...",
+    "cancelButton": "Annuler la vente",
+    "fallback": {
+      "product": "Produit"
+    },
+    "table": {
+      "totalRecords": "Total des enregistrements : {{count}}"
+    },
+    "closingPeriod": "Clôture de la période",
+    "empty": "Aucune vente trouvée pour cette période.",
+    "viewDetails": "Voir les détails"
+  },
+  "products": {
+    "title": "Produits",
+    "pageTitle": "Gestion — {{establishment}}",
+    "menu": "Menu",
+    "types": "Types de produits",
+    "new": "Nouveau produit",
+    "edit": "Modifier le produit",
+    "name": "Nom",
+    "price": "Prix",
+    "type": "Type",
+    "ingredients": "Ingrédients",
+    "description": "Description",
+    "color": "Couleur",
+    "selectType": "Sélectionnez le type",
+    "separateComma": "Séparez par des virgules",
+    "searchProducts": "Rechercher des produits...",
+    "searchTypes": "Rechercher des types...",
+    "noProducts": "Aucun produit trouvé.",
+    "noTypes": "Aucun type de produit trouvé.",
+    "inactive": "Inactif",
+    "activateType": "Activer le type",
+    "deactivateType": "Désactiver le type",
+    "createDescription": "Renseignez les informations pour ajouter un produit au menu.",
+    "updateDescription": "Mettez à jour les informations du produit.",
+    "createTypeDescription": "Créez un type de produit pour organiser le menu.",
+    "updateTypeDescription": "Mettez à jour la description du type de produit.",
+    "selectTypeWarning": "Sélectionnez un type de produit.",
+    "selection": {
+      "description": "Sélectionnez les produits et renseignez le client.",
+      "clientPlaceholder": "Ex. : Table 10 ou nom du client",
+      "available": "Produits disponibles",
+      "searchPlaceholder": "Rechercher un produit...",
+      "categoryPlaceholder": "Catégorie",
+      "allCategories": "Toutes les catégories",
+      "noProducts": "Aucun produit trouvé.",
+      "selected": "Articles sélectionnés",
+      "noItems": "Aucun article sélectionné",
+      "units": "unités",
+      "fallbackProduct": "Produit",
+      "addProduct": "Ajouter un produit",
+      "decreaseQuantity": "Diminuer la quantité",
+      "increaseQuantity": "Augmenter la quantité",
+      "removeItem": "Supprimer l’article",
+      "statusPlaceholder": "Statut"
+    },
+    "confirm": {
+      "delete": "Voulez-vous vraiment supprimer ce produit ?",
+      "toggle": "Voulez-vous vraiment modifier le statut de ce type ?"
+    },
+    "managementTitle": "Gestion",
+    "tabs": {
+      "products": "Produits",
+      "types": "Types"
+    },
+    "dialogs": {
+      "addProductTitle": "Ajouter un produit",
+      "addProductDescription": "Renseignez les informations pour ajouter un produit au menu.",
+      "addTypeTitle": "Ajouter un type de produit",
+      "addTypeDescription": "Créez un type de produit pour organiser le menu.",
+      "editProductTitle": "Modifier le produit",
+      "editProductDescription": "Mettez à jour les informations du produit.",
+      "editTypeTitle": "Modifier le type",
+      "editTypeDescription": "Mettez à jour la description du type de produit."
+    },
+    "forms": {
+      "pricePlaceholder": "0.00",
+      "typePlaceholder": "Sélectionnez le type",
+      "ingredientsPlaceholder": "Séparez par des virgules"
+    },
+    "newType": "Nouveau type",
+    "table": {
+      "searchPlaceholder": "Rechercher des produits...",
+      "typesSearchPlaceholder": "Rechercher des types...",
+      "typesCaption": "Liste des types de produits enregistrés.",
+      "origin": "Origine",
+      "inactiveSuffix": "(inactif)",
+      "systemOrigin": "Par défaut du système",
+      "userOrigin": "Créé par l'utilisateur"
+    },
+    "accessibility": {
+      "activateType": "Activer le type",
+      "deactivateType": "Désactiver le type"
+    }
+  },
+  "employees": {
+    "title": "Employés",
+    "pageTitle": "Employés — {{establishment}}",
+    "team": "Équipe",
+    "new": "Nouvel employé",
+    "edit": "Modifier l'employé",
+    "name": "Nom",
+    "email": "E-mail",
+    "role": "Fonction",
+    "password": "Mot de passe",
+    "newPassword": "Nouveau mot de passe (facultatif)",
+    "selectRole": "Sélectionnez la fonction",
+    "search": "Rechercher des employés...",
+    "noResults": "Aucun employé trouvé.",
+    "createDescription": "Enregistrez un nouvel employé pour accéder au système.",
+    "updateDescription": "Mettez à jour les informations de l'employé.",
+    "leaveBlank": "Laissez vide pour conserver le mot de passe actuel.",
+    "confirm": {
+      "delete": "Voulez-vous vraiment supprimer cet employé ?"
+    },
+    "addButton": "Nouvel employé",
+    "dialog": {
+      "addTitle": "Ajouter un employé",
+      "addDescription": "Enregistrez un nouvel employé pour accéder au système.",
+      "editTitle": "Modifier l'employé",
+      "editDescription": "Mettez à jour les informations de l'employé."
+    },
+    "table": {
+      "searchPlaceholder": "Rechercher des employés...",
+      "totalRecords": "Total des enregistrements : {{count}}"
+    },
+    "role": {
+      "owner": "Propriétaire",
+      "manager": "Responsable",
+      "employee": "Employé",
+      "customer": "Client"
+    },
+    "roleLabel": "Rôle"
+  },
+  "charts": {
+    "title": "Rapports",
+    "pageTitle": "Rapports — {{establishment}}",
+    "productsSold": "Produits vendus",
+    "salesByHour": "Ventes par heure",
+    "tabs": {
+      "products": "Produits vendus",
+      "hours": "Ventes par heure"
+    },
+    "filters": {
+      "title": "Filtres",
+      "startDate": "Date de début",
+      "startTime": "Heure de début",
+      "endDate": "Date de fin",
+      "endTime": "Heure de fin",
+      "foodType": "Type d'aliment",
+      "select": "Sélectionnez",
+      "all": "Tous",
+      "search": "Rechercher"
+    },
+    "startDate": "Date de début",
+    "startTime": "Heure de début",
+    "endDate": "Date de fin",
+    "endTime": "Heure de fin",
+    "foodType": "Type d'aliment",
+    "selectChart": "Sélectionnez le graphique",
+    "search": "Rechercher",
+    "salesView": "Visualisation des ventes",
+    "revenue": "Chiffre d'affaires",
+    "salesCount": "Nombre de ventes",
+    "revenueAndSales": "Chiffre d'affaires et ventes",
+    "details": {
+      "title": "Détail des ventes",
+      "totalRecords": "Total des enregistrements : {{count}}",
+      "quantitySold": "Quantité vendue",
+      "totalRevenue": "Chiffre d'affaires total"
+    },
+    "detailSales": "Détail des ventes",
+    "generatingReport": "Génération du rapport",
+    "viewStatus": "Voir le statut",
+    "reportReady": "Rapport prêt, mais aucune URL de téléchargement n'a été reçue.",
+    "reportError": "Erreur lors de la génération du rapport.",
+    "noSalesForDay": "Aucune vente trouvée pour ce jour.",
+    "selectPeriod": "Sélectionnez une période et cliquez sur Rechercher.",
+    "dayOf": "Jour {{day}} sur {{total}}",
+    "sales": "Ventes",
+    "moreSales": "+{{count}} de plus...",
+    "report": {
+      "generateExcel": "Générer un fichier Excel",
+      "generatePdf": "Générer un PDF",
+      "filename": "rapport",
+      "generating": "Génération du rapport",
+      "generatingWithFormat": "Génération du rapport ({{format}})...",
+      "format": {
+        "excel": "Excel",
+        "pdf": "PDF"
+      },
+      "viewStatus": "Voir le statut",
+      "downloadFailed": "Échec du téléchargement du fichier après plusieurs tentatives",
+      "generationFailed": "Erreur lors de la génération du rapport",
+      "timeout": "Délai dépassé lors de la vérification du statut du rapport",
+      "readyWithoutUrl": "Rapport prêt, mais aucune URL de téléchargement n'a été reçue",
+      "pollingFailed": "Erreur lors de la vérification du statut du rapport",
+      "invalidResponse": "Réponse du serveur invalide",
+      "startFailed": "Échec du démarrage de la génération du rapport"
+    },
+    "visualization": {
+      "title": "Visualisation des ventes",
+      "select": "Sélectionnez le graphique",
+      "revenue": "Chiffre d'affaires",
+      "salesCount": "Nombre de ventes",
+      "revenueAndSales": "Chiffre d'affaires et ventes",
+      "salesPie": "Nombre de ventes (camembert)",
+      "pieLabel": "{{name}} {{value}}"
+    },
+    "summary": {
+      "totalRevenue": "Chiffre d'affaires total",
+      "totalSales": "Nombre total de ventes",
+      "unitsSold": "Unités vendues",
+      "dayRevenue": "Chiffre d'affaires du jour",
+      "peakHour": "Heure de pointe"
+    },
+    "empty": {
+      "filtered": "Aucune donnée trouvée pour les filtres sélectionnés.",
+      "noSalesForDay": "Aucune vente trouvée pour ce jour.",
+      "selectPeriod": "Sélectionnez une période et cliquez sur Rechercher."
+    },
+    "hourly": {
+      "title": "Ventes par heure"
+    },
+    "tooltip": {
+      "sales": "Ventes",
+      "revenue": "Chiffre d'affaires",
+      "details": "Détails",
+      "more": "+{{count}} de plus...",
+      "label": "{{label}} :"
+    }
+  },
+  "settings": {
+    "title": "Paramètres",
+    "appearance": "Apparence",
+    "theme": "Thème",
+    "light": "Clair",
+    "dark": "Sombre",
+    "system": "Système",
+    "language": "Langue",
+    "currentLanguage": "Langue actuelle",
+    "localeIndicator": "Langue : {{locale}}",
+    "locales": {
+      "en": "Anglais",
+      "pt-BR": "Portugais (Brésil)",
+      "es": "Espagnol",
+      "fr": "Français",
+      "zh": "Chinois",
+      "hi": "Hindi",
+      "ar": "Arabe"
+    },
+    "moreComingSoon": "D'autres paramètres bientôt disponibles..."
+  },
+  "sync": {
+    "syncing": "Synchronisation...",
+    "synced": "Synchronisé",
+    "syncError": "Échec de la synchronisation.",
+    "lastSynced": "Dernière synchronisation",
+    "realtimeConnected": "Connexion en temps réel active",
+    "realtimeDisconnected": "Connexion en temps réel indisponible",
+    "retry": "Réessayer"
+  },
+  "printer": {
+    "print": "Imprimer",
+    "printOrder": "Imprimer la commande",
+    "printSale": "Imprimer la vente",
+    "printing": "Impression...",
+    "printSuccess": "Tâche d'impression envoyée.",
+    "printError": "Impossible d'imprimer.",
+    "printSoon": "Impression (bientôt disponible)"
+  },
+  "status": {
+    "open": "Ouvert",
+    "inPreparation": "En préparation",
+    "delivering": "En livraison",
+    "closed": "Fermé",
+    "notClosed": "Non clôturés",
+    "active": "Actif",
+    "inactive": "Inactif",
+    "pendingPayment": "Paiement en attente",
+    "paid": "Payé",
+    "cancelled": "Annulé",
+    "owner": "Propriétaire",
+    "administrator": "Administrateur",
+    "employee": "Employé"
+  },
+  "errors": {
+    "generic": "Une erreur s'est produite.",
+    "sessionExpired": "Votre session a expiré.",
+    "loadOrders": "Erreur lors du chargement des commandes.",
+    "saveOrder": "Erreur lors de l'enregistrement de la commande.",
+    "deleteOrder": "Erreur lors de la suppression de la commande.",
+    "closeOrder": "Erreur lors de la clôture de la commande.",
+    "changeOrderStatus": "Erreur lors de la mise à jour du statut de la commande.",
+    "loadSales": "Erreur lors du chargement des ventes.",
+    "createSale": "Erreur lors de la création de la vente.",
+    "saleDetails": "Erreur lors du chargement des détails de la vente.",
+    "cancelSale": "Erreur lors de l'annulation de la vente.",
+    "loadProducts": "Erreur lors du chargement des produits.",
+    "createProduct": "Erreur lors de la création du produit.",
+    "updateProduct": "Erreur lors de la mise à jour du produit.",
+    "deleteProduct": "Erreur lors de la suppression du produit.",
+    "createType": "Erreur lors de la création du type.",
+    "updateType": "Erreur lors de la mise à jour du type.",
+    "updateTypeStatus": "Erreur lors de la mise à jour du statut du type.",
+    "loadEmployees": "Erreur lors du chargement des employés.",
+    "createEmployee": "Erreur lors de la création de l'employé.",
+    "updateEmployee": "Erreur lors de la mise à jour de l'employé.",
+    "deleteEmployee": "Erreur lors de la suppression de l'employé.",
+    "report": "Erreur lors du démarrage de la génération du rapport.",
+    "downloadReport": "Impossible de télécharger le fichier après plusieurs tentatives.",
+    "invalidResponse": "Réponse invalide du serveur.",
+    "paymentUrl": "Impossible de démarrer le paiement : URL introuvable.",
+    "payment": "Erreur lors du traitement du paiement. Vérifiez que votre session est active.",
+    "products": {
+      "selectType": "Veuillez sélectionner un type de produit.",
+      "selectItems": "Veuillez sélectionner au moins un produit.",
+      "create": "Erreur lors de la création du produit",
+      "update": "Erreur lors de la mise à jour du produit",
+      "delete": "Erreur lors de la suppression du produit",
+      "createType": "Erreur lors de la création du type",
+      "updateType": "Erreur lors de la mise à jour du type",
+      "updateTypeStatus": "Erreur lors de la mise à jour du statut du type"
+    },
+    "employees": {
+      "create": "Erreur lors de la création de l'employé",
+      "update": "Erreur lors de la mise à jour de l'employé",
+      "delete": "Erreur lors de la suppression de l'employé"
+    }
+  },
+  "catalog": {
+    "burger": "Hamburger",
+    "artisanalBurger": "Hamburger artisanal",
+    "chicken": "Poulet",
+    "hotDog": "Hot-dog",
+    "food": "Nourriture",
+    "drink": "Boissons",
+    "fries": "Frites",
+    "extra": "Supplément",
+    "dessert": "Desserts",
+    "side": "Accompagnements",
+    "pizza": "Pizza",
+    "sushi": "Sushi",
+    "other": "Autre",
+    "defaultType": "Type de catalogue par défaut"
+  }
+}

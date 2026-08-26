@@ -11,10 +11,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Plus, Minus, Trash2, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
-import api, { getErrorMessage } from "@/services/api";
+import api, { getErrorCode } from "@/services/api";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useConfirm } from "@/contexts/ConfirmContext";
+import { useTranslation } from "react-i18next";
 import {
   Select,
   SelectContent,
@@ -22,42 +23,37 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
-type Product = {
-  id: number;
-  nome: string;
-  preco: number;
-};
-
-type TipoProduto = {
-  id: number;
-  descricao: string;
-};
+import type { Product, ProductType } from "@/domain/models";
+import type { OrderStatus } from "@/domain/models";
+import { formatCount, formatCurrencyBRL, formatNumber } from "@/i18n/format";
+import { getCatalogLabel, getStatusLabel } from "@/i18n/labels";
+import { normalizeLocale } from "@/i18n/locale";
+import { getErrorTranslationKey, type ErrorContext } from "@/i18n/error-keys";
 
 export type SelectedItem = {
-  produtoId: number;
-  quantidade: number;
-  nome: string;
-  preco: number; // current product price (for reference)
-  precoHistorico: number; // snapshot price to send with the order/sale
+  productId: number | string;
+  quantity: number;
+  name: string;
+  price: number;
+  unitPrice: number;
 };
 
 interface ProductSelectionModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: (cliente: string, itens: { produtoId: number; quantidade: number; precoHistorico?: number }[]) => Promise<void>;
+  onConfirm: (customerName: string, items: { productId: number | string; quantity: number; unitPrice?: number }[]) => Promise<void>;
   title: string;
   initialClientName?: string;
-  initialOrderItems?: { produtoId: number; quantidade: number; precoHistorico?: number; nome?: string; preco?: number }[];
+  initialItems?: { productId: number | string; quantity: number; unitPrice?: number; name?: string; price?: number }[];
   isEditing?: boolean; // If editing, we might handle things differently
   onCloseOrder?: () => Promise<void>;
-  initialStatus?: string;
-  onChangeStatus?: (newStatus: string) => Promise<void> | void;
+  initialStatus?: OrderStatus;
+  onChangeStatus?: (newStatus: OrderStatus) => Promise<void> | void;
   onCancelSale?: () => Promise<void>;
   readOnly?: boolean;
 }
 
-const DEFAULT_ITEMS: { produtoId: number; quantidade: number }[] = [];
+const DEFAULT_ITEMS: { productId: number; quantity: number }[] = [];
 const PRODUCTS_PAGE_SIZE = 20;
 
 export function ProductSelectionModal({
@@ -66,7 +62,7 @@ export function ProductSelectionModal({
   onConfirm,
   title,
   initialClientName = "",
-  initialOrderItems = DEFAULT_ITEMS,
+  initialItems = DEFAULT_ITEMS,
   isEditing = false,
   onCloseOrder,
   initialStatus,
@@ -75,18 +71,40 @@ export function ProductSelectionModal({
   readOnly = false,
 }: ProductSelectionModalProps) {
   const confirm = useConfirm();
+  const { i18n } = useTranslation();
+  const { t: tAuth } = useTranslation("auth");
+  const { t: tCommon } = useTranslation("common");
+  const { t: tErrors } = useTranslation("errors");
+  const { t: tOrders } = useTranslation("orders");
+  const { t: tProducts } = useTranslation("products");
+  const { t: tSales } = useTranslation("sales");
+  const activeLocale = normalizeLocale(i18n.language);
+  const localizedError = (context: ErrorContext, error: unknown) => {
+    const translation = getErrorTranslationKey(context, getErrorCode(error));
+    return translation.namespace === "auth"
+      ? tAuth(translation.key)
+      : tErrors(translation.key);
+  };
+  const unitCountMessages = {
+    zero: tCommon("unitCount.zero"),
+    one: tCommon("unitCount.one"),
+    two: tCommon("unitCount.two"),
+    few: tCommon("unitCount.few"),
+    many: tCommon("unitCount.many"),
+    other: tCommon("unitCount.other"),
+  };
   const [products, setProducts] = useState<Product[]>([]);
   const [productsTotal, setProductsTotal] = useState(0);
   const [productsPage, setProductsPage] = useState(1);
-  const [tipos, setTipos] = useState<TipoProduto[]>([]);
+  const [productTypes, setProductTypes] = useState<ProductType[]>([]);
   const [selectedItems, setSelectedItems] = useState<SelectedItem[]>([]);
   const [clientName, setClientName] = useState(initialClientName);
   const [isLoading, setIsLoading] = useState(false);
   const [isClosingOrder, setIsClosingOrder] = useState(false);
   const [isCancellingSale, setIsCancellingSale] = useState(false);
-  const [status, setStatus] = useState<string>(initialStatus ?? "");
+  const [status, setStatus] = useState<OrderStatus | "">(initialStatus ?? "");
   const [searchTerm, setSearchTerm] = useState("");
-  const [tipoFilter, setTipoFilter] = useState("");
+  const [productTypeFilter, setProductTypeFilter] = useState("");
   const [isProductsLoading, setIsProductsLoading] = useState(false);
 
   useEffect(() => {
@@ -108,33 +126,40 @@ export function ProductSelectionModal({
 
     setClientName(initialClientName);
     setSearchTerm("");
-    setTipoFilter("");
+    setProductTypeFilter("");
 
-    if (initialOrderItems && initialOrderItems.length > 0) {
-      const hydratedItems = initialOrderItems
-        .filter((item) => item.produtoId != null)
+    if (initialItems && initialItems.length > 0) {
+      const hydratedItems = initialItems
+        .filter((item) => item.productId != null)
         .map((item) => {
-          const preco = item.preco != null ? Number(item.preco) : Number(item.precoHistorico ?? 0);
+          const price = item.price != null ? Number(item.price) : Number(item.unitPrice ?? 0);
           return {
-            produtoId: item.produtoId,
-            quantidade: item.quantidade,
-            nome: item.nome ?? "Produto",
-            preco,
-            precoHistorico: item.precoHistorico != null ? Number(item.precoHistorico) : preco,
+            productId: item.productId,
+            quantity: item.quantity,
+            name: item.name ?? tProducts("selection.fallbackProduct"),
+            price,
+            unitPrice: item.unitPrice != null ? Number(item.unitPrice) : price,
           };
         });
       setSelectedItems(hydratedItems);
     } else {
       setSelectedItems([]);
     }
-  }, [isOpen, initialClientName, initialOrderItems]);
+  }, [isOpen, initialClientName, initialItems]);
 
   // Tipos de produto para o filtro de categoria (poucos registros, carrega tudo de uma vez).
   useEffect(() => {
     if (!isOpen) return;
     api.get("/tipos")
-      .then((response) => setTipos(response.data))
-      .catch((error) => console.error("Error fetching tipos", error));
+      .then((response) => {
+        const payload = response.data;
+        const types = Array.isArray(payload) ? payload : payload?.types ?? payload?.data ?? [];
+        setProductTypes(types);
+      })
+      .catch((error) => {
+        console.error("Error fetching product types", error);
+        toast.error(localizedError("loadProductTypes", error));
+      });
   }, [isOpen]);
 
   // Busca produtos no servidor - nunca carrega o catalogo inteiro, so a
@@ -144,19 +169,22 @@ export function ProductSelectionModal({
     try {
       const params: any = { limit: PRODUCTS_PAGE_SIZE, page };
       if (searchTerm) params.search = searchTerm;
-      if (tipoFilter) params.tipoProdutoId = tipoFilter;
+      if (productTypeFilter) params.productTypeId = productTypeFilter;
 
       const response = await api.get("/produtos", { params });
-      const data = response.data.map((p: any) => ({
+      const payload = response.data;
+      const products = Array.isArray(payload) ? payload : payload?.products ?? payload?.data ?? [];
+      const data = products.map((p: Product) => ({
         ...p,
-        preco: p.preco ? Number(p.preco) : 0,
+        price: p.price ? Number(p.price) : 0,
       }));
       setProducts(data);
       setProductsPage(page);
       const totalHeader = response.headers["x-total-count"];
-      setProductsTotal(totalHeader ? parseInt(totalHeader, 10) : data.length);
+      setProductsTotal(payload?.total ?? payload?.count ?? (totalHeader ? parseInt(totalHeader, 10) : data.length));
     } catch (error) {
       console.error("Error fetching products", error);
+      toast.error(localizedError("loadProducts", error));
     } finally {
       setIsProductsLoading(false);
     }
@@ -173,37 +201,37 @@ export function ProductSelectionModal({
     }, 300);
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen, searchTerm, tipoFilter]);
+  }, [isOpen, searchTerm, productTypeFilter]);
 
   const productsTotalPages = Math.ceil(productsTotal / PRODUCTS_PAGE_SIZE);
 
   const handleAddItem = (product: Product) => {
     setSelectedItems((prev) => {
-      const existing = prev.find((item) => item.produtoId === product.id);
+      const existing = prev.find((item) => item.productId === product.id);
       if (existing) {
         return prev.map((item) =>
-          item.produtoId === product.id
-            ? { ...item, quantidade: item.quantidade + 1 }
+          item.productId === product.id
+            ? { ...item, quantity: item.quantity + 1 }
             : item
         );
       }
       return [
         ...prev,
-        { produtoId: product.id, quantidade: 1, nome: product.nome, preco: product.preco, precoHistorico: Number(product.preco || 0) },
+        { productId: product.id, quantity: 1, name: product.name, price: product.price, unitPrice: Number(product.price || 0) },
       ];
     });
   };
 
-  const handleRemoveItem = (produtoId: number) => {
-    setSelectedItems((prev) => prev.filter((item) => item.produtoId !== produtoId));
+  const handleRemoveItem = (productId: number | string) => {
+    setSelectedItems((prev) => prev.filter((item) => item.productId !== productId));
   };
 
-  const handleUpdateQuantity = (produtoId: number, delta: number) => {
+  const handleUpdateQuantity = (productId: number | string, delta: number) => {
     setSelectedItems((prev) =>
       prev.map((item) => {
-        if (item.produtoId === produtoId) {
-          const newQuantity = Math.max(1, item.quantidade + delta);
-          return { ...item, quantidade: newQuantity };
+        if (item.productId === productId) {
+          const newQuantity = Math.max(1, item.quantity + delta);
+          return { ...item, quantity: newQuantity };
         }
         return item;
       })
@@ -212,20 +240,20 @@ export function ProductSelectionModal({
 
   const handleConfirm = async () => {
     if (selectedItems.length === 0 && !isEditing) {
-      toast.warning("Selecione pelo menos um produto.");
+      toast.warning(tErrors("products.selectItems"));
       return;
     }
 
     setIsLoading(true);
     try {
-      const finalClientName = clientName.trim() || "Não Informado";
-      const itensPayload = selectedItems.map(({ produtoId, quantidade, precoHistorico, preco }) => ({
-        produtoId,
-        quantidade,
-        precoHistorico: precoHistorico != null ? Number(precoHistorico) : Number(preco || 0),
+      const finalCustomerName = clientName.trim();
+      const itemsPayload = selectedItems.map(({ productId, quantity, unitPrice, price }) => ({
+        productId,
+        quantity,
+        unitPrice: unitPrice != null ? Number(unitPrice) : Number(price || 0),
       }));
       
-      await onConfirm(finalClientName, itensPayload);
+      await onConfirm(finalCustomerName, itemsPayload);
       onClose();
     } catch (error) {
       console.error("Error confirming", error);
@@ -234,7 +262,7 @@ export function ProductSelectionModal({
     }
   };
 
-  const total = selectedItems.reduce((acc, item) => acc + ((item.precoHistorico != null ? item.precoHistorico : item.preco) * item.quantidade), 0);
+  const total = selectedItems.reduce((acc, item) => acc + ((item.unitPrice != null ? item.unitPrice : item.price) * item.quantity), 0);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -242,16 +270,16 @@ export function ProductSelectionModal({
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>
-            Selecione os produtos e informe o cliente.
+            {tProducts("selection.description")}
           </DialogDescription>
         </DialogHeader>
 
         <div className="flex-1 overflow-y-auto py-4 space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="client">Cliente / Mesa</Label>
+            <Label htmlFor="client">{tCommon("customer")}</Label>
             <Input
               id="client"
-              placeholder="Ex: Mesa 10 ou João"
+              placeholder={tProducts("selection.clientPlaceholder")}
               value={clientName}
               onChange={(e) => setClientName(e.target.value)}
               disabled={readOnly}
@@ -262,22 +290,24 @@ export function ProductSelectionModal({
             {/* Product List */}
             {!readOnly && (
               <div className="space-y-4 border rounded-lg p-4">
-                <h3 className="font-semibold">Produtos Disponíveis</h3>
+                <h3 className="font-semibold">{tProducts("selection.available")}</h3>
                 <div className="flex gap-2">
                   <Input
-                    placeholder="Buscar produto..."
+                    placeholder={tProducts("selection.searchPlaceholder")}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="flex-1"
                   />
-                  <Select value={tipoFilter || "all"} onValueChange={(val) => setTipoFilter(val === "all" ? "" : val)}>
-                    <SelectTrigger className="w-[150px]">
-                      <SelectValue placeholder="Categoria" />
+                  <Select value={productTypeFilter || "all"} onValueChange={(val) => setProductTypeFilter(val === "all" ? "" : val)}>
+                    <SelectTrigger className="w-[150px]" aria-label={tProducts("selection.categoryPlaceholder")}>
+                      <SelectValue placeholder={tProducts("selection.categoryPlaceholder")} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">Todas categorias</SelectItem>
-                      {tipos.map((tipo) => (
-                        <SelectItem key={tipo.id} value={String(tipo.id)}>{tipo.descricao}</SelectItem>
+                      <SelectItem value="all">{tProducts("selection.allCategories")}</SelectItem>
+                      {productTypes.map((productType) => (
+                        <SelectItem key={productType.id} value={String(productType.id)}>
+                          {getCatalogLabel(productType.id, productType.description, activeLocale)}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -294,10 +324,10 @@ export function ProductSelectionModal({
                       </div>
                     ))
                   ) : products.length === 0 ? (
-                    <p className="text-gray-500 dark:text-gray-400 text-center py-8">Nenhum produto encontrado.</p>
+                    <p className="text-gray-500 dark:text-gray-400 text-center py-8">{tProducts("selection.noProducts")}</p>
                   ) : (
                     <div
-                      key={`${productsPage}-${searchTerm}-${tipoFilter}`}
+                      key={`${productsPage}-${searchTerm}-${productTypeFilter}`}
                       className="space-y-2 animate-in fade-in-0 duration-200"
                     >
                       {products.map((product) => (
@@ -307,10 +337,10 @@ export function ProductSelectionModal({
                           onClick={() => handleAddItem(product)}
                         >
                           <div>
-                            <p className="font-medium">{product.nome}</p>
-                            <p className="text-sm text-gray-500">R$ {Number(product.preco || 0).toFixed(2)}</p>
+                            <p className="font-medium">{product.name}</p>
+                            <p className="text-sm text-gray-500">{formatCurrencyBRL(Number(product.price || 0), activeLocale)}</p>
                           </div>
-                          <Button size="sm" variant="ghost">
+                          <Button size="sm" variant="ghost" aria-label={tProducts("selection.addProduct")}>
                             <Plus className="h-4 w-4" />
                           </Button>
                         </div>
@@ -322,13 +352,18 @@ export function ProductSelectionModal({
                     o painel muda de altura ao trocar categoria e o modal "pula". */}
                 <div className="flex items-center justify-between pt-1 h-7">
                   <span className="text-xs text-muted-foreground">
-                    {productsTotalPages > 0 && `Página ${productsPage} de ${productsTotalPages}`}
+                    {productsTotalPages > 0 && tCommon("pageOf", {
+                      page: formatNumber(productsPage, activeLocale),
+                      total: formatNumber(productsTotalPages, activeLocale),
+                    })}
                   </span>
                   <div className="flex gap-1">
                     <Button
                       size="icon"
                       variant="outline"
                       className="h-7 w-7"
+                      aria-label={tCommon("previous")}
+                      title={tCommon("previous")}
                       onClick={() => fetchProductsPage(productsPage - 1)}
                       disabled={productsPage <= 1 || isProductsLoading}
                     >
@@ -338,6 +373,8 @@ export function ProductSelectionModal({
                       size="icon"
                       variant="outline"
                       className="h-7 w-7"
+                      aria-label={tCommon("next")}
+                      title={tCommon("next")}
                       onClick={() => fetchProductsPage(productsPage + 1)}
                       disabled={productsPage >= productsTotalPages || isProductsLoading}
                     >
@@ -350,17 +387,20 @@ export function ProductSelectionModal({
 
             {/* Selected Items */}
             <div className="space-y-4 border rounded-lg p-4 bg-gray-50 dark:bg-gray-900/50">
-              <h3 className="font-semibold">Itens Selecionados</h3>
+              <h3 className="font-semibold">{tProducts("selection.selected")}</h3>
               <div className="h-[300px] overflow-y-auto space-y-2">
                 {selectedItems.length === 0 ? (
-                    <p className="text-gray-500 dark:text-gray-400 text-center py-8">Nenhum item selecionado</p>
+                    <p className="text-gray-500 dark:text-gray-400 text-center py-8">{tProducts("selection.noItems")}</p>
                   ) : (
                     selectedItems.map((item) => (
-                      <div key={item.produtoId} className="flex items-center justify-between p-2 bg-white dark:bg-gray-800 rounded shadow-sm border dark:border-gray-700">
+                      <div key={item.productId} className="flex items-center justify-between p-2 bg-white dark:bg-gray-800 rounded shadow-sm border dark:border-gray-700">
                         <div className="flex-1">
-                          <p className="font-medium">{item.nome}</p>
+                          <p className="font-medium">{item.name}</p>
                           <p className="text-sm text-gray-500 dark:text-gray-400">
-                            {item.quantidade} x R$ {Number((item.precoHistorico != null ? item.precoHistorico : item.preco) || 0).toFixed(2)}
+                            {formatNumber(item.quantity, activeLocale)} x {formatCurrencyBRL(
+                              Number((item.unitPrice != null ? item.unitPrice : item.price) || 0),
+                              activeLocale,
+                            )}
                           </p>
                         </div>
                         <div className="flex items-center gap-2">
@@ -370,16 +410,20 @@ export function ProductSelectionModal({
                                 size="icon"
                                 variant="outline"
                                 className="h-6 w-6"
-                                onClick={() => handleUpdateQuantity(item.produtoId, -1)}
+                                aria-label={tProducts("selection.decreaseQuantity")}
+                                title={tProducts("selection.decreaseQuantity")}
+                                onClick={() => handleUpdateQuantity(item.productId, -1)}
                               >
                                 <Minus className="h-3 w-3" />
                               </Button>
-                              <span className="w-4 text-center">{item.quantidade}</span>
+                              <span className="w-4 text-center">{formatNumber(item.quantity, activeLocale)}</span>
                               <Button
                                 size="icon"
                                 variant="outline"
                                 className="h-6 w-6"
-                                onClick={() => handleUpdateQuantity(item.produtoId, 1)}
+                                aria-label={tProducts("selection.increaseQuantity")}
+                                title={tProducts("selection.increaseQuantity")}
+                                onClick={() => handleUpdateQuantity(item.productId, 1)}
                               >
                                 <Plus className="h-3 w-3" />
                               </Button>
@@ -387,13 +431,17 @@ export function ProductSelectionModal({
                                 size="icon"
                                 variant="ghost"
                                 className="h-6 w-6 text-red-500"
-                                onClick={() => handleRemoveItem(item.produtoId)}
+                                aria-label={tProducts("selection.removeItem")}
+                                title={tProducts("selection.removeItem")}
+                                onClick={() => handleRemoveItem(item.productId)}
                               >
                                 <Trash2 className="h-4 w-4" />
                               </Button>
                             </>
                           ) : (
-                            <span className="font-bold px-4">{item.quantidade} un</span>
+                            <span className="font-bold px-4">
+                              {formatCount(item.quantity, unitCountMessages, activeLocale)}
+                            </span>
                           )}
                         </div>
                       </div>
@@ -401,8 +449,8 @@ export function ProductSelectionModal({
                   )}
               </div>
               <div className="pt-4 border-t flex justify-between items-center font-bold text-lg text-gray-900 dark:text-gray-100">
-                <span>Total:</span>
-                <span>R$ {total.toFixed(2)}</span>
+                <span>{tCommon("total")}:</span>
+                <span>{formatCurrencyBRL(total, activeLocale)}</span>
               </div>
             </div>
           </div>
@@ -413,33 +461,33 @@ export function ProductSelectionModal({
               <div className="flex items-center gap-2">
                 <Select
                   value={status}
-                  onValueChange={async (val: string) => {
+                  onValueChange={async (val) => {
                     if (val === status) return
-                    if (!(await confirm('Tem certeza que deseja alterar o status do pedido?'))) return
+                    if (!(await confirm(tOrders("confirm.changeStatus")))) return
                     setIsClosingOrder(true)
                     try {
                       if (onChangeStatus) {
-                        await onChangeStatus(val)
-                      } else if (val === 'FECHADO' && onCloseOrder) {
+                        await onChangeStatus(val as OrderStatus)
+                      } else if (val === 'CLOSED' && onCloseOrder) {
                         await onCloseOrder()
                       }
-                      setStatus(val)
+                      setStatus(val as OrderStatus)
                     } catch (err) {
                       console.error('Error changing status', err)
-                      toast.error(getErrorMessage(err, 'Erro ao alterar status do pedido'))
+                      toast.error(localizedError("changeOrderStatus", err))
                     } finally {
                       setIsClosingOrder(false)
                     }
                   }}
                 >
-                  <SelectTrigger className="w-[200px]">
-                    <SelectValue placeholder="Status" />
+                  <SelectTrigger className="w-[200px]" aria-label={tProducts("selection.statusPlaceholder")}>
+                    <SelectValue placeholder={tProducts("selection.statusPlaceholder")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="ABERTO">Aberto</SelectItem>
-                    <SelectItem value="EM_PREPARO">Em Preparo</SelectItem>
-                    <SelectItem value="ENTREGANDO">Entregando</SelectItem>
-                    <SelectItem value="FECHADO">Fechado</SelectItem>
+                    <SelectItem value="OPEN">{getStatusLabel("OPEN", activeLocale)}</SelectItem>
+                    <SelectItem value="IN_PREPARATION">{getStatusLabel("IN_PREPARATION", activeLocale)}</SelectItem>
+                    <SelectItem value="DELIVERING">{getStatusLabel("DELIVERING", activeLocale)}</SelectItem>
+                    <SelectItem value="CLOSED">{getStatusLabel("CLOSED", activeLocale)}</SelectItem>
                   </SelectContent>
                 </Select>
                 {isClosingOrder && <Loader2 className="h-4 w-4 animate-spin" />}
@@ -453,14 +501,18 @@ export function ProductSelectionModal({
                   variant="ghost"
                   className="text-destructive hover:text-destructive"
                   onClick={async () => {
-                    if (!(await confirm({ description: 'Tem certeza que deseja cancelar esta venda?', confirmLabel: 'Cancelar venda', destructive: true }))) return
+                    if (!(await confirm({
+                      description: tSales("confirm.cancel"),
+                      confirmLabel: tSales("cancel"),
+                      destructive: true,
+                    }))) return
                     setIsCancellingSale(true)
                     try {
                       await onCancelSale()
                       onClose()
                     } catch (err) {
                       console.error('Error cancelling sale', err)
-                      toast.error(getErrorMessage(err, 'Erro ao cancelar venda'))
+                      toast.error(localizedError("cancelSale", err))
                     } finally {
                       setIsCancellingSale(false)
                     }
@@ -470,26 +522,26 @@ export function ProductSelectionModal({
                   {isCancellingSale ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Cancelando...
+                      {tSales("cancelling")}
                     </>
                   ) : (
-                    'Cancelar Venda'
+                    tSales("cancelButton")
                   )}
                 </Button>
               </div>
             )}
             <Button variant="outline" onClick={onClose} disabled={isLoading || isClosingOrder}>
-              {readOnly ? "Fechar" : "Cancelar"}
+              {readOnly ? tCommon("close") : tCommon("cancel")}
             </Button>
             {!readOnly && (
               <Button onClick={handleConfirm} disabled={isLoading || isClosingOrder}>
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Salvando...
+                    {tCommon("saving")}
                   </>
                 ) : (
-                  "Confirmar"
+                  tCommon("confirm")
                 )}
               </Button>
             )}

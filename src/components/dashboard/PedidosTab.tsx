@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react"
+import { useTranslation } from "react-i18next"
 import {
   Table,
   TableBody,
@@ -12,7 +13,7 @@ import { StatusSelect } from "@/components/ui/status-select"
 import { IconButton } from "@/components/ui/icon-button"
 import { FiltersBar } from "@/components/dashboard/FiltersBar"
 import { Printer, Pencil, Trash2, Loader2 } from "lucide-react"
-import api, { getErrorMessage } from "@/services/api"
+import api, { getErrorCode } from "@/services/api"
 import { parseListResponse } from "@/services/parseResponse"
 import { toast } from "sonner"
 import { ProductSelectionModal } from "@/components/ProductSelectionModal"
@@ -21,40 +22,19 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { useRealtimeEvents } from "@/hooks/useRealtimeEvents"
 import { useMinLoadingDuration } from "@/hooks/useMinLoadingDuration"
 import { useConfirm } from "@/contexts/ConfirmContext"
-import { getStatusColor, type PedidoStatus } from "@/lib/status"
-
-type OrderItem = {
-  produtoId: number
-  quantidade: number
-  produto?: { nome: string } | null
-}
-
-type Order = {
-  id: number
-  cliente: string
-  total: number
-  status: PedidoStatus
-  dataCriacao: string
-  updatedAt: string
-  vendedor?: { id: number; nome: string } | null
-  itens?: OrderItem[]
-}
+import { getStatusColor, getStatusLabel, type OrderStatus, type OrderStatusFilter } from "@/lib/status"
+import { formatCurrencyBRL, formatDateTime, formatNumber } from "@/i18n/format"
+import { normalizeLocale } from "@/i18n/locale"
+import { getErrorTranslationKey, type ErrorContext } from "@/i18n/error-keys"
+import type { Order, OrderItem } from "@/domain/models"
 
 type OrderFilters = {
-  statusFilter: string
-  cliente: string
-  criadoPor: string
+  statusFilter: OrderStatusFilter
+  customerName: string
+  createdBy: string
   totalMin: string
   totalMax: string
 }
-
-const STATUS_FILTER_OPTIONS = [
-  { value: "NAO_FECHADOS", label: "Não Fechados" },
-  { value: "ABERTO", label: "Aberto" },
-  { value: "EM_PREPARO", label: "Em Preparo" },
-  { value: "ENTREGANDO", label: "Entregando" },
-  { value: "FECHADO", label: "Fechado" },
-]
 
 function isOrdersEqual(a: Order[], b: Order[]) {
   if (a.length !== b.length) return false
@@ -63,28 +43,41 @@ function isOrdersEqual(a: Order[], b: Order[]) {
     const bi = b[i]
     if (ai.id !== bi.id) return false
     if (ai.status !== bi.status) return false
-    if ((ai.updatedAt || ai.dataCriacao) !== (bi.updatedAt || bi.dataCriacao)) return false
+    if ((ai.updatedAt || ai.openedAt) !== (bi.updatedAt || bi.openedAt)) return false
     if (ai.total !== bi.total) return false
   }
   return true
 }
 
-function formatItemsSummary(itens?: OrderItem[]): string {
-  if (!itens || itens.length === 0) return ""
-  return itens.map((i) => `${i.quantidade}x ${i.produto?.nome ?? "Produto"}`).join(", ")
+function formatItemsSummary(items?: OrderItem[], locale?: string, fallbackProduct?: string): string {
+  if (!items || items.length === 0) return ""
+  return items.map((item) => formatNumber(item.quantity, locale) + "x " + (item.product?.name ?? fallbackProduct)).join(", ")
 }
 
 function buildOrderParams(page: number, limit: number, f: OrderFilters) {
   const params: any = { page, limit }
   if (f.statusFilter) params.status = f.statusFilter
-  if (f.cliente) params.cliente = f.cliente
-  if (f.criadoPor) params.criadoPor = f.criadoPor
+  if (f.customerName) params.customerName = f.customerName
+  if (f.createdBy) params.createdBy = f.createdBy
   if (f.totalMin) params.totalMin = parseFloat(f.totalMin)
   if (f.totalMax) params.totalMax = parseFloat(f.totalMax)
   return params
 }
 
 export function PedidosTab() {
+  const { i18n } = useTranslation()
+  const { t: tAuth } = useTranslation("auth")
+  const { t: tCommon } = useTranslation("common")
+  const { t: tErrors } = useTranslation("errors")
+  const { t: tOrders } = useTranslation("orders")
+  const { t: tPrinter } = useTranslation("printer")
+  const activeLocale = normalizeLocale(i18n.language)
+  const localizedError = (context: ErrorContext, error: unknown) => {
+    const translation = getErrorTranslationKey(context, getErrorCode(error))
+    return translation.namespace === "auth"
+      ? tAuth(translation.key)
+      : tErrors(translation.key)
+  }
   const confirm = useConfirm()
   const [page, setPage] = useState<number>(1)
   const [limit, setLimit] = useState<number>(10)
@@ -95,36 +88,43 @@ export function PedidosTab() {
   const showSkeleton = useMinLoadingDuration(isLoading)
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false)
   const [currentOrder, setCurrentOrder] = useState<Order | null>(null)
-  const [currentOrderItems, setCurrentOrderItems] = useState<any[]>([])
-  const [deletingId, setDeletingId] = useState<number | null>(null)
-  const [updatingStatusId, setUpdatingStatusId] = useState<number | null>(null)
+  const [currentOrderItems, setCurrentOrderItems] = useState<{ productId: number | string; quantity: number; unitPrice?: number; name?: string }[]>([])
+  const [deletingId, setDeletingId] = useState<number | string | null>(null)
+  const [updatingStatusId, setUpdatingStatusId] = useState<number | string | null>(null)
   const ordersRef = useRef<Order[]>([])
 
-  const [statusFilter, setStatusFilter] = useState<string>("NAO_FECHADOS")
-  const [cliente, setCliente] = useState("")
-  const [criadoPor, setCriadoPor] = useState("")
+  const [statusFilter, setStatusFilter] = useState<OrderStatusFilter>("NOT_CLOSED")
+  const [customerName, setCustomerName] = useState("")
+  const [createdBy, setCreatedBy] = useState("")
   const [totalMin, setTotalMin] = useState("")
   const [totalMax, setTotalMax] = useState("")
+  const statusFilterOptions: { value: OrderStatusFilter; label: string }[] = [
+    "NOT_CLOSED",
+    "OPEN",
+    "IN_PREPARATION",
+    "DELIVERING",
+    "CLOSED",
+  ].map((value) => ({ value: value as OrderStatusFilter, label: getStatusLabel(value, activeLocale) }))
 
-  const filterRef = useRef<OrderFilters>({ statusFilter, cliente, criadoPor, totalMin, totalMax })
+  const filterRef = useRef<OrderFilters>({ statusFilter, customerName, createdBy, totalMin, totalMax })
   useEffect(() => {
-    filterRef.current = { statusFilter, cliente, criadoPor, totalMin, totalMax }
-  }, [statusFilter, cliente, criadoPor, totalMin, totalMax])
+    filterRef.current = { statusFilter, customerName, createdBy, totalMin, totalMax }
+  }, [statusFilter, customerName, createdBy, totalMin, totalMax])
 
   const loadOrdersRaw = useCallback(async () => {
-    const params = buildOrderParams(page, limit, { statusFilter, cliente, criadoPor, totalMin, totalMax })
+    const params = buildOrderParams(page, limit, { statusFilter, customerName, createdBy, totalMin, totalMax })
 
     const response = await api.get(`/pedidos`, { params })
 
-    let { data, total } = parseListResponse<Order>(response)
+    let { data, total } = parseListResponse<Order>(response, 'orders')
 
-    if (statusFilter === "NAO_FECHADOS") {
-      data = data.filter((o) => o.status !== "FECHADO")
+    if (statusFilter === "NOT_CLOSED") {
+      data = data.filter((o) => o.status !== "CLOSED")
       total = data.length
     }
 
     return { data, total }
-  }, [page, limit, statusFilter, cliente, criadoPor, totalMin, totalMax])
+  }, [page, limit, statusFilter, customerName, createdBy, totalMin, totalMax])
 
   const fetchOrders = useCallback(async () => {
     setIsLoading(true)
@@ -142,6 +142,7 @@ export function PedidosTab() {
       }
     } catch (error) {
       console.error("Error fetching orders", error)
+      toast.error(localizedError("loadOrders", error))
     } finally {
       setIsLoading(false)
     }
@@ -152,10 +153,10 @@ export function PedidosTab() {
       const f = filterRef.current
       const params = buildOrderParams(page, limit, f)
       const response = await api.get(`/pedidos`, { params })
-      let { data } = parseListResponse<Order>(response)
+      let { data } = parseListResponse<Order>(response, 'orders')
 
-      if (f.statusFilter === "NAO_FECHADOS") {
-        data = data.filter((o) => o.status !== "FECHADO")
+      if (f.statusFilter === "NOT_CLOSED") {
+        data = data.filter((o) => o.status !== "CLOSED")
       }
 
       const previous = ordersRef.current || []
@@ -168,7 +169,7 @@ export function PedidosTab() {
     }
   }, [page, limit])
 
-  useRealtimeEvents(['pedidos'], poll)
+  useRealtimeEvents(['orders'], poll)
 
   // Filtros (status/cliente/criado-por/total/data) so aplicam ao clicar em
   // "Filtrar" (handleApplyFilters) - so page/limit disparam refetch automatico,
@@ -237,80 +238,77 @@ export function PedidosTab() {
     try {
       const response = await api.get(`/pedidos`, { params: { id: order.id } })
 
-      let orderData = null
-      if (response.data.data && Array.isArray(response.data.data)) {
-        orderData = response.data.data[0]
-      } else if (Array.isArray(response.data)) {
-        orderData = response.data[0]
-      }
+      const { data } = parseListResponse<Order>(response, 'orders')
+      const orderData = data[0]
 
-      if (orderData && orderData.itens) {
-        const items = orderData.itens.map((item: any) => ({
-          produtoId: item.produtoId ?? (item.produto ? item.produto.id : undefined),
-          quantidade: Number(item.quantidade) || 0,
-          nome: item.produto?.nome,
-          precoHistorico: item.precoHistorico != null ? Number(item.precoHistorico) : (item.preco != null ? Number(item.preco) : (item.produto ? Number(item.produto.preco || 0) : undefined)),
-        })).filter((i: any) => i.produtoId != null && i.produtoId !== '')
-        setCurrentOrderItems(items)
+      if (orderData && orderData.items) {
+        const items = orderData.items.map((item: OrderItem) => ({
+          productId: item.productId ?? (item.product ? item.product.id : undefined),
+          quantity: Number(item.quantity) || 0,
+          name: item.product?.name,
+          unitPrice: item.unitPriceAtOrder != null ? Number(item.unitPriceAtOrder) : (item.product ? Number(item.product.price || 0) : undefined),
+        })).filter((item) => item.productId != null && item.productId !== '')
+        setCurrentOrderItems(items as { productId: number | string; quantity: number; unitPrice?: number; name?: string }[])
       } else {
         setCurrentOrderItems([])
       }
     } catch (error) {
       console.error("Error fetching order details", error)
+      toast.error(localizedError("loadOrders", error))
       setCurrentOrderItems([])
     }
     setIsModalOpen(true)
   }
 
-  const handleModalConfirm = async (cliente: string, itens: { produtoId: number; quantidade: number; precoHistorico?: number }[]) => {
+  const handleModalConfirm = async (customerName: string, items: { productId: number | string; quantity: number; unitPrice?: number }[]) => {
     try {
       if (currentOrder) {
-        await api.put(`/pedidos/${currentOrder.id}`, { cliente, itens })
+        await api.put(`/pedidos/${currentOrder.id}`, { customerName, items })
       } else {
-        await api.post("/pedidos", { cliente, itens })
+        await api.post("/pedidos", { customerName, items })
       }
 
       fetchOrders()
       setIsModalOpen(false)
     } catch (error) {
       console.error("Error saving order", error)
-      toast.error(getErrorMessage(error, "Erro ao salvar pedido"))
+      toast.error(localizedError("saveOrder", error))
     }
   }
 
-  const handleDeleteOrder = async (id: number) => {
-    if (!(await confirm({ description: "Tem certeza que deseja excluir este pedido?", confirmLabel: "Excluir", destructive: true }))) return
+  const handleDeleteOrder = async (id: number | string) => {
+    if (!(await confirm({ description: tOrders("confirm.delete"), confirmLabel: tCommon("delete"), destructive: true }))) return
     setDeletingId(id)
     try {
       await api.delete(`/pedidos/${id}`)
       fetchOrders()
     } catch (error) {
       console.error("Error deleting order", error)
-      toast.error(getErrorMessage(error, "Erro ao excluir pedido"))
+      toast.error(localizedError("deleteOrder", error))
     } finally {
       setDeletingId(null)
     }
   }
 
-  const handleCloseOrder = async (id: number) => {
-    if (!(await confirm("Tem certeza que deseja fechar este pedido? Ele será transformado em venda."))) return
+  const handleCloseOrder = async (id: number | string) => {
+    if (!(await confirm(tOrders("confirm.close")))) return
     try {
-      await api.post(`/pedidos/${id}/status`, { status: 'FECHADO' })
+      await api.post(`/pedidos/${id}/status`, { status: 'CLOSED' })
       fetchOrders()
     } catch (error) {
       console.error("Error closing order", error)
-      toast.error(getErrorMessage(error, "Erro ao fechar pedido"))
+      toast.error(localizedError("closeOrder", error))
     }
   }
 
-  const handleChangeStatus = async (id: number, newStatus: string) => {
+  const handleChangeStatus = async (id: number | string, newStatus: OrderStatus) => {
     setUpdatingStatusId(id)
     try {
       await api.post(`/pedidos/${id}/status`, { status: newStatus })
       fetchOrders()
     } catch (error) {
       console.error('Error updating order status', error)
-      toast.error(getErrorMessage(error, 'Erro ao atualizar status do pedido'))
+      toast.error(localizedError("changeOrderStatus", error))
     } finally {
       setUpdatingStatusId(null)
     }
@@ -319,11 +317,11 @@ export function PedidosTab() {
   return (
     <div className="space-y-4">
       <FiltersBar
-        status={{ value: statusFilter, onChange: setStatusFilter, options: STATUS_FILTER_OPTIONS }}
-        cliente={{ value: cliente, onChange: setCliente }}
-        criadoPor={{ value: criadoPor, onChange: setCriadoPor }}
+        status={{ value: statusFilter, onChange: (value) => setStatusFilter(value as OrderStatusFilter), options: statusFilterOptions }}
+        customerName={{ value: customerName, onChange: setCustomerName }}
+        createdBy={{ value: createdBy, onChange: setCreatedBy }}
         totalRange={{ min: totalMin, max: totalMax, onMinChange: setTotalMin, onMaxChange: setTotalMax }}
-        primaryAction={{ label: "Novo Pedido", onClick: handleOpenCreateModal }}
+        primaryAction={{ label: tOrders("new"), onClick: handleOpenCreateModal }}
         onFilter={handleApplyFilters}
         isLoading={isLoading}
       />
@@ -332,30 +330,31 @@ export function PedidosTab() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onConfirm={handleModalConfirm}
-        title={currentOrder ? "Editar Pedido (Adicionar Itens)" : "Novo Pedido"}
-        initialClientName={currentOrder?.cliente || ""}
-        initialOrderItems={currentOrderItems as any}
+        title={currentOrder ? tOrders("edit") : tOrders("new")}
+        initialClientName={currentOrder?.customerName || ""}
+        initialItems={currentOrderItems}
         isEditing={!!currentOrder}
         onCloseOrder={currentOrder ? () => handleCloseOrder(currentOrder.id) : undefined}
         initialStatus={currentOrder?.status}
-        onChangeStatus={currentOrder ? (val: string) => handleChangeStatus(currentOrder.id, val) : undefined}
+        onChangeStatus={currentOrder ? (val) => handleChangeStatus(currentOrder.id, val) : undefined}
       />
 
       <Card>
         <CardHeader>
-          <CardTitle>Pedidos Recentes</CardTitle>
+          <CardTitle>{tOrders("recent")}</CardTitle>
         </CardHeader>
         <CardContent>
+          <span className="sr-only" role="status">{showSkeleton ? tCommon("loading") : ""}</span>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[50px] text-center">#</TableHead>
-                <TableHead>Cliente / Mesa</TableHead>
-                <TableHead>Criado por</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Data</TableHead>
-                <TableHead className="text-right">Total</TableHead>
-                <TableHead className="text-right">Ações</TableHead>
+                <TableHead className="w-[50px] text-center">{tCommon("index")}</TableHead>
+                <TableHead>{tCommon("customer")}</TableHead>
+                <TableHead>{tCommon("createdBy")}</TableHead>
+                <TableHead>{tCommon("status")}</TableHead>
+                <TableHead>{tCommon("date")}</TableHead>
+                <TableHead className="text-right">{tCommon("total")}</TableHead>
+                <TableHead className="text-right">{tCommon("actions.label")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -378,49 +377,49 @@ export function PedidosTab() {
               ) : orders.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
-                    Nenhum pedido encontrado.
+                    {tOrders("empty")}
                   </TableCell>
                 </TableRow>
               ) : (
                 orders.map((order, index) => (
                   <TableRow key={order.id} accentColor={getStatusColor(order.status)} className="animate-in fade-in-0 duration-300">
-                    <TableCell className="text-center">{(page - 1) * limit + index + 1}</TableCell>
+                    <TableCell className="text-center">{formatNumber((page - 1) * limit + index + 1, activeLocale)}</TableCell>
                     <TableCell>
-                      <div className="font-medium">{order.cliente || "Não Informado"}</div>
-                      {formatItemsSummary(order.itens) && (
+                      <div className="font-medium">{order.customerName || tCommon("notInformed")}</div>
+                      {formatItemsSummary(order.items, activeLocale, tOrders("fallback.product")) && (
                         <div
                           className="text-sm text-muted-foreground truncate max-w-[280px]"
-                          title={formatItemsSummary(order.itens)}
+                          title={formatItemsSummary(order.items, activeLocale, tOrders("fallback.product"))}
                         >
-                          {formatItemsSummary(order.itens)}
+                          {formatItemsSummary(order.items, activeLocale, tOrders("fallback.product"))}
                         </div>
                       )}
                     </TableCell>
-                    <TableCell className="text-muted-foreground">{order.vendedor?.nome || "-"}</TableCell>
+                    <TableCell className="text-muted-foreground">{order.seller?.name || tCommon("notInformed")}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <StatusSelect
                           value={order.status}
-                          disabled={order.status === 'FECHADO' || updatingStatusId === order.id}
+                          disabled={order.status === 'CLOSED' || updatingStatusId === order.id}
                           onValueChange={async (val) => {
-                            if (!(await confirm('Tem certeza que deseja alterar o status do pedido?'))) return
+                            if (!(await confirm(tOrders("confirm.changeStatus")))) return
                             handleChangeStatus(order.id, val)
                           }}
                         />
                         {updatingStatusId === order.id && <Loader2 className="h-4 w-4 animate-spin" />}
                       </div>
                     </TableCell>
-                    <TableCell>{new Date(order.updatedAt || order.dataCriacao).toLocaleString()}</TableCell>
+                    <TableCell>{formatDateTime(order.updatedAt || order.openedAt || '', activeLocale)}</TableCell>
                     <TableCell className="text-right">
-                      {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(order.total)}
+                      {formatCurrencyBRL(order.total, activeLocale)}
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
-                        <IconButton icon={<Printer className="h-4 w-4" />} label="Impressão (em breve)" disabled />
-                        <IconButton icon={<Pencil className="h-4 w-4" />} label="Editar pedido" onClick={() => handleEditClick(order)} />
+                        <IconButton icon={<Printer className="h-4 w-4" />} label={tPrinter("printSoon")} disabled />
+                        <IconButton icon={<Pencil className="h-4 w-4" />} label={tOrders("editLabel")} onClick={() => handleEditClick(order)} />
                         <IconButton
                           icon={deletingId === order.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
-                          label="Excluir pedido"
+                          label={tOrders("deleteLabel")}
                           className="text-destructive hover:text-destructive"
                           onClick={() => handleDeleteOrder(order.id)}
                           disabled={deletingId === order.id}

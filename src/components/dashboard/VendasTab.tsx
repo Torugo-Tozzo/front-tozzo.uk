@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react"
+import { useTranslation } from "react-i18next"
 import {
   Table,
   TableBody,
@@ -11,7 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { IconButton } from "@/components/ui/icon-button"
 import { FiltersBar } from "@/components/dashboard/FiltersBar"
 import { Printer, Eye, Loader2 } from "lucide-react"
-import api, { getErrorMessage } from "@/services/api"
+import api, { getErrorCode } from "@/services/api"
 import { parseListResponse } from "@/services/parseResponse"
 import { toast } from "sonner"
 import { useRealtimeEvents } from "@/hooks/useRealtimeEvents"
@@ -20,25 +21,14 @@ import { ProductSelectionModal } from "@/components/ProductSelectionModal"
 import { Pagination } from "@/components/Pagination"
 import { Skeleton } from "@/components/ui/skeleton"
 import { getStatusColor } from "@/lib/status"
-
-type SaleItem = {
-  produtoId: number
-  quantidade: number
-  produto?: { nome: string } | null
-}
-
-type Sale = {
-  id: number
-  cliente: string
-  total: number
-  horario: string
-  vendedor?: { id: number; nome: string } | null
-  itens?: SaleItem[]
-}
+import { formatCurrencyBRL, formatDateTime, formatNumber } from "@/i18n/format"
+import { normalizeLocale } from "@/i18n/locale"
+import { getErrorTranslationKey, type ErrorContext } from "@/i18n/error-keys"
+import type { Sale, SaleItem } from "@/domain/models"
 
 type SaleFilters = {
-  cliente: string
-  criadoPor: string
+  customerName: string
+  createdBy: string
   totalMin: string
   totalMax: string
   startDate: string
@@ -54,28 +44,41 @@ function isSalesEqual(a: Sale[], b: Sale[]) {
     const bi = b[i]
     if (ai.id !== bi.id) return false
     if (ai.total !== bi.total) return false
-    if ((ai.horario || '') !== (bi.horario || '')) return false
+    if ((ai.soldAt || '') !== (bi.soldAt || '')) return false
   }
   return true
 }
 
-function formatItemsSummary(itens?: SaleItem[]): string {
-  if (!itens || itens.length === 0) return ""
-  return itens.map((i) => `${i.quantidade}x ${i.produto?.nome ?? "Produto"}`).join(", ")
+function formatItemsSummary(items?: SaleItem[], locale?: string, fallbackProduct?: string): string {
+  if (!items || items.length === 0) return ""
+  return items.map((item) => formatNumber(item.quantity, locale) + "x " + (item.product?.name ?? fallbackProduct)).join(", ")
 }
 
 function buildSaleParams(page: number, limit: number, f: SaleFilters) {
   const params: any = { page, limit }
-  if (f.cliente) params.cliente = f.cliente
-  if (f.criadoPor) params.criadoPor = f.criadoPor
+  if (f.customerName) params.customerName = f.customerName
+  if (f.createdBy) params.createdBy = f.createdBy
   if (f.totalMin) params.totalMin = parseFloat(f.totalMin)
   if (f.totalMax) params.totalMax = parseFloat(f.totalMax)
-  if (f.startDate && f.startTime) params.dataInicial = new Date(`${f.startDate}T${f.startTime}:00`).toISOString()
-  if (f.endDate && f.endTime) params.dataFinal = new Date(`${f.endDate}T${f.endTime}:59`).toISOString()
+  if (f.startDate && f.startTime) params.startAt = new Date(`${f.startDate}T${f.startTime}:00`).toISOString()
+  if (f.endDate && f.endTime) params.endAt = new Date(`${f.endDate}T${f.endTime}:59`).toISOString()
   return params
 }
 
 export function VendasTab() {
+  const { i18n } = useTranslation()
+  const { t: tAuth } = useTranslation("auth")
+  const { t: tCommon } = useTranslation("common")
+  const { t: tErrors } = useTranslation("errors")
+  const { t: tPrinter } = useTranslation("printer")
+  const { t: tSales } = useTranslation("sales")
+  const activeLocale = normalizeLocale(i18n.language)
+  const localizedError = (context: ErrorContext, error: unknown) => {
+    const translation = getErrorTranslationKey(context, getErrorCode(error))
+    return translation.namespace === "auth"
+      ? tAuth(translation.key)
+      : tErrors(translation.key)
+  }
   const [sales, setSales] = useState<Sale[]>([])
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [page, setPage] = useState(1)
@@ -84,17 +87,17 @@ export function VendasTab() {
   const [totalItems, setTotalItems] = useState(0)
   const [hasMore, setHasMore] = useState(false)
 
-  const [currentSaleItems, setCurrentSaleItems] = useState<{ produtoId: number | string; quantidade: number; precoHistorico?: number; nome?: string }[]>([])
+  const [currentSaleItems, setCurrentSaleItems] = useState<{ productId: number | string; quantity: number; unitPrice?: number; name?: string }[]>([])
   const [currentSaleClient, setCurrentSaleClient] = useState("")
   const [isReadOnlyModal, setIsReadOnlyModal] = useState(false)
-  const [currentSaleId, setCurrentSaleId] = useState<number | null>(null)
+  const [currentSaleId, setCurrentSaleId] = useState<number | string | null>(null)
 
   const [isLoading, setIsLoading] = useState(false)
   const showSkeleton = useMinLoadingDuration(isLoading)
-  const [loadingSaleId, setLoadingSaleId] = useState<number | null>(null)
+  const [loadingSaleId, setLoadingSaleId] = useState<number | string | null>(null)
 
-  const [cliente, setCliente] = useState("")
-  const [criadoPor, setCriadoPor] = useState("")
+  const [customerName, setCustomerName] = useState("")
+  const [createdBy, setCreatedBy] = useState("")
   const [totalMin, setTotalMin] = useState("")
   const [totalMax, setTotalMax] = useState("")
 
@@ -120,27 +123,27 @@ export function VendasTab() {
   const [endTime, setEndTime] = useState(formatTime(now))
   const [periodTotal, setPeriodTotal] = useState(0)
   const salesRef = useRef<Sale[]>([])
-  const filterRef = useRef<SaleFilters>({ cliente, criadoPor, totalMin, totalMax, startDate, startTime, endDate, endTime })
+  const filterRef = useRef<SaleFilters>({ customerName, createdBy, totalMin, totalMax, startDate, startTime, endDate, endTime })
 
   useEffect(() => {
-    filterRef.current = { cliente, criadoPor, totalMin, totalMax, startDate, startTime, endDate, endTime }
-  }, [cliente, criadoPor, totalMin, totalMax, startDate, startTime, endDate, endTime])
+    filterRef.current = { customerName, createdBy, totalMin, totalMax, startDate, startTime, endDate, endTime }
+  }, [customerName, createdBy, totalMin, totalMax, startDate, startTime, endDate, endTime])
 
   const fetchSales = useCallback(async () => {
     setIsLoading(true)
     try {
       const params = buildSaleParams(page, limit, {
-        cliente, criadoPor, totalMin, totalMax, startDate, startTime, endDate, endTime,
+        customerName, createdBy, totalMin, totalMax, startDate, startTime, endDate, endTime,
       })
 
       const response = await api.get(`/vendas`, { params })
-      const { data, total } = parseListResponse<Sale>(response, 'vendas')
-      const fechamento = Number(response.data.fechamento) || 0
+      const { data, total } = parseListResponse<Sale>(response, 'sales')
+      const closing = Number(response.data.closing) || 0
 
       setSales(data)
       salesRef.current = data
       setTotalItems(total)
-      setPeriodTotal(fechamento)
+      setPeriodTotal(closing)
 
       if (total > 0) {
         setTotalPages(Math.ceil(total / limit))
@@ -151,10 +154,11 @@ export function VendasTab() {
       }
     } catch (error) {
       console.error("Error fetching sales", error)
+      toast.error(localizedError("loadSales", error))
     } finally {
       setIsLoading(false)
     }
-  }, [page, limit, cliente, criadoPor, totalMin, totalMax, startDate, startTime, endDate, endTime])
+  }, [page, limit, customerName, createdBy, totalMin, totalMax, startDate, startTime, endDate, endTime])
 
   useEffect(() => {
     fetchSales()
@@ -167,15 +171,15 @@ export function VendasTab() {
       const params = buildSaleParams(page, limit, f)
 
       const response = await api.get(`/vendas`, { params })
-      const { data, total } = parseListResponse<Sale>(response, 'vendas')
-      const fechamento = Number(response.data.fechamento) || 0
+      const { data, total } = parseListResponse<Sale>(response, 'sales')
+      const closing = Number(response.data.closing) || 0
 
       const previous = salesRef.current || []
       if (!isSalesEqual(previous, data)) {
         setSales(data)
         salesRef.current = data
         setTotalItems(total)
-        setPeriodTotal(fechamento)
+      setPeriodTotal(closing)
 
         if (total > 0) {
           setTotalPages(Math.ceil(total / limit))
@@ -190,7 +194,7 @@ export function VendasTab() {
     }
   }, [page, limit])
 
-  useRealtimeEvents(['vendas'], poll)
+  useRealtimeEvents(['sales'], poll)
 
   useEffect(() => {
     let interval: number | null = null
@@ -232,15 +236,15 @@ export function VendasTab() {
     }
   }, [poll])
 
-  const handleModalConfirm = async (cliente: string, itens: { produtoId: number; quantidade: number; precoHistorico?: number }[]) => {
+  const handleModalConfirm = async (customerName: string, items: { productId: number | string; quantity: number; unitPrice?: number }[]) => {
     setIsLoading(true)
     try {
-      await api.post("/vendas", { cliente, itens })
+      await api.post("/vendas", { customerName, items })
       await fetchSales()
       setIsModalOpen(false)
     } catch (error) {
       console.error("Error creating sale", error)
-      toast.error(getErrorMessage(error, "Erro ao criar venda"))
+      toast.error(localizedError("createSale", error))
     } finally {
       setIsLoading(false)
     }
@@ -249,25 +253,25 @@ export function VendasTab() {
   const handleInfoClick = async (sale: Sale) => {
     setLoadingSaleId(sale.id)
     try {
-      if (sale.itens && Array.isArray(sale.itens)) {
-        const items = sale.itens.map((item: any) => ({
-          produtoId: item.produtoId ?? (item.produto ? item.produto.id : undefined),
-          quantidade: Number(item.quantidade) || 0,
-          nome: item.produto?.nome,
-          precoHistorico: item.precoHistorico != null ? Number(item.precoHistorico) : (item.preco != null ? Number(item.preco) : (item.produto ? Number(item.produto.preco || 0) : undefined)),
-        })).filter((i: any) => i.produtoId != null && i.produtoId !== '')
-        setCurrentSaleItems(items)
+      if (sale.items && Array.isArray(sale.items)) {
+        const items = sale.items.map((item: SaleItem) => ({
+          productId: item.productId ?? (item.product ? item.product.id : undefined),
+          quantity: Number(item.quantity) || 0,
+          name: item.product?.name,
+          unitPrice: item.unitPriceAtSale != null ? Number(item.unitPriceAtSale) : (item.product ? Number(item.product.price || 0) : undefined),
+        })).filter((item) => item.productId != null && item.productId !== '')
+        setCurrentSaleItems(items as { productId: number | string; quantity: number; unitPrice?: number; name?: string }[])
       } else {
         setCurrentSaleItems([])
       }
 
-      setCurrentSaleClient(sale.cliente)
+      setCurrentSaleClient(sale.customerName ?? '')
       setCurrentSaleId(sale.id)
       setIsReadOnlyModal(true)
       setIsModalOpen(true)
     } catch (error) {
       console.error("Error fetching sale details", error)
-      toast.error(getErrorMessage(error, "Erro ao carregar detalhes da venda"))
+      toast.error(localizedError("saleDetails", error))
     } finally {
       setLoadingSaleId(null)
     }
@@ -281,7 +285,7 @@ export function VendasTab() {
     setIsModalOpen(true)
   }
 
-  const handleCancelSale = async (id: number) => {
+  const handleCancelSale = async (id: number | string) => {
     try {
       await api.delete(`/vendas/${id}`)
       await fetchSales()
@@ -289,7 +293,7 @@ export function VendasTab() {
       setCurrentSaleId(null)
     } catch (error) {
       console.error('Error cancelling sale', error)
-      toast.error(getErrorMessage(error, 'Erro ao cancelar venda'))
+      toast.error(localizedError("cancelSale", error))
     }
   }
 
@@ -308,10 +312,10 @@ export function VendasTab() {
           onEndDateChange: setEndDate,
           onEndTimeChange: setEndTime,
         }}
-        cliente={{ value: cliente, onChange: setCliente }}
-        criadoPor={{ value: criadoPor, onChange: setCriadoPor }}
+        customerName={{ value: customerName, onChange: setCustomerName }}
+        createdBy={{ value: createdBy, onChange: setCreatedBy }}
         totalRange={{ min: totalMin, max: totalMax, onMinChange: setTotalMin, onMaxChange: setTotalMax }}
-        primaryAction={{ label: "Nova Venda", onClick: handleNewSaleClick }}
+        primaryAction={{ label: tSales("new"), onClick: handleNewSaleClick }}
         onFilter={handleApplyFilters}
         isLoading={isLoading}
       />
@@ -320,9 +324,9 @@ export function VendasTab() {
         isOpen={isModalOpen}
         onClose={() => { setIsModalOpen(false); setCurrentSaleId(null); setIsReadOnlyModal(false) }}
         onConfirm={handleModalConfirm}
-        title={isReadOnlyModal ? "Detalhes da Venda" : "Nova Venda"}
+        title={isReadOnlyModal ? tSales("details") : tSales("new")}
         initialClientName={currentSaleClient}
-        initialOrderItems={currentSaleItems as any}
+        initialItems={currentSaleItems}
         readOnly={isReadOnlyModal}
         onCancelSale={isReadOnlyModal && currentSaleId ? async () => handleCancelSale(currentSaleId) : undefined}
       />
@@ -330,26 +334,29 @@ export function VendasTab() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <div>
-            <CardTitle>Vendas no Período</CardTitle>
-            <div className="text-sm text-muted-foreground mt-1">Total de registros: {totalItems}</div>
+            <CardTitle>{tSales("period")}</CardTitle>
+            <div className="text-sm text-muted-foreground mt-1">
+              {tSales("table.totalRecords", { count: formatNumber(totalItems, activeLocale) })}
+            </div>
           </div>
           <div className="flex flex-col items-end">
-            <span className="text-sm text-muted-foreground">Fechamento do Período</span>
+            <span className="text-sm text-muted-foreground">{tSales("closingPeriod")}</span>
             <span className="text-2xl font-bold text-green-600">
-              {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(periodTotal)}
+              {formatCurrencyBRL(periodTotal, activeLocale)}
             </span>
           </div>
         </CardHeader>
         <CardContent>
+          <span className="sr-only" role="status">{showSkeleton ? tCommon("loading") : ""}</span>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[50px] text-center">#</TableHead>
-                <TableHead>Cliente / Mesa</TableHead>
-                <TableHead>Criado por</TableHead>
-                <TableHead>Data</TableHead>
-                <TableHead className="text-right">Total</TableHead>
-                <TableHead className="text-right">Ações</TableHead>
+                <TableHead className="w-[50px] text-center">{tCommon("index")}</TableHead>
+                <TableHead>{tCommon("customer")}</TableHead>
+                <TableHead>{tCommon("createdBy")}</TableHead>
+                <TableHead>{tCommon("date")}</TableHead>
+                <TableHead className="text-right">{tCommon("total")}</TableHead>
+                <TableHead className="text-right">{tCommon("actions.label")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -370,35 +377,35 @@ export function VendasTab() {
               ) : sales.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
-                    Nenhuma venda encontrada no período.
+                    {tSales("empty")}
                   </TableCell>
                 </TableRow>
               ) : (
                 sales.map((sale, index) => (
-                  <TableRow key={sale.id} accentColor={getStatusColor('FECHADO')} className="animate-in fade-in-0 duration-300">
-                    <TableCell className="text-center">{(page - 1) * limit + index + 1}</TableCell>
+                  <TableRow key={sale.id} accentColor={getStatusColor('CLOSED')} className="animate-in fade-in-0 duration-300">
+                    <TableCell className="text-center">{formatNumber((page - 1) * limit + index + 1, activeLocale)}</TableCell>
                     <TableCell>
-                      <div className="font-medium">{sale.cliente || "Não Informado"}</div>
-                      {formatItemsSummary(sale.itens) && (
+                      <div className="font-medium">{sale.customerName || tCommon("notInformed")}</div>
+                      {formatItemsSummary(sale.items, activeLocale, tSales("fallback.product")) && (
                         <div
                           className="text-sm text-muted-foreground truncate max-w-[280px]"
-                          title={formatItemsSummary(sale.itens)}
+                          title={formatItemsSummary(sale.items, activeLocale, tSales("fallback.product"))}
                         >
-                          {formatItemsSummary(sale.itens)}
+                          {formatItemsSummary(sale.items, activeLocale, tSales("fallback.product"))}
                         </div>
                       )}
                     </TableCell>
-                    <TableCell className="text-muted-foreground">{sale.vendedor?.nome || "-"}</TableCell>
-                    <TableCell>{sale.horario ? new Date(sale.horario).toLocaleString() : "-"}</TableCell>
+                    <TableCell className="text-muted-foreground">{sale.seller?.name || tCommon("notInformed")}</TableCell>
+                    <TableCell>{sale.soldAt ? formatDateTime(sale.soldAt, activeLocale) : tCommon("notInformed")}</TableCell>
                     <TableCell className="text-right">
-                      {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(sale.total)}
+                      {formatCurrencyBRL(sale.total, activeLocale)}
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
-                        <IconButton icon={<Printer className="h-4 w-4" />} label="Impressão (em breve)" disabled />
+                        <IconButton icon={<Printer className="h-4 w-4" />} label={tPrinter("printSoon")} disabled />
                         <IconButton
                           icon={loadingSaleId === sale.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Eye className="h-4 w-4" />}
-                          label="Ver detalhes"
+                          label={tSales("viewDetails")}
                           onClick={() => handleInfoClick(sale)}
                           disabled={loadingSaleId === sale.id}
                         />

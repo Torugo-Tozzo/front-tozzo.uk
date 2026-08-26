@@ -1,0 +1,630 @@
+{
+  "common": {
+    "appName": "Tozzo.uk",
+    "loading": "Cargando...",
+    "processing": "Procesando...",
+    "saving": "Guardando...",
+    "search": "Buscar",
+    "filter": "Filtrar",
+    "filters": "Filtros",
+    "clear": "Limpiar",
+    "apply": "Aplicar",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "close": "Cerrar",
+    "confirm": "Confirmar",
+    "yes": "Sí",
+    "no": "No",
+    "back": "Volver",
+    "next": "Siguiente",
+    "previous": "Anterior",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "add": "Añadir",
+    "create": "Crear",
+    "update": "Actualizar",
+    "activate": "Activar",
+    "deactivate": "Desactivar",
+    "select": "Seleccionar",
+    "all": "Todos",
+    "none": "Ninguno",
+    "notInformed": "No informado",
+    "noResults": "No se encontraron resultados.",
+    "pageOf": "Página {{page}} de {{total}}",
+    "more": "+{{count}} más...",
+    "units": "unidades",
+    "recordCount": {
+      "zero": "{{count}} registros",
+      "one": "{{count}} registro",
+      "two": "{{count}} registros",
+      "few": "{{count}} registros",
+      "many": "{{count}} registros",
+      "other": "{{count}} registros"
+    },
+    "unitCount": {
+      "zero": "{{count}} unidades",
+      "one": "{{count}} unidad",
+      "two": "{{count}} unidades",
+      "few": "{{count}} unidades",
+      "many": "{{count}} unidades",
+      "other": "{{count}} unidades"
+    },
+    "total": "Total",
+    "date": "Fecha",
+    "time": "Hora",
+    "email": "Correo electrónico",
+    "name": "Nombre",
+    "description": "Descripción",
+    "price": "Precio",
+    "status": "Estado",
+    "customer": "Cliente / Mesa",
+    "createdBy": "Creado por",
+    "optional": "opcional",
+    "allCategories": "Todas las categorías",
+    "copyright": "Todos los derechos reservados.",
+    "footerCopyright": "© {{year}} Tozzo.uk. Todos los derechos reservados.",
+    "accessibility": {
+      "linkedin": "LinkedIn",
+      "github": "GitHub",
+      "email": "Correo electrónico",
+      "openMenu": "Abrir menú",
+      "logout": "Cerrar sesión",
+      "collapseFilters": "Contraer filtros",
+      "expandFilters": "Expandir filtros",
+      "toggleTheme": "Cambiar tema",
+      "close": "Cerrar"
+    },
+    "logoutConfirmation": {
+      "title": "¿Cerrar sesión?",
+      "description": "¿Seguro que quieres cerrar sesión?",
+      "confirm": "Cerrar sesión"
+    },
+    "pagination": {
+      "rowsPerPage": "Filas por página",
+      "page": "Página {{page}}",
+      "pageOf": "Página {{page}} de {{total}}"
+    },
+    "placeholders": {
+      "customer": "Buscar cliente/mesa...",
+      "employee": "Buscar empleado...",
+      "amount": "0,00"
+    },
+    "minimumTotal": "Total mínimo",
+    "maximumTotal": "Total máximo",
+    "confirmQuestion": "¿Estás seguro?",
+    "landing": {
+      "heroImageAlt": "Interior de restaurante",
+      "heroTitle": "Gestión inteligente para",
+      "heroHighlight": "Restaurantes y bares",
+      "heroDescription": "Simplifica tus pedidos, controla tu inventario y aumenta tus ventas con nuestra plataforma completa de gestión.",
+      "startUsing": "Comenzar a usar",
+      "viewPlans": "Ver planes",
+      "features": {
+        "kitchen": {
+          "title": "Gestión de cocina",
+          "description": "Envía los pedidos directamente a la cocina sin errores ni retrasos. Optimiza el flujo de trabajo de tu equipo y asegúrate de que cada pedido salga perfecto y a tiempo.",
+          "imageAlt": "Gestión de cocina"
+        },
+        "bar": {
+          "title": "Control del bar",
+          "description": "Gestiona bebidas y cócteles con precisión y evita el desperdicio. Ten el control total del inventario de tu bar y aumenta tu rentabilidad.",
+          "imageAlt": "Control del bar"
+        },
+        "menu": {
+          "title": "Menú digital",
+          "description": "Actualiza tu menú en tiempo real y facilita la elección de tus clientes. Añade fotos y descripciones detalladas, y cambia los precios al instante.",
+          "imageAlt": "Menú digital"
+        },
+        "orders": {
+          "title": "Pedidos conectados",
+          "description": "El pedido registrado por el camarero aparece al instante en el sistema y en la cocina. Disfruta de mayor agilidad y una comunicación integrada en tu restaurante.",
+          "imageAlt": "Pedidos conectados"
+        },
+        "dashboard": {
+          "title": "Paneles intuitivos",
+          "description": "Visualiza tus ventas y cifras mediante gráficos detallados. Toma decisiones basadas en datos reales y sigue el crecimiento de tu negocio.",
+          "imageAlt": "Panel de gestión de restaurante"
+        },
+        "history": {
+          "title": "Historial completo",
+          "description": "Consulta el historial de todas tus ventas para tener un mayor control. Accede a datos anteriores y comprende el comportamiento de tus clientes a lo largo del tiempo.",
+          "imageAlt": "Historial de ventas"
+        },
+        "innovation": {
+          "title": "Gestión innovadora",
+          "description": "Innova en la gestión de tu negocio con tecnología e inteligencia. Adelántate a la competencia con herramientas modernas y eficientes.",
+          "imageAlt": "Gestión innovadora de restaurante"
+        },
+        "apps": {
+          "title": "Apps integradas",
+          "description": "Usa versiones específicas para que camareros y clientes realicen pedidos. Facilita la vida de tus clientes y de tu equipo con aplicaciones dedicadas.",
+          "imageAlt": "Apps integradas para restaurantes"
+        }
+      }
+    },
+    "plans": {
+      "title": "Planes flexibles",
+      "description": "Elige el plan ideal para que tu negocio crezca.",
+      "monthly": "Mensual",
+      "monthlyDescription": "Flexibilidad total para tu negocio",
+      "monthlyUnit": "/mes",
+      "features": {
+        "fullAccess": "Acceso completo al sistema",
+        "prioritySupport": "Soporte prioritario",
+        "cancelAnytime": "Cancela cuando quieras",
+        "sameAsMonthly": "Todo lo incluido en el plan mensual",
+        "discount": "Descuento de aproximadamente un 27%",
+        "annualBilling": "Facturación anual"
+      },
+      "subscribeMonthly": "Suscribirse al plan mensual",
+      "popular": "Más popular",
+      "annual": "Anual",
+      "annualDescription": "Ahorra con la facturación anual",
+      "annualUnit": "/año",
+      "equivalentMonthly": "Equivalente a {{price}}/mes",
+      "subscribeAnnual": "Suscribirse al plan anual",
+      "noPlanTitle": "Parece que aún no tienes un plan o tu suscripción no se ha renovado",
+      "noPlanDescription": "Elige uno de los planes siguientes para mejorar la gestión de tu restaurante."
+    },
+    "notFound": {
+      "code": "404",
+      "title": "Página no encontrada",
+      "description": "Parece que la página que buscas desapareció del mapa o nunca existió.",
+      "back": "Volver",
+      "home": "Ir al inicio"
+    },
+    "paymentSuccess": {
+      "title": "¡Pago confirmado!",
+      "preparing": "Estamos preparando tu entorno...",
+      "redirecting": "Serás redirigido en unos instantes."
+    },
+    "recordsTotal": "Total de registros: {{count}}",
+    "index": "#",
+    "actions": {
+      "label": "Acciones"
+    },
+    "saveChanges": "Guardar cambios"
+  },
+  "auth": {
+    "login": "Iniciar sesión",
+    "register": "Registro",
+    "createAccount": "Crear cuenta",
+    "enter": "Entrar",
+    "entering": "Entrando...",
+    "email": "Correo electrónico",
+    "password": "Contraseña",
+    "responsibleName": "Nombre del responsable",
+    "establishmentName": "Nombre del establecimiento",
+    "registrationKey": "Clave de registro",
+    "accessKey": "Clave de acceso",
+    "haveRegistrationKey": "Tengo una clave de registro",
+    "noRegistrationKey": "No tengo una clave de registro",
+    "createAndSubscribe": "Crear y suscribirse",
+    "loginSuccess": "Registro completado. Inicia sesión para continuar.",
+    "loginFailure": "Error al iniciar sesión. Comprueba tus credenciales.",
+    "registerFailure": "Error en el registro. Comprueba tus datos.",
+    "verifyCredentials": "Comprueba tus credenciales.",
+    "verifyData": "Comprueba tus datos.",
+    "pendingPayment": "Pago pendiente",
+    "continueToPlan": "Continuar a la selección del plan",
+    "registrationSuccess": "¡Registro realizado con éxito! Inicia sesión para continuar.",
+    "registrationErrorFallback": "Error en el registro. Comprueba tus datos.",
+    "subtitle": "Gestiona tu establecimiento con facilidad",
+    "loginDescription": "Inicia sesión con tus credenciales para acceder al sistema.",
+    "emailPlaceholder": "tu@email.com",
+    "registerDescription": "Completa los datos a continuación para empezar.",
+    "responsiblePlaceholder": "Tu nombre",
+    "establishmentPlaceholder": "Bar do Zé",
+    "freeAccessLabel": "Tengo una clave de registro (Acceso gratuito)",
+    "registrationKeyPlaceholder": "Clave de acceso",
+    "createAccountLoading": "Creando cuenta..."
+  },
+  "navigation": {
+    "dashboard": "Panel",
+    "orders": "Pedidos",
+    "sales": "Ventas",
+    "products": "Productos",
+    "employees": "Empleados",
+    "reports": "Informes",
+    "settings": "Configuración",
+    "login": "Iniciar sesión",
+    "logout": "Cerrar sesión",
+    "expandMenu": "Expandir menú",
+    "collapseMenu": "Contraer menú",
+    "openMenu": "Abrir menú",
+    "closeMenu": "Cerrar menú",
+    "theme": "Tema"
+  },
+  "orders": {
+    "title": "Pedidos",
+    "pageTitle": "Pedidos — {{establishment}}",
+    "recent": "Pedidos recientes",
+    "new": "Nuevo pedido",
+    "edit": "Editar pedido (añadir artículos)",
+    "details": "Detalles del pedido",
+    "customer": "Cliente / Mesa",
+    "date": "Fecha",
+    "total": "Total",
+    "noResults": "No se encontraron pedidos.",
+    "close": "Cerrar pedido",
+    "closeConfirm": "¿Seguro que quieres cerrar este pedido? Se convertirá en una venta.",
+    "deleteConfirm": "¿Seguro que quieres eliminar este pedido?",
+    "changeStatusConfirm": "¿Seguro que quieres cambiar el estado del pedido?",
+    "editLabel": "Editar pedido",
+    "deleteLabel": "Eliminar pedido",
+    "fallback": {
+      "product": "Producto"
+    },
+    "statusFilter": {
+      "notClosed": "No cerrados"
+    },
+    "confirm": {
+      "delete": "¿Seguro que quieres eliminar este pedido?",
+      "close": "¿Seguro que quieres cerrar este pedido? Se convertirá en una venta.",
+      "changeStatus": "¿Seguro que quieres cambiar el estado del pedido?"
+    },
+    "empty": "No se encontraron pedidos."
+  },
+  "sales": {
+    "title": "Ventas",
+    "pageTitle": "Ventas — {{establishment}}",
+    "period": "Ventas del período",
+    "new": "Nueva venta",
+    "details": "Detalles de la venta",
+    "customer": "Cliente / Mesa",
+    "date": "Fecha",
+    "total": "Total",
+    "noResults": "No se encontraron ventas en el período.",
+    "cancel": "Cancelar venta",
+    "cancelConfirm": "¿Seguro que quieres cancelar esta venta?",
+    "confirm": {
+      "cancel": "¿Seguro que quieres cancelar esta venta?"
+    },
+    "cancelling": "Cancelando...",
+    "cancelButton": "Cancelar venta",
+    "fallback": {
+      "product": "Producto"
+    },
+    "table": {
+      "totalRecords": "Total de registros: {{count}}"
+    },
+    "closingPeriod": "Cierre del período",
+    "empty": "No se encontraron ventas en el período.",
+    "viewDetails": "Ver detalles"
+  },
+  "products": {
+    "title": "Productos",
+    "pageTitle": "Gestión — {{establishment}}",
+    "menu": "Menú",
+    "types": "Tipos de productos",
+    "new": "Nuevo producto",
+    "edit": "Editar producto",
+    "name": "Nombre",
+    "price": "Precio",
+    "type": "Tipo",
+    "ingredients": "Ingredientes",
+    "description": "Descripción",
+    "color": "Color",
+    "selectType": "Selecciona el tipo",
+    "separateComma": "Separa con comas",
+    "searchProducts": "Buscar productos...",
+    "searchTypes": "Buscar tipos...",
+    "noProducts": "No se encontraron productos.",
+    "noTypes": "No se encontraron tipos de productos.",
+    "inactive": "Inactivo",
+    "activateType": "Activar tipo",
+    "deactivateType": "Desactivar tipo",
+    "createDescription": "Completa los datos para añadir un producto nuevo al menú.",
+    "updateDescription": "Actualiza los datos del producto.",
+    "createTypeDescription": "Crea un tipo de producto para organizar el menú.",
+    "updateTypeDescription": "Actualiza la descripción del tipo de producto.",
+    "selectTypeWarning": "Selecciona un tipo de producto.",
+    "selection": {
+      "description": "Selecciona los productos e indica el cliente.",
+      "clientPlaceholder": "P. ej., Mesa 10 o nombre del cliente",
+      "available": "Productos disponibles",
+      "searchPlaceholder": "Buscar producto...",
+      "categoryPlaceholder": "Categoría",
+      "allCategories": "Todas las categorías",
+      "noProducts": "No se encontraron productos.",
+      "selected": "Artículos seleccionados",
+      "noItems": "No hay artículos seleccionados",
+      "units": "unidades",
+      "fallbackProduct": "Producto",
+      "addProduct": "Agregar producto",
+      "decreaseQuantity": "Disminuir cantidad",
+      "increaseQuantity": "Aumentar cantidad",
+      "removeItem": "Eliminar elemento",
+      "statusPlaceholder": "Estado"
+    },
+    "confirm": {
+      "delete": "¿Seguro que deseas eliminar este producto?",
+      "toggle": "¿Seguro que deseas cambiar el estado de este tipo?"
+    },
+    "managementTitle": "Gestión",
+    "tabs": {
+      "products": "Productos",
+      "types": "Tipos"
+    },
+    "dialogs": {
+      "addProductTitle": "Añadir producto",
+      "addProductDescription": "Completa los datos para añadir un producto nuevo al menú.",
+      "addTypeTitle": "Añadir tipo de producto",
+      "addTypeDescription": "Crea un tipo de producto para organizar el menú.",
+      "editProductTitle": "Editar producto",
+      "editProductDescription": "Actualiza los datos del producto.",
+      "editTypeTitle": "Editar tipo",
+      "editTypeDescription": "Actualiza la descripción del tipo de producto."
+    },
+    "forms": {
+      "pricePlaceholder": "0.00",
+      "typePlaceholder": "Selecciona el tipo",
+      "ingredientsPlaceholder": "Separa con comas"
+    },
+    "newType": "Nuevo tipo",
+    "table": {
+      "searchPlaceholder": "Buscar productos...",
+      "typesSearchPlaceholder": "Buscar tipos...",
+      "typesCaption": "Lista de tipos de productos registrados.",
+      "origin": "Origen",
+      "inactiveSuffix": "(inactivo)",
+      "systemOrigin": "Predeterminado del sistema",
+      "userOrigin": "Creado por el usuario"
+    },
+    "accessibility": {
+      "activateType": "Activar tipo",
+      "deactivateType": "Desactivar tipo"
+    }
+  },
+  "employees": {
+    "title": "Empleados",
+    "pageTitle": "Empleados — {{establishment}}",
+    "team": "Equipo",
+    "new": "Nuevo empleado",
+    "edit": "Editar empleado",
+    "name": "Nombre",
+    "email": "Correo electrónico",
+    "role": "Cargo",
+    "password": "Contraseña",
+    "newPassword": "Nueva contraseña (opcional)",
+    "selectRole": "Selecciona el cargo",
+    "search": "Buscar empleados...",
+    "noResults": "No se encontraron empleados.",
+    "createDescription": "Registra un empleado nuevo para acceder al sistema.",
+    "updateDescription": "Actualiza los datos del empleado.",
+    "leaveBlank": "Déjalo vacío para conservar la contraseña actual.",
+    "confirm": {
+      "delete": "¿Seguro que deseas eliminar a este empleado?"
+    },
+    "addButton": "Nuevo empleado",
+    "dialog": {
+      "addTitle": "Añadir empleado",
+      "addDescription": "Registra un empleado nuevo para acceder al sistema.",
+      "editTitle": "Editar empleado",
+      "editDescription": "Actualiza los datos del empleado."
+    },
+    "table": {
+      "searchPlaceholder": "Buscar empleados...",
+      "totalRecords": "Total de registros: {{count}}"
+    },
+    "role": {
+      "owner": "Propietario",
+      "manager": "Gerente",
+      "employee": "Empleado",
+      "customer": "Cliente"
+    },
+    "roleLabel": "Rol"
+  },
+  "charts": {
+    "title": "Informes",
+    "pageTitle": "Informes — {{establishment}}",
+    "productsSold": "Productos vendidos",
+    "salesByHour": "Ventas por hora",
+    "tabs": {
+      "products": "Productos vendidos",
+      "hours": "Ventas por hora"
+    },
+    "filters": {
+      "title": "Filtros",
+      "startDate": "Fecha inicial",
+      "startTime": "Hora inicial",
+      "endDate": "Fecha final",
+      "endTime": "Hora final",
+      "foodType": "Tipo de alimento",
+      "select": "Selecciona",
+      "all": "Todos",
+      "search": "Buscar"
+    },
+    "startDate": "Fecha inicial",
+    "startTime": "Hora inicial",
+    "endDate": "Fecha final",
+    "endTime": "Hora final",
+    "foodType": "Tipo de alimento",
+    "selectChart": "Selecciona el gráfico",
+    "search": "Buscar",
+    "salesView": "Visualización de ventas",
+    "revenue": "Facturación",
+    "salesCount": "Número de ventas",
+    "revenueAndSales": "Facturación y ventas",
+    "details": {
+      "title": "Detalles de ventas",
+      "totalRecords": "Total de registros: {{count}}",
+      "quantitySold": "Cantidad vendida",
+      "totalRevenue": "Facturación total"
+    },
+    "detailSales": "Detalles de ventas",
+    "generatingReport": "Generando informe",
+    "viewStatus": "Ver estado",
+    "reportReady": "Informe listo, pero no se recibió una URL de descarga.",
+    "reportError": "Error al generar el informe.",
+    "noSalesForDay": "No se encontraron ventas para este día.",
+    "selectPeriod": "Selecciona un período y pulsa Buscar.",
+    "dayOf": "Día {{day}} de {{total}}",
+    "sales": "Ventas",
+    "moreSales": "+{{count}} más...",
+    "report": {
+      "generateExcel": "Generar Excel",
+      "generatePdf": "Generar PDF",
+      "filename": "informe",
+      "generating": "Generando informe",
+      "generatingWithFormat": "Generando informe ({{format}})...",
+      "format": {
+        "excel": "Excel",
+        "pdf": "PDF"
+      },
+      "viewStatus": "Ver estado",
+      "downloadFailed": "No se pudo descargar el archivo tras varios intentos",
+      "generationFailed": "Error al generar el informe",
+      "timeout": "Se agotó el tiempo al comprobar el estado del informe",
+      "readyWithoutUrl": "Informe listo, pero no se recibió una URL de descarga",
+      "pollingFailed": "Error al consultar el estado del informe",
+      "invalidResponse": "Respuesta del servidor no válida",
+      "startFailed": "No se pudo iniciar la generación del informe"
+    },
+    "visualization": {
+      "title": "Visualización de ventas",
+      "select": "Selecciona el gráfico",
+      "revenue": "Facturación",
+      "salesCount": "Número de ventas",
+      "revenueAndSales": "Facturación y ventas",
+      "salesPie": "Número de ventas (gráfico circular)",
+      "pieLabel": "{{name}} {{value}}"
+    },
+    "summary": {
+      "totalRevenue": "Facturación total",
+      "totalSales": "Total de ventas",
+      "unitsSold": "Unidades vendidas",
+      "dayRevenue": "Facturación del día",
+      "peakHour": "Hora punta"
+    },
+    "empty": {
+      "filtered": "No se encontraron datos para los filtros seleccionados.",
+      "noSalesForDay": "No se encontraron ventas para este día.",
+      "selectPeriod": "Selecciona un período y pulsa Buscar."
+    },
+    "hourly": {
+      "title": "Ventas por hora"
+    },
+    "tooltip": {
+      "sales": "Ventas",
+      "revenue": "Facturación",
+      "details": "Detalles",
+      "more": "+{{count}} más...",
+      "label": "{{label}}:"
+    }
+  },
+  "settings": {
+    "title": "Configuración",
+    "appearance": "Apariencia",
+    "theme": "Tema",
+    "light": "Claro",
+    "dark": "Oscuro",
+    "system": "Sistema",
+    "language": "Idioma",
+    "currentLanguage": "Idioma actual",
+    "localeIndicator": "Idioma: {{locale}}",
+    "locales": {
+      "en": "Inglés",
+      "pt-BR": "Portugués (Brasil)",
+      "es": "Español",
+      "fr": "Francés",
+      "zh": "Chino",
+      "hi": "Hindi",
+      "ar": "Árabe"
+    },
+    "moreComingSoon": "Más configuraciones próximamente..."
+  },
+  "sync": {
+    "syncing": "Sincronizando...",
+    "synced": "Sincronizado",
+    "syncError": "La sincronización falló.",
+    "lastSynced": "Última sincronización",
+    "realtimeConnected": "Conexión en tiempo real activa",
+    "realtimeDisconnected": "Conexión en tiempo real no disponible",
+    "retry": "Reintentar"
+  },
+  "printer": {
+    "print": "Imprimir",
+    "printOrder": "Imprimir pedido",
+    "printSale": "Imprimir venta",
+    "printing": "Imprimiendo...",
+    "printSuccess": "Trabajo de impresión enviado.",
+    "printError": "No se pudo imprimir.",
+    "printSoon": "Impresión (próximamente)"
+  },
+  "status": {
+    "open": "Abierto",
+    "inPreparation": "En preparación",
+    "delivering": "Entregando",
+    "closed": "Cerrado",
+    "notClosed": "No cerrados",
+    "active": "Activo",
+    "inactive": "Inactivo",
+    "pendingPayment": "Pago pendiente",
+    "paid": "Pagado",
+    "cancelled": "Cancelado",
+    "owner": "Propietario",
+    "administrator": "Administrador",
+    "employee": "Empleado"
+  },
+  "errors": {
+    "generic": "Algo salió mal.",
+    "sessionExpired": "Tu sesión ha expirado.",
+    "loadOrders": "Error al cargar los pedidos.",
+    "saveOrder": "Error al guardar el pedido.",
+    "deleteOrder": "Error al eliminar el pedido.",
+    "closeOrder": "Error al cerrar el pedido.",
+    "changeOrderStatus": "Error al actualizar el estado del pedido.",
+    "loadSales": "Error al cargar las ventas.",
+    "createSale": "Error al crear la venta.",
+    "saleDetails": "Error al cargar los detalles de la venta.",
+    "cancelSale": "Error al cancelar la venta.",
+    "loadProducts": "Error al cargar los productos.",
+    "createProduct": "Error al crear el producto.",
+    "updateProduct": "Error al actualizar el producto.",
+    "deleteProduct": "Error al eliminar el producto.",
+    "createType": "Error al crear el tipo.",
+    "updateType": "Error al actualizar el tipo.",
+    "updateTypeStatus": "Error al actualizar el estado del tipo.",
+    "loadEmployees": "Error al cargar los empleados.",
+    "createEmployee": "Error al crear el empleado.",
+    "updateEmployee": "Error al actualizar el empleado.",
+    "deleteEmployee": "Error al eliminar el empleado.",
+    "report": "Error al iniciar la generación del informe.",
+    "downloadReport": "No se pudo descargar el archivo tras varios intentos.",
+    "invalidResponse": "Respuesta no válida del servidor.",
+    "paymentUrl": "No se pudo iniciar el pago: falta la URL.",
+    "payment": "Error al procesar el pago. Comprueba que tu sesión esté activa.",
+    "products": {
+      "selectType": "Selecciona un tipo de producto.",
+      "selectItems": "Selecciona al menos un producto.",
+      "create": "Error al crear el producto",
+      "update": "Error al actualizar el producto",
+      "delete": "Error al eliminar el producto",
+      "createType": "Error al crear el tipo",
+      "updateType": "Error al actualizar el tipo",
+      "updateTypeStatus": "Error al actualizar el estado del tipo"
+    },
+    "employees": {
+      "create": "Error al crear el empleado",
+      "update": "Error al actualizar el empleado",
+      "delete": "Error al eliminar el empleado"
+    }
+  },
+  "catalog": {
+    "burger": "Hamburguesa",
+    "artisanalBurger": "Hamburguesa artesanal",
+    "chicken": "Pollo",
+    "hotDog": "Perrito caliente",
+    "food": "Comida",
+    "drink": "Bebidas",
+    "fries": "Papas fritas",
+    "extra": "Extra",
+    "dessert": "Postres",
+    "side": "Acompañamientos",
+    "pizza": "Pizza",
+    "sushi": "Sushi",
+    "other": "Otros",
+    "defaultType": "Tipo predeterminado del catálogo"
+  }
+}

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react"
+import { useTranslation } from "react-i18next"
 import {
   Table,
   TableBody,
@@ -31,37 +32,39 @@ import {
 import { Skeleton } from "@/components/ui/skeleton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Plus, Pencil, Trash2, ShoppingBag, Search, Loader2, Power } from "lucide-react"
-import api, { getErrorMessage } from "@/services/api"
+import api, { getErrorCode } from "@/services/api"
 import { parseListResponse } from "@/services/parseResponse"
 import { toast } from "sonner"
 import { Pagination } from "@/components/Pagination"
 import { useAuth } from "@/contexts/AuthContext"
 import { useConfirm } from "@/contexts/ConfirmContext"
 import { useMinLoadingDuration } from "@/hooks/useMinLoadingDuration"
+import { formatCurrencyBRL, formatNumber } from "@/i18n/format"
+import { getCatalogLabel } from "@/i18n/labels"
+import { normalizeLocale } from "@/i18n/locale"
+import { getErrorTranslationKey, type ErrorContext } from "@/i18n/error-keys"
+import type { Product, ProductType } from "@/domain/models"
 
-type ProductType = {
-  id: number
-  descricao: string
-  isEditable?: boolean
-  cor?: string
-  ativo?: boolean
-}
-
-type Product = {
-  id: number
-  nome: string
-  preco: number
-  ingredientes: string
-  tipoProdutoId: number
-  tipoProduto?: ProductType
-}
+type EditableProductType = ProductType & { isEditable?: boolean }
 
 export default function ProductsPage() {
+  const { i18n } = useTranslation()
+  const { t: tAuth } = useTranslation("auth")
+  const { t: tProducts } = useTranslation("products")
+  const { t: tCommon } = useTranslation("common")
+  const { t: tErrors } = useTranslation("errors")
+  const localizedError = (context: ErrorContext, error: unknown) => {
+    const translation = getErrorTranslationKey(context, getErrorCode(error))
+    return translation.namespace === "auth"
+      ? tAuth(translation.key)
+      : tErrors(translation.key)
+  }
+  const activeLocale = normalizeLocale(i18n.language)
   const { user } = useAuth()
   const confirm = useConfirm()
   const [products, setProducts] = useState<Product[]>([])
-  const [productTypes, setProductTypes] = useState<ProductType[]>([])
-  const [pagedTypes, setPagedTypes] = useState<ProductType[]>([])
+  const [productTypes, setProductTypes] = useState<EditableProductType[]>([])
+  const [pagedTypes, setPagedTypes] = useState<EditableProductType[]>([])
   const [typesPage, setTypesPage] = useState(1)
   const [typesLimit, setTypesLimit] = useState(10)
   const [typesTotalPages, setTypesTotalPages] = useState(0)
@@ -82,7 +85,7 @@ export default function ProductsPage() {
   const showSkeleton = useMinLoadingDuration(isLoading)
   const [isTypesLoading, setIsTypesLoading] = useState(false)
   const showTypesSkeleton = useMinLoadingDuration(isTypesLoading)
-  const [deletingId, setDeletingId] = useState<number | null>(null)
+  const [deletingId, setDeletingId] = useState<number | string | null>(null)
   // Dedicado aos formularios (criar/editar produto ou tipo) - separado do
   // isLoading/isTypesLoading, que sao so da listagem. Sem isso, salvar um
   // tipo reskeletonava a tabela de Produtos tambem (flag errada sendo usada).
@@ -98,7 +101,7 @@ export default function ProductsPage() {
   const [isAddTypeDialogOpen, setIsAddTypeDialogOpen] = useState(false)
   const [isEditTypeDialogOpen, setIsEditTypeDialogOpen] = useState(false)
   const [typeName, setTypeName] = useState("")
-  const [currentType, setCurrentType] = useState<ProductType | null>(null)
+  const [currentType, setCurrentType] = useState<EditableProductType | null>(null)
 
   useEffect(() => {
     // load all types for selects/lookup and load first page for types table
@@ -146,6 +149,7 @@ export default function ProductsPage() {
       }
     } catch (error) {
       console.error("Error fetching products", error)
+      toast.error(localizedError("loadProducts", error))
     } finally {
       setIsLoading(false)
     }
@@ -155,16 +159,13 @@ export default function ProductsPage() {
   const fetchTypesAll = async () => {
     try {
       const response = await api.get("/tipos?all=true")
-      const types: ProductType[] = response.data.map((t: any) => ({
-        id: t.id,
-        descricao: t.descricao,
-        isEditable: t.isEditable ?? t.editavel ?? true,
-        cor: t.cor ?? t.color ?? "#111827",
-        ativo: typeof t.ativo === "boolean" ? t.ativo : (t.ativo === 0 ? false : true),
-      }))
+      const payload = response.data
+      const rawTypes = Array.isArray(payload) ? payload : payload?.types ?? payload?.data ?? []
+      const types: EditableProductType[] = rawTypes.map((t: ProductType) => ({ ...t, isEditable: (t as EditableProductType).isEditable ?? true }))
       setProductTypes(types)
     } catch (error) {
       console.error("Error fetching types", error)
+      toast.error(localizedError("loadProductTypes", error))
     }
   }
 
@@ -176,13 +177,7 @@ export default function ProductsPage() {
 
       const { data, total } = parseListResponse<any>(response)
 
-      const types: ProductType[] = data.map((t: any) => ({
-        id: t.id,
-        descricao: t.descricao,
-        isEditable: t.isEditable ?? t.editavel ?? true,
-        cor: t.cor ?? t.color ?? "#111827",
-        ativo: typeof t.ativo === "boolean" ? t.ativo : (t.ativo === 0 ? false : true),
-      }))
+      const types: EditableProductType[] = data.map((t: ProductType) => ({ ...t, isEditable: (t as EditableProductType).isEditable ?? true }))
 
       setPagedTypes(types)
       setTypesTotalItems(total)
@@ -196,6 +191,7 @@ export default function ProductsPage() {
       }
     } catch (error) {
       console.error("Error fetching paged types", error)
+      toast.error(localizedError("loadProductTypes", error))
     } finally {
       setIsTypesLoading(false)
     }
@@ -210,23 +206,23 @@ export default function ProductsPage() {
   const handleAddProduct = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!typeId) {
-      toast.warning("Por favor, selecione um tipo de produto.")
+      toast.warning(tErrors("products.selectType"))
       return
     }
     setIsSaving(true)
     try {
       await api.post("/produtos", {
-        nome: name,
-        preco: parseFloat(price),
-        ingredientes: ingredients,
-        tipoProdutoId: parseInt(typeId),
+        name,
+        price: parseFloat(price),
+        ingredients,
+        productTypeId: parseInt(typeId),
       })
       fetchProducts()
       setIsAddDialogOpen(false)
       resetForm()
     } catch (error) {
       console.error("Error creating product", error)
-      toast.error(getErrorMessage(error, "Erro ao criar produto"))
+      toast.error(localizedError("createProduct", error))
     } finally {
       setIsSaving(false)
     }
@@ -234,10 +230,10 @@ export default function ProductsPage() {
 
   const handleEditClick = (product: Product) => {
     setCurrentProduct(product)
-    setName(product.nome)
-    setPrice(Number(product.preco).toFixed(2))
-    setIngredients(product.ingredientes)
-    setTypeId(product.tipoProdutoId?.toString() || "")
+    setName(product.name)
+    setPrice(Number(product.price).toFixed(2))
+    setIngredients(product.ingredients ?? '')
+    setTypeId(product.productTypeId?.toString() || "")
     setIsEditDialogOpen(true)
   }
 
@@ -245,37 +241,37 @@ export default function ProductsPage() {
     e.preventDefault()
     if (!currentProduct) return
     if (!typeId) {
-      toast.warning("Por favor, selecione um tipo de produto.")
+      toast.warning(tErrors("products.selectType"))
       return
     }
     setIsSaving(true)
     try {
       await api.put(`/produtos/${currentProduct.id}`, {
-        nome: name,
-        preco: parseFloat(price),
-        ingredientes: ingredients,
-        tipoProdutoId: parseInt(typeId),
+        name,
+        price: parseFloat(price),
+        ingredients,
+        productTypeId: parseInt(typeId),
       })
       fetchProducts()
       setIsEditDialogOpen(false)
       resetForm()
     } catch (error) {
       console.error("Error updating product", error)
-      toast.error(getErrorMessage(error, "Erro ao atualizar produto"))
+      toast.error(localizedError("updateProduct", error))
     } finally {
       setIsSaving(false)
     }
   }
 
-  const handleDeleteProduct = async (id: number) => {
-    if (await confirm({ description: "Tem certeza que deseja excluir este produto?", confirmLabel: "Excluir", destructive: true })) {
+  const handleDeleteProduct = async (id: number | string) => {
+    if (await confirm({ description: tProducts("confirm.delete"), confirmLabel: tCommon("delete"), destructive: true })) {
       setDeletingId(id)
       try {
         await api.delete(`/produtos/${id}`)
         fetchProducts()
       } catch (error) {
         console.error("Error deleting product", error)
-        toast.error(getErrorMessage(error, "Erro ao excluir produto"))
+        toast.error(localizedError("deleteProduct", error))
       } finally {
         setDeletingId(null)
       }
@@ -291,23 +287,23 @@ export default function ProductsPage() {
     setCurrentProduct(null)
   }
 
-  const getTypeName = (id: number) => {
-    const type = productTypes.find(t => t.id === id)
-    return type ? type.descricao : "-"
+  const getTypeName = (id: number | string) => {
+    const type = productTypes.find(t => String(t.id) === String(id))
+    return type ? getCatalogLabel(type.id, type.description, activeLocale) : tCommon("notInformed")
   }
 
   const handleAddType = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSaving(true)
     try {
-      await api.post("/tipos", { descricao: typeName, cor: typeColor })
+      await api.post("/tipos", { description: typeName, color: typeColor })
       await fetchTypesAll()
       await fetchTypesPage()
       setIsAddTypeDialogOpen(false)
       resetTypeForm()
     } catch (error) {
       console.error("Error creating type", error)
-      toast.error(getErrorMessage(error, "Erro ao criar tipo"))
+      toast.error(localizedError("createType", error))
     } finally {
       setIsSaving(false)
     }
@@ -315,8 +311,8 @@ export default function ProductsPage() {
 
   const handleEditTypeClick = (type: ProductType) => {
     setCurrentType(type)
-    setTypeName(type.descricao)
-    setTypeColor(type.cor ?? "#000000")
+    setTypeName(type.description)
+    setTypeColor(type.color ?? "#000000")
     setIsEditTypeDialogOpen(true)
   }
 
@@ -325,35 +321,37 @@ export default function ProductsPage() {
     if (!currentType) return
     setIsSaving(true)
     try {
-      await api.put(`/tipos/${currentType.id}`, { descricao: typeName, cor: typeColor })
+      await api.put(`/tipos/${currentType.id}`, { description: typeName, color: typeColor })
       await fetchTypesAll()
       await fetchTypesPage()
       setIsEditTypeDialogOpen(false)
       resetTypeForm()
     } catch (error) {
       console.error("Error updating type", error)
-      toast.error(getErrorMessage(error, "Erro ao atualizar tipo"))
+      toast.error(localizedError("updateType", error))
     } finally {
       setIsSaving(false)
     }
   }
 
-  const handleDeleteType = async (id: number) => {
-    const type = productTypes.find(t => t.id === id)
-    const currentlyActive = type?.ativo ?? true
-    const action = currentlyActive ? 'inativar' : 'ativar'
-    if (await confirm({ description: `Tem certeza que deseja ${action} este tipo?`, confirmLabel: currentlyActive ? "Inativar" : "Ativar", destructive: currentlyActive })) {
+  const handleDeleteType = async (id: number | string) => {
+    const type = productTypes.find(t => String(t.id) === String(id))
+    const currentlyActive = type?.isActive ?? true
+    if (await confirm({
+      description: tProducts("confirm.toggle"),
+      confirmLabel: currentlyActive ? tProducts("deactivateType") : tProducts("activateType"),
+      destructive: currentlyActive,
+    })) {
       setDeletingId(id)
       try {
-        // toggle ativo via PATCH endpoint, API expects { ativo: boolean }
-        await api.patch(`/tipos/${id}/ativo`, { ativo: !currentlyActive })
+        await api.patch(`/tipos/${id}/ativo`, { isActive: !currentlyActive })
         // refresh types and products because inactive types hide their products
         await fetchTypesAll()
         await fetchTypesPage()
         await fetchProducts()
       } catch (error) {
         console.error("Error toggling type active", error)
-        toast.error(getErrorMessage(error, "Erro ao atualizar status do tipo"))
+        toast.error(localizedError("updateTypeStatus", error))
       } finally {
         setDeletingId(null)
       }
@@ -366,8 +364,8 @@ export default function ProductsPage() {
     setTypeColor("#000000")
   }
 
-  const getType = (id: number) => {
-    return productTypes.find(t => t.id === id) || null
+  const getType = (id: number | string) => {
+    return productTypes.find(t => String(t.id) === String(id)) || null
   }
 
   return (
@@ -376,32 +374,32 @@ export default function ProductsPage() {
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
             <ShoppingBag className="h-8 w-8" />
-            {`Gerenciamento${user?.estabelecimento?.nomeFantasia ? ` do ${user.estabelecimento.nomeFantasia}` : ''}`}
+            {user?.establishment?.tradeName
+              ? tProducts("pageTitle", { establishment: user.establishment.tradeName })
+              : tProducts("title")}
           </h1>
           
           <div className="flex items-center gap-4">
             <TabsList>
-              <TabsTrigger value="products">Produtos</TabsTrigger>
-              <TabsTrigger value="types">Tipos</TabsTrigger>
+              <TabsTrigger value="products">{tProducts("tabs.products")}</TabsTrigger>
+              <TabsTrigger value="types">{tProducts("tabs.types")}</TabsTrigger>
             </TabsList>
 
             <TabsContent value="products" className="mt-0">
               <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
                 <DialogTrigger asChild>
                   <Button onClick={resetForm} disabled={isSaving}>
-                    <Plus className="mr-2 h-4 w-4" /> Novo Produto
+                    <Plus className="mr-2 h-4 w-4" /> {tProducts("new")}
                   </Button>
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
-                    <DialogTitle>Adicionar Produto</DialogTitle>
-                    <DialogDescription>
-                      Preencha os dados para cadastrar um novo produto no cardápio.
-                    </DialogDescription>
+                    <DialogTitle>{tProducts("dialogs.addProductTitle")}</DialogTitle>
+                    <DialogDescription>{tProducts("dialogs.addProductDescription")}</DialogDescription>
                   </DialogHeader>
                   <form onSubmit={handleAddProduct} className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="name">Nome</Label>
+                      <Label htmlFor="name">{tProducts("name")}</Label>
                       <Input
                         id="name"
                         value={name}
@@ -410,43 +408,43 @@ export default function ProductsPage() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="price">Preço</Label>
+                      <Label htmlFor="price">{tProducts("price")}</Label>
                       <Input
                         id="price"
                         value={price}
                         onChange={handlePriceChange}
-                        placeholder="0.00"
+                        placeholder={tProducts("forms.pricePlaceholder")}
                         required
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="type">Tipo</Label>
+                      <Label htmlFor="type">{tProducts("type")}</Label>
                       <Select value={typeId} onValueChange={setTypeId}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione o tipo" />
+                        <SelectTrigger aria-label={tProducts("type")}>
+                          <SelectValue placeholder={tProducts("forms.typePlaceholder")} />
                         </SelectTrigger>
                         <SelectContent>
                           {productTypes.map((type) => (
                             <SelectItem key={type.id} value={type.id.toString()}>
-                              {type.descricao}
+                              {getCatalogLabel(type.id, type.description, activeLocale)}
                             </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="ingredients">Ingredientes</Label>
+                      <Label htmlFor="ingredients">{tProducts("ingredients")}</Label>
                       <Input
                         id="ingredients"
                         value={ingredients}
                         onChange={(e) => setIngredients(e.target.value)}
-                        placeholder="Separe por vírgula"
+                        placeholder={tProducts("forms.ingredientsPlaceholder")}
                       />
                     </div>
                     <DialogFooter>
                       <Button type="submit" disabled={isSaving}>
                         {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        Salvar
+                        {tCommon("save")}
                       </Button>
                     </DialogFooter>
                   </form>
@@ -458,19 +456,17 @@ export default function ProductsPage() {
               <Dialog open={isAddTypeDialogOpen} onOpenChange={setIsAddTypeDialogOpen}>
                 <DialogTrigger asChild>
                   <Button onClick={resetTypeForm} disabled={isSaving}>
-                    <Plus className="mr-2 h-4 w-4" /> Novo Tipo
+                    <Plus className="mr-2 h-4 w-4" /> {tProducts("newType")}
                   </Button>
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
-                    <DialogTitle>Adicionar Tipo de Produto</DialogTitle>
-                    <DialogDescription>
-                      Cadastre um novo tipo de produto para categorizar o cardápio.
-                    </DialogDescription>
+                    <DialogTitle>{tProducts("dialogs.addTypeTitle")}</DialogTitle>
+                    <DialogDescription>{tProducts("dialogs.addTypeDescription")}</DialogDescription>
                   </DialogHeader>
                   <form onSubmit={handleAddType} className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="typeName">Descrição</Label>
+                      <Label htmlFor="typeName">{tProducts("description")}</Label>
                       <Input
                         id="typeName"
                         value={typeName}
@@ -479,7 +475,7 @@ export default function ProductsPage() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="typeColor">Cor</Label>
+                      <Label htmlFor="typeColor">{tProducts("color")}</Label>
                       <Input
                         id="typeColor"
                         type="color"
@@ -490,7 +486,7 @@ export default function ProductsPage() {
                     <DialogFooter>
                       <Button type="submit" disabled={isSaving}>
                         {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        Salvar
+                        {tCommon("save")}
                       </Button>
                     </DialogFooter>
                   </form>
@@ -503,11 +499,11 @@ export default function ProductsPage() {
         <TabsContent value="products">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-7">
-              <CardTitle>Cardápio</CardTitle>
+              <CardTitle>{tProducts("menu")}</CardTitle>
               <div className="relative w-[250px]">
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Buscar produtos..."
+                  placeholder={tProducts("table.searchPlaceholder")}
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   className="pl-8"
@@ -516,16 +512,17 @@ export default function ProductsPage() {
             </CardHeader>
             <CardContent>
               <div className="mb-4 text-sm text-muted-foreground">
-                Total de registros: {totalItems}
+                {tCommon("recordsTotal", { count: formatNumber(totalItems, activeLocale) })}
               </div>
+              <span className="sr-only" role="status">{showSkeleton ? tCommon("loading") : ""}</span>
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-[50px]">#</TableHead>
-                    <TableHead>Nome</TableHead>
-                    <TableHead>Tipo</TableHead>
-                    <TableHead className="text-right">Preço</TableHead>
-                    <TableHead className="text-right">Ações</TableHead>
+                    <TableHead className="w-[50px]">{tCommon("index")}</TableHead>
+                    <TableHead>{tProducts("name")}</TableHead>
+                    <TableHead>{tProducts("type")}</TableHead>
+                    <TableHead className="text-right">{tProducts("price")}</TableHead>
+                    <TableHead className="text-right">{tCommon("actions.label")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -542,39 +539,48 @@ export default function ProductsPage() {
                           </TableCell>
                         </TableRow>
                       ))
+                  ) : products.filter((product) => {
+                    const type = getType(product.productTypeId ?? 0)
+                    return type ? type.isActive !== false : true
+                  }).length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={5} className="py-8 text-center text-muted-foreground">
+                        {tProducts("noProducts")}
+                      </TableCell>
+                    </TableRow>
                   ) : (
                     products
                       .filter((product) => {
-                      const t = getType(product.tipoProdutoId)
+                      const t = getType(product.productTypeId ?? 0)
                       // hide products whose type is explicitly inactive
-                      return t ? (t.ativo !== false) : true
+                      return t ? (t.isActive !== false) : true
                     })
                     .map((product, index) => (
                     <TableRow key={product.id} className="animate-in fade-in-0 duration-300">
-                      <TableCell>{(page - 1) * limit + index + 1}</TableCell>
-                      <TableCell>{product.nome}</TableCell>
+                    <TableCell>{formatNumber((page - 1) * limit + index + 1, activeLocale)}</TableCell>
+                      <TableCell>{product.name}</TableCell>
                       <TableCell>
                         {(() => {
-                          const t = getType(product.tipoProdutoId)
+                          const t = getType(product.productTypeId ?? 0)
                           if (t) {
                             return (
                               <span
                                 className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
-                                style={{ backgroundColor: t.cor ?? '#111827', color: '#fff' }}
+                                style={{ backgroundColor: t.color ?? '#111827', color: '#fff' }}
                               >
-                                {t.descricao}
+                                {getCatalogLabel(t.id, t.description, activeLocale)}
                               </span>
                             )
                           }
                           return (
                             <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-secondary text-secondary-foreground">
-                              {getTypeName(product.tipoProdutoId)}
+                              {getTypeName(product.productTypeId ?? 0)}
                             </span>
                           )
                         })()}
                       </TableCell>
                       <TableCell className="text-right">
-                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(product.preco)}
+                        {formatCurrencyBRL(product.price, activeLocale)}
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
@@ -582,6 +588,8 @@ export default function ProductsPage() {
                             variant="ghost"
                             size="icon"
                             onClick={() => handleEditClick(product)}
+                            aria-label={tCommon("edit")}
+                            title={tCommon("edit")}
                           >
                             <Pencil className="h-4 w-4" />
                           </Button>
@@ -591,6 +599,8 @@ export default function ProductsPage() {
                             className="text-destructive hover:text-destructive"
                             onClick={() => handleDeleteProduct(product.id)}
                             disabled={deletingId === product.id}
+                            aria-label={tCommon("delete")}
+                            title={tCommon("delete")}
                           >
                             {deletingId === product.id ? (
                               <Loader2 className="h-4 w-4 animate-spin" />
@@ -624,11 +634,11 @@ export default function ProductsPage() {
           <Card>
             <CardHeader>
                   <div className="flex items-center justify-between">
-                    <CardTitle>Tipos de Produtos</CardTitle>
+                    <CardTitle>{tProducts("types")}</CardTitle>
                     <div className="relative w-[250px]">
                       <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                       <Input
-                        placeholder="Buscar tipos..."
+                        placeholder={tProducts("table.typesSearchPlaceholder")}
                         value={typesSearch}
                         onChange={(e) => {
                           setTypesSearch(e.target.value)
@@ -641,13 +651,13 @@ export default function ProductsPage() {
             </CardHeader>
             <CardContent>
               <Table>
-                <TableCaption>Lista de tipos de produtos cadastrados.</TableCaption>
+                <TableCaption>{tProducts("table.typesCaption")}</TableCaption>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-[50px]">#</TableHead>
-                    <TableHead>Descrição</TableHead>
-                    <TableHead className="w-[160px]">Origem</TableHead>
-                    <TableHead className="text-right">Ações</TableHead>
+                    <TableHead className="w-[50px]">{tCommon("index")}</TableHead>
+                    <TableHead>{tProducts("description")}</TableHead>
+                    <TableHead className="w-[160px]">{tProducts("table.origin")}</TableHead>
+                    <TableHead className="text-right">{tCommon("actions.label")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -670,22 +680,31 @@ export default function ProductsPage() {
                         </TableCell>
                       </TableRow>
                     ))
+                  ) : pagedTypes.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={4} className="py-8 text-center text-muted-foreground">
+                        {tProducts("noTypes")}
+                      </TableCell>
+                    </TableRow>
                   ) : (
                     pagedTypes.map((type, index) => (
-                    <TableRow key={type.id} className={`animate-in fade-in-0 duration-300 ${type.ativo === false ? 'opacity-60' : ''}`}>
-                      <TableCell>{(typesPage - 1) * typesLimit + index + 1}</TableCell>
+                    <TableRow key={type.id} className={`animate-in fade-in-0 duration-300 ${type.isActive === false ? 'opacity-60' : ''}`}>
+                      <TableCell>{formatNumber((typesPage - 1) * typesLimit + index + 1, activeLocale)}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <span
                             className="inline-block h-3 w-3 rounded-full"
-                            style={{ backgroundColor: type.cor ?? '#111827' }}
+                            style={{ backgroundColor: type.color ?? '#111827' }}
                           />
-                          <span>{type.descricao}{type.ativo === false ? ' (Inativo)' : ''}</span>
+                          <span>
+                            {getCatalogLabel(type.id, type.description, activeLocale)}
+                            {type.isActive === false ? ` ${tProducts("table.inactiveSuffix")}` : ''}
+                          </span>
                         </div>
                       </TableCell>
                       <TableCell>
                         <div className="text-sm">
-                          {type.isEditable === false ? 'Padrão do Sistema' : 'Criado pelo usuário'}
+                          {type.isEditable === false ? tProducts("table.systemOrigin") : tProducts("table.userOrigin")}
                         </div>
                       </TableCell>
                       <TableCell className="text-right">
@@ -696,6 +715,8 @@ export default function ProductsPage() {
                               size="icon"
                               onClick={() => handleEditTypeClick(type)}
                               disabled={deletingId === type.id}
+                              aria-label={tCommon("edit")}
+                              title={tCommon("edit")}
                             >
                               <Pencil className="h-4 w-4" />
                             </Button>
@@ -706,13 +727,18 @@ export default function ProductsPage() {
                             size="icon"
                             onClick={() => handleDeleteType(type.id)}
                             disabled={deletingId === type.id}
-                            aria-label={type.ativo === false ? 'Ativar tipo' : 'Inativar tipo'}
+                            aria-label={type.isActive === false
+                              ? tProducts("accessibility.activateType")
+                              : tProducts("accessibility.deactivateType")}
+                            title={type.isActive === false
+                              ? tProducts("accessibility.activateType")
+                              : tProducts("accessibility.deactivateType")}
                           >
                             {deletingId === type.id ? (
                               <Loader2 className="h-4 w-4 animate-spin" />
                             ) : (
                               <Power
-                                className={`h-4 w-4 ${type.ativo === false ? 'text-muted-foreground' : 'text-emerald-600'}`}
+                                className={`h-4 w-4 ${type.isActive === false ? 'text-muted-foreground' : 'text-emerald-600'}`}
                               />
                             )}
                           </Button>
@@ -724,7 +750,7 @@ export default function ProductsPage() {
                 </TableBody>
               </Table>
               <div className="mb-4 text-sm text-muted-foreground">
-                Total de registros: {typesTotalItems}
+                {tCommon("recordsTotal", { count: formatNumber(typesTotalItems, activeLocale) })}
               </div>
               <Pagination
                 currentPage={typesPage}
@@ -746,14 +772,12 @@ export default function ProductsPage() {
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Editar Produto</DialogTitle>
-            <DialogDescription>
-              Atualize os dados do produto.
-            </DialogDescription>
+            <DialogTitle>{tProducts("dialogs.editProductTitle")}</DialogTitle>
+            <DialogDescription>{tProducts("dialogs.editProductDescription")}</DialogDescription>
           </DialogHeader>
           <form onSubmit={handleUpdateProduct} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="edit-name">Nome</Label>
+              <Label htmlFor="edit-name">{tProducts("name")}</Label>
               <Input
                 id="edit-name"
                 value={name}
@@ -762,7 +786,7 @@ export default function ProductsPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="edit-price">Preço</Label>
+              <Label htmlFor="edit-price">{tProducts("price")}</Label>
               <Input
                 id="edit-price"
                 value={price}
@@ -771,33 +795,33 @@ export default function ProductsPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="edit-type">Tipo</Label>
+              <Label htmlFor="edit-type">{tProducts("type")}</Label>
               <Select value={typeId} onValueChange={setTypeId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o tipo" />
+                <SelectTrigger aria-label={tProducts("type")}>
+                  <SelectValue placeholder={tProducts("forms.typePlaceholder")} />
                 </SelectTrigger>
                 <SelectContent>
                   {productTypes.map((type) => (
                     <SelectItem key={type.id} value={type.id.toString()}>
-                      {type.descricao}
+                      {getCatalogLabel(type.id, type.description, activeLocale)}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="edit-ingredients">Ingredientes</Label>
+              <Label htmlFor="edit-ingredients">{tProducts("ingredients")}</Label>
               <Input
                 id="edit-ingredients"
                 value={ingredients}
                 onChange={(e) => setIngredients(e.target.value)}
-                placeholder="Separe por vírgula"
+                placeholder={tProducts("forms.ingredientsPlaceholder")}
               />
             </div>
             <DialogFooter>
               <Button type="submit" disabled={isSaving}>
                 {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Salvar Alterações
+                {tCommon("saveChanges")}
               </Button>
             </DialogFooter>
           </form>
@@ -808,14 +832,12 @@ export default function ProductsPage() {
       <Dialog open={isEditTypeDialogOpen} onOpenChange={setIsEditTypeDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Editar Tipo</DialogTitle>
-            <DialogDescription>
-              Atualize a descrição do tipo de produto.
-            </DialogDescription>
+            <DialogTitle>{tProducts("dialogs.editTypeTitle")}</DialogTitle>
+            <DialogDescription>{tProducts("dialogs.editTypeDescription")}</DialogDescription>
           </DialogHeader>
           <form onSubmit={handleUpdateType} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="edit-typeName">Descrição</Label>
+                <Label htmlFor="edit-typeName">{tProducts("description")}</Label>
               <Input
                 id="edit-typeName"
                 value={typeName}
@@ -824,7 +846,7 @@ export default function ProductsPage() {
               />
             </div>
               <div className="space-y-2">
-                <Label htmlFor="edit-typeColor">Cor</Label>
+                <Label htmlFor="edit-typeColor">{tProducts("color")}</Label>
                 <Input
                   id="edit-typeColor"
                   type="color"
@@ -835,7 +857,7 @@ export default function ProductsPage() {
             <DialogFooter>
               <Button type="submit" disabled={isSaving}>
                 {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Salvar Alterações
+                {tCommon("saveChanges")}
               </Button>
             </DialogFooter>
           </form>

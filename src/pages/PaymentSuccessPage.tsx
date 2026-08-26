@@ -2,10 +2,12 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { CheckCircle } from "lucide-react";
+import { useTranslation } from 'react-i18next';
 
 export default function PaymentSuccessPage() {
   const navigate = useNavigate();
   const { logout } = useAuth();
+  const { t } = useTranslation('common');
 
   useEffect(() => {
     const timer = setTimeout(async () => {
@@ -24,9 +26,9 @@ export default function PaymentSuccessPage() {
         <div className="flex justify-center">
           <CheckCircle className="h-20 w-20 text-green-500" />
         </div>
-        <h1 className="text-3xl font-bold text-gray-900">Pagamento Confirmado!</h1>
-        <p className="text-lg text-gray-600">Estamos preparando seu ambiente...</p>
-        <p className="text-sm text-gray-500">Você será redirecionado em instantes.</p>
+        <h1 className="text-3xl font-bold text-gray-900">{t('paymentSuccess.title')}</h1>
+        <p className="text-lg text-gray-600">{t('paymentSuccess.preparing')}</p>
+        <p className="text-sm text-gray-500">{t('paymentSuccess.redirecting')}</p>
       </div>
     </div>
   );

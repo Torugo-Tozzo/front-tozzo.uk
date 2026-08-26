@@ -1,0 +1,630 @@
+{
+  "common": {
+    "appName": "Tozzo.uk",
+    "loading": "加载中...",
+    "processing": "处理中...",
+    "saving": "保存中...",
+    "search": "搜索",
+    "filter": "筛选",
+    "filters": "筛选条件",
+    "clear": "清除",
+    "apply": "应用",
+    "save": "保存",
+    "cancel": "取消",
+    "close": "关闭",
+    "confirm": "确认",
+    "yes": "是",
+    "no": "否",
+    "back": "返回",
+    "next": "下一页",
+    "previous": "上一页",
+    "edit": "编辑",
+    "delete": "删除",
+    "add": "添加",
+    "create": "创建",
+    "update": "更新",
+    "activate": "启用",
+    "deactivate": "停用",
+    "select": "选择",
+    "all": "全部",
+    "none": "无",
+    "notInformed": "未提供",
+    "noResults": "未找到结果。",
+    "pageOf": "第 {{page}} 页，共 {{total}} 页",
+    "more": "还有 {{count}} 项...",
+    "units": "件",
+    "recordCount": {
+      "zero": "{{count}} 条记录",
+      "one": "{{count}} 条记录",
+      "two": "{{count}} 条记录",
+      "few": "{{count}} 条记录",
+      "many": "{{count}} 条记录",
+      "other": "{{count}} 条记录"
+    },
+    "unitCount": {
+      "zero": "{{count}} 个单位",
+      "one": "{{count}} 个单位",
+      "two": "{{count}} 个单位",
+      "few": "{{count}} 个单位",
+      "many": "{{count}} 个单位",
+      "other": "{{count}} 个单位"
+    },
+    "total": "总计",
+    "date": "日期",
+    "time": "时间",
+    "email": "电子邮箱",
+    "name": "名称",
+    "description": "描述",
+    "price": "价格",
+    "status": "状态",
+    "customer": "客户 / 桌号",
+    "createdBy": "创建人",
+    "optional": "可选",
+    "allCategories": "所有类别",
+    "copyright": "版权所有。",
+    "footerCopyright": "© {{year}} Tozzo.uk。保留所有权利。",
+    "accessibility": {
+      "linkedin": "LinkedIn",
+      "github": "GitHub",
+      "email": "电子邮箱",
+      "openMenu": "打开菜单",
+      "logout": "退出登录",
+      "collapseFilters": "收起筛选条件",
+      "expandFilters": "展开筛选条件",
+      "toggleTheme": "切换主题",
+      "close": "关闭"
+    },
+    "logoutConfirmation": {
+      "title": "退出登录？",
+      "description": "确定要退出登录吗？",
+      "confirm": "退出登录"
+    },
+    "pagination": {
+      "rowsPerPage": "每页行数",
+      "page": "第 {{page}} 页",
+      "pageOf": "第 {{page}} 页，共 {{total}} 页"
+    },
+    "placeholders": {
+      "customer": "搜索客户/桌号...",
+      "employee": "搜索员工...",
+      "amount": "0.00"
+    },
+    "minimumTotal": "最低总额",
+    "maximumTotal": "最高总额",
+    "confirmQuestion": "确定吗？",
+    "landing": {
+      "heroImageAlt": "餐厅内部",
+      "heroTitle": "智能管理",
+      "heroHighlight": "餐厅与酒吧",
+      "heroDescription": "使用我们的完整管理平台，简化订单、管理库存并提升销售额。",
+      "startUsing": "开始使用",
+      "viewPlans": "查看方案",
+      "features": {
+        "kitchen": {
+          "title": "厨房管理",
+          "description": "将订单直接发送到厨房，避免错误和延误。优化团队工作流程，确保每份订单都完美并及时完成。",
+          "imageAlt": "厨房管理"
+        },
+        "bar": {
+          "title": "酒吧管理",
+          "description": "精准管理饮品和鸡尾酒，减少浪费。全面掌控酒吧库存，提高盈利能力。",
+          "imageAlt": "酒吧管理"
+        },
+        "menu": {
+          "title": "数字菜单",
+          "description": "实时更新菜单，方便顾客选择。添加照片和详细描述，并即时调整价格。",
+          "imageAlt": "数字菜单"
+        },
+        "orders": {
+          "title": "订单互联",
+          "description": "服务员记录的订单会立即显示在系统和厨房中，让餐厅运营更高效、沟通更顺畅。",
+          "imageAlt": "互联的餐厅订单"
+        },
+        "dashboard": {
+          "title": "直观的仪表板",
+          "description": "通过详细图表查看销售和关键数据。根据真实数据做出决策，并跟踪业务增长。",
+          "imageAlt": "餐厅管理仪表板"
+        },
+        "history": {
+          "title": "完整历史记录",
+          "description": "查看所有销售记录，以便更好地管理。访问历史数据，了解客户行为随时间的变化。",
+          "imageAlt": "销售历史记录"
+        },
+        "innovation": {
+          "title": "创新管理",
+          "description": "利用技术和智能创新业务管理。使用现代高效的工具，保持竞争优势。",
+          "imageAlt": "创新的餐厅管理"
+        },
+        "apps": {
+          "title": "集成应用",
+          "description": "使用专为服务员和顾客打造的版本来下单。通过专用应用让顾客和团队的工作更加轻松。",
+          "imageAlt": "餐厅集成应用"
+        }
+      }
+    },
+    "plans": {
+      "title": "灵活方案",
+      "description": "选择最适合您业务发展的方案。",
+      "monthly": "月付",
+      "monthlyDescription": "为您的业务提供完全灵活的方案",
+      "monthlyUnit": "/月",
+      "features": {
+        "fullAccess": "完整使用系统的所有功能",
+        "prioritySupport": "优先支持",
+        "cancelAnytime": "随时取消",
+        "sameAsMonthly": "包含月付方案的全部内容",
+        "discount": "约 27% 折扣",
+        "annualBilling": "按年计费"
+      },
+      "subscribeMonthly": "订阅月付方案",
+      "popular": "最受欢迎",
+      "annual": "年付",
+      "annualDescription": "按年付费，节省更多",
+      "annualUnit": "/年",
+      "equivalentMonthly": "月均 {{price}}",
+      "subscribeAnnual": "订阅年付方案",
+      "noPlanTitle": "您似乎还没有方案，或您的订阅尚未续期",
+      "noPlanDescription": "选择以下方案之一，改善您的餐厅管理。"
+    },
+    "notFound": {
+      "code": "404",
+      "title": "页面未找到",
+      "description": "您要查找的页面似乎已从地图上消失，或从未存在。",
+      "back": "返回",
+      "home": "前往首页"
+    },
+    "paymentSuccess": {
+      "title": "支付已确认！",
+      "preparing": "我们正在准备您的环境...",
+      "redirecting": "您将在片刻后被重定向。"
+    },
+    "recordsTotal": "记录总数：{{count}}",
+    "index": "#",
+    "actions": {
+      "label": "操作"
+    },
+    "saveChanges": "保存更改"
+  },
+  "auth": {
+    "login": "登录",
+    "register": "注册",
+    "createAccount": "创建账户",
+    "enter": "登录",
+    "entering": "登录中...",
+    "email": "电子邮箱",
+    "password": "密码",
+    "responsibleName": "负责人姓名",
+    "establishmentName": "店铺名称",
+    "registrationKey": "注册密钥",
+    "accessKey": "访问密钥",
+    "haveRegistrationKey": "我有注册密钥",
+    "noRegistrationKey": "我没有注册密钥",
+    "createAndSubscribe": "创建并订阅",
+    "loginSuccess": "注册成功。请登录以继续。",
+    "loginFailure": "登录失败。请检查凭据。",
+    "registerFailure": "注册失败。请检查信息。",
+    "verifyCredentials": "请检查您的凭据。",
+    "verifyData": "请检查您的信息。",
+    "pendingPayment": "付款待处理",
+    "continueToPlan": "继续选择方案",
+    "registrationSuccess": "注册成功！请登录以继续。",
+    "registrationErrorFallback": "注册失败。请检查信息。",
+    "subtitle": "轻松管理您的店铺",
+    "loginDescription": "使用您的凭据登录系统。",
+    "emailPlaceholder": "your@example.com",
+    "registerDescription": "填写以下信息即可开始。",
+    "responsiblePlaceholder": "您的姓名",
+    "establishmentPlaceholder": "Bar do Zé",
+    "freeAccessLabel": "我有注册密钥（免费访问）",
+    "registrationKeyPlaceholder": "访问密钥",
+    "createAccountLoading": "正在创建账户..."
+  },
+  "navigation": {
+    "dashboard": "仪表板",
+    "orders": "订单",
+    "sales": "销售",
+    "products": "产品",
+    "employees": "员工",
+    "reports": "报告",
+    "settings": "设置",
+    "login": "登录",
+    "logout": "退出登录",
+    "expandMenu": "展开菜单",
+    "collapseMenu": "收起菜单",
+    "openMenu": "打开菜单",
+    "closeMenu": "关闭菜单",
+    "theme": "主题"
+  },
+  "orders": {
+    "title": "订单",
+    "pageTitle": "订单 — {{establishment}}",
+    "recent": "最近订单",
+    "new": "新订单",
+    "edit": "编辑订单（添加项目）",
+    "details": "订单详情",
+    "customer": "客户 / 桌号",
+    "date": "日期",
+    "total": "总计",
+    "noResults": "未找到订单。",
+    "close": "关闭订单",
+    "closeConfirm": "确定要关闭此订单吗？它将变为销售记录。",
+    "deleteConfirm": "确定要删除此订单吗？",
+    "changeStatusConfirm": "确定要更改订单状态吗？",
+    "editLabel": "编辑订单",
+    "deleteLabel": "删除订单",
+    "fallback": {
+      "product": "产品"
+    },
+    "statusFilter": {
+      "notClosed": "未关闭"
+    },
+    "confirm": {
+      "delete": "确定要删除此订单吗？",
+      "close": "确定要关闭此订单吗？它将变为销售记录。",
+      "changeStatus": "确定要更改订单状态吗？"
+    },
+    "empty": "未找到订单。"
+  },
+  "sales": {
+    "title": "销售",
+    "pageTitle": "销售 — {{establishment}}",
+    "period": "期间销售",
+    "new": "新销售",
+    "details": "销售详情",
+    "customer": "客户 / 桌号",
+    "date": "日期",
+    "total": "总计",
+    "noResults": "该期间未找到销售记录。",
+    "cancel": "取消销售",
+    "cancelConfirm": "确定要取消此销售吗？",
+    "confirm": {
+      "cancel": "确定要取消此销售吗？"
+    },
+    "cancelling": "正在取消...",
+    "cancelButton": "取消销售",
+    "fallback": {
+      "product": "产品"
+    },
+    "table": {
+      "totalRecords": "记录总数：{{count}}"
+    },
+    "closingPeriod": "期间结算",
+    "empty": "该期间未找到销售记录。",
+    "viewDetails": "查看详情"
+  },
+  "products": {
+    "title": "产品",
+    "pageTitle": "管理 — {{establishment}}",
+    "menu": "菜单",
+    "types": "产品类型",
+    "new": "新产品",
+    "edit": "编辑产品",
+    "name": "名称",
+    "price": "价格",
+    "type": "类型",
+    "ingredients": "配料",
+    "description": "描述",
+    "color": "颜色",
+    "selectType": "请选择类型",
+    "separateComma": "用逗号分隔",
+    "searchProducts": "搜索产品...",
+    "searchTypes": "搜索类型...",
+    "noProducts": "未找到产品。",
+    "noTypes": "未找到产品类型。",
+    "inactive": "停用",
+    "activateType": "启用类型",
+    "deactivateType": "停用类型",
+    "createDescription": "填写信息以向菜单添加新产品。",
+    "updateDescription": "更新产品信息。",
+    "createTypeDescription": "创建产品类型以整理菜单。",
+    "updateTypeDescription": "更新产品类型描述。",
+    "selectTypeWarning": "请选择产品类型。",
+    "selection": {
+      "description": "请选择产品并填写客户信息。",
+      "clientPlaceholder": "例如：10号桌或客户姓名",
+      "available": "可用产品",
+      "searchPlaceholder": "搜索产品...",
+      "categoryPlaceholder": "类别",
+      "allCategories": "所有类别",
+      "noProducts": "未找到产品。",
+      "selected": "已选项目",
+      "noItems": "未选择任何项目",
+      "units": "单位",
+      "fallbackProduct": "产品",
+      "addProduct": "添加产品",
+      "decreaseQuantity": "减少数量",
+      "increaseQuantity": "增加数量",
+      "removeItem": "移除项目",
+      "statusPlaceholder": "状态"
+    },
+    "confirm": {
+      "delete": "确定要删除此产品吗？",
+      "toggle": "确定要更改此类型的状态吗？"
+    },
+    "managementTitle": "管理",
+    "tabs": {
+      "products": "产品",
+      "types": "类型"
+    },
+    "dialogs": {
+      "addProductTitle": "添加产品",
+      "addProductDescription": "填写信息以向菜单添加新产品。",
+      "addTypeTitle": "添加产品类型",
+      "addTypeDescription": "创建产品类型以整理菜单。",
+      "editProductTitle": "编辑产品",
+      "editProductDescription": "更新产品信息。",
+      "editTypeTitle": "编辑类型",
+      "editTypeDescription": "更新产品类型描述。"
+    },
+    "forms": {
+      "pricePlaceholder": "0.00",
+      "typePlaceholder": "请选择类型",
+      "ingredientsPlaceholder": "用逗号分隔"
+    },
+    "newType": "新类型",
+    "table": {
+      "searchPlaceholder": "搜索产品...",
+      "typesSearchPlaceholder": "搜索类型...",
+      "typesCaption": "已登记的产品类型列表。",
+      "origin": "来源",
+      "inactiveSuffix": "（停用）",
+      "systemOrigin": "系统默认",
+      "userOrigin": "用户创建"
+    },
+    "accessibility": {
+      "activateType": "启用类型",
+      "deactivateType": "停用类型"
+    }
+  },
+  "employees": {
+    "title": "员工",
+    "pageTitle": "员工 — {{establishment}}",
+    "team": "团队",
+    "new": "新员工",
+    "edit": "编辑员工",
+    "name": "姓名",
+    "email": "电子邮箱",
+    "role": "职位",
+    "password": "密码",
+    "newPassword": "新密码（可选）",
+    "selectRole": "请选择职位",
+    "search": "搜索员工...",
+    "noResults": "未找到员工。",
+    "createDescription": "注册新员工以访问系统。",
+    "updateDescription": "更新员工信息。",
+    "leaveBlank": "留空以保留当前密码。",
+    "confirm": {
+      "delete": "确定要删除这名员工吗？"
+    },
+    "addButton": "新员工",
+    "dialog": {
+      "addTitle": "添加员工",
+      "addDescription": "注册新员工以访问系统。",
+      "editTitle": "编辑员工",
+      "editDescription": "更新员工信息。"
+    },
+    "table": {
+      "searchPlaceholder": "搜索员工...",
+      "totalRecords": "记录总数：{{count}}"
+    },
+    "role": {
+      "owner": "所有者",
+      "manager": "经理",
+      "employee": "员工",
+      "customer": "客户"
+    },
+    "roleLabel": "角色"
+  },
+  "charts": {
+    "title": "报告",
+    "pageTitle": "报告 — {{establishment}}",
+    "productsSold": "已售产品",
+    "salesByHour": "按小时销售",
+    "tabs": {
+      "products": "已售产品",
+      "hours": "按小时销售"
+    },
+    "filters": {
+      "title": "筛选条件",
+      "startDate": "开始日期",
+      "startTime": "开始时间",
+      "endDate": "结束日期",
+      "endTime": "结束时间",
+      "foodType": "食品类型",
+      "select": "请选择",
+      "all": "全部",
+      "search": "搜索"
+    },
+    "startDate": "开始日期",
+    "startTime": "开始时间",
+    "endDate": "结束日期",
+    "endTime": "结束时间",
+    "foodType": "食品类型",
+    "selectChart": "请选择图表",
+    "search": "搜索",
+    "salesView": "销售视图",
+    "revenue": "收入",
+    "salesCount": "销售数量",
+    "revenueAndSales": "收入与销售",
+    "details": {
+      "title": "销售明细",
+      "totalRecords": "记录总数：{{count}}",
+      "quantitySold": "售出数量",
+      "totalRevenue": "总收入"
+    },
+    "detailSales": "销售明细",
+    "generatingReport": "正在生成报告",
+    "viewStatus": "查看状态",
+    "reportReady": "报告已准备好，但没有下载地址。",
+    "reportError": "生成报告时出错。",
+    "noSalesForDay": "当天未找到销售记录。",
+    "selectPeriod": "请选择期间并点击搜索。",
+    "dayOf": "第 {{day}} 天，共 {{total}} 天",
+    "sales": "销售",
+    "moreSales": "还有 {{count}} 项...",
+    "report": {
+      "generateExcel": "生成 Excel",
+      "generatePdf": "生成 PDF",
+      "filename": "报告",
+      "generating": "正在生成报告",
+      "generatingWithFormat": "正在生成报告（{{format}}）...",
+      "format": {
+        "excel": "Excel",
+        "pdf": "PDF"
+      },
+      "viewStatus": "查看状态",
+      "downloadFailed": "多次尝试后仍无法下载文件",
+      "generationFailed": "生成报告时出错",
+      "timeout": "检查报告状态超时",
+      "readyWithoutUrl": "报告已准备好，但没有下载地址",
+      "pollingFailed": "查询报告状态时出错",
+      "invalidResponse": "服务器响应无效",
+      "startFailed": "无法开始生成报告"
+    },
+    "visualization": {
+      "title": "销售视图",
+      "select": "请选择图表",
+      "revenue": "收入",
+      "salesCount": "销售数量",
+      "revenueAndSales": "收入与销售",
+      "salesPie": "销售数量（饼图）",
+      "pieLabel": "{{name}} {{value}}"
+    },
+    "summary": {
+      "totalRevenue": "总收入",
+      "totalSales": "销售总数",
+      "unitsSold": "售出单位数",
+      "dayRevenue": "当日收入",
+      "peakHour": "高峰时段"
+    },
+    "empty": {
+      "filtered": "未找到符合筛选条件的数据。",
+      "noSalesForDay": "当天未找到销售记录。",
+      "selectPeriod": "请选择期间并点击搜索。"
+    },
+    "hourly": {
+      "title": "按小时销售"
+    },
+    "tooltip": {
+      "sales": "销售",
+      "revenue": "收入",
+      "details": "详情",
+      "more": "+{{count}} 项...",
+      "label": "{{label}}："
+    }
+  },
+  "settings": {
+    "title": "设置",
+    "appearance": "外观",
+    "theme": "主题",
+    "light": "浅色",
+    "dark": "深色",
+    "system": "系统",
+    "language": "语言",
+    "currentLanguage": "当前语言",
+    "localeIndicator": "语言：{{locale}}",
+    "locales": {
+      "en": "英语",
+      "pt-BR": "葡萄牙语（巴西）",
+      "es": "西班牙语",
+      "fr": "法语",
+      "zh": "中文",
+      "hi": "印地语",
+      "ar": "阿拉伯语"
+    },
+    "moreComingSoon": "更多设置即将推出……"
+  },
+  "sync": {
+    "syncing": "同步中...",
+    "synced": "已同步",
+    "syncError": "同步失败。",
+    "lastSynced": "上次同步",
+    "realtimeConnected": "实时连接已启用",
+    "realtimeDisconnected": "实时连接不可用",
+    "retry": "重试"
+  },
+  "printer": {
+    "print": "打印",
+    "printOrder": "打印订单",
+    "printSale": "打印销售单",
+    "printing": "打印中...",
+    "printSuccess": "打印任务已发送。",
+    "printError": "无法打印。",
+    "printSoon": "打印（即将推出）"
+  },
+  "status": {
+    "open": "开放",
+    "inPreparation": "准备中",
+    "delivering": "配送中",
+    "closed": "已关闭",
+    "notClosed": "未关闭",
+    "active": "启用",
+    "inactive": "停用",
+    "pendingPayment": "付款待处理",
+    "paid": "已付款",
+    "cancelled": "已取消",
+    "owner": "所有者",
+    "administrator": "管理员",
+    "employee": "员工"
+  },
+  "errors": {
+    "generic": "出现问题。",
+    "sessionExpired": "您的会话已过期。",
+    "loadOrders": "加载订单时出错。",
+    "saveOrder": "保存订单时出错。",
+    "deleteOrder": "删除订单时出错。",
+    "closeOrder": "关闭订单时出错。",
+    "changeOrderStatus": "更新订单状态时出错。",
+    "loadSales": "加载销售时出错。",
+    "createSale": "创建销售时出错。",
+    "saleDetails": "加载销售详情时出错。",
+    "cancelSale": "取消销售时出错。",
+    "loadProducts": "加载产品时出错。",
+    "createProduct": "创建产品时出错。",
+    "updateProduct": "更新产品时出错。",
+    "deleteProduct": "删除产品时出错。",
+    "createType": "创建类型时出错。",
+    "updateType": "更新类型时出错。",
+    "updateTypeStatus": "更新类型状态时出错。",
+    "loadEmployees": "加载员工时出错。",
+    "createEmployee": "创建员工时出错。",
+    "updateEmployee": "更新员工时出错。",
+    "deleteEmployee": "删除员工时出错。",
+    "report": "启动报告生成时出错。",
+    "downloadReport": "多次尝试后仍无法下载文件。",
+    "invalidResponse": "服务器响应无效。",
+    "paymentUrl": "无法开始付款：找不到地址。",
+    "payment": "处理付款时出错。请检查会话是否有效。",
+    "products": {
+      "selectType": "请选择产品类型。",
+      "selectItems": "请至少选择一个产品。",
+      "create": "创建产品时出错",
+      "update": "更新产品时出错",
+      "delete": "删除产品时出错",
+      "createType": "创建类型时出错",
+      "updateType": "更新类型时出错",
+      "updateTypeStatus": "更新类型状态时出错"
+    },
+    "employees": {
+      "create": "创建员工时出错",
+      "update": "更新员工时出错",
+      "delete": "删除员工时出错"
+    }
+  },
+  "catalog": {
+    "burger": "汉堡包",
+    "artisanalBurger": "手工汉堡",
+    "chicken": "鸡肉",
+    "hotDog": "热狗",
+    "food": "食物",
+    "drink": "饮料",
+    "fries": "炸薯条",
+    "extra": "额外配料",
+    "dessert": "甜点",
+    "side": "配菜",
+    "pizza": "披萨",
+    "sushi": "寿司",
+    "other": "其他",
+    "defaultType": "默认目录类型"
+  }
+}

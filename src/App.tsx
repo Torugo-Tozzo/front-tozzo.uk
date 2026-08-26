@@ -46,7 +46,7 @@ const router = createBrowserRouter([
           { path: "/login", lazy: lazyPage(() => import('./pages/LoginPage')) },
         ]
       },
-      // Rotas que exigem autenticação mas permitem status PENDENTE_PAGAMENTO
+      // Authenticated routes that also allow pending payment users.
       {
         element: <ProtectedRoute allowPending={true} />,
         children: [
@@ -54,7 +54,7 @@ const router = createBrowserRouter([
           { path: "/payment/success", lazy: lazyPage(() => import('./pages/PaymentSuccessPage')) },
         ]
       },
-      // Rotas do Dashboard (exigem status ATIVO)
+      // Dashboard routes require an active establishment.
       {
         element: <ProtectedRoute />,
         children: [

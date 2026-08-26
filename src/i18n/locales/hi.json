@@ -1,0 +1,630 @@
+{
+  "common": {
+    "appName": "Tozzo.uk",
+    "loading": "लोड हो रहा है...",
+    "processing": "प्रक्रिया जारी है...",
+    "saving": "सहेजा जा रहा है...",
+    "search": "खोजें",
+    "filter": "फ़िल्टर",
+    "filters": "फ़िल्टर",
+    "clear": "साफ़ करें",
+    "apply": "लागू करें",
+    "save": "सहेजें",
+    "cancel": "रद्द करें",
+    "close": "बंद करें",
+    "confirm": "पुष्टि करें",
+    "yes": "हाँ",
+    "no": "नहीं",
+    "back": "वापस",
+    "next": "अगला",
+    "previous": "पिछला",
+    "edit": "संपादित करें",
+    "delete": "हटाएँ",
+    "add": "जोड़ें",
+    "create": "बनाएँ",
+    "update": "अपडेट करें",
+    "activate": "सक्रिय करें",
+    "deactivate": "निष्क्रिय करें",
+    "select": "चुनें",
+    "all": "सभी",
+    "none": "कोई नहीं",
+    "notInformed": "जानकारी नहीं",
+    "noResults": "कोई परिणाम नहीं मिला।",
+    "pageOf": "पृष्ठ {{page}}, कुल {{total}}",
+    "more": "+{{count}} और...",
+    "units": "इकाइयाँ",
+    "recordCount": {
+      "zero": "{{count}} रिकॉर्ड",
+      "one": "{{count}} रिकॉर्ड",
+      "two": "{{count}} रिकॉर्ड",
+      "few": "{{count}} रिकॉर्ड",
+      "many": "{{count}} रिकॉर्ड",
+      "other": "{{count}} रिकॉर्ड"
+    },
+    "unitCount": {
+      "zero": "{{count}} इकाइयाँ",
+      "one": "{{count}} इकाई",
+      "two": "{{count}} इकाइयाँ",
+      "few": "{{count}} इकाइयाँ",
+      "many": "{{count}} इकाइयाँ",
+      "other": "{{count}} इकाइयाँ"
+    },
+    "total": "कुल",
+    "date": "तारीख",
+    "time": "समय",
+    "email": "ईमेल",
+    "name": "नाम",
+    "description": "विवरण",
+    "price": "कीमत",
+    "status": "स्थिति",
+    "customer": "ग्राहक / टेबल",
+    "createdBy": "द्वारा बनाया गया",
+    "optional": "वैकल्पिक",
+    "allCategories": "सभी श्रेणियाँ",
+    "copyright": "सर्वाधिकार सुरक्षित।",
+    "footerCopyright": "© {{year}} Tozzo.uk. सर्वाधिकार सुरक्षित।",
+    "accessibility": {
+      "linkedin": "LinkedIn",
+      "github": "GitHub",
+      "email": "ईमेल",
+      "openMenu": "मेनू खोलें",
+      "logout": "लॉग आउट करें",
+      "collapseFilters": "फ़िल्टर संक्षिप्त करें",
+      "expandFilters": "फ़िल्टर विस्तृत करें",
+      "toggleTheme": "थीम बदलें",
+      "close": "बंद करें"
+    },
+    "logoutConfirmation": {
+      "title": "लॉग आउट करें?",
+      "description": "क्या आप वाकई लॉग आउट करना चाहते हैं?",
+      "confirm": "लॉग आउट करें"
+    },
+    "pagination": {
+      "rowsPerPage": "प्रति पृष्ठ पंक्तियाँ",
+      "page": "पृष्ठ {{page}}",
+      "pageOf": "पृष्ठ {{page}}, कुल {{total}}"
+    },
+    "placeholders": {
+      "customer": "ग्राहक/टेबल खोजें...",
+      "employee": "कर्मचारी खोजें...",
+      "amount": "0.00"
+    },
+    "minimumTotal": "न्यूनतम कुल राशि",
+    "maximumTotal": "अधिकतम कुल राशि",
+    "confirmQuestion": "क्या आप निश्चित हैं?",
+    "landing": {
+      "heroImageAlt": "रेस्तरां का आंतरिक दृश्य",
+      "heroTitle": "रेस्तरां के लिए",
+      "heroHighlight": "स्मार्ट प्रबंधन",
+      "heroDescription": "हमारे संपूर्ण प्रबंधन प्लेटफ़ॉर्म से अपने ऑर्डर सरल बनाएं, स्टॉक नियंत्रित करें और बिक्री बढ़ाएं।",
+      "startUsing": "उपयोग शुरू करें",
+      "viewPlans": "प्लान देखें",
+      "features": {
+        "kitchen": {
+          "title": "किचन प्रबंधन",
+          "description": "ऑर्डर सीधे किचन में भेजें, गलतियों और देरी से बचें। अपनी टीम के काम का प्रवाह बेहतर बनाएं और सुनिश्चित करें कि हर ऑर्डर सही और समय पर तैयार हो।",
+          "imageAlt": "किचन प्रबंधन"
+        },
+        "bar": {
+          "title": "बार प्रबंधन",
+          "description": "पेय और ड्रिंक का सटीक प्रबंधन करें और बर्बादी से बचें। अपने बार के स्टॉक पर पूरा नियंत्रण रखें और लाभ बढ़ाएं।",
+          "imageAlt": "बार प्रबंधन"
+        },
+        "menu": {
+          "title": "डिजिटल मेन्यू",
+          "description": "अपने मेन्यू को रीयल टाइम में अपडेट करें और ग्राहकों के चुनाव को आसान बनाएं। फ़ोटो और विस्तृत विवरण जोड़ें, और कीमतें तुरंत बदलें।",
+          "imageAlt": "डिजिटल मेन्यू"
+        },
+        "orders": {
+          "title": "कनेक्टेड ऑर्डर",
+          "description": "वेटर द्वारा दर्ज किया गया ऑर्डर तुरंत सिस्टम और किचन में दिखाई देता है। अपने रेस्तरां में तेज़ी और बेहतर संचार पाएं।",
+          "imageAlt": "कनेक्टेड रेस्तरां ऑर्डर"
+        },
+        "dashboard": {
+          "title": "सहज डैशबोर्ड",
+          "description": "विस्तृत चार्ट के माध्यम से अपनी बिक्री और आंकड़े देखें। वास्तविक डेटा के आधार पर निर्णय लें और अपने व्यवसाय की वृद्धि पर नज़र रखें।",
+          "imageAlt": "रेस्तरां प्रबंधन डैशबोर्ड"
+        },
+        "history": {
+          "title": "पूरा इतिहास",
+          "description": "बेहतर नियंत्रण के लिए की गई सभी बिक्री का इतिहास देखें। पुराने डेटा तक पहुंचें और समय के साथ ग्राहकों के व्यवहार को समझें।",
+          "imageAlt": "बिक्री इतिहास"
+        },
+        "innovation": {
+          "title": "नवोन्मेषी प्रबंधन",
+          "description": "तकनीक और बुद्धिमत्ता से अपने व्यवसाय के प्रबंधन में नवाचार लाएं। आधुनिक और प्रभावी टूल्स के साथ प्रतिस्पर्धा में आगे रहें।",
+          "imageAlt": "नवोन्मेषी रेस्तरां प्रबंधन"
+        },
+        "apps": {
+          "title": "एकीकृत ऐप्स",
+          "description": "वेटरों और ग्राहकों के ऑर्डर के लिए विशेष संस्करणों का उपयोग करें। समर्पित ऐप्स से अपने ग्राहकों और टीम का काम आसान बनाएं।",
+          "imageAlt": "एकीकृत रेस्तरां ऐप्स"
+        }
+      }
+    },
+    "plans": {
+      "title": "लचीले प्लान",
+      "description": "अपने व्यवसाय की वृद्धि के लिए सही प्लान चुनें।",
+      "monthly": "मासिक",
+      "monthlyDescription": "आपके व्यवसाय के लिए पूरी लचीलापन",
+      "monthlyUnit": "/माह",
+      "features": {
+        "fullAccess": "सिस्टम की सभी सुविधाओं का पूरा उपयोग",
+        "prioritySupport": "प्राथमिकता सहायता",
+        "cancelAnytime": "जब चाहें रद्द करें",
+        "sameAsMonthly": "मासिक प्लान की सभी सुविधाएँ",
+        "discount": "लगभग 27% की छूट",
+        "annualBilling": "वार्षिक बिलिंग"
+      },
+      "subscribeMonthly": "मासिक सदस्यता लें",
+      "popular": "सबसे लोकप्रिय",
+      "annual": "वार्षिक",
+      "annualDescription": "वार्षिक भुगतान के साथ बचत करें",
+      "annualUnit": "/वर्ष",
+      "equivalentMonthly": "{{price}} प्रति माह के बराबर",
+      "subscribeAnnual": "वार्षिक सदस्यता लें",
+      "noPlanTitle": "ऐसा लगता है कि आपके पास अभी कोई प्लान नहीं है या आपकी सदस्यता नवीनीकृत नहीं हुई है",
+      "noPlanDescription": "अपने रेस्तरां का प्रबंधन बेहतर बनाने के लिए नीचे दिए गए प्लानों में से एक चुनें।"
+    },
+    "notFound": {
+      "code": "404",
+      "title": "पृष्ठ नहीं मिला",
+      "description": "आप जिस पृष्ठ को ढूंढ रहे हैं, वह शायद गायब हो गया है या कभी मौजूद ही नहीं था।",
+      "back": "वापस",
+      "home": "होम पर जाएँ"
+    },
+    "paymentSuccess": {
+      "title": "भुगतान की पुष्टि हो गई!",
+      "preparing": "हम आपका वातावरण तैयार कर रहे हैं...",
+      "redirecting": "आपको कुछ ही क्षणों में रीडायरेक्ट किया जाएगा।"
+    },
+    "recordsTotal": "कुल रिकॉर्ड: {{count}}",
+    "index": "#",
+    "actions": {
+      "label": "कार्रवाइयाँ"
+    },
+    "saveChanges": "परिवर्तन सहेजें"
+  },
+  "auth": {
+    "login": "लॉग इन",
+    "register": "पंजीकरण",
+    "createAccount": "खाता बनाएँ",
+    "enter": "प्रवेश करें",
+    "entering": "प्रवेश हो रहा है...",
+    "email": "ईमेल",
+    "password": "पासवर्ड",
+    "responsibleName": "प्रभारी का नाम",
+    "establishmentName": "प्रतिष्ठान का नाम",
+    "registrationKey": "पंजीकरण कुंजी",
+    "accessKey": "पहुँच कुंजी",
+    "haveRegistrationKey": "मेरे पास पंजीकरण कुंजी है",
+    "noRegistrationKey": "मेरे पास पंजीकरण कुंजी नहीं है",
+    "createAndSubscribe": "बनाएँ और सदस्यता लें",
+    "loginSuccess": "पंजीकरण सफल हुआ। जारी रखने के लिए लॉग इन करें।",
+    "loginFailure": "लॉग इन विफल। अपनी जानकारी जाँचें।",
+    "registerFailure": "पंजीकरण विफल। अपनी जानकारी जाँचें।",
+    "verifyCredentials": "अपनी जानकारी जाँचें।",
+    "verifyData": "अपना डेटा जाँचें।",
+    "pendingPayment": "भुगतान लंबित",
+    "continueToPlan": "योजना चयन पर जाएँ",
+    "registrationSuccess": "पंजीकरण सफल हुआ! जारी रखने के लिए लॉग इन करें।",
+    "registrationErrorFallback": "पंजीकरण विफल। अपनी जानकारी जाँचें।",
+    "subtitle": "अपने प्रतिष्ठान को आसानी से प्रबंधित करें",
+    "loginDescription": "सिस्टम तक पहुँचने के लिए अपनी जानकारी से लॉग इन करें।",
+    "emailPlaceholder": "your@example.com",
+    "registerDescription": "शुरू करने के लिए नीचे दी गई जानकारी भरें।",
+    "responsiblePlaceholder": "आपका नाम",
+    "establishmentPlaceholder": "Bar do Zé",
+    "freeAccessLabel": "मेरे पास पंजीकरण कुंजी है (मुफ़्त पहुँच)",
+    "registrationKeyPlaceholder": "पहुँच कुंजी",
+    "createAccountLoading": "खाता बनाया जा रहा है..."
+  },
+  "navigation": {
+    "dashboard": "डैशबोर्ड",
+    "orders": "ऑर्डर",
+    "sales": "बिक्री",
+    "products": "उत्पाद",
+    "employees": "कर्मचारी",
+    "reports": "रिपोर्ट",
+    "settings": "सेटिंग्स",
+    "login": "लॉग इन",
+    "logout": "लॉग आउट",
+    "expandMenu": "मेनू फैलाएँ",
+    "collapseMenu": "मेनू समेटें",
+    "openMenu": "मेनू खोलें",
+    "closeMenu": "मेनू बंद करें",
+    "theme": "थीम"
+  },
+  "orders": {
+    "title": "ऑर्डर",
+    "pageTitle": "ऑर्डर — {{establishment}}",
+    "recent": "हाल के ऑर्डर",
+    "new": "नया ऑर्डर",
+    "edit": "ऑर्डर संपादित करें (आइटम जोड़ें)",
+    "details": "ऑर्डर विवरण",
+    "customer": "ग्राहक / टेबल",
+    "date": "तारीख",
+    "total": "कुल",
+    "noResults": "कोई ऑर्डर नहीं मिला।",
+    "close": "ऑर्डर बंद करें",
+    "closeConfirm": "क्या आप यह ऑर्डर बंद करना चाहते हैं? यह बिक्री में बदल जाएगा।",
+    "deleteConfirm": "क्या आप यह ऑर्डर हटाना चाहते हैं?",
+    "changeStatusConfirm": "क्या आप ऑर्डर की स्थिति बदलना चाहते हैं?",
+    "editLabel": "ऑर्डर संपादित करें",
+    "deleteLabel": "ऑर्डर हटाएँ",
+    "fallback": {
+      "product": "उत्पाद"
+    },
+    "statusFilter": {
+      "notClosed": "बंद नहीं किए गए"
+    },
+    "confirm": {
+      "delete": "क्या आप यह ऑर्डर हटाना चाहते हैं?",
+      "close": "क्या आप यह ऑर्डर बंद करना चाहते हैं? यह बिक्री में बदल जाएगा।",
+      "changeStatus": "क्या आप ऑर्डर की स्थिति बदलना चाहते हैं?"
+    },
+    "empty": "कोई ऑर्डर नहीं मिला।"
+  },
+  "sales": {
+    "title": "बिक्री",
+    "pageTitle": "बिक्री — {{establishment}}",
+    "period": "अवधि की बिक्री",
+    "new": "नई बिक्री",
+    "details": "बिक्री विवरण",
+    "customer": "ग्राहक / टेबल",
+    "date": "तारीख",
+    "total": "कुल",
+    "noResults": "इस अवधि में कोई बिक्री नहीं मिली।",
+    "cancel": "बिक्री रद्द करें",
+    "cancelConfirm": "क्या आप यह बिक्री रद्द करना चाहते हैं?",
+    "confirm": {
+      "cancel": "क्या आप यह बिक्री रद्द करना चाहते हैं?"
+    },
+    "cancelling": "रद्द किया जा रहा है...",
+    "cancelButton": "बिक्री रद्द करें",
+    "fallback": {
+      "product": "उत्पाद"
+    },
+    "table": {
+      "totalRecords": "कुल रिकॉर्ड: {{count}}"
+    },
+    "closingPeriod": "अवधि का समापन",
+    "empty": "इस अवधि में कोई बिक्री नहीं मिली।",
+    "viewDetails": "विवरण देखें"
+  },
+  "products": {
+    "title": "उत्पाद",
+    "pageTitle": "प्रबंधन — {{establishment}}",
+    "menu": "मेनू",
+    "types": "उत्पाद प्रकार",
+    "new": "नया उत्पाद",
+    "edit": "उत्पाद संपादित करें",
+    "name": "नाम",
+    "price": "कीमत",
+    "type": "प्रकार",
+    "ingredients": "सामग्री",
+    "description": "विवरण",
+    "color": "रंग",
+    "selectType": "प्रकार चुनें",
+    "separateComma": "अल्पविराम से अलग करें",
+    "searchProducts": "उत्पाद खोजें...",
+    "searchTypes": "प्रकार खोजें...",
+    "noProducts": "कोई उत्पाद नहीं मिला।",
+    "noTypes": "कोई उत्पाद प्रकार नहीं मिला।",
+    "inactive": "निष्क्रिय",
+    "activateType": "प्रकार सक्रिय करें",
+    "deactivateType": "प्रकार निष्क्रिय करें",
+    "createDescription": "मेनू में नया उत्पाद जोड़ने के लिए विवरण भरें।",
+    "updateDescription": "उत्पाद का विवरण अपडेट करें।",
+    "createTypeDescription": "मेनू व्यवस्थित करने के लिए उत्पाद प्रकार बनाएँ।",
+    "updateTypeDescription": "उत्पाद प्रकार का विवरण अपडेट करें।",
+    "selectTypeWarning": "कृपया उत्पाद प्रकार चुनें।",
+    "selection": {
+      "description": "उत्पाद चुनें और ग्राहक की जानकारी दर्ज करें।",
+      "clientPlaceholder": "उदाहरण: टेबल 10 या ग्राहक का नाम",
+      "available": "उपलब्ध उत्पाद",
+      "searchPlaceholder": "उत्पाद खोजें...",
+      "categoryPlaceholder": "श्रेणी",
+      "allCategories": "सभी श्रेणियाँ",
+      "noProducts": "कोई उत्पाद नहीं मिला।",
+      "selected": "चयनित आइटम",
+      "noItems": "कोई आइटम चयनित नहीं",
+      "units": "इकाइयाँ",
+      "fallbackProduct": "उत्पाद",
+      "addProduct": "उत्पाद जोड़ें",
+      "decreaseQuantity": "मात्रा घटाएँ",
+      "increaseQuantity": "मात्रा बढ़ाएँ",
+      "removeItem": "आइटम हटाएँ",
+      "statusPlaceholder": "स्थिति"
+    },
+    "confirm": {
+      "delete": "क्या आप वाकई इस उत्पाद को हटाना चाहते हैं?",
+      "toggle": "क्या आप वाकई इस प्रकार की स्थिति बदलना चाहते हैं?"
+    },
+    "managementTitle": "प्रबंधन",
+    "tabs": {
+      "products": "उत्पाद",
+      "types": "प्रकार"
+    },
+    "dialogs": {
+      "addProductTitle": "उत्पाद जोड़ें",
+      "addProductDescription": "मेनू में नया उत्पाद जोड़ने के लिए विवरण भरें।",
+      "addTypeTitle": "उत्पाद प्रकार जोड़ें",
+      "addTypeDescription": "मेनू को व्यवस्थित करने के लिए उत्पाद प्रकार बनाएँ।",
+      "editProductTitle": "उत्पाद संपादित करें",
+      "editProductDescription": "उत्पाद का विवरण अपडेट करें।",
+      "editTypeTitle": "प्रकार संपादित करें",
+      "editTypeDescription": "उत्पाद प्रकार का विवरण अपडेट करें।"
+    },
+    "forms": {
+      "pricePlaceholder": "0.00",
+      "typePlaceholder": "प्रकार चुनें",
+      "ingredientsPlaceholder": "अल्पविराम से अलग करें"
+    },
+    "newType": "नया प्रकार",
+    "table": {
+      "searchPlaceholder": "उत्पाद खोजें...",
+      "typesSearchPlaceholder": "प्रकार खोजें...",
+      "typesCaption": "पंजीकृत उत्पाद प्रकारों की सूची।",
+      "origin": "स्रोत",
+      "inactiveSuffix": "(निष्क्रिय)",
+      "systemOrigin": "सिस्टम डिफ़ॉल्ट",
+      "userOrigin": "उपयोगकर्ता द्वारा बनाया गया"
+    },
+    "accessibility": {
+      "activateType": "प्रकार सक्रिय करें",
+      "deactivateType": "प्रकार निष्क्रिय करें"
+    }
+  },
+  "employees": {
+    "title": "कर्मचारी",
+    "pageTitle": "कर्मचारी — {{establishment}}",
+    "team": "टीम",
+    "new": "नया कर्मचारी",
+    "edit": "कर्मचारी संपादित करें",
+    "name": "नाम",
+    "email": "ईमेल",
+    "role": "भूमिका",
+    "password": "पासवर्ड",
+    "newPassword": "नया पासवर्ड (वैकल्पिक)",
+    "selectRole": "भूमिका चुनें",
+    "search": "कर्मचारी खोजें...",
+    "noResults": "कोई कर्मचारी नहीं मिला।",
+    "createDescription": "सिस्टम तक पहुँच के लिए नया कर्मचारी पंजीकृत करें।",
+    "updateDescription": "कर्मचारी का विवरण अपडेट करें।",
+    "leaveBlank": "वर्तमान पासवर्ड रखने के लिए खाली छोड़ें।",
+    "confirm": {
+      "delete": "क्या आप वाकई इस कर्मचारी को हटाना चाहते हैं?"
+    },
+    "addButton": "नया कर्मचारी",
+    "dialog": {
+      "addTitle": "कर्मचारी जोड़ें",
+      "addDescription": "सिस्टम तक पहुँच के लिए नया कर्मचारी पंजीकृत करें।",
+      "editTitle": "कर्मचारी संपादित करें",
+      "editDescription": "कर्मचारी का विवरण अपडेट करें।"
+    },
+    "table": {
+      "searchPlaceholder": "कर्मचारी खोजें...",
+      "totalRecords": "कुल रिकॉर्ड: {{count}}"
+    },
+    "role": {
+      "owner": "मालिक",
+      "manager": "प्रबंधक",
+      "employee": "कर्मचारी",
+      "customer": "ग्राहक"
+    },
+    "roleLabel": "भूमिका"
+  },
+  "charts": {
+    "title": "रिपोर्ट",
+    "pageTitle": "रिपोर्ट — {{establishment}}",
+    "productsSold": "बेचे गए उत्पाद",
+    "salesByHour": "घंटे के अनुसार बिक्री",
+    "tabs": {
+      "products": "बेचे गए उत्पाद",
+      "hours": "घंटे के अनुसार बिक्री"
+    },
+    "filters": {
+      "title": "फ़िल्टर",
+      "startDate": "आरंभ तारीख",
+      "startTime": "आरंभ समय",
+      "endDate": "अंतिम तारीख",
+      "endTime": "अंतिम समय",
+      "foodType": "भोजन प्रकार",
+      "select": "चुनें",
+      "all": "सभी",
+      "search": "खोजें"
+    },
+    "startDate": "आरंभ तारीख",
+    "startTime": "आरंभ समय",
+    "endDate": "अंतिम तारीख",
+    "endTime": "अंतिम समय",
+    "foodType": "भोजन प्रकार",
+    "selectChart": "चार्ट चुनें",
+    "search": "खोजें",
+    "salesView": "बिक्री दृश्य",
+    "revenue": "राजस्व",
+    "salesCount": "बिक्री की संख्या",
+    "revenueAndSales": "राजस्व और बिक्री",
+    "details": {
+      "title": "बिक्री विवरण",
+      "totalRecords": "कुल रिकॉर्ड: {{count}}",
+      "quantitySold": "बेची गई मात्रा",
+      "totalRevenue": "कुल राजस्व"
+    },
+    "detailSales": "बिक्री विवरण",
+    "generatingReport": "रिपोर्ट बनाई जा रही है",
+    "viewStatus": "स्थिति देखें",
+    "reportReady": "रिपोर्ट तैयार है, लेकिन डाउनलोड URL नहीं मिला।",
+    "reportError": "रिपोर्ट बनाने में त्रुटि।",
+    "noSalesForDay": "इस दिन कोई बिक्री नहीं मिली।",
+    "selectPeriod": "अवधि चुनें और खोजें पर क्लिक करें।",
+    "dayOf": "दिन {{day}}, कुल {{total}}",
+    "sales": "बिक्री",
+    "moreSales": "+{{count}} और...",
+    "report": {
+      "generateExcel": "Excel बनाएँ",
+      "generatePdf": "PDF बनाएँ",
+      "filename": "रिपोर्ट",
+      "generating": "रिपोर्ट बनाई जा रही है",
+      "generatingWithFormat": "रिपोर्ट बनाई जा रही है ({{format}})...",
+      "format": {
+        "excel": "Excel",
+        "pdf": "PDF"
+      },
+      "viewStatus": "स्थिति देखें",
+      "downloadFailed": "कई प्रयासों के बाद फ़ाइल डाउनलोड नहीं हो सकी",
+      "generationFailed": "रिपोर्ट बनाने में त्रुटि",
+      "timeout": "रिपोर्ट की स्थिति जाँचने का समय समाप्त हो गया",
+      "readyWithoutUrl": "रिपोर्ट तैयार है, लेकिन डाउनलोड URL नहीं मिला",
+      "pollingFailed": "रिपोर्ट की स्थिति जाँचने में त्रुटि",
+      "invalidResponse": "सर्वर की अमान्य प्रतिक्रिया",
+      "startFailed": "रिपोर्ट बनाना शुरू नहीं किया जा सका"
+    },
+    "visualization": {
+      "title": "बिक्री दृश्य",
+      "select": "चार्ट चुनें",
+      "revenue": "राजस्व",
+      "salesCount": "बिक्री की संख्या",
+      "revenueAndSales": "राजस्व और बिक्री",
+      "salesPie": "बिक्री की संख्या (पाई चार्ट)",
+      "pieLabel": "{{name}} {{value}}"
+    },
+    "summary": {
+      "totalRevenue": "कुल राजस्व",
+      "totalSales": "कुल बिक्री",
+      "unitsSold": "बेची गई इकाइयाँ",
+      "dayRevenue": "दिन का राजस्व",
+      "peakHour": "व्यस्ततम समय"
+    },
+    "empty": {
+      "filtered": "चयनित फ़िल्टर के लिए कोई डेटा नहीं मिला।",
+      "noSalesForDay": "इस दिन कोई बिक्री नहीं मिली।",
+      "selectPeriod": "अवधि चुनें और खोजें पर क्लिक करें।"
+    },
+    "hourly": {
+      "title": "घंटे के अनुसार बिक्री"
+    },
+    "tooltip": {
+      "sales": "बिक्री",
+      "revenue": "राजस्व",
+      "details": "विवरण",
+      "more": "+{{count}} और...",
+      "label": "{{label}}:"
+    }
+  },
+  "settings": {
+    "title": "सेटिंग्स",
+    "appearance": "दिखावट",
+    "theme": "थीम",
+    "light": "हल्का",
+    "dark": "गहरा",
+    "system": "सिस्टम",
+    "language": "भाषा",
+    "currentLanguage": "वर्तमान भाषा",
+    "localeIndicator": "भाषा: {{locale}}",
+    "locales": {
+      "en": "अंग्रेज़ी",
+      "pt-BR": "पुर्तगाली (ब्राज़ील)",
+      "es": "स्पेनिश",
+      "fr": "फ़्रेंच",
+      "zh": "चीनी",
+      "hi": "हिंदी",
+      "ar": "अरबी"
+    },
+    "moreComingSoon": "और सेटिंग्स जल्द आ रही हैं..."
+  },
+  "sync": {
+    "syncing": "सिंक हो रहा है...",
+    "synced": "सिंक किया गया",
+    "syncError": "सिंक विफल।",
+    "lastSynced": "अंतिम सिंक",
+    "realtimeConnected": "रियल-टाइम कनेक्शन सक्रिय",
+    "realtimeDisconnected": "रियल-टाइम कनेक्शन उपलब्ध नहीं",
+    "retry": "पुनः प्रयास करें"
+  },
+  "printer": {
+    "print": "प्रिंट करें",
+    "printOrder": "ऑर्डर प्रिंट करें",
+    "printSale": "बिक्री प्रिंट करें",
+    "printing": "प्रिंट हो रहा है...",
+    "printSuccess": "प्रिंट कार्य भेज दिया गया।",
+    "printError": "प्रिंट नहीं कर सके।",
+    "printSoon": "प्रिंट (जल्द उपलब्ध)"
+  },
+  "status": {
+    "open": "खुला",
+    "inPreparation": "तैयारी में",
+    "delivering": "डिलीवरी में",
+    "closed": "बंद",
+    "notClosed": "बंद नहीं",
+    "active": "सक्रिय",
+    "inactive": "निष्क्रिय",
+    "pendingPayment": "भुगतान लंबित",
+    "paid": "भुगतान किया गया",
+    "cancelled": "रद्द",
+    "owner": "मालिक",
+    "administrator": "प्रशासक",
+    "employee": "कर्मचारी"
+  },
+  "errors": {
+    "generic": "कुछ गलत हो गया।",
+    "sessionExpired": "आपका सत्र समाप्त हो गया है।",
+    "loadOrders": "ऑर्डर लोड करने में त्रुटि।",
+    "saveOrder": "ऑर्डर सहेजने में त्रुटि।",
+    "deleteOrder": "ऑर्डर हटाने में त्रुटि।",
+    "closeOrder": "ऑर्डर बंद करने में त्रुटि।",
+    "changeOrderStatus": "ऑर्डर स्थिति अपडेट करने में त्रुटि।",
+    "loadSales": "बिक्री लोड करने में त्रुटि।",
+    "createSale": "बिक्री बनाने में त्रुटि।",
+    "saleDetails": "बिक्री विवरण लोड करने में त्रुटि।",
+    "cancelSale": "बिक्री रद्द करने में त्रुटि।",
+    "loadProducts": "उत्पाद लोड करने में त्रुटि।",
+    "createProduct": "उत्पाद बनाने में त्रुटि।",
+    "updateProduct": "उत्पाद अपडेट करने में त्रुटि।",
+    "deleteProduct": "उत्पाद हटाने में त्रुटि।",
+    "createType": "प्रकार बनाने में त्रुटि।",
+    "updateType": "प्रकार अपडेट करने में त्रुटि।",
+    "updateTypeStatus": "प्रकार स्थिति अपडेट करने में त्रुटि।",
+    "loadEmployees": "कर्मचारी लोड करने में त्रुटि।",
+    "createEmployee": "कर्मचारी बनाने में त्रुटि।",
+    "updateEmployee": "कर्मचारी अपडेट करने में त्रुटि।",
+    "deleteEmployee": "कर्मचारी हटाने में त्रुटि।",
+    "report": "रिपोर्ट शुरू करने में त्रुटि।",
+    "downloadReport": "कई प्रयासों के बाद फ़ाइल डाउनलोड नहीं हो सकी।",
+    "invalidResponse": "सर्वर की प्रतिक्रिया अमान्य है।",
+    "paymentUrl": "भुगतान शुरू नहीं कर सके: URL नहीं मिला।",
+    "payment": "भुगतान संसाधित करने में त्रुटि। अपना सत्र जाँचें।",
+    "products": {
+      "selectType": "कृपया उत्पाद का प्रकार चुनें।",
+      "selectItems": "कृपया कम से कम एक उत्पाद चुनें।",
+      "create": "उत्पाद बनाने में त्रुटि।",
+      "update": "उत्पाद अपडेट करने में त्रुटि।",
+      "delete": "उत्पाद हटाने में त्रुटि।",
+      "createType": "प्रकार बनाने में त्रुटि।",
+      "updateType": "प्रकार अपडेट करने में त्रुटि।",
+      "updateTypeStatus": "प्रकार की स्थिति अपडेट करने में त्रुटि।"
+    },
+    "employees": {
+      "create": "कर्मचारी बनाने में त्रुटि।",
+      "update": "कर्मचारी अपडेट करने में त्रुटि।",
+      "delete": "कर्मचारी हटाने में त्रुटि।"
+    }
+  },
+  "catalog": {
+    "burger": "बर्गर",
+    "artisanalBurger": "आर्टिसनल बर्गर",
+    "chicken": "चिकन",
+    "hotDog": "हॉट डॉग",
+    "food": "भोजन",
+    "drink": "पेय",
+    "fries": "फ्रेंच फ्राइज़",
+    "extra": "अतिरिक्त",
+    "dessert": "मिठाई",
+    "side": "सहायक व्यंजन",
+    "pizza": "पिज़्ज़ा",
+    "sushi": "सुशी",
+    "other": "अन्य",
+    "defaultType": "डिफ़ॉल्ट कैटलॉग प्रकार"
+  }
+}

@@ -1,5 +1,6 @@
 import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTranslation } from 'react-i18next';
 
 interface ProtectedRouteProps {
   allowPending?: boolean;
@@ -7,9 +8,10 @@ interface ProtectedRouteProps {
 
 export default function ProtectedRoute({ allowPending = false }: ProtectedRouteProps) {
   const { isAuthenticated, isLoading, user } = useAuth();
+  const { t } = useTranslation('common');
 
   if (isLoading) {
-    return <div className="flex items-center justify-center min-h-screen">
+    return <div className="flex items-center justify-center min-h-screen" role="status" aria-label={t('loading')}>
       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
     </div>;
   }
@@ -18,17 +20,13 @@ export default function ProtectedRoute({ allowPending = false }: ProtectedRouteP
     return <Navigate to="/login" replace />;
   }
 
-  // Se o usuário estiver pendente de pagamento e a rota não permitir pendentes
-  const status = user?.estabelecimento?.status;
+  // Pending payment users may access only routes explicitly marked as allowed.
+  const status = user?.establishment?.status;
   
   if (!allowPending) {
-    // Se tiver estabelecimento e não estiver ATIVO, bloqueia
-    if (user?.estabelecimento && status !== 'ATIVO') {
+    if (user?.establishment && status !== 'ACTIVE') {
       return <Navigate to="/plan" replace />;
     }
-    // Se NÃO tiver estabelecimento, pode ser um erro de carga ou usuário sem vínculo
-    // Nesse caso, talvez devêssemos bloquear ou redirecionar para um setup?
-    // Por enquanto, vamos manter o comportamento de bloquear apenas se explicitamente não for ATIVO
   }
 
   return <Outlet />;

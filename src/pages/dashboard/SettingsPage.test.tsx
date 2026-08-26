@@ -1,39 +1,61 @@
 import { describe, it, expect, beforeEach } from 'bun:test'
-import { render, screen } from '@testing-library/react'
+import { act, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { ThemeProvider } from '@/components/theme-provider'
+import { I18nProvider } from '@/i18n/provider'
+import { i18n } from '@/i18n/config'
 import SettingsPage from './SettingsPage'
 
-function renderWithTheme() {
+function renderWithProviders() {
   return render(
-    <ThemeProvider>
-      <SettingsPage />
-    </ThemeProvider>
+    <I18nProvider>
+      <ThemeProvider>
+        <SettingsPage />
+      </ThemeProvider>
+    </I18nProvider>,
   )
 }
 
 describe('SettingsPage', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     localStorage.clear()
     document.documentElement.classList.remove('light', 'dark')
+    await act(async () => {
+      await i18n.changeLanguage('pt-BR')
+    })
   })
 
   it('renders the page heading and appearance section', () => {
-    renderWithTheme()
+    renderWithProviders()
     expect(screen.getByText('Configurações')).toBeInTheDocument()
-    expect(screen.getByText('Tema do sistema')).toBeInTheDocument()
+    expect(screen.getByText('Sistema')).toBeInTheDocument()
+    expect(screen.getByRole('combobox', { name: 'Idioma atual' })).toHaveTextContent('Português (Brasil)')
+    expect(screen.getByRole('status', { name: 'Idioma: Português (Brasil)' })).toHaveTextContent('Idioma: Português (Brasil)')
   })
 
   it('toggles the theme when the mode button is clicked', async () => {
     const user = userEvent.setup()
-    renderWithTheme()
+    renderWithProviders()
 
     // system theme resolves to "light" (matchMedia mocked to matches: false)
     expect(document.documentElement.classList.contains('light')).toBe(true)
 
-    await user.click(screen.getByRole('button', { name: /toggle theme/i }))
+    const toggleThemeLabel = i18n.t('accessibility.toggleTheme', { ns: 'common' })
+    await user.click(screen.getByRole('button', { name: toggleThemeLabel }))
 
     expect(document.documentElement.classList.contains('dark')).toBe(true)
     expect(localStorage.getItem('vite-ui-theme')).toBe('dark')
+  })
+
+  it('changes the active locale immediately and persists the selected value', async () => {
+    const user = userEvent.setup()
+    renderWithProviders()
+
+    await user.click(screen.getByRole('combobox', { name: 'Idioma atual' }))
+    await user.click(await screen.findByRole('option', { name: 'Español' }))
+
+    expect(screen.getByRole('heading', { name: 'Configuración' })).toBeInTheDocument()
+    expect(screen.getByRole('status')).toHaveTextContent('Idioma: Español')
+    expect(localStorage.getItem('tozzo.locale')).toBe('es')
   })
 })

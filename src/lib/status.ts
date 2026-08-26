@@ -1,33 +1,27 @@
-export type PedidoStatus = 'ABERTO' | 'EM_PREPARO' | 'ENTREGANDO' | 'FECHADO'
+import type { OrderStatus } from '@/domain/models';
+export { getStatusLabel } from '@/i18n/labels'
 
-export const STATUS_OPTIONS: { value: PedidoStatus; label: string }[] = [
-  { value: 'ABERTO', label: 'Aberto' },
-  { value: 'EM_PREPARO', label: 'Em Preparo' },
-  { value: 'ENTREGANDO', label: 'Entregando' },
-  { value: 'FECHADO', label: 'Fechado' },
-]
+export type { OrderStatus };
+export type OrderStatusFilter = OrderStatus | 'NOT_CLOSED';
 
-// Semantica por urgencia (nao por "fase burocratica") - decidido no
-// brainstorm 2026-08-06: ABERTO = precisa de atencao da cozinha (vermelho),
-// nao "erro/perigo" generico.
-const STATUS_COLORS: Record<PedidoStatus, string> = {
-  ABERTO: '#dc2626',
-  EM_PREPARO: '#d97706',
-  ENTREGANDO: '#2563eb',
-  FECHADO: '#6b7280',
-}
+export const STATUS_OPTIONS: { value: OrderStatus; labelKey: string }[] = [
+  { value: 'OPEN', labelKey: 'status.open' },
+  { value: 'IN_PREPARATION', labelKey: 'status.inPreparation' },
+  { value: 'DELIVERING', labelKey: 'status.delivering' },
+  { value: 'CLOSED', labelKey: 'status.closed' },
+];
 
-const STATUS_LABELS: Record<PedidoStatus, string> = {
-  ABERTO: 'Aberto',
-  EM_PREPARO: 'Em Preparo',
-  ENTREGANDO: 'Entregando',
-  FECHADO: 'Fechado',
+const STATUS_COLORS: Record<OrderStatus, string> = {
+  OPEN: '#dc2626', IN_PREPARATION: '#d97706', DELIVERING: '#2563eb', CLOSED: '#6b7280',
+};
+
+export function normalizeOrderStatus(value: string): OrderStatus {
+  const normalized = String(value ?? '').trim().toUpperCase();
+  return normalized === 'OPEN' || normalized === 'IN_PREPARATION' || normalized === 'DELIVERING' || normalized === 'CLOSED'
+    ? normalized
+    : 'CLOSED';
 }
 
 export function getStatusColor(status: string): string {
-  return STATUS_COLORS[status as PedidoStatus] ?? STATUS_COLORS.FECHADO
-}
-
-export function getStatusLabel(status: string): string {
-  return STATUS_LABELS[status as PedidoStatus] ?? status
+  return STATUS_COLORS[normalizeOrderStatus(status)];
 }
