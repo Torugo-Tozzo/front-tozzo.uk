@@ -16,7 +16,6 @@ export function printReceipt(data: ReceiptData): void {
 
   const container = document.createElement('div')
   container.id = 'receipt-print-root'
-  container.className = `receipt receipt--${width}`
   document.body.appendChild(container)
 
   const pageStyle = document.createElement('style')

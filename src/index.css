@@ -100,7 +100,8 @@
     display: none !important;
   }
   #receipt-print-root {
-    display: block !important;
+    display: flex !important;
+    justify-content: center;
   }
 }
 

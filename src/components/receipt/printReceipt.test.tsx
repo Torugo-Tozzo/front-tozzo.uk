@@ -26,7 +26,7 @@ describe('printReceipt', () => {
 
     const root = document.getElementById('receipt-print-root')
     expect(root).not.toBeNull()
-    expect(root?.className).toContain('receipt--58mm')
+    expect(root?.querySelector('.receipt--58mm')).not.toBeNull()
     expect(printSpy).toHaveBeenCalledTimes(1)
 
     window.dispatchEvent(new Event('afterprint'))
