@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/table"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { IconButton } from "@/components/ui/icon-button"
+import { printReceipt } from "@/components/receipt/printReceipt"
 import { FiltersBar } from "@/components/dashboard/FiltersBar"
 import { Printer, Eye, Loader2 } from "lucide-react"
 import api, { getErrorCode } from "@/services/api"
@@ -402,7 +403,24 @@ export function VendasTab() {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
-                        <IconButton icon={<Printer className="h-4 w-4" />} label={tPrinter("printSoon")} disabled />
+                        <IconButton
+                          icon={<Printer className="h-4 w-4" />}
+                          label={tPrinter("printSale")}
+                          onClick={() =>
+                            printReceipt({
+                              title: tPrinter("receiptTitleSale", { id: sale.id }),
+                              customerName: sale.customerName?.trim() || tCommon("notInformed"),
+                              dateLabel: sale.soldAt ? formatDateTime(sale.soldAt, activeLocale) : tCommon("notInformed"),
+                              items: (sale.items ?? []).map((item) => ({
+                                name: item.product?.name ?? tSales("fallback.product"),
+                                quantity: item.quantity,
+                                unitPrice: item.unitPriceAtSale ?? item.product?.price ?? 0,
+                              })),
+                              total: sale.total,
+                              locale: activeLocale,
+                            })
+                          }
+                        />
                         <IconButton
                           icon={loadingSaleId === sale.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Eye className="h-4 w-4" />}
                           label={tSales("viewDetails")}
