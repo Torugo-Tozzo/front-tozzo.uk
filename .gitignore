@@ -1,6 +1,9 @@
 # Superpowers SDD scratch workspace (ledgers, briefs, review packages — not part of history)
 .superpowers/
 
+# graphify knowledge-graph snapshot (regenerated via /graphify, not part of history)
+graphify-out/
+
 # Logs
 logs
 *.log
