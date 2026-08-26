@@ -380,7 +380,6 @@ const requiredUiInventory: InventoryEntry[] = [
   { source: "src/components/dashboard/PedidosTab.tsx:361", key: "orders.empty" },
   { source: "src/components/dashboard/PedidosTab.tsx:369", key: "common.notInformed" },
   { source: "src/components/dashboard/PedidosTab.tsx:386", key: "orders.confirm.changeStatus" },
-  { source: "src/components/dashboard/PedidosTab.tsx:399", key: "printer.printSoon" },
   { source: "src/components/dashboard/PedidosTab.tsx:400", key: "orders.editLabel" },
   { source: "src/components/dashboard/PedidosTab.tsx:403", key: "orders.deleteLabel" },
   { source: "src/components/dashboard/VendasTab.tsx:47", key: "sales.fallback.product" },
