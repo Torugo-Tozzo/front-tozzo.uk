@@ -78,7 +78,7 @@ export default function DashboardLayout() {
   // do site) - sidebar nao duplica mais isso, so nav + toggle de colapsar.
   const NavContent = ({ collapsed = false, showToggle = false }: { collapsed?: boolean; showToggle?: boolean }) => (
     <>
-      <nav aria-label={tNavigation("dashboard")} className="flex-1 space-y-4 overflow-y-auto">
+      <nav aria-label={tNavigation("dashboard")} className="flex-1 space-y-4 overflow-y-auto overflow-x-hidden">
         {navItems.map((item) => {
           const Icon = item.icon
           const isActive = location.pathname === item.href || (item.href === "/dashboard/orders" && location.pathname === "/dashboard")

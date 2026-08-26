@@ -29,7 +29,7 @@ describe('SettingsPage', () => {
     renderWithProviders()
     expect(screen.getByText('Configurações')).toBeInTheDocument()
     expect(screen.getByText('Sistema')).toBeInTheDocument()
-    expect(screen.getByRole('combobox', { name: 'Idioma atual' })).toHaveValue('pt-BR')
+    expect(screen.getByRole('combobox', { name: 'Idioma atual' })).toHaveTextContent('Português (Brasil)')
     expect(screen.getByRole('status', { name: 'Idioma: Português (Brasil)' })).toHaveTextContent('Idioma: Português (Brasil)')
   })
 
@@ -51,7 +51,8 @@ describe('SettingsPage', () => {
     const user = userEvent.setup()
     renderWithProviders()
 
-    await user.selectOptions(screen.getByRole('combobox', { name: 'Idioma atual' }), 'es')
+    await user.click(screen.getByRole('combobox', { name: 'Idioma atual' }))
+    await user.click(await screen.findByRole('option', { name: 'Español' }))
 
     expect(screen.getByRole('heading', { name: 'Configuración' })).toBeInTheDocument()
     expect(screen.getByRole('status')).toHaveTextContent('Idioma: Español')

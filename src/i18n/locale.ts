@@ -5,6 +5,18 @@ export type SupportedLocale = (typeof SUPPORTED_LOCALES)[number]
 export const DEFAULT_LOCALE: SupportedLocale = 'en'
 export const LOCALE_STORAGE_KEY = 'tozzo.locale'
 
+// Each language's name for itself, not translated into the active UI
+// language — a speaker of that language must recognize it at a glance in a
+// picker, regardless of which locale is currently active.
+export const LOCALE_NATIVE_NAMES: Record<SupportedLocale, string> = {
+  en: 'English',
+  'pt-BR': 'Português (Brasil)',
+  es: 'Español',
+  fr: 'Français',
+  zh: '中文',
+  hi: 'हिन्दी',
+}
+
 export type LocaleStorage = Pick<Storage, 'getItem' | 'setItem'>
 export type BrowserLocaleInput = string | readonly string[] | undefined
 

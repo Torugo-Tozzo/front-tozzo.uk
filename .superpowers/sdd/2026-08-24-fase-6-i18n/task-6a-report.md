@@ -591,3 +591,194 @@ Comando: bunx tsc --noEmit
   negócio, tipos ou outras famílias de namespace.
 - Os sete bundles mantêm a mesma topologia; folhas não vazias e placeholders
   foram validados pela asserção focada e pelo checker.
+
+## T6-A closeout — exhaustive UI inventory test
+
+### Estado
+
+Status: DONE.
+
+O teste exaustivo `src/i18n/ui-inventory.test.ts` foi mantido sem alterações.
+Ele verifica cada par fonte/chave inventariado contra todos os sete locales e
+exige uma folha de recurso existente, string e não vazia. A asserção focada do
+primeiro lote foi preservada como guarda histórica; não foram alterados
+bundles, consumidores, dados de negócio, `audit-context/` ou `dev/main`.
+
+### Inventário completo — saída exata
+
+Comando: `bun test src/i18n/ui-inventory.test.ts`
+
+~~~text
+bun test v1.4.0 (34cbb9a40)
+
+src\i18n\ui-inventory.test.ts:
+(pass) current hardcoded UI inventory > has a translated resource leaf for the first local inventory batch in every locale [0.92ms]
+(pass) current hardcoded UI inventory > has a translated resource leaf for every inventoried UI string in every locale [1.08ms]
+
+ 2 pass
+ 0 fail
+ 2 expect() calls
+Ran 2 tests across 1 file. [268.00ms]
+~~~
+
+### Checker de i18n — saída exata
+
+Comando: `bun run i18n:check`
+
+~~~text
+$ node scripts/check-i18n.mjs
+i18n bundles OK: 7 locales, 14 namespaces
+~~~
+
+### Typecheck — saída exata
+
+Comando: `bunx tsc --noEmit`
+
+~~~text
+(sem saída; exit 0)
+~~~
+
+### Self-review
+
+- O teste não tem alterações locais além do arquivo novo solicitado; a
+  verificação de folhas rejeita caminhos ausentes, nós intermediários,
+  valores não-string e strings vazias.
+- O inventário cobre `src/pages`, `src/components`, `src/layouts` e
+  `src/contexts` por meio das entradas fonte/chave declaradas; todos os sete
+  locales passam.
+- Nenhum bundle, consumidor, dado de negócio, `audit-context/`, `dev/main` ou
+  outra parte do teste foi alterado.
+- O commit desta rodada deve conter somente `src/i18n/ui-inventory.test.ts`,
+  com subject `test(front): ...`; este relatório fica fora do commit.
+
+## Fix round 9 — toast/error fallback inventory closeout
+
+### Estado
+
+Status: DONE.
+
+Commit: a493412 — fix(front):complete-toast-fallback-inventory.
+
+O finding foi corrigido sem alterar consumidores ou dados de negócio. O
+inventário agora cobre os 26 sites de toast encontrados em
+`src/pages`/`src/components`, incluindo todos os fallbacks de erro nomeados
+na revisão; `src/layouts` e `src/contexts` não possuem sites de toast nessa
+auditoria. As coordenadas dos entries tocados foram atualizadas para as linhas
+atuais. Os leaves reutilizam `auth`/`errors` existentes quando disponíveis e
+adicionam somente `errors.products.selectItems`,
+`errors.employees.create` e `errors.employees.update` nos sete bundles.
+
+### TDD RED — saída exata
+
+Comando: bun test src/i18n/ui-inventory.test.ts — exit 1
+
+~~~text
+bun test v1.4.0 (34cbb9a40)
+
+src\i18n\ui-inventory.test.ts:
+error: expect(received).toEqual(expected)
+
+- []
++ [
++   "en: errors.products.selectItems (src/components/ProductSelectionModal.tsx:212)",
++   "en: errors.employees.create (src/pages/dashboard/EmployeesPage.tsx:148)",
++   "en: errors.employees.update (src/pages/dashboard/EmployeesPage.tsx:184)",
++   "pt-BR: errors.products.selectItems (src/components/ProductSelectionModal.tsx:212)",
++   "pt-BR: errors.employees.create (src/pages/dashboard/EmployeesPage.tsx:148)",
++   "pt-BR: errors.employees.update (src/pages/dashboard/EmployeesPage.tsx:184)",
++   "es: errors.products.selectItems (src/components/ProductSelectionModal.tsx:212)",
++   "es: errors.employees.create (src/pages/dashboard/EmployeesPage.tsx:148)",
++   "es: errors.employees.update (src/pages/dashboard/EmployeesPage.tsx:184)",
++   "fr: errors.products.selectItems (src/components/ProductSelectionModal.tsx:212)",
++   "fr: errors.employees.create (src/pages/dashboard/EmployeesPage.tsx:148)",
++   "fr: errors.employees.update (src/pages/dashboard/EmployeesPage.tsx:184)",
++   "zh: errors.products.selectItems (src/components/ProductSelectionModal.tsx:212)",
++   "zh: errors.employees.create (src/pages/dashboard/EmployeesPage.tsx:148)",
++   "zh: errors.employees.update (src/pages/dashboard/EmployeesPage.tsx:184)",
++   "hi: errors.products.selectItems (src/components/ProductSelectionModal.tsx:212)",
++   "hi: errors.employees.create (src/pages/dashboard/EmployeesPage.tsx:148)",
++   "hi: errors.employees.update (src/pages/dashboard/EmployeesPage.tsx:184)",
++   "ar: errors.products.selectItems (src/components/ProductSelectionModal.tsx:212)",
++   "ar: errors.employees.create (src/pages/dashboard/EmployeesPage.tsx:148)",
++   "ar: errors.employees.update (src/pages/dashboard/EmployeesPage.tsx:184)",
++ ]
+
+(fail) current hardcoded UI inventory > has a translated resource leaf for the first local inventory batch in every locale
+(fail) current hardcoded UI inventory > has a translated resource leaf for every inventoried UI string in every locale
+
+ 0 pass
+ 2 fail
+ 2 expect() calls
+Ran 2 tests across 1 file. [275.00ms]
+~~~
+
+### TDD GREEN — inventário completo
+
+Comando: bun test src/i18n/ui-inventory.test.ts — exit 0
+
+~~~text
+bun test v1.4.0 (34cbb9a40)
+
+src\i18n\ui-inventory.test.ts:
+(pass) current hardcoded UI inventory > has a translated resource leaf for the first local inventory batch in every locale [1.01ms]
+(pass) current hardcoded UI inventory > has a translated resource leaf for every inventoried UI string in every locale [0.96ms]
+
+ 2 pass
+ 0 fail
+ 2 expect() calls
+Ran 2 tests across 1 file. [267.00ms]
+~~~
+
+### Checker de i18n — saída exata
+
+Comando: bun run i18n:check — exit 0
+
+~~~text
+$ node scripts/check-i18n.mjs
+i18n bundles OK: 7 locales, 14 namespaces
+~~~
+
+### Typecheck — saída exata
+
+Comando: bunx tsc --noEmit — exit 0
+
+~~~text
+(sem saída)
+~~~
+
+### Testes focados — saída exata
+
+Comando: bun test scripts/check-i18n.test.mjs src/i18n/locale.test.ts src/i18n/resources.test.ts — exit 0
+
+~~~text
+bun test v1.4.0 (34cbb9a40)
+
+scripts\check-i18n.test.mjs:
+(pass) i18n bundle checker > reports a missing leaf instead of accepting fallback completion [1.06ms]
+(pass) i18n bundle checker > reports placeholder incompatibility and extra leaves with their location [0.12ms]
+
+src\i18n\locale.test.ts:
+(pass) locale foundation > normalizes supported exact and regional locale values to the closed set [0.46ms]
+(pass) locale foundation > reads and persists only normalized supported locales [0.17ms]
+
+src\i18n\resources.test.ts:
+(pass) local i18n resources > contains the closed locale set and exactly the required namespaces [1.97ms]
+
+ 5 pass
+ 0 fail
+ 123 expect() calls
+Ran 5 tests across 3 files. [272.00ms]
+~~~
+
+### Self-review
+
+- git grep -n toast -- src/pages src/components confirma os 26 sites de toast;
+  cada fallback está representado no inventário com a coordenada atual.
+- src/layouts e src/contexts não retornam sites de toast; não há omissões da
+  mesma família nesses diretórios.
+- Os sete JSONs receberam somente as três folhas nested novas, sem placeholders
+  ou dados de negócio; os demais fallbacks apontam para leaves semânticos já
+  existentes em auth/errors.
+- O commit coerente desta correção deve conter somente
+  src/i18n/ui-inventory.test.ts e os sete bundles de locale; este relatório
+  permanece fora do staging.
