@@ -532,7 +532,9 @@
       "hi": "हिंदी",
       "ar": "अरबी"
     },
-    "moreComingSoon": "और सेटिंग्स जल्द आ रही हैं..."
+    "moreComingSoon": "और सेटिंग्स जल्द आ रही हैं...",
+    "printing": "प्रिंटिंग",
+    "paperWidth": "कागज़ की चौड़ाई"
   },
   "sync": {
     "syncing": "सिंक हो रहा है...",
@@ -550,7 +552,10 @@
     "printing": "प्रिंट हो रहा है...",
     "printSuccess": "प्रिंट कार्य भेज दिया गया।",
     "printError": "प्रिंट नहीं कर सके।",
-    "printSoon": "प्रिंट (जल्द उपलब्ध)"
+    "printSoon": "प्रिंट (जल्द उपलब्ध)",
+    "receiptTitleOrder": "ऑर्डर #{{id}}",
+    "receiptTitleSale": "बिक्री #{{id}}",
+    "receiptTotal": "कुल"
   },
   "status": {
     "open": "खुला",
