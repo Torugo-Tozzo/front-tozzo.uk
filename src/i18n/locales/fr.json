@@ -532,7 +532,9 @@
       "hi": "Hindi",
       "ar": "Arabe"
     },
-    "moreComingSoon": "D'autres paramètres bientôt disponibles..."
+    "moreComingSoon": "D'autres paramètres bientôt disponibles...",
+    "printing": "Impression",
+    "paperWidth": "Largeur du papier"
   },
   "sync": {
     "syncing": "Synchronisation...",
@@ -550,7 +552,10 @@
     "printing": "Impression...",
     "printSuccess": "Tâche d'impression envoyée.",
     "printError": "Impossible d'imprimer.",
-    "printSoon": "Impression (bientôt disponible)"
+    "printSoon": "Impression (bientôt disponible)",
+    "receiptTitleOrder": "Commande #{{id}}",
+    "receiptTitleSale": "Vente #{{id}}",
+    "receiptTotal": "Total"
   },
   "status": {
     "open": "Ouvert",

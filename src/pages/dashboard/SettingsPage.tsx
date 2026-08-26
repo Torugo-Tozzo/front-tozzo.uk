@@ -1,4 +1,4 @@
-import { Languages } from "lucide-react"
+import { Languages, Printer } from "lucide-react"
 import { ModeToggle } from "@/components/mode-toggle"
 import { useTranslation } from "react-i18next"
 import { LOCALE_NATIVE_NAMES, normalizeLocale, SUPPORTED_LOCALES } from "@/i18n/locale"
@@ -9,6 +9,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import {
+  PAPER_WIDTH_PRESETS,
+  getStoredPaperWidth,
+  persistPaperWidth,
+  type PaperWidthPreset,
+} from "@/lib/printPreferences"
+import { useState } from "react"
 
 export default function SettingsPage() {
   const { i18n, t } = useTranslation('settings')
@@ -17,6 +24,12 @@ export default function SettingsPage() {
 
   const handleLocaleChange = (value: string) => {
     void i18n.changeLanguage(normalizeLocale(value))
+  }
+
+  const [paperWidth, setPaperWidth] = useState<PaperWidthPreset>(() => getStoredPaperWidth())
+
+  const handlePaperWidthChange = (value: string) => {
+    setPaperWidth(persistPaperWidth(value))
   }
 
   return (
@@ -66,6 +79,30 @@ export default function SettingsPage() {
         >
           {t('localeIndicator', { locale: localeLabel })}
         </p>
+      </div>
+
+      <div className="p-6 border rounded-lg bg-card space-y-3">
+        <h2 className="text-xl font-semibold flex items-center gap-2">
+          <Printer className="h-5 w-5" />
+          {t('printing')}
+        </h2>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <label htmlFor="paper-width-select" className="text-muted-foreground">
+            {t('paperWidth')}
+          </label>
+          <Select value={paperWidth} onValueChange={handlePaperWidthChange}>
+            <SelectTrigger id="paper-width-select" className="w-[180px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {PAPER_WIDTH_PRESETS.map((preset) => (
+                <SelectItem key={preset} value={preset}>
+                  {preset === 'a4' ? 'A4' : preset}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       <div className="p-10 border-2 border-dashed rounded-lg flex items-center justify-center text-muted-foreground">

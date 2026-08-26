@@ -532,7 +532,9 @@
       "hi": "印地语",
       "ar": "阿拉伯语"
     },
-    "moreComingSoon": "更多设置即将推出……"
+    "moreComingSoon": "更多设置即将推出……",
+    "printing": "打印",
+    "paperWidth": "纸张宽度"
   },
   "sync": {
     "syncing": "同步中...",
@@ -550,7 +552,10 @@
     "printing": "打印中...",
     "printSuccess": "打印任务已发送。",
     "printError": "无法打印。",
-    "printSoon": "打印（即将推出）"
+    "printSoon": "打印（即将推出）",
+    "receiptTitleOrder": "订单 #{{id}}",
+    "receiptTitleSale": "销售 #{{id}}",
+    "receiptTotal": "总计"
   },
   "status": {
     "open": "开放",

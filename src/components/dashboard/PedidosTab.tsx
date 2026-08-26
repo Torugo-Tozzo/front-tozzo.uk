@@ -11,6 +11,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { StatusSelect } from "@/components/ui/status-select"
 import { IconButton } from "@/components/ui/icon-button"
+import { printReceipt } from "@/components/receipt/printReceipt"
 import { FiltersBar } from "@/components/dashboard/FiltersBar"
 import { Printer, Pencil, Trash2, Loader2 } from "lucide-react"
 import api, { getErrorCode } from "@/services/api"
@@ -415,7 +416,25 @@ export function PedidosTab() {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
-                        <IconButton icon={<Printer className="h-4 w-4" />} label={tPrinter("printSoon")} disabled />
+                        <IconButton
+                          icon={<Printer className="h-4 w-4" />}
+                          label={tPrinter("printOrder")}
+                          onClick={() =>
+                            printReceipt({
+                              title: tPrinter("receiptTitleOrder", { id: order.id }),
+                              customerName: order.customerName?.trim() || tCommon("notInformed"),
+                              dateLabel: formatDateTime(order.updatedAt || order.openedAt || '', activeLocale),
+                              items: (order.items ?? []).map((item) => ({
+                                name: item.product?.name ?? tOrders("fallback.product"),
+                                quantity: item.quantity,
+                                unitPrice: item.unitPriceAtOrder ?? item.product?.price ?? 0,
+                              })),
+                              total: order.total,
+                              totalLabel: tPrinter("receiptTotal"),
+                              locale: activeLocale,
+                            })
+                          }
+                        />
                         <IconButton icon={<Pencil className="h-4 w-4" />} label={tOrders("editLabel")} onClick={() => handleEditClick(order)} />
                         <IconButton
                           icon={deletingId === order.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}

@@ -89,3 +89,66 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Fase 6.9 — impressão de recibo (pedido/venda) */
+#receipt-print-root {
+  display: none;
+}
+
+@media print {
+  body > *:not(#receipt-print-root) {
+    display: none !important;
+  }
+  #receipt-print-root {
+    display: block !important;
+  }
+}
+
+.receipt {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 12px;
+  color: #000;
+}
+
+.receipt--44mm { width: 44mm; }
+.receipt--58mm { width: 58mm; }
+.receipt--76mm { width: 76mm; }
+.receipt--80mm { width: 80mm; }
+.receipt--110mm { width: 110mm; }
+.receipt--a4 { width: 190mm; }
+
+.receipt__brand {
+  text-align: center;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.receipt__title,
+.receipt__meta {
+  text-align: center;
+}
+
+.receipt__rule {
+  border: none;
+  border-top: 1px dashed #000;
+  margin: 6px 0;
+}
+
+.receipt__item {
+  display: flex;
+  justify-content: space-between;
+  gap: 4px;
+}
+
+.receipt__item-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.receipt__total {
+  display: flex;
+  justify-content: space-between;
+  font-weight: bold;
+  margin-top: 8px;
+}

@@ -58,4 +58,20 @@ describe('SettingsPage', () => {
     expect(screen.getByRole('status')).toHaveTextContent('Idioma: Español')
     expect(localStorage.getItem('tozzo.locale')).toBe('es')
   })
+
+  it('shows the printing section with the persisted paper width', () => {
+    localStorage.setItem('tozzo.printerWidth', '58mm')
+    renderWithProviders()
+    expect(screen.getByRole('combobox', { name: 'Largura do papel' })).toHaveTextContent('58mm')
+  })
+
+  it('changes and persists the selected paper width', async () => {
+    const user = userEvent.setup()
+    renderWithProviders()
+
+    await user.click(screen.getByRole('combobox', { name: 'Largura do papel' }))
+    await user.click(await screen.findByRole('option', { name: '110mm' }))
+
+    expect(localStorage.getItem('tozzo.printerWidth')).toBe('110mm')
+  })
 })
