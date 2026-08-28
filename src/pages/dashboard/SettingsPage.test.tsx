@@ -1,10 +1,63 @@
-import { describe, it, expect, beforeEach } from 'bun:test'
-import { act, render, screen } from '@testing-library/react'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'bun:test'
+import { act, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { ThemeProvider } from '@/components/theme-provider'
 import { I18nProvider } from '@/i18n/provider'
 import { i18n } from '@/i18n/config'
+import api from '@/services/api'
+import { replaceProperty } from '@/test/replace-property'
+import type { UserRole } from '@/domain/models'
 import SettingsPage from './SettingsPage'
+
+const mockUseAuth = vi.fn()
+
+vi.mock('@/contexts/AuthContext', () => ({
+  useAuth: () => mockUseAuth(),
+}))
+
+function authValue(role: UserRole) {
+  return {
+    user: {
+      id: 7,
+      name: 'Ana',
+      email: 'ana@example.com',
+      role,
+      establishmentId: 42,
+      establishment: {
+        id: 42,
+        tradeName: 'Hamburgueria da Ana',
+        status: 'ACTIVE',
+      },
+    },
+  }
+}
+
+function mockCategoryApi(category: string | null = null) {
+  const getMock = vi.fn().mockResolvedValue({
+    data: { id: 42, category },
+  })
+  const patchMock = vi.fn().mockResolvedValue({
+    data: { id: 42, category },
+  })
+  const postMock = vi.fn().mockResolvedValue({
+    data: { id: 100, description: 'created', color: '#9E9E9E' },
+  })
+
+  const restoreGet = replaceProperty(api, 'get', getMock as typeof api.get)
+  const restorePatch = replaceProperty(api, 'patch', patchMock as typeof api.patch)
+  const restorePost = replaceProperty(api, 'post', postMock as typeof api.post)
+
+  return {
+    getMock,
+    patchMock,
+    postMock,
+    restore: () => {
+      restoreGet()
+      restorePatch()
+      restorePost()
+    },
+  }
+}
 
 function renderWithProviders() {
   return render(
@@ -20,9 +73,15 @@ describe('SettingsPage', () => {
   beforeEach(async () => {
     localStorage.clear()
     document.documentElement.classList.remove('light', 'dark')
+    mockUseAuth.mockReset()
+    mockUseAuth.mockReturnValue({ user: null })
     await act(async () => {
       await i18n.changeLanguage('pt-BR')
     })
+  })
+
+  afterEach(() => {
+    mockUseAuth.mockReset()
   })
 
   it('renders the page heading and appearance section', () => {
@@ -73,5 +132,110 @@ describe('SettingsPage', () => {
     await user.click(await screen.findByRole('option', { name: '110mm' }))
 
     expect(localStorage.getItem('tozzo.printerWidth')).toBe('110mm')
+  })
+
+  it('lets an owner choose, save, edit, and create the suggested product types', async () => {
+    const user = userEvent.setup()
+    mockUseAuth.mockReturnValue(authValue('OWNER'))
+    const apiMocks = mockCategoryApi()
+
+    try {
+      renderWithProviders()
+
+      await waitFor(() => {
+        expect(screen.getByRole('heading', { name: 'Categoria do estabelecimento' })).toBeInTheDocument()
+      })
+      expect(apiMocks.getMock).toHaveBeenCalledWith('/estabelecimentos')
+
+      await user.click(screen.getByRole('combobox', { name: 'Categoria do estabelecimento' }))
+      await user.click(await screen.findByRole('option', { name: 'Hamburgueria' }))
+
+      expect(screen.getByDisplayValue('Lanches')).toBeInTheDocument()
+      expect(screen.getByDisplayValue('Bebidas')).toBeInTheDocument()
+      expect(apiMocks.postMock).not.toHaveBeenCalled()
+
+      await user.click(screen.getByRole('button', { name: 'Salvar categoria' }))
+      await waitFor(() => {
+        expect(apiMocks.patchMock).toHaveBeenCalledWith('/establishments/42', {
+          category: 'HAMBURGUERIA',
+        })
+      })
+      expect(apiMocks.postMock).not.toHaveBeenCalled()
+
+      const firstType = screen.getByRole('textbox', { name: 'Tipo sugerido 1' })
+      await user.clear(firstType)
+      await user.type(firstType, 'Sanduíches')
+      await user.click(screen.getByRole('button', { name: 'Adicionar tipos sugeridos' }))
+
+      await waitFor(() => expect(apiMocks.postMock).toHaveBeenCalledTimes(4))
+      expect(apiMocks.postMock.mock.calls.map(([path, payload]) => [path, payload])).toEqual([
+        ['/tipos', { description: 'Sanduíches', color: '#9E9E9E' }],
+        ['/tipos', { description: 'Bebidas', color: '#9E9E9E' }],
+        ['/tipos', { description: 'Porções', color: '#9E9E9E' }],
+        ['/tipos', { description: 'Sobremesas', color: '#9E9E9E' }],
+      ])
+    } finally {
+      apiMocks.restore()
+    }
+  })
+
+  it('shows every category with its exact ordered suggestions', async () => {
+    const user = userEvent.setup()
+    mockUseAuth.mockReturnValue(authValue('OWNER'))
+    const apiMocks = mockCategoryApi()
+    const categories = [
+      ['Hamburgueria', ['Lanches', 'Bebidas', 'Porções', 'Sobremesas']],
+      ['Pizzaria', ['Pizzas', 'Bebidas', 'Entradas', 'Sobremesas']],
+      ['Sorveteria', ['Sorvetes', 'Açaí', 'Coberturas', 'Bebidas']],
+      ['Cafeteria', ['Cafés', 'Bebidas', 'Salgados', 'Doces']],
+      ['Lanchonete', ['Lanches', 'Bebidas', 'Porções', 'Doces']],
+      ['Outro', ['Produtos', 'Bebidas', 'Serviços', 'Outros']],
+    ] as const
+
+    try {
+      renderWithProviders()
+      await waitFor(() => expect(screen.getByRole('heading', { name: 'Categoria do estabelecimento' })).toBeInTheDocument())
+
+      for (const [label, suggestions] of categories) {
+        await user.click(screen.getByRole('combobox', { name: 'Categoria do estabelecimento' }))
+        await user.click(await screen.findByRole('option', { name: label }))
+
+        expect(screen.getAllByRole('textbox', { name: /Tipo sugerido/ }).map((input) => input.getAttribute('value'))).toEqual([...suggestions])
+      }
+    } finally {
+      apiMocks.restore()
+    }
+  })
+
+  it('allows a manager to save the category without exposing owner-only type creation', async () => {
+    const user = userEvent.setup()
+    mockUseAuth.mockReturnValue(authValue('MANAGER'))
+    const apiMocks = mockCategoryApi('HAMBURGUERIA')
+
+    try {
+      renderWithProviders()
+
+      await waitFor(() => {
+        expect(screen.getByRole('heading', { name: 'Categoria do estabelecimento' })).toBeInTheDocument()
+      })
+      const categorySelect = screen.getByRole('combobox', { name: 'Categoria do estabelecimento' })
+      await waitFor(() => expect(categorySelect).toHaveTextContent('Hamburgueria'))
+      expect(screen.getByRole('button', { name: 'Salvar categoria' })).toBeInTheDocument()
+      expect(screen.queryByDisplayValue('Lanches')).not.toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: 'Adicionar tipos sugeridos' })).not.toBeInTheDocument()
+
+      await user.click(categorySelect)
+      await user.click(await screen.findByRole('option', { name: 'Pizzaria' }))
+      await user.click(screen.getByRole('button', { name: 'Salvar categoria' }))
+
+      await waitFor(() => {
+        expect(apiMocks.patchMock).toHaveBeenCalledWith('/establishments/42', {
+          category: 'PIZZARIA',
+        })
+      })
+      expect(apiMocks.postMock).not.toHaveBeenCalled()
+    } finally {
+      apiMocks.restore()
+    }
   })
 })

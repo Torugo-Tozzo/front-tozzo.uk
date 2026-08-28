@@ -534,7 +534,33 @@
     },
     "moreComingSoon": "More settings coming soon...",
     "printing": "Printing",
-    "paperWidth": "Paper width"
+    "paperWidth": "Paper width",
+    "category": {
+      "title": "Establishment category",
+      "description": "Choose the category for your establishment.",
+      "label": "Establishment category",
+      "placeholder": "Select a category",
+      "save": "Save category",
+      "saving": "Saving category...",
+      "saved": "Category saved.",
+      "loadError": "Could not load the establishment category.",
+      "saveError": "Could not save the establishment category.",
+      "suggestedTypesTitle": "Suggested product types",
+      "suggestedTypesDescription": "Review and edit the suggestions before adding them.",
+      "typeLabel": "Suggested type {{number}}",
+      "addTypes": "Add suggested types",
+      "addingTypes": "Adding types...",
+      "typesAdded": "Suggested product types added.",
+      "addTypesError": "Could not add the suggested product types.",
+      "options": {
+        "HAMBURGUERIA": "Burger restaurant",
+        "PIZZARIA": "Pizzeria",
+        "SORVETERIA": "Ice cream shop",
+        "CAFETERIA": "Coffee shop",
+        "LANCHONETE": "Snack bar",
+        "OUTRO": "Other"
+      }
+    }
   },
   "sync": {
     "syncing": "Synchronizing...",

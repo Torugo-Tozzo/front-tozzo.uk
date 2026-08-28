@@ -534,7 +534,33 @@
     },
     "moreComingSoon": "D'autres paramètres bientôt disponibles...",
     "printing": "Impression",
-    "paperWidth": "Largeur du papier"
+    "paperWidth": "Largeur du papier",
+    "category": {
+      "title": "Catégorie de l'établissement",
+      "description": "Choisissez la catégorie de votre établissement.",
+      "label": "Catégorie de l'établissement",
+      "placeholder": "Sélectionnez une catégorie",
+      "save": "Enregistrer la catégorie",
+      "saving": "Enregistrement de la catégorie...",
+      "saved": "Catégorie enregistrée.",
+      "loadError": "Impossible de charger la catégorie de l'établissement.",
+      "saveError": "Impossible d'enregistrer la catégorie de l'établissement.",
+      "suggestedTypesTitle": "Types de produits suggérés",
+      "suggestedTypesDescription": "Vérifiez et modifiez les suggestions avant de les ajouter.",
+      "typeLabel": "Type suggéré {{number}}",
+      "addTypes": "Ajouter les types suggérés",
+      "addingTypes": "Ajout des types...",
+      "typesAdded": "Types de produits suggérés ajoutés.",
+      "addTypesError": "Impossible d'ajouter les types de produits suggérés.",
+      "options": {
+        "HAMBURGUERIA": "Hamburgerie",
+        "PIZZARIA": "Pizzeria",
+        "SORVETERIA": "Glacier",
+        "CAFETERIA": "Café",
+        "LANCHONETE": "Snack-bar",
+        "OUTRO": "Autre"
+      }
+    }
   },
   "sync": {
     "syncing": "Synchronisation...",

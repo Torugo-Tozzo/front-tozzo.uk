@@ -534,7 +534,33 @@
     },
     "moreComingSoon": "更多设置即将推出……",
     "printing": "打印",
-    "paperWidth": "纸张宽度"
+    "paperWidth": "纸张宽度",
+    "category": {
+      "title": "商家类别",
+      "description": "请选择您的商家类别。",
+      "label": "商家类别",
+      "placeholder": "选择类别",
+      "save": "保存类别",
+      "saving": "正在保存类别...",
+      "saved": "类别已保存。",
+      "loadError": "无法加载商家类别。",
+      "saveError": "无法保存商家类别。",
+      "suggestedTypesTitle": "推荐的产品类型",
+      "suggestedTypesDescription": "添加前请检查并编辑推荐内容。",
+      "typeLabel": "推荐类型 {{number}}",
+      "addTypes": "添加推荐类型",
+      "addingTypes": "正在添加类型...",
+      "typesAdded": "推荐的产品类型已添加。",
+      "addTypesError": "无法添加推荐的产品类型。",
+      "options": {
+        "HAMBURGUERIA": "汉堡店",
+        "PIZZARIA": "披萨店",
+        "SORVETERIA": "冰淇淋店",
+        "CAFETERIA": "咖啡馆",
+        "LANCHONETE": "小吃店",
+        "OUTRO": "其他"
+      }
+    }
   },
   "sync": {
     "syncing": "同步中...",

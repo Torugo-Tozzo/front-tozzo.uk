@@ -534,7 +534,33 @@
     },
     "moreComingSoon": "Mais configurações em breve...",
     "printing": "Impressão",
-    "paperWidth": "Largura do papel"
+    "paperWidth": "Largura do papel",
+    "category": {
+      "title": "Categoria do estabelecimento",
+      "description": "Escolha a categoria do seu estabelecimento.",
+      "label": "Categoria do estabelecimento",
+      "placeholder": "Selecione uma categoria",
+      "save": "Salvar categoria",
+      "saving": "Salvando categoria...",
+      "saved": "Categoria salva.",
+      "loadError": "Não foi possível carregar a categoria do estabelecimento.",
+      "saveError": "Não foi possível salvar a categoria do estabelecimento.",
+      "suggestedTypesTitle": "Tipos de produto sugeridos",
+      "suggestedTypesDescription": "Revise e edite as sugestões antes de adicioná-las.",
+      "typeLabel": "Tipo sugerido {{number}}",
+      "addTypes": "Adicionar tipos sugeridos",
+      "addingTypes": "Adicionando tipos...",
+      "typesAdded": "Tipos de produto sugeridos adicionados.",
+      "addTypesError": "Não foi possível adicionar os tipos de produto sugeridos.",
+      "options": {
+        "HAMBURGUERIA": "Hamburgueria",
+        "PIZZARIA": "Pizzaria",
+        "SORVETERIA": "Sorveteria",
+        "CAFETERIA": "Cafeteria",
+        "LANCHONETE": "Lanchonete",
+        "OUTRO": "Outro"
+      }
+    }
   },
   "sync": {
     "syncing": "Sincronizando...",
