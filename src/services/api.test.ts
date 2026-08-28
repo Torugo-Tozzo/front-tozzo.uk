@@ -44,4 +44,25 @@ describe('wire normalization at the service boundary', () => {
       orders: [{ id: 1, customerName: 'Mesa 1', status: 'OPEN' }],
     })
   })
+
+  it('preserves the new order openness and item status fields', () => {
+    expect(normalizeResponseData('/pedidos', {
+      orders: [{
+        id: 1,
+        isOpen: true,
+        items: [{ id: 9, productId: 3, status: 'DELIVERED' }],
+      }],
+    })).toEqual({
+      orders: [{
+        id: 1,
+        isOpen: true,
+        items: [{ id: 9, productId: 3, status: 'DELIVERED' }],
+      }],
+    })
+  })
+
+  it('serializes the canonical order close and item status requests unchanged', () => {
+    expect(serializeRequestData('/pedidos/1/status', { isOpen: false })).toEqual({ isOpen: false })
+    expect(serializeRequestData('/pedidos/1/items/9', { status: 'IN_PREPARATION' })).toEqual({ status: 'IN_PREPARATION' })
+  })
 })

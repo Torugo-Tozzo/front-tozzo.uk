@@ -14,6 +14,7 @@ import { Plus, Minus, Trash2, Loader2, ChevronLeft, ChevronRight } from "lucide-
 import api, { getErrorCode } from "@/services/api";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
+import { StatusSelect } from "@/components/ui/status-select";
 import { useConfirm } from "@/contexts/ConfirmContext";
 import { useTranslation } from "react-i18next";
 import {
@@ -23,19 +24,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { Product, ProductType } from "@/domain/models";
-import type { OrderStatus } from "@/domain/models";
+import type { OrderItemStatus, Product, ProductType } from "@/domain/models";
 import { formatCount, formatCurrencyBRL, formatNumber } from "@/i18n/format";
-import { getCatalogLabel, getStatusLabel } from "@/i18n/labels";
+import { getCatalogLabel } from "@/i18n/labels";
 import { normalizeLocale } from "@/i18n/locale";
 import { getErrorTranslationKey, type ErrorContext } from "@/i18n/error-keys";
 
 export type SelectedItem = {
+  id?: number | string;
   productId: number | string;
   quantity: number;
   name: string;
   price: number;
   unitPrice: number;
+  status?: OrderItemStatus;
 };
 
 interface ProductSelectionModalProps {
@@ -44,11 +46,18 @@ interface ProductSelectionModalProps {
   onConfirm: (customerName: string, items: { productId: number | string; quantity: number; unitPrice?: number }[]) => Promise<void>;
   title: string;
   initialClientName?: string;
-  initialItems?: { productId: number | string; quantity: number; unitPrice?: number; name?: string; price?: number }[];
+  initialItems?: {
+    id?: number | string;
+    productId: number | string;
+    quantity: number;
+    unitPrice?: number;
+    name?: string;
+    price?: number;
+    status?: OrderItemStatus;
+  }[];
   isEditing?: boolean; // If editing, we might handle things differently
   onCloseOrder?: () => Promise<void>;
-  initialStatus?: OrderStatus;
-  onChangeStatus?: (newStatus: OrderStatus) => Promise<void> | void;
+  onChangeItemStatus?: (itemId: number | string, newStatus: OrderItemStatus) => Promise<void> | void;
   onCancelSale?: () => Promise<void>;
   readOnly?: boolean;
 }
@@ -65,8 +74,7 @@ export function ProductSelectionModal({
   initialItems = DEFAULT_ITEMS,
   isEditing = false,
   onCloseOrder,
-  initialStatus,
-  onChangeStatus,
+  onChangeItemStatus,
   onCancelSale,
   readOnly = false,
 }: ProductSelectionModalProps) {
@@ -102,20 +110,10 @@ export function ProductSelectionModal({
   const [isLoading, setIsLoading] = useState(false);
   const [isClosingOrder, setIsClosingOrder] = useState(false);
   const [isCancellingSale, setIsCancellingSale] = useState(false);
-  const [status, setStatus] = useState<OrderStatus | "">(initialStatus ?? "");
+  const [updatingItemStatusId, setUpdatingItemStatusId] = useState<number | string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [productTypeFilter, setProductTypeFilter] = useState("");
   const [isProductsLoading, setIsProductsLoading] = useState(false);
-
-  useEffect(() => {
-    if (isOpen) {
-      if (initialStatus) {
-        setStatus(initialStatus);
-      } else {
-        setStatus("");
-      }
-    }
-  }, [isOpen, initialStatus]);
 
   // Reset local state and hydrate selected items on open.
   // Nomes/precos dos itens ja selecionados vem do caller (pedido/venda), nao
@@ -134,11 +132,13 @@ export function ProductSelectionModal({
         .map((item) => {
           const price = item.price != null ? Number(item.price) : Number(item.unitPrice ?? 0);
           return {
+            id: item.id,
             productId: item.productId,
             quantity: item.quantity,
             name: item.name ?? tProducts("selection.fallbackProduct"),
             price,
             unitPrice: item.unitPrice != null ? Number(item.unitPrice) : price,
+            status: item.status,
           };
         });
       setSelectedItems(hydratedItems);
@@ -236,6 +236,23 @@ export function ProductSelectionModal({
         return item;
       })
     );
+  };
+
+  const handleChangeItemStatus = async (itemId: number | string, newStatus: OrderItemStatus) => {
+    if (!onChangeItemStatus) return;
+
+    setUpdatingItemStatusId(itemId);
+    try {
+      await onChangeItemStatus(itemId, newStatus);
+      setSelectedItems((prev) => prev.map((item) => (
+        item.id === itemId ? { ...item, status: newStatus } : item
+      )));
+    } catch (error) {
+      console.error("Error changing order item status", error);
+      toast.error(localizedError("changeOrderItemStatus", error));
+    } finally {
+      setUpdatingItemStatusId(null);
+    }
   };
 
   const handleConfirm = async () => {
@@ -404,6 +421,14 @@ export function ProductSelectionModal({
                           </p>
                         </div>
                         <div className="flex items-center gap-2">
+                          {!readOnly && onChangeItemStatus && item.id != null && item.status && (
+                            <StatusSelect
+                              value={item.status}
+                              ariaLabel={`${tProducts("selection.itemStatus")}: ${item.name}`}
+                              disabled={updatingItemStatusId === item.id || isLoading || isClosingOrder}
+                              onValueChange={(newStatus) => void handleChangeItemStatus(item.id as number | string, newStatus)}
+                            />
+                          )}
                           {!readOnly ? (
                             <>
                               <Button
@@ -456,42 +481,28 @@ export function ProductSelectionModal({
           </div>
         </div>
         <DialogFooter className="flex justify-between sm:justify-between">
-          {isEditing && !readOnly && (
+          {isEditing && !readOnly && onCloseOrder && (
             <div className="mr-auto">
-              <div className="flex items-center gap-2">
-                <Select
-                  value={status}
-                  onValueChange={async (val) => {
-                    if (val === status) return
-                    if (!(await confirm(tOrders("confirm.changeStatus")))) return
-                    setIsClosingOrder(true)
-                    try {
-                      if (onChangeStatus) {
-                        await onChangeStatus(val as OrderStatus)
-                      } else if (val === 'CLOSED' && onCloseOrder) {
-                        await onCloseOrder()
-                      }
-                      setStatus(val as OrderStatus)
-                    } catch (err) {
-                      console.error('Error changing status', err)
-                      toast.error(localizedError("changeOrderStatus", err))
-                    } finally {
-                      setIsClosingOrder(false)
-                    }
-                  }}
-                >
-                  <SelectTrigger className="w-[200px]" aria-label={tProducts("selection.statusPlaceholder")}>
-                    <SelectValue placeholder={tProducts("selection.statusPlaceholder")} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="OPEN">{getStatusLabel("OPEN", activeLocale)}</SelectItem>
-                    <SelectItem value="IN_PREPARATION">{getStatusLabel("IN_PREPARATION", activeLocale)}</SelectItem>
-                    <SelectItem value="DELIVERING">{getStatusLabel("DELIVERING", activeLocale)}</SelectItem>
-                    <SelectItem value="CLOSED">{getStatusLabel("CLOSED", activeLocale)}</SelectItem>
-                  </SelectContent>
-                </Select>
-                {isClosingOrder && <Loader2 className="h-4 w-4 animate-spin" />}
-              </div>
+              <Button
+                variant="outline"
+                onClick={async () => {
+                  if (!(await confirm(tOrders("confirm.close")))) return
+                  setIsClosingOrder(true)
+                  try {
+                    await onCloseOrder()
+                    onClose()
+                  } catch (err) {
+                    console.error("Error closing order", err)
+                    toast.error(localizedError("closeOrder", err))
+                  } finally {
+                    setIsClosingOrder(false)
+                  }
+                }}
+                disabled={isLoading || isClosingOrder || updatingItemStatusId != null}
+              >
+                {isClosingOrder ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                {tOrders("close")}
+              </Button>
             </div>
           )}
           <div className="flex gap-2 ml-auto">

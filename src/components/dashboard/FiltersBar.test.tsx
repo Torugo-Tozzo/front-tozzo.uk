@@ -40,7 +40,7 @@ describe('FiltersBar', () => {
           startDate: '', startTime: '', endDate: '', endTime: '',
           onStartDateChange: vi.fn(), onStartTimeChange: vi.fn(), onEndDateChange: vi.fn(), onEndTimeChange: vi.fn(),
         }}
-        status={{ value: 'NOT_CLOSED', onChange: vi.fn(), options: [{ value: 'NOT_CLOSED', label: 'Not closed' }] }}
+        status={{ value: 'REQUESTED', onChange: vi.fn(), options: [{ value: 'REQUESTED', label: 'Requested' }] }}
         customerName={{ value: '', onChange: vi.fn() }}
         createdBy={{ value: '', onChange: vi.fn() }}
         totalRange={{ min: '', max: '', onMinChange: vi.fn(), onMaxChange: vi.fn() }}
@@ -117,7 +117,7 @@ describe('FiltersBar', () => {
   it('renders the date range before the status field', () => {
     renderWithI18n(
       <FiltersBar
-        status={{ value: 'NOT_CLOSED', onChange: vi.fn(), options: [{ value: 'NOT_CLOSED', label: 'Não Fechados' }] }}
+        status={{ value: 'REQUESTED', onChange: vi.fn(), options: [{ value: 'REQUESTED', label: 'Requested' }] }}
         dateRange={{
           startDate: '', startTime: '', endDate: '', endTime: '',
           onStartDateChange: vi.fn(), onStartTimeChange: vi.fn(), onEndDateChange: vi.fn(), onEndTimeChange: vi.fn(),

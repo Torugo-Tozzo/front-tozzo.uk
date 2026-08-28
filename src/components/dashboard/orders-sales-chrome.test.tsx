@@ -1,4 +1,5 @@
 import { act, cleanup, render, screen, waitFor } from "@testing-library/react"
+import userEvent from "@testing-library/user-event"
 import { afterEach, beforeEach, describe, expect, test, vi } from "bun:test"
 
 import api from "@/services/api"
@@ -53,7 +54,7 @@ describe("orders and sales chrome", () => {
       expect(screen.getByText("Recent orders")).toBeInTheDocument()
       expect(screen.getByRole("columnheader", { name: "Customer / Table" })).toBeInTheDocument()
       expect(screen.getByRole("columnheader", { name: "Created by" })).toBeInTheDocument()
-      expect(screen.getByRole("columnheader", { name: "Status" })).toBeInTheDocument()
+      expect(screen.queryByRole("columnheader", { name: "Status" })).not.toBeInTheDocument()
       expect(screen.getByRole("columnheader", { name: "Date" })).toBeInTheDocument()
       expect(screen.getByRole("columnheader", { name: "Total" })).toBeInTheDocument()
       expect(screen.getByRole("columnheader", { name: "Actions" })).toBeInTheDocument()
@@ -83,6 +84,44 @@ describe("orders and sales chrome", () => {
       expect(screen.getByRole("columnheader", { name: "Actions" })).toBeInTheDocument()
       await waitFor(() => expect(screen.getByText("No sales found for this period.")).toBeInTheDocument())
       expect(screen.queryByText("Nenhuma venda encontrada no período.")).not.toBeInTheDocument()
+    } finally {
+      restoreGet()
+    }
+  })
+
+  test("does not expose item status controls while viewing a sale", async () => {
+    const getMock = vi.fn(async (url: string) => {
+      if (url === "/vendas") {
+        return {
+          data: {
+            sales: [{
+              id: 7,
+              customerName: "Table 7",
+              total: 25,
+              soldAt: "2026-08-28T12:00:00Z",
+              items: [{ productId: 3, quantity: 1, name: "Burger", unitPriceAtSale: 25 }],
+            }],
+            total: 1,
+            closing: 25,
+          },
+          headers: {},
+        }
+      }
+      if (url === "/tipos") return { data: { types: [] }, headers: {} }
+      return { data: { products: [], total: 0 }, headers: {} }
+    })
+    const restoreGet = replaceProperty(api, "get", getMock as typeof api.get)
+
+    try {
+      renderPage(<SalesPage />)
+
+      const viewButton = await screen.findByRole("button", { name: "View details" })
+      await userEvent.setup().click(viewButton)
+
+      await waitFor(() => expect(screen.getByText("Table 7")).toBeInTheDocument())
+      expect(screen.queryByRole("combobox")).not.toBeInTheDocument()
+      expect(screen.queryByText("Requested")).not.toBeInTheDocument()
+      expect(screen.queryByText("Delivered")).not.toBeInTheDocument()
     } finally {
       restoreGet()
     }

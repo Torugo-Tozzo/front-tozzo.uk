@@ -1,6 +1,6 @@
 export type EstablishmentStatus = 'ACTIVE' | 'PENDING_PAYMENT' | 'SUSPENDED';
 export type UserRole = 'OWNER' | 'MANAGER' | 'EMPLOYEE' | 'CUSTOMER';
-export type OrderStatus = 'OPEN' | 'IN_PREPARATION' | 'DELIVERING' | 'CLOSED';
+export type OrderItemStatus = 'REQUESTED' | 'IN_PREPARATION' | 'DELIVERED';
 
 export interface Establishment {
   id: number | string;
@@ -39,6 +39,7 @@ export interface OrderItem {
   id?: number | string;
   productId: number | string;
   quantity: number;
+  status: OrderItemStatus;
   unitPriceAtOrder?: number | null;
   product?: Product | null;
 }
@@ -47,7 +48,7 @@ export interface Order {
   id: number | string;
   customerName?: string | null;
   total: number;
-  status: OrderStatus;
+  isOpen: boolean;
   openedAt?: string | null;
   updatedAt?: string | null;
   createdBy?: number | string | null;

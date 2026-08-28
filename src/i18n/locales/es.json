@@ -249,19 +249,14 @@
     "close": "Cerrar pedido",
     "closeConfirm": "¿Seguro que quieres cerrar este pedido? Se convertirá en una venta.",
     "deleteConfirm": "¿Seguro que quieres eliminar este pedido?",
-    "changeStatusConfirm": "¿Seguro que quieres cambiar el estado del pedido?",
     "editLabel": "Editar pedido",
     "deleteLabel": "Eliminar pedido",
     "fallback": {
       "product": "Producto"
     },
-    "statusFilter": {
-      "notClosed": "No cerrados"
-    },
     "confirm": {
       "delete": "¿Seguro que quieres eliminar este pedido?",
-      "close": "¿Seguro que quieres cerrar este pedido? Se convertirá en una venta.",
-      "changeStatus": "¿Seguro que quieres cambiar el estado del pedido?"
+      "close": "¿Seguro que quieres cerrar este pedido? Se convertirá en una venta."
     },
     "empty": "No se encontraron pedidos."
   },
@@ -335,7 +330,7 @@
       "decreaseQuantity": "Disminuir cantidad",
       "increaseQuantity": "Aumentar cantidad",
       "removeItem": "Eliminar elemento",
-      "statusPlaceholder": "Estado"
+      "itemStatus": "Estado del artículo"
     },
     "confirm": {
       "delete": "¿Seguro que deseas eliminar este producto?",
@@ -584,11 +579,9 @@
     "receiptTotal": "Total"
   },
   "status": {
-    "open": "Abierto",
+    "requested": "Solicitado",
     "inPreparation": "En preparación",
-    "delivering": "Entregando",
-    "closed": "Cerrado",
-    "notClosed": "No cerrados",
+    "delivered": "Entregado",
     "active": "Activo",
     "inactive": "Inactivo",
     "pendingPayment": "Pago pendiente",
@@ -605,7 +598,7 @@
     "saveOrder": "Error al guardar el pedido.",
     "deleteOrder": "Error al eliminar el pedido.",
     "closeOrder": "Error al cerrar el pedido.",
-    "changeOrderStatus": "Error al actualizar el estado del pedido.",
+    "changeOrderItemStatus": "Error al actualizar el estado del artículo del pedido.",
     "loadSales": "Error al cargar las ventas.",
     "createSale": "Error al crear la venta.",
     "saleDetails": "Error al cargar los detalles de la venta.",

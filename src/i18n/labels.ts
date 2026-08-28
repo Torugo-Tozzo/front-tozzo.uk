@@ -5,11 +5,9 @@ import { NAMESPACES } from './resources'
 export type LabelLocale = SupportedLocale | string | undefined
 
 const STATUS_LABEL_KEYS: Record<string, string> = {
-  OPEN: 'status.open',
+  REQUESTED: 'status.requested',
   IN_PREPARATION: 'status.inPreparation',
-  DELIVERING: 'status.delivering',
-  CLOSED: 'status.closed',
-  NOT_CLOSED: 'status.notClosed',
+  DELIVERED: 'status.delivered',
 }
 
 const CATALOG_LABEL_KEYS: Record<string, string> = {

@@ -9,7 +9,6 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { StatusSelect } from "@/components/ui/status-select"
 import { IconButton } from "@/components/ui/icon-button"
 import { printReceipt } from "@/components/receipt/printReceipt"
 import { FiltersBar } from "@/components/dashboard/FiltersBar"
@@ -23,18 +22,25 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { useRealtimeEvents } from "@/hooks/useRealtimeEvents"
 import { useMinLoadingDuration } from "@/hooks/useMinLoadingDuration"
 import { useConfirm } from "@/contexts/ConfirmContext"
-import { getStatusColor, getStatusLabel, type OrderStatus, type OrderStatusFilter } from "@/lib/status"
 import { formatCurrencyBRL, formatDateTime, formatNumber } from "@/i18n/format"
 import { normalizeLocale } from "@/i18n/locale"
 import { getErrorTranslationKey, type ErrorContext } from "@/i18n/error-keys"
-import type { Order, OrderItem } from "@/domain/models"
+import type { Order, OrderItem, OrderItemStatus } from "@/domain/models"
 
 type OrderFilters = {
-  statusFilter: OrderStatusFilter
   customerName: string
   createdBy: string
   totalMin: string
   totalMax: string
+}
+
+type CurrentOrderItem = {
+  id?: number | string
+  productId: number | string
+  quantity: number
+  unitPrice?: number
+  name?: string
+  status?: OrderItemStatus
 }
 
 function isOrdersEqual(a: Order[], b: Order[]) {
@@ -43,9 +49,15 @@ function isOrdersEqual(a: Order[], b: Order[]) {
     const ai = a[i]
     const bi = b[i]
     if (ai.id !== bi.id) return false
-    if (ai.status !== bi.status) return false
+    if (ai.isOpen !== bi.isOpen) return false
     if ((ai.updatedAt || ai.openedAt) !== (bi.updatedAt || bi.openedAt)) return false
     if (ai.total !== bi.total) return false
+    if ((ai.items?.length ?? 0) !== (bi.items?.length ?? 0)) return false
+    for (let j = 0; j < (ai.items?.length ?? 0); j++) {
+      const aiItem = ai.items?.[j]
+      const biItem = bi.items?.[j]
+      if (aiItem?.id !== biItem?.id || aiItem?.status !== biItem?.status || aiItem?.quantity !== biItem?.quantity) return false
+    }
   }
   return true
 }
@@ -57,7 +69,6 @@ function formatItemsSummary(items?: OrderItem[], locale?: string, fallbackProduc
 
 function buildOrderParams(page: number, limit: number, f: OrderFilters) {
   const params: any = { page, limit }
-  if (f.statusFilter) params.status = f.statusFilter
   if (f.customerName) params.customerName = f.customerName
   if (f.createdBy) params.createdBy = f.createdBy
   if (f.totalMin) params.totalMin = parseFloat(f.totalMin)
@@ -89,43 +100,28 @@ export function PedidosTab() {
   const showSkeleton = useMinLoadingDuration(isLoading)
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false)
   const [currentOrder, setCurrentOrder] = useState<Order | null>(null)
-  const [currentOrderItems, setCurrentOrderItems] = useState<{ productId: number | string; quantity: number; unitPrice?: number; name?: string }[]>([])
+  const [currentOrderItems, setCurrentOrderItems] = useState<CurrentOrderItem[]>([])
   const [deletingId, setDeletingId] = useState<number | string | null>(null)
-  const [updatingStatusId, setUpdatingStatusId] = useState<number | string | null>(null)
   const ordersRef = useRef<Order[]>([])
 
-  const [statusFilter, setStatusFilter] = useState<OrderStatusFilter>("NOT_CLOSED")
   const [customerName, setCustomerName] = useState("")
   const [createdBy, setCreatedBy] = useState("")
   const [totalMin, setTotalMin] = useState("")
   const [totalMax, setTotalMax] = useState("")
-  const statusFilterOptions: { value: OrderStatusFilter; label: string }[] = [
-    "NOT_CLOSED",
-    "OPEN",
-    "IN_PREPARATION",
-    "DELIVERING",
-    "CLOSED",
-  ].map((value) => ({ value: value as OrderStatusFilter, label: getStatusLabel(value, activeLocale) }))
 
-  const filterRef = useRef<OrderFilters>({ statusFilter, customerName, createdBy, totalMin, totalMax })
+  const filterRef = useRef<OrderFilters>({ customerName, createdBy, totalMin, totalMax })
   useEffect(() => {
-    filterRef.current = { statusFilter, customerName, createdBy, totalMin, totalMax }
-  }, [statusFilter, customerName, createdBy, totalMin, totalMax])
+    filterRef.current = { customerName, createdBy, totalMin, totalMax }
+  }, [customerName, createdBy, totalMin, totalMax])
 
   const loadOrdersRaw = useCallback(async () => {
-    const params = buildOrderParams(page, limit, { statusFilter, customerName, createdBy, totalMin, totalMax })
+    const params = buildOrderParams(page, limit, { customerName, createdBy, totalMin, totalMax })
 
     const response = await api.get(`/pedidos`, { params })
 
-    let { data, total } = parseListResponse<Order>(response, 'orders')
-
-    if (statusFilter === "NOT_CLOSED") {
-      data = data.filter((o) => o.status !== "CLOSED")
-      total = data.length
-    }
-
+    const { data, total } = parseListResponse<Order>(response, 'orders')
     return { data, total }
-  }, [page, limit, statusFilter, customerName, createdBy, totalMin, totalMax])
+  }, [page, limit, customerName, createdBy, totalMin, totalMax])
 
   const fetchOrders = useCallback(async () => {
     setIsLoading(true)
@@ -154,11 +150,7 @@ export function PedidosTab() {
       const f = filterRef.current
       const params = buildOrderParams(page, limit, f)
       const response = await api.get(`/pedidos`, { params })
-      let { data } = parseListResponse<Order>(response, 'orders')
-
-      if (f.statusFilter === "NOT_CLOSED") {
-        data = data.filter((o) => o.status !== "CLOSED")
-      }
+      const { data } = parseListResponse<Order>(response, 'orders')
 
       const previous = ordersRef.current || []
       if (!isOrdersEqual(previous, data)) {
@@ -172,7 +164,7 @@ export function PedidosTab() {
 
   useRealtimeEvents(['orders'], poll)
 
-  // Filtros (status/cliente/criado-por/total/data) so aplicam ao clicar em
+  // Filtros (cliente/criado-por/total/data) so aplicam ao clicar em
   // "Filtrar" (handleApplyFilters) - so page/limit disparam refetch automatico,
   // igual ao padrao ja usado em VendasTab.
   useEffect(() => {
@@ -244,12 +236,14 @@ export function PedidosTab() {
 
       if (orderData && orderData.items) {
         const items = orderData.items.map((item: OrderItem) => ({
+          id: item.id,
           productId: item.productId ?? (item.product ? item.product.id : undefined),
           quantity: Number(item.quantity) || 0,
           name: item.product?.name,
           unitPrice: item.unitPriceAtOrder != null ? Number(item.unitPriceAtOrder) : (item.product ? Number(item.product.price || 0) : undefined),
+          status: item.status,
         })).filter((item) => item.productId != null && item.productId !== '')
-        setCurrentOrderItems(items as { productId: number | string; quantity: number; unitPrice?: number; name?: string }[])
+        setCurrentOrderItems(items)
       } else {
         setCurrentOrderItems([])
       }
@@ -292,33 +286,22 @@ export function PedidosTab() {
   }
 
   const handleCloseOrder = async (id: number | string) => {
-    if (!(await confirm(tOrders("confirm.close")))) return
-    try {
-      await api.post(`/pedidos/${id}/status`, { status: 'CLOSED' })
-      fetchOrders()
-    } catch (error) {
-      console.error("Error closing order", error)
-      toast.error(localizedError("closeOrder", error))
-    }
+    await api.post(`/pedidos/${id}/status`, { isOpen: false })
+    await fetchOrders()
   }
 
-  const handleChangeStatus = async (id: number | string, newStatus: OrderStatus) => {
-    setUpdatingStatusId(id)
-    try {
-      await api.post(`/pedidos/${id}/status`, { status: newStatus })
-      fetchOrders()
-    } catch (error) {
-      console.error('Error updating order status', error)
-      toast.error(localizedError("changeOrderStatus", error))
-    } finally {
-      setUpdatingStatusId(null)
-    }
+  const handleChangeItemStatus = async (
+    orderId: number | string,
+    itemId: number | string,
+    newStatus: OrderItemStatus,
+  ) => {
+    await api.patch(`/pedidos/${orderId}/items/${itemId}`, { status: newStatus })
+    await fetchOrders()
   }
 
   return (
     <div className="space-y-4">
       <FiltersBar
-        status={{ value: statusFilter, onChange: (value) => setStatusFilter(value as OrderStatusFilter), options: statusFilterOptions }}
         customerName={{ value: customerName, onChange: setCustomerName }}
         createdBy={{ value: createdBy, onChange: setCreatedBy }}
         totalRange={{ min: totalMin, max: totalMax, onMinChange: setTotalMin, onMaxChange: setTotalMax }}
@@ -336,8 +319,7 @@ export function PedidosTab() {
         initialItems={currentOrderItems}
         isEditing={!!currentOrder}
         onCloseOrder={currentOrder ? () => handleCloseOrder(currentOrder.id) : undefined}
-        initialStatus={currentOrder?.status}
-        onChangeStatus={currentOrder ? (val) => handleChangeStatus(currentOrder.id, val) : undefined}
+        onChangeItemStatus={currentOrder ? (itemId, status) => handleChangeItemStatus(currentOrder.id, itemId, status) : undefined}
       />
 
       <Card>
@@ -352,7 +334,6 @@ export function PedidosTab() {
                 <TableHead className="w-[50px] text-center">{tCommon("index")}</TableHead>
                 <TableHead>{tCommon("customer")}</TableHead>
                 <TableHead>{tCommon("createdBy")}</TableHead>
-                <TableHead>{tCommon("status")}</TableHead>
                 <TableHead>{tCommon("date")}</TableHead>
                 <TableHead className="text-right">{tCommon("total")}</TableHead>
                 <TableHead className="text-right">{tCommon("actions.label")}</TableHead>
@@ -365,7 +346,6 @@ export function PedidosTab() {
                     <TableCell><Skeleton className="h-4 w-8" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-[150px]" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-[100px]" /></TableCell>
-                    <TableCell><Skeleton className="h-8 w-[150px]" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-[120px]" /></TableCell>
                     <TableCell className="text-right justify-end flex"><Skeleton className="h-4 w-16" /></TableCell>
                     <TableCell className="text-right justify-end flex gap-2">
@@ -377,13 +357,13 @@ export function PedidosTab() {
                 ))
               ) : orders.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
+                  <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
                     {tOrders("empty")}
                   </TableCell>
                 </TableRow>
               ) : (
                 orders.map((order, index) => (
-                  <TableRow key={order.id} accentColor={getStatusColor(order.status)} className="animate-in fade-in-0 duration-300">
+                  <TableRow key={order.id} className="animate-in fade-in-0 duration-300">
                     <TableCell className="text-center">{formatNumber((page - 1) * limit + index + 1, activeLocale)}</TableCell>
                     <TableCell>
                       <div className="font-medium">{order.customerName || tCommon("notInformed")}</div>
@@ -397,19 +377,6 @@ export function PedidosTab() {
                       )}
                     </TableCell>
                     <TableCell className="text-muted-foreground">{order.seller?.name || tCommon("notInformed")}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <StatusSelect
-                          value={order.status}
-                          disabled={order.status === 'CLOSED' || updatingStatusId === order.id}
-                          onValueChange={async (val) => {
-                            if (!(await confirm(tOrders("confirm.changeStatus")))) return
-                            handleChangeStatus(order.id, val)
-                          }}
-                        />
-                        {updatingStatusId === order.id && <Loader2 className="h-4 w-4 animate-spin" />}
-                      </div>
-                    </TableCell>
                     <TableCell>{formatDateTime(order.updatedAt || order.openedAt || '', activeLocale)}</TableCell>
                     <TableCell className="text-right">
                       {formatCurrencyBRL(order.total, activeLocale)}

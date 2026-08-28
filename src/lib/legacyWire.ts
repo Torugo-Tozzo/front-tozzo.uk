@@ -7,6 +7,7 @@ export type WireContext =
   | 'product'
   | 'productType'
   | 'order'
+  | 'orderItem'
   | 'sale'
   | 'chart'
   | undefined;
@@ -135,6 +136,7 @@ export function resolveWireContext(url?: string): WireContext {
   if (url.includes('/tipos')) return 'productType';
   if (url.includes('/produtos')) return 'product';
   if (url.includes('/graficos')) return 'chart';
+  if (/\/pedidos\/[^/]+\/items\/[^/]+/.test(url)) return 'orderItem';
   if (url.includes('/pedidos')) return 'order';
   if (url.includes('/vendas')) return 'sale';
   return undefined;
@@ -217,7 +219,9 @@ function serialize(value: unknown, context?: WireContext): unknown {
       const role = legacyRoles[String(entry ?? '').trim().toUpperCase()];
       result[legacy] = canonicalRoles[role ?? 'EMPLOYEE'];
     } else if (key === 'status' && typeof entry === 'string') {
-      result[legacy] = legacyStatuses[entry.trim().toUpperCase()] ?? entry;
+      result[legacy] = context === 'orderItem'
+        ? entry
+        : legacyStatuses[entry.trim().toUpperCase()] ?? entry;
     } else {
       result[legacy] = serialize(entry, contextFor(context, key));
     }

@@ -158,7 +158,7 @@ describe("T6-C4 dashboard chrome", () => {
     const restoreGet = installApiGet((url) => {
       if (url.includes("/pedidos")) {
         return response({
-          orders: [{ id: 1, customerName: "Table 1", total: 12, status: "OPEN", seller: { name: "" } }],
+          orders: [{ id: 1, customerName: "Table 1", total: 12, isOpen: true, seller: { name: "" } }],
           total: 1,
         })
       }
