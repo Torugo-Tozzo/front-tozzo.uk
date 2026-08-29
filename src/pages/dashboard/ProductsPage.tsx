@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/table"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { Alert } from "@/components/ui/alert"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
@@ -522,10 +523,7 @@ export default function ProductsPage() {
             </CardHeader>
             <CardContent>
               {!hasActiveProductType && (
-                <div
-                  role="alert"
-                  className="mb-4 rounded-md border border-amber-500/50 bg-amber-50 p-4 text-sm text-amber-950 dark:bg-amber-950/30 dark:text-amber-100"
-                >
+                <Alert variant="warning" className="mb-4">
                   <p>{tProducts("typeGate.message")}</p>
                   {canCreateProductType ? (
                     <Button type="button" variant="outline" size="sm" className="mt-3" onClick={openTypeCreation}>
@@ -534,7 +532,7 @@ export default function ProductsPage() {
                   ) : (
                     <p className="mt-2">{tProducts("typeGate.managerInstruction")}</p>
                   )}
-                </div>
+                </Alert>
               )}
               <div className="mb-4 text-sm text-muted-foreground">
                 {tCommon("recordsTotal", { count: formatNumber(totalItems, activeLocale) })}
