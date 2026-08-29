@@ -216,6 +216,7 @@
     "responsiblePlaceholder": "आपका नाम",
     "establishmentPlaceholder": "Bar do Zé",
     "freeAccessLabel": "मेरे पास पंजीकरण कुंजी है (मुफ़्त पहुँच)",
+    "termsCheckboxLabel": "मैंने <privacyLink>गोपनीयता नीति</privacyLink> और <termsLink>उपयोग की शर्तें</termsLink> पढ़ ली हैं और उन्हें स्वीकार करता/करती हूँ",
     "registrationKeyPlaceholder": "पहुँच कुंजी",
     "createAccountLoading": "खाता बनाया जा रहा है..."
   },

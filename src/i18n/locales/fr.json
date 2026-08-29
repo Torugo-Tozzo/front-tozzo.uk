@@ -216,6 +216,7 @@
     "responsiblePlaceholder": "Votre nom",
     "establishmentPlaceholder": "Bar do Zé",
     "freeAccessLabel": "J’ai une clé d’inscription (Accès gratuit)",
+    "termsCheckboxLabel": "J'ai lu et j'accepte la <privacyLink>Politique de confidentialité</privacyLink> et les <termsLink>Conditions d'utilisation</termsLink>",
     "registrationKeyPlaceholder": "Clé d'accès",
     "createAccountLoading": "Création du compte..."
   },

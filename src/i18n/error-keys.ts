@@ -89,6 +89,7 @@ const errorKeyByContext: Partial<Record<ErrorContext, Record<string, ErrorTransl
     AUTH_INVALID_INPUT: { namespace: "auth", key: "registerFailure" },
     AUTH_PASSWORD_TOO_SHORT: { namespace: "auth", key: "registerFailure" },
     AUTH_PENDING_LIMIT_REACHED: { namespace: "auth", key: "registerFailure" },
+    AUTH_TERMS_NOT_ACCEPTED: { namespace: "auth", key: "registerFailure" },
     AUTH_INTERNAL_ERROR: { namespace: "errors", key: "generic" },
   },
   payment: {
