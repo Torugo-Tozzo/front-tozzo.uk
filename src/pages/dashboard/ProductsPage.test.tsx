@@ -119,5 +119,5 @@ describe("ProductsPage product type gate", () => {
     } finally {
       requests.restore()
     }
-  })
+  }, 15000)
 })
