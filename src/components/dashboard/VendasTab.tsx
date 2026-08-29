@@ -21,7 +21,6 @@ import { useMinLoadingDuration } from "@/hooks/useMinLoadingDuration"
 import { ProductSelectionModal } from "@/components/ProductSelectionModal"
 import { Pagination } from "@/components/Pagination"
 import { Skeleton } from "@/components/ui/skeleton"
-import { getStatusColor } from "@/lib/status"
 import { formatCurrencyBRL, formatDateTime, formatNumber } from "@/i18n/format"
 import { normalizeLocale } from "@/i18n/locale"
 import { getErrorTranslationKey, type ErrorContext } from "@/i18n/error-keys"
@@ -383,7 +382,7 @@ export function VendasTab() {
                 </TableRow>
               ) : (
                 sales.map((sale, index) => (
-                  <TableRow key={sale.id} accentColor={getStatusColor('CLOSED')} className="animate-in fade-in-0 duration-300">
+                  <TableRow key={sale.id} className="animate-in fade-in-0 duration-300">
                     <TableCell className="text-center">{formatNumber((page - 1) * limit + index + 1, activeLocale)}</TableCell>
                     <TableCell>
                       <div className="font-medium">{sale.customerName || tCommon("notInformed")}</div>

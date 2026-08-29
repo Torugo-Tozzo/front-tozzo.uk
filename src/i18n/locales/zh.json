@@ -249,19 +249,14 @@
     "close": "关闭订单",
     "closeConfirm": "确定要关闭此订单吗？它将变为销售记录。",
     "deleteConfirm": "确定要删除此订单吗？",
-    "changeStatusConfirm": "确定要更改订单状态吗？",
     "editLabel": "编辑订单",
     "deleteLabel": "删除订单",
     "fallback": {
       "product": "产品"
     },
-    "statusFilter": {
-      "notClosed": "未关闭"
-    },
     "confirm": {
       "delete": "确定要删除此订单吗？",
-      "close": "确定要关闭此订单吗？它将变为销售记录。",
-      "changeStatus": "确定要更改订单状态吗？"
+      "close": "确定要关闭此订单吗？它将变为销售记录。"
     },
     "empty": "未找到订单。"
   },
@@ -335,7 +330,7 @@
       "decreaseQuantity": "减少数量",
       "increaseQuantity": "增加数量",
       "removeItem": "移除项目",
-      "statusPlaceholder": "状态"
+      "itemStatus": "项目状态"
     },
     "confirm": {
       "delete": "确定要删除此产品吗？",
@@ -539,7 +534,33 @@
     },
     "moreComingSoon": "更多设置即将推出……",
     "printing": "打印",
-    "paperWidth": "纸张宽度"
+    "paperWidth": "纸张宽度",
+    "category": {
+      "title": "商家类别",
+      "description": "请选择您的商家类别。",
+      "label": "商家类别",
+      "placeholder": "选择类别",
+      "save": "保存类别",
+      "saving": "正在保存类别...",
+      "saved": "类别已保存。",
+      "loadError": "无法加载商家类别。",
+      "saveError": "无法保存商家类别。",
+      "suggestedTypesTitle": "推荐的产品类型",
+      "suggestedTypesDescription": "添加前请检查并编辑推荐内容。",
+      "typeLabel": "推荐类型 {{number}}",
+      "addTypes": "添加推荐类型",
+      "addingTypes": "正在添加类型...",
+      "typesAdded": "推荐的产品类型已添加。",
+      "addTypesError": "无法添加推荐的产品类型。",
+      "options": {
+        "HAMBURGUERIA": "汉堡店",
+        "PIZZARIA": "披萨店",
+        "SORVETERIA": "冰淇淋店",
+        "CAFETERIA": "咖啡馆",
+        "LANCHONETE": "小吃店",
+        "OUTRO": "其他"
+      }
+    }
   },
   "sync": {
     "syncing": "同步中...",
@@ -563,11 +584,9 @@
     "receiptTotal": "总计"
   },
   "status": {
-    "open": "开放",
+    "requested": "已请求",
     "inPreparation": "准备中",
-    "delivering": "配送中",
-    "closed": "已关闭",
-    "notClosed": "未关闭",
+    "delivered": "已送达",
     "active": "启用",
     "inactive": "停用",
     "pendingPayment": "付款待处理",
@@ -584,7 +603,7 @@
     "saveOrder": "保存订单时出错。",
     "deleteOrder": "删除订单时出错。",
     "closeOrder": "关闭订单时出错。",
-    "changeOrderStatus": "更新订单状态时出错。",
+    "changeOrderItemStatus": "更新订单项状态时出错。",
     "loadSales": "加载销售时出错。",
     "createSale": "创建销售时出错。",
     "saleDetails": "加载销售详情时出错。",

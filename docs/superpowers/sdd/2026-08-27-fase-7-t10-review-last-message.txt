@@ -1,0 +1,29 @@
+Relatório gravado em [2026-08-27-fase-7-t10-review.md](C:/RN/front/front-tozzo.uk/docs/superpowers/sdd/2026-08-27-fase-7-t10-review.md).
+
+# Task 10 — Review
+
+## Spec compliance
+
+- ✅ Objetivo atendido — `src/pages/dashboard/SettingsPage.tsx:L232`.
+- ✅ Arquivos, i18n e padrão visual atendidos — `src/lib/categorySeeds.ts:L1`, `src/i18n/locales/pt-BR.json:L538`, `src/pages/dashboard/SettingsPage.tsx:L233`.
+- ✅ Fluxo de seleção, edição e confirmação atendido — `src/pages/dashboard/SettingsPage.tsx:L245`.
+- ✅ Endpoints e payloads corretos — `src/pages/dashboard/SettingsPage.tsx:L85`, `src/pages/dashboard/SettingsPage.tsx:L123`, `src/pages/dashboard/SettingsPage.tsx:L145`.
+- ✅ Testes RTL reais do fluxo — `src/pages/dashboard/SettingsPage.test.tsx:L137`.
+- ✅ Testes, `i18n:check`, `tsc --noEmit` e build passaram. Lint não executou porque `eslint` não está instalado — `package.json:L9`.
+- ✅ RBAC separado entre `PATCH` e criação de tipos — `src/pages/dashboard/SettingsPage.tsx:L67`, `src/pages/dashboard/SettingsPage.tsx:L140`.
+- ✅ i18n presente nos seis locales suportados — `src/i18n/locales/en.json:L538`.
+
+## Pontos de atenção específicos
+
+1. ✅ Seeds exatos — `src/lib/categorySeeds.ts:L2`; cobertura em `src/pages/dashboard/SettingsPage.test.tsx:L187`.
+2. ✅ `MANAGER` salva categoria, mas não vê nem aciona criação de tipos — `src/pages/dashboard/SettingsPage.tsx:L282`, `src/pages/dashboard/SettingsPage.test.tsx:L221`.
+3. ✅ Criação explícita e separada; troca/salvamento de categoria não dispara `POST` — `src/pages/dashboard/SettingsPage.tsx:L112`, `src/pages/dashboard/SettingsPage.tsx:L308`.
+4. ✅ Testes montam interação real, edição e chamadas API — `src/pages/dashboard/SettingsPage.test.tsx:L150`, `src/pages/dashboard/SettingsPage.test.tsx:L165`, `src/pages/dashboard/SettingsPage.test.tsx:L170`.
+
+## Achados
+
+- Nenhum achado
+
+## Veredito
+
+Aprovado

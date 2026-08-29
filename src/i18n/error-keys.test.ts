@@ -20,5 +20,6 @@ describe("structured API error outcomes", () => {
     expect(getErrorTranslationKey("deleteOrder", "ORDER_NOT_FOUND")).toEqual({ namespace: "errors", key: "deleteOrder" })
     expect(getErrorTranslationKey("createSale", "ORDER_NOT_FOUND")).toEqual({ namespace: "errors", key: "createSale" })
     expect(getErrorTranslationKey("cancelSale", "SALE_NOT_FOUND")).toEqual({ namespace: "errors", key: "cancelSale" })
+    expect(getErrorTranslationKey("changeOrderItemStatus", "ORDER_ITEM_NOT_FOUND")).toEqual({ namespace: "errors", key: "changeOrderItemStatus" })
   })
 })

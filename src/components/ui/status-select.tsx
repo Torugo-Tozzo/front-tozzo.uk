@@ -5,30 +5,31 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./select"
-import { STATUS_OPTIONS, getStatusColor, getStatusLabel, type OrderStatus } from "@/lib/status"
+import { ORDER_ITEM_STATUS_OPTIONS, getStatusLabel, type OrderItemStatus } from "@/lib/status"
 import { cn } from "@/lib/utils"
 import { useTranslation } from "react-i18next"
 
 interface StatusSelectProps {
-  value: OrderStatus
-  onValueChange: (value: OrderStatus) => void
+  value: OrderItemStatus
+  onValueChange: (value: OrderItemStatus) => void
   disabled?: boolean
   className?: string
+  ariaLabel?: string
 }
 
-export function StatusSelect({ value, onValueChange, disabled, className }: StatusSelectProps) {
+export function StatusSelect({ value, onValueChange, disabled, className, ariaLabel }: StatusSelectProps) {
   const { i18n } = useTranslation()
 
   return (
-    <Select value={value} onValueChange={(v) => onValueChange(v as OrderStatus)} disabled={disabled}>
+    <Select value={value} onValueChange={(v) => onValueChange(v as OrderItemStatus)} disabled={disabled}>
       <SelectTrigger
-        className={cn("w-[150px] border-2 bg-background text-foreground transition-transform hover:scale-105", className)}
-        style={{ borderColor: getStatusColor(value) }}
+        aria-label={ariaLabel}
+        className={cn("w-[170px] bg-background text-foreground", className)}
       >
         <SelectValue>{getStatusLabel(value, i18n.language)}</SelectValue>
       </SelectTrigger>
       <SelectContent>
-        {STATUS_OPTIONS.map((opt) => (
+        {ORDER_ITEM_STATUS_OPTIONS.map((opt) => (
           <SelectItem key={opt.value} value={opt.value}>{getStatusLabel(opt.value, i18n.language)}</SelectItem>
         ))}
       </SelectContent>

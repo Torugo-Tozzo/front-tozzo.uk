@@ -19,23 +19,27 @@ describe('StatusSelect', () => {
     expect(screen.getByText('Em preparo')).toBeInTheDocument()
   })
 
-  it('applies the status color as the trigger border color', () => {
-    renderWithI18n(<StatusSelect value="OPEN" onValueChange={vi.fn()} />)
-    const trigger = screen.getByRole('combobox')
-    expect(trigger).toHaveStyle({ borderColor: '#dc2626' })
+  it('shows the requested and delivered item status options', async () => {
+    const user = userEvent.setup()
+    renderWithI18n(<StatusSelect value="REQUESTED" onValueChange={vi.fn()} />)
+
+    await user.click(screen.getByRole('combobox'))
+
+    expect(await screen.findByRole('option', { name: 'Solicitado' })).toBeInTheDocument()
+    expect(screen.getByRole('option', { name: 'Entregue' })).toBeInTheDocument()
   })
 
   it('calls onValueChange with the new status when an option is picked', async () => {
     const onValueChange = vi.fn()
     const user = userEvent.setup()
-    renderWithI18n(<StatusSelect value="OPEN" onValueChange={onValueChange} />)
+    renderWithI18n(<StatusSelect value="REQUESTED" onValueChange={onValueChange} />)
     await user.click(screen.getByRole('combobox'))
     await user.click(await screen.findByRole('option', { name: 'Em preparo' }))
     expect(onValueChange).toHaveBeenCalledWith('IN_PREPARATION')
   })
 
   it('is disabled when disabled=true', () => {
-    renderWithI18n(<StatusSelect value="CLOSED" onValueChange={vi.fn()} disabled />)
+    renderWithI18n(<StatusSelect value="DELIVERED" onValueChange={vi.fn()} disabled />)
     expect(screen.getByRole('combobox')).toBeDisabled()
   })
 })

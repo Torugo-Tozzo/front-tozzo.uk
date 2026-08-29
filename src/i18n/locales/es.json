@@ -249,19 +249,14 @@
     "close": "Cerrar pedido",
     "closeConfirm": "¿Seguro que quieres cerrar este pedido? Se convertirá en una venta.",
     "deleteConfirm": "¿Seguro que quieres eliminar este pedido?",
-    "changeStatusConfirm": "¿Seguro que quieres cambiar el estado del pedido?",
     "editLabel": "Editar pedido",
     "deleteLabel": "Eliminar pedido",
     "fallback": {
       "product": "Producto"
     },
-    "statusFilter": {
-      "notClosed": "No cerrados"
-    },
     "confirm": {
       "delete": "¿Seguro que quieres eliminar este pedido?",
-      "close": "¿Seguro que quieres cerrar este pedido? Se convertirá en una venta.",
-      "changeStatus": "¿Seguro que quieres cambiar el estado del pedido?"
+      "close": "¿Seguro que quieres cerrar este pedido? Se convertirá en una venta."
     },
     "empty": "No se encontraron pedidos."
   },
@@ -335,7 +330,7 @@
       "decreaseQuantity": "Disminuir cantidad",
       "increaseQuantity": "Aumentar cantidad",
       "removeItem": "Eliminar elemento",
-      "statusPlaceholder": "Estado"
+      "itemStatus": "Estado del artículo"
     },
     "confirm": {
       "delete": "¿Seguro que deseas eliminar este producto?",
@@ -539,7 +534,33 @@
     },
     "moreComingSoon": "Más configuraciones próximamente...",
     "printing": "Impresión",
-    "paperWidth": "Ancho del papel"
+    "paperWidth": "Ancho del papel",
+    "category": {
+      "title": "Categoría del establecimiento",
+      "description": "Elige la categoría de tu establecimiento.",
+      "label": "Categoría del establecimiento",
+      "placeholder": "Selecciona una categoría",
+      "save": "Guardar categoría",
+      "saving": "Guardando categoría...",
+      "saved": "Categoría guardada.",
+      "loadError": "No se pudo cargar la categoría del establecimiento.",
+      "saveError": "No se pudo guardar la categoría del establecimiento.",
+      "suggestedTypesTitle": "Tipos de producto sugeridos",
+      "suggestedTypesDescription": "Revisa y edita las sugerencias antes de añadirlas.",
+      "typeLabel": "Tipo sugerido {{number}}",
+      "addTypes": "Añadir tipos sugeridos",
+      "addingTypes": "Añadiendo tipos...",
+      "typesAdded": "Tipos de producto sugeridos añadidos.",
+      "addTypesError": "No se pudieron añadir los tipos de producto sugeridos.",
+      "options": {
+        "HAMBURGUERIA": "Hamburguesería",
+        "PIZZARIA": "Pizzería",
+        "SORVETERIA": "Heladería",
+        "CAFETERIA": "Cafetería",
+        "LANCHONETE": "Bocatería",
+        "OUTRO": "Otro"
+      }
+    }
   },
   "sync": {
     "syncing": "Sincronizando...",
@@ -563,11 +584,9 @@
     "receiptTotal": "Total"
   },
   "status": {
-    "open": "Abierto",
+    "requested": "Solicitado",
     "inPreparation": "En preparación",
-    "delivering": "Entregando",
-    "closed": "Cerrado",
-    "notClosed": "No cerrados",
+    "delivered": "Entregado",
     "active": "Activo",
     "inactive": "Inactivo",
     "pendingPayment": "Pago pendiente",
@@ -584,7 +603,7 @@
     "saveOrder": "Error al guardar el pedido.",
     "deleteOrder": "Error al eliminar el pedido.",
     "closeOrder": "Error al cerrar el pedido.",
-    "changeOrderStatus": "Error al actualizar el estado del pedido.",
+    "changeOrderItemStatus": "Error al actualizar el estado del artículo del pedido.",
     "loadSales": "Error al cargar las ventas.",
     "createSale": "Error al crear la venta.",
     "saleDetails": "Error al cargar los detalles de la venta.",

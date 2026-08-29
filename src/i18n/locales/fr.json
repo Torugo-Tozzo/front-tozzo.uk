@@ -249,19 +249,14 @@
     "close": "Clôturer la commande",
     "closeConfirm": "Voulez-vous vraiment clôturer cette commande ? Elle deviendra une vente.",
     "deleteConfirm": "Voulez-vous vraiment supprimer cette commande ?",
-    "changeStatusConfirm": "Voulez-vous vraiment modifier le statut de la commande ?",
     "editLabel": "Modifier la commande",
     "deleteLabel": "Supprimer la commande",
     "fallback": {
       "product": "Produit"
     },
-    "statusFilter": {
-      "notClosed": "Non clôturées"
-    },
     "confirm": {
       "delete": "Voulez-vous vraiment supprimer cette commande ?",
-      "close": "Voulez-vous vraiment clôturer cette commande ? Elle deviendra une vente.",
-      "changeStatus": "Voulez-vous vraiment modifier le statut de la commande ?"
+      "close": "Voulez-vous vraiment clôturer cette commande ? Elle deviendra une vente."
     },
     "empty": "Aucune commande trouvée."
   },
@@ -335,7 +330,7 @@
       "decreaseQuantity": "Diminuer la quantité",
       "increaseQuantity": "Augmenter la quantité",
       "removeItem": "Supprimer l’article",
-      "statusPlaceholder": "Statut"
+      "itemStatus": "Statut de l’article"
     },
     "confirm": {
       "delete": "Voulez-vous vraiment supprimer ce produit ?",
@@ -539,7 +534,33 @@
     },
     "moreComingSoon": "D'autres paramètres bientôt disponibles...",
     "printing": "Impression",
-    "paperWidth": "Largeur du papier"
+    "paperWidth": "Largeur du papier",
+    "category": {
+      "title": "Catégorie de l'établissement",
+      "description": "Choisissez la catégorie de votre établissement.",
+      "label": "Catégorie de l'établissement",
+      "placeholder": "Sélectionnez une catégorie",
+      "save": "Enregistrer la catégorie",
+      "saving": "Enregistrement de la catégorie...",
+      "saved": "Catégorie enregistrée.",
+      "loadError": "Impossible de charger la catégorie de l'établissement.",
+      "saveError": "Impossible d'enregistrer la catégorie de l'établissement.",
+      "suggestedTypesTitle": "Types de produits suggérés",
+      "suggestedTypesDescription": "Vérifiez et modifiez les suggestions avant de les ajouter.",
+      "typeLabel": "Type suggéré {{number}}",
+      "addTypes": "Ajouter les types suggérés",
+      "addingTypes": "Ajout des types...",
+      "typesAdded": "Types de produits suggérés ajoutés.",
+      "addTypesError": "Impossible d'ajouter les types de produits suggérés.",
+      "options": {
+        "HAMBURGUERIA": "Hamburgerie",
+        "PIZZARIA": "Pizzeria",
+        "SORVETERIA": "Glacier",
+        "CAFETERIA": "Café",
+        "LANCHONETE": "Snack-bar",
+        "OUTRO": "Autre"
+      }
+    }
   },
   "sync": {
     "syncing": "Synchronisation...",
@@ -563,11 +584,9 @@
     "receiptTotal": "Total"
   },
   "status": {
-    "open": "Ouvert",
+    "requested": "Demandé",
     "inPreparation": "En préparation",
-    "delivering": "En livraison",
-    "closed": "Fermé",
-    "notClosed": "Non clôturés",
+    "delivered": "Livré",
     "active": "Actif",
     "inactive": "Inactif",
     "pendingPayment": "Paiement en attente",
@@ -584,7 +603,7 @@
     "saveOrder": "Erreur lors de l'enregistrement de la commande.",
     "deleteOrder": "Erreur lors de la suppression de la commande.",
     "closeOrder": "Erreur lors de la clôture de la commande.",
-    "changeOrderStatus": "Erreur lors de la mise à jour du statut de la commande.",
+    "changeOrderItemStatus": "Erreur lors de la mise à jour du statut de l'article.",
     "loadSales": "Erreur lors du chargement des ventes.",
     "createSale": "Erreur lors de la création de la vente.",
     "saleDetails": "Erreur lors du chargement des détails de la vente.",

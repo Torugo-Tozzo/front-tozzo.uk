@@ -249,19 +249,14 @@
     "close": "Close order",
     "closeConfirm": "Are you sure you want to close this order? It will become a sale.",
     "deleteConfirm": "Are you sure you want to delete this order?",
-    "changeStatusConfirm": "Are you sure you want to change the order status?",
     "editLabel": "Edit order",
     "deleteLabel": "Delete order",
     "fallback": {
       "product": "Product"
     },
-    "statusFilter": {
-      "notClosed": "Not closed"
-    },
     "confirm": {
       "delete": "Are you sure you want to delete this order?",
-      "close": "Are you sure you want to close this order? It will become a sale.",
-      "changeStatus": "Are you sure you want to change the order status?"
+      "close": "Are you sure you want to close this order? It will become a sale."
     },
     "empty": "No orders found."
   },
@@ -335,7 +330,7 @@
       "decreaseQuantity": "Decrease quantity",
       "increaseQuantity": "Increase quantity",
       "removeItem": "Remove item",
-      "statusPlaceholder": "Status"
+      "itemStatus": "Item status"
     },
     "confirm": {
       "delete": "Are you sure you want to delete this product?",
@@ -539,7 +534,33 @@
     },
     "moreComingSoon": "More settings coming soon...",
     "printing": "Printing",
-    "paperWidth": "Paper width"
+    "paperWidth": "Paper width",
+    "category": {
+      "title": "Establishment category",
+      "description": "Choose the category for your establishment.",
+      "label": "Establishment category",
+      "placeholder": "Select a category",
+      "save": "Save category",
+      "saving": "Saving category...",
+      "saved": "Category saved.",
+      "loadError": "Could not load the establishment category.",
+      "saveError": "Could not save the establishment category.",
+      "suggestedTypesTitle": "Suggested product types",
+      "suggestedTypesDescription": "Review and edit the suggestions before adding them.",
+      "typeLabel": "Suggested type {{number}}",
+      "addTypes": "Add suggested types",
+      "addingTypes": "Adding types...",
+      "typesAdded": "Suggested product types added.",
+      "addTypesError": "Could not add the suggested product types.",
+      "options": {
+        "HAMBURGUERIA": "Burger restaurant",
+        "PIZZARIA": "Pizzeria",
+        "SORVETERIA": "Ice cream shop",
+        "CAFETERIA": "Coffee shop",
+        "LANCHONETE": "Snack bar",
+        "OUTRO": "Other"
+      }
+    }
   },
   "sync": {
     "syncing": "Synchronizing...",
@@ -563,11 +584,9 @@
     "receiptTotal": "Total"
   },
   "status": {
-    "open": "Open",
+    "requested": "Requested",
     "inPreparation": "In preparation",
-    "delivering": "Delivering",
-    "closed": "Closed",
-    "notClosed": "Not closed",
+    "delivered": "Delivered",
     "active": "Active",
     "inactive": "Inactive",
     "pendingPayment": "Payment pending",
@@ -584,7 +603,7 @@
     "saveOrder": "Error saving order.",
     "deleteOrder": "Error deleting order.",
     "closeOrder": "Error closing order.",
-    "changeOrderStatus": "Error updating the order status.",
+    "changeOrderItemStatus": "Error updating the order item status.",
     "loadSales": "Error loading sales.",
     "createSale": "Error creating sale.",
     "saleDetails": "Error loading sale details.",

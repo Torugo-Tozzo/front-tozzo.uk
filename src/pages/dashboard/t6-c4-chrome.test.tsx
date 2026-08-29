@@ -16,6 +16,7 @@ import EmployeesPage from "./EmployeesPage"
 import ChartsPage from "./ChartsPage"
 
 const mockUseAuth = vi.fn()
+const uuidProductTypeId = "550e8400-e29b-41d4-a716-446655440000"
 
 vi.mock("@/contexts/AuthContext", () => ({
   useAuth: () => mockUseAuth(),
@@ -159,11 +160,114 @@ describe("T6-C4 dashboard chrome", () => {
     }
   })
 
+  test("preserves UUID product type ids in chart filters", async () => {
+    const productTypeId = uuidProductTypeId
+    const getMock = vi.fn(async (url: string) => {
+      if (url === "/tipos") {
+        return response({ types: [{ id: productTypeId, description: "CUSTOM_UUID_TYPE" }] })
+      }
+      if (url === "/graficos") return response({ products: [], closing: null })
+      if (url === "/graficos/lista") {
+        return response({ data: [{ id: 1, name: "Burger", quantitySold: 1, totalRevenue: 12 }], total: 1 })
+      }
+      return response([])
+    })
+    const restoreGet = replaceProperty(api, "get", getMock as typeof api.get)
+    const user = userEvent.setup()
+
+    try {
+      renderWithProviders(<ChartsPage />)
+
+      await waitFor(() => expect(screen.getByRole("button", { name: "Search" })).not.toBeDisabled())
+      await user.click(screen.getByRole("combobox", { name: "Food type" }))
+      await user.click(await screen.findByRole("option", { name: "CUSTOM_UUID_TYPE" }))
+      await user.click(screen.getByRole("button", { name: "Search" }))
+
+      await waitFor(() => {
+        expect(getMock).toHaveBeenCalledWith("/graficos", {
+          params: expect.objectContaining({ productTypeId }),
+        })
+      })
+      expect(getMock).toHaveBeenCalledWith("/graficos/lista", {
+        params: expect.objectContaining({ productTypeId }),
+      })
+    } finally {
+      restoreGet()
+    }
+  })
+
+  test("preserves UUID product type ids when creating a product", async () => {
+    const getMock = vi.fn(async (url: string) => {
+      if (url.includes("/tipos")) {
+        return response({ types: [{ id: uuidProductTypeId, description: "CUSTOM_UUID_TYPE" }] })
+      }
+      return response({ products: [], total: 0 })
+    })
+    const postMock = vi.fn(async () => response({}))
+    const restoreGet = replaceProperty(api, "get", getMock as typeof api.get)
+    const restorePost = replaceProperty(api, "post", postMock as typeof api.post)
+    const user = userEvent.setup()
+
+    try {
+      renderWithProviders(<ProductsPage />)
+
+      await user.click(screen.getByRole("button", { name: "New product" }))
+      await user.type(screen.getByLabelText("Name"), "UUID Burger")
+      await user.type(screen.getByLabelText("Price"), "12.50")
+      await user.click(screen.getByRole("combobox", { name: "Type" }))
+      await user.click(await screen.findByRole("option", { name: "CUSTOM_UUID_TYPE" }))
+      await user.click(screen.getByRole("button", { name: "Save" }))
+
+      await waitFor(() => {
+        expect(postMock).toHaveBeenCalledWith(
+          "/produtos",
+          expect.objectContaining({ productTypeId: uuidProductTypeId }),
+        )
+      })
+    } finally {
+      restorePost()
+      restoreGet()
+    }
+  })
+
+  test("preserves UUID product type ids when updating a product", async () => {
+    const getMock = vi.fn(async (url: string) => {
+      if (url.includes("/tipos")) {
+        return response({ types: [{ id: uuidProductTypeId, description: "CUSTOM_UUID_TYPE" }] })
+      }
+      return response({
+        products: [{ id: 42, name: "Existing UUID Burger", price: 15, ingredients: "beef", productTypeId: uuidProductTypeId }],
+        total: 1,
+      })
+    })
+    const putMock = vi.fn(async () => response({}))
+    const restoreGet = replaceProperty(api, "get", getMock as typeof api.get)
+    const restorePut = replaceProperty(api, "put", putMock as typeof api.put)
+    const user = userEvent.setup()
+
+    try {
+      renderWithProviders(<ProductsPage />)
+
+      await user.click(await screen.findByRole("button", { name: "Edit" }))
+      await user.click(screen.getByRole("button", { name: "Save changes" }))
+
+      await waitFor(() => {
+        expect(putMock).toHaveBeenCalledWith(
+          "/produtos/42",
+          expect.objectContaining({ productTypeId: uuidProductTypeId }),
+        )
+      })
+    } finally {
+      restorePut()
+      restoreGet()
+    }
+  })
+
   test("renders a translated seller fallback without using presentation text as data", async () => {
     const restoreGet = installApiGet((url) => {
       if (url.includes("/pedidos")) {
         return response({
-          orders: [{ id: 1, customerName: "Table 1", total: 12, status: "OPEN", seller: { name: "" } }],
+          orders: [{ id: 1, customerName: "Table 1", total: 12, isOpen: true, seller: { name: "" } }],
           total: 1,
         })
       }

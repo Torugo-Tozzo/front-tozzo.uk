@@ -6,7 +6,7 @@ export type ErrorContext =
   | "saveOrder"
   | "deleteOrder"
   | "closeOrder"
-  | "changeOrderStatus"
+  | "changeOrderItemStatus"
   | "loadSales"
   | "createSale"
   | "saleDetails"
@@ -31,7 +31,7 @@ type ErrorKey =
   | "saveOrder"
   | "deleteOrder"
   | "closeOrder"
-  | "changeOrderStatus"
+  | "changeOrderItemStatus"
   | "loadSales"
   | "createSale"
   | "saleDetails"
@@ -59,7 +59,7 @@ const fallbackByContext: Record<ErrorContext, ErrorTranslation> = {
   saveOrder: { namespace: "errors", key: "saveOrder" },
   deleteOrder: { namespace: "errors", key: "deleteOrder" },
   closeOrder: { namespace: "errors", key: "closeOrder" },
-  changeOrderStatus: { namespace: "errors", key: "changeOrderStatus" },
+  changeOrderItemStatus: { namespace: "errors", key: "changeOrderItemStatus" },
   loadSales: { namespace: "errors", key: "loadSales" },
   createSale: { namespace: "errors", key: "createSale" },
   saleDetails: { namespace: "errors", key: "saleDetails" },
@@ -110,13 +110,12 @@ const errorKeyByContext: Partial<Record<ErrorContext, Record<string, ErrorTransl
     ORDER_ALREADY_CLOSED: { namespace: "errors", key: "closeOrder" },
     ORDER_CONFLICT: { namespace: "errors", key: "closeOrder" },
   },
-  changeOrderStatus: {
-    INVALID_ORDER_STATUS: { namespace: "errors", key: "changeOrderStatus" },
-    ORDER_STATUS_FORBIDDEN: { namespace: "errors", key: "changeOrderStatus" },
-    ORDER_STATUS_REQUIRED: { namespace: "errors", key: "changeOrderStatus" },
-    ORDER_NOT_FOUND: { namespace: "errors", key: "changeOrderStatus" },
-    ORDER_ALREADY_CLOSED: { namespace: "errors", key: "changeOrderStatus" },
-    ORDER_CONFLICT: { namespace: "errors", key: "changeOrderStatus" },
+  changeOrderItemStatus: {
+    INVALID_ORDER_ITEM_STATUS: { namespace: "errors", key: "changeOrderItemStatus" },
+    ORDER_ITEM_STATUS_FORBIDDEN: { namespace: "errors", key: "changeOrderItemStatus" },
+    ORDER_ITEM_STATUS_REQUIRED: { namespace: "errors", key: "changeOrderItemStatus" },
+    ORDER_ITEM_NOT_FOUND: { namespace: "errors", key: "changeOrderItemStatus" },
+    ORDER_NOT_FOUND: { namespace: "errors", key: "changeOrderItemStatus" },
   },
   createSale: {
     ORDER_NOT_FOUND: { namespace: "errors", key: "createSale" },

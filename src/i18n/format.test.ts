@@ -75,14 +75,15 @@ describe('active-locale helpers', () => {
 
   test('translates stable status and catalog IDs while preserving custom labels', async () => {
     await i18n.changeLanguage('en')
-    expect(getStatusLabel('IN_PREPARATION')).toBe('In preparation')
+    expect(getStatusLabel('REQUESTED')).toBe('Requested')
+    expect(getStatusLabel('DELIVERED')).toBe('Delivered')
     expect(getCatalogLabel('FOOD')).toBe('Food')
     expect(getCatalogLabel(1, 'Hambúrguer')).toBe('Burger')
     expect(getCatalogLabel(10, 'Sushi')).toBe('Sushi')
     expect(getCatalogLabel(23, 'Açaí')).toBe('Açaí')
 
     await i18n.changeLanguage('pt-BR')
-    expect(getStatusLabel('OPEN')).toBe('Aberto')
+    expect(getStatusLabel('IN_PREPARATION')).toBe('Em preparo')
     expect(getCatalogLabel('DRINK')).toBe('Bebidas')
     expect(getCatalogLabel(5, 'Bebida')).toBe('Bebidas')
     expect(getCatalogLabel(99, 'Bebida')).toBe('Bebida')

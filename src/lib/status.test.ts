@@ -1,32 +1,18 @@
 import { describe, it, expect, beforeEach } from 'bun:test'
 import { i18n } from '@/i18n/config'
-import { STATUS_OPTIONS, getStatusColor, getStatusLabel } from './status'
+import { getStatusLabel } from './status'
 
 describe('status', () => {
   beforeEach(async () => {
     await i18n.changeLanguage('en')
   })
 
-  it('lists all 4 order statuses in workflow order', () => {
-    expect(STATUS_OPTIONS.map((o) => o.value)).toEqual([
-      'OPEN', 'IN_PREPARATION', 'DELIVERING', 'CLOSED',
-    ])
-  })
-
-  it('maps each status to its approved hex color', () => {
-    expect(getStatusColor('OPEN')).toBe('#dc2626')
-    expect(getStatusColor('IN_PREPARATION')).toBe('#d97706')
-    expect(getStatusColor('DELIVERING')).toBe('#2563eb')
-    expect(getStatusColor('CLOSED')).toBe('#6b7280')
-  })
-
-  it('keeps the unknown fallback safe', () => {
-    expect(getStatusColor('UNKNOWN')).toBe('#6b7280')
-  })
-
-  it('maps stable status codes through the requested locale', () => {
+  it('maps each order item status through the requested locale', () => {
+    expect(getStatusLabel('REQUESTED', 'en')).toBe('Requested')
     expect(getStatusLabel('IN_PREPARATION', 'en')).toBe('In preparation')
-    expect(getStatusLabel('IN_PREPARATION', 'pt-BR')).toBe('Em preparo')
+    expect(getStatusLabel('DELIVERED', 'en')).toBe('Delivered')
+    expect(getStatusLabel('REQUESTED', 'pt-BR')).toBe('Solicitado')
+    expect(getStatusLabel('DELIVERED', 'pt-BR')).toBe('Entregue')
   })
 
   it('falls back to the raw string for an unknown status label', () => {

@@ -38,7 +38,7 @@ export default function DashboardLayout() {
   // hora ao fechar (isMobileMenuOpen vira false -> desmonta -> sem tempo
   // de tocar o animate-out).
   const [shouldRenderMobileMenu, setShouldRenderMobileMenu] = useState(false)
-  const [nonClosedCount, setNonClosedCount] = useState<number>(0)
+  const [openOrdersCount, setOpenOrdersCount] = useState<number>(0)
 
   useEffect(() => {
     if (isMobileMenuOpen) {
@@ -124,7 +124,7 @@ export default function DashboardLayout() {
                         "inline-flex items-center justify-center text-xs font-medium rounded-full h-6 w-6",
                         isActive ? "bg-background text-foreground" : "bg-primary text-primary-foreground"
                       )}>
-                        {formatNumber(nonClosedCount, i18n.language)}
+                        {formatNumber(openOrdersCount, i18n.language)}
                       </span>
                     </div>
                   )}
@@ -165,12 +165,12 @@ export default function DashboardLayout() {
 
   const fetchCount = useCallback(async () => {
     try {
-      const resp = await api.get('/pedidos', { params: { status: 'NOT_CLOSED', limit: 1 } })
+      const resp = await api.get('/pedidos', { params: { limit: 1 } })
       const totalHeader = resp.headers['x-total-count']
       const count = totalHeader ? parseInt(totalHeader, 10) : (Array.isArray(resp.data) ? resp.data.length : Array.isArray(resp.data?.orders) ? resp.data.orders.length : 0)
-      setNonClosedCount(count)
+      setOpenOrdersCount(count)
     } catch (err) {
-      console.error('Error fetching non-closed orders count', err)
+      console.error('Error fetching open orders count', err)
     }
   }, [])
 
