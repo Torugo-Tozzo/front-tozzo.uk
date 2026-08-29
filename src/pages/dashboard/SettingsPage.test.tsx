@@ -29,6 +29,7 @@ function authValue(role: UserRole) {
         status: 'ACTIVE',
       },
     },
+    logout: vi.fn(),
   }
 }
 
@@ -236,6 +237,63 @@ describe('SettingsPage', () => {
       expect(apiMocks.postMock).not.toHaveBeenCalled()
     } finally {
       apiMocks.restore()
+    }
+  })
+
+  it('shows the data/privacy section only for OWNER', () => {
+    mockUseAuth.mockReturnValue(authValue('MANAGER'))
+    const apiMocks = mockCategoryApi()
+
+    try {
+      renderWithProviders()
+      expect(screen.queryByRole('heading', { name: 'Dados e privacidade' })).not.toBeInTheDocument()
+
+      mockUseAuth.mockReturnValue(authValue('OWNER'))
+      renderWithProviders()
+      expect(screen.getByRole('heading', { name: 'Dados e privacidade' })).toBeInTheDocument()
+    } finally {
+      apiMocks.restore()
+    }
+  })
+
+  it('exports data by downloading a JSON blob', async () => {
+    const user = userEvent.setup()
+    mockUseAuth.mockReturnValue(authValue('OWNER'))
+    const getMock = vi.fn().mockResolvedValue({ data: { establishment: { id: 42 }, users: [], products: [], orders: [], sales: [] } })
+    const restoreGet = replaceProperty(api, 'get', getMock as typeof api.get)
+
+    try {
+      renderWithProviders()
+      await user.click(screen.getByRole('button', { name: 'Exportar meus dados' }))
+      await waitFor(() => expect(getMock).toHaveBeenCalledWith('/auth/export-data'))
+    } finally {
+      restoreGet()
+    }
+  })
+
+  it('requires the password and calls delete-account on confirm', async () => {
+    const user = userEvent.setup()
+    mockUseAuth.mockReturnValue(authValue('OWNER'))
+    const postMock = vi.fn().mockResolvedValue({ data: { message: 'ok' } })
+    const getMock = vi.fn().mockResolvedValue({ data: { id: 42, category: null } })
+    const restoreGet = replaceProperty(api, 'get', getMock as typeof api.get)
+    const restorePost = replaceProperty(api, 'post', postMock as typeof api.post)
+
+    try {
+      renderWithProviders()
+      await user.click(screen.getByRole('button', { name: 'Excluir minha conta' }))
+
+      const confirmButton = screen.getByRole('button', { name: 'Excluir permanentemente' })
+      expect(confirmButton).toBeDisabled()
+
+      await user.type(screen.getByLabelText('Senha atual'), 'senha123')
+      expect(confirmButton).not.toBeDisabled()
+
+      await user.click(confirmButton)
+      await waitFor(() => expect(postMock).toHaveBeenCalledWith('/auth/delete-account', { password: 'senha123' }))
+    } finally {
+      restoreGet()
+      restorePost()
     }
   })
 })

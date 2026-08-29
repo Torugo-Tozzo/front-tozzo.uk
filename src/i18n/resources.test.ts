@@ -33,6 +33,7 @@ const expectedNamespaces = [
   'status',
   'errors',
   'catalog',
+  'legal',
 ] as const
 
 describe('local i18n resources', () => {

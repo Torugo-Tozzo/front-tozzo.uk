@@ -216,6 +216,7 @@
     "responsiblePlaceholder": "Seu nome",
     "establishmentPlaceholder": "Bar do Zé",
     "freeAccessLabel": "Possuo chave de registro (Acesso Gratuito)",
+    "termsCheckboxLabel": "Li e aceito a <privacyLink>Política de Privacidade</privacyLink> e os <termsLink>Termos de Uso</termsLink>",
     "registrationKeyPlaceholder": "Chave de acesso",
     "createAccountLoading": "Criando conta..."
   },
@@ -532,6 +533,21 @@
       "hi": "Hindi",
       "ar": "Árabe"
     },
+    "dataPrivacy": {
+      "sectionTitle": "Dados e privacidade",
+      "sectionDescription": "Exporte os dados do seu estabelecimento ou exclua sua conta permanentemente.",
+      "exportButton": "Exportar meus dados",
+      "exportSuccess": "Dados exportados.",
+      "exportError": "Não foi possível exportar seus dados. Tente novamente.",
+      "deleteButton": "Excluir minha conta",
+      "deleteDialogTitle": "Excluir conta",
+      "deleteDialogDescription": "Isso exclui permanentemente seu estabelecimento e anonimiza o dado pessoal de todos os usuários vinculados. Não pode ser desfeito. Digite sua senha pra confirmar.",
+      "deletePasswordLabel": "Senha atual",
+      "deleteConfirmButton": "Excluir permanentemente",
+      "deleteCancelButton": "Cancelar",
+      "deleteSuccess": "Conta excluída. Saindo...",
+      "deleteWrongPassword": "Senha incorreta."
+    },
     "moreComingSoon": "Mais configurações em breve...",
     "printing": "Impressão",
     "paperWidth": "Largura do papel",
@@ -655,5 +671,33 @@
     "sushi": "Sushi",
     "other": "Outros",
     "defaultType": "Tipo padrão do catálogo"
+  },
+  "legal": {
+    "draftNotice": "Este documento é um rascunho/modelo e ainda não foi revisado por um advogado. Não constitui aconselhamento jurídico e não deve ser tratado como termo vinculante até passar por revisão formal.",
+    "privacyTitle": "Política de Privacidade",
+    "privacyIntro": "Esta Política de Privacidade explica como o TozzoBurger coleta, usa e protege dados pessoais tratados através desta plataforma, em conformidade com a Lei Geral de Proteção de Dados (LGPD).",
+    "privacyControllerTitle": "Controlador dos dados",
+    "privacyControllerBody": "O estabelecimento que opera na plataforma TozzoBurger atua como controlador dos dados pessoais de seus próprios clientes e funcionários. O TozzoBurger fornece o software usado para tratar esses dados.",
+    "privacyDataCollectedTitle": "Dados que coletamos",
+    "privacyDataCollectedBody": "Nome, e-mail, telefone (quando informado), credenciais de acesso, e histórico de pedidos/vendas associado a um estabelecimento.",
+    "privacyPurposeTitle": "Finalidade do tratamento",
+    "privacyPurposeBody": "Operação do sistema de ponto de venda, manutenção de histórico de vendas, autenticação de usuários e envio de comunicações transacionais relacionadas à conta.",
+    "privacySharingTitle": "Compartilhamento com terceiros",
+    "privacySharingBody": "O processamento de pagamentos é feito pela Stripe. Infraestrutura e entrega de conteúdo são fornecidas pela Cloudflare. Não vendemos dados pessoais a terceiros.",
+    "privacyRightsTitle": "Seus direitos",
+    "privacyRightsBody": "Conforme a LGPD, você pode solicitar confirmação do tratamento, acesso, correção, anonimização ou eliminação, portabilidade dos dados e revogação do consentimento sobre seus dados pessoais. Entre em contato pelo e-mail privacidade@tozzo.uk para exercer esses direitos.",
+    "privacyRetentionTitle": "Retenção de dados",
+    "privacyRetentionBody": "Os dados são mantidos enquanto a conta ou o estabelecimento estiver ativo. Registros excluídos são mantidos como soft-delete (marcados como removidos, não apagados imediatamente) para fins operacionais e legais.",
+    "termsTitle": "Termos de Uso",
+    "termsIntro": "Estes Termos de Uso regem o acesso e uso da plataforma TozzoBurger.",
+    "termsAccountTitle": "Conta e cadastro",
+    "termsAccountBody": "Ao se cadastrar, você confirma que as informações fornecidas são precisas e que está autorizado a criar uma conta em nome do estabelecimento.",
+    "termsUseTitle": "Uso aceitável",
+    "termsUseBody": "A plataforma deve ser usada apenas para fins legítimos de ponto de venda e gestão do negócio relacionados ao estabelecimento cadastrado.",
+    "termsLiabilityTitle": "Limitação de responsabilidade",
+    "termsLiabilityBody": "A plataforma é fornecida no estado em que se encontra. O TozzoBurger não se responsabiliza por perdas indiretas ou consequenciais decorrentes do uso do serviço.",
+    "termsChangesTitle": "Alterações destes termos",
+    "termsChangesBody": "Estes termos podem ser atualizados ao longo do tempo. O uso continuado da plataforma após uma atualização constitui aceite dos termos revisados.",
+    "backToRegister": "Voltar ao cadastro"
   }
 }

@@ -23,6 +23,7 @@ export type ErrorContext =
   | "createEmployee"
   | "updateEmployee"
   | "deleteEmployee"
+  | "deleteAccount"
 
 type ErrorKey =
   | "generic"
@@ -76,6 +77,7 @@ const fallbackByContext: Record<ErrorContext, ErrorTranslation> = {
   createEmployee: { namespace: "errors", key: "createEmployee" },
   updateEmployee: { namespace: "errors", key: "updateEmployee" },
   deleteEmployee: { namespace: "errors", key: "deleteEmployee" },
+  deleteAccount: { namespace: "errors", key: "generic" },
 }
 
 const errorKeyByContext: Partial<Record<ErrorContext, Record<string, ErrorTranslation>>> = {
@@ -89,6 +91,7 @@ const errorKeyByContext: Partial<Record<ErrorContext, Record<string, ErrorTransl
     AUTH_INVALID_INPUT: { namespace: "auth", key: "registerFailure" },
     AUTH_PASSWORD_TOO_SHORT: { namespace: "auth", key: "registerFailure" },
     AUTH_PENDING_LIMIT_REACHED: { namespace: "auth", key: "registerFailure" },
+    AUTH_TERMS_NOT_ACCEPTED: { namespace: "auth", key: "registerFailure" },
     AUTH_INTERNAL_ERROR: { namespace: "errors", key: "generic" },
   },
   payment: {

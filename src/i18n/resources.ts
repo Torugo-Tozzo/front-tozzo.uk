@@ -21,6 +21,7 @@ export const NAMESPACES = [
   'status',
   'errors',
   'catalog',
+  'legal',
 ] as const
 
 export type I18nResource = {

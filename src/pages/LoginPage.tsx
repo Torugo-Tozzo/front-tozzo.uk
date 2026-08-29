@@ -16,7 +16,7 @@ import logo from "@/assets/images/logo.svg"
 import api, { getErrorCode } from "@/services/api"
 import { toast } from "sonner"
 import { useAuth } from "@/contexts/AuthContext"
-import { useTranslation } from "react-i18next"
+import { Trans, useTranslation } from "react-i18next"
 import { getErrorTranslationKey } from "@/i18n/error-keys"
 
 export default function LoginPage() {
@@ -54,6 +54,7 @@ export default function LoginPage() {
   const [registerPassword, setRegisterPassword] = useState("")
   const [registrationKey, setRegistrationKey] = useState("")
   const [hasKey, setHasKey] = useState(false)
+  const [termsAccepted, setTermsAccepted] = useState(false)
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -93,7 +94,8 @@ export default function LoginPage() {
         email: registerEmail,
         password: registerPassword,
         establishmentName: registerEstablishment,
-        registrationKey: hasKey ? registrationKey : ""
+        registrationKey: hasKey ? registrationKey : "",
+        termsAccepted,
       }
 
       const response = await api.post("/auth/register", payload)
@@ -243,6 +245,26 @@ export default function LoginPage() {
                     </Label>
                   </div>
 
+                  <div className="flex items-start space-x-2 py-2">
+                    <input
+                      type="checkbox"
+                      id="terms-accepted"
+                      checked={termsAccepted}
+                      onChange={(e) => setTermsAccepted(e.target.checked)}
+                      className="h-4 w-4 mt-0.5 rounded border-gray-300 text-primary focus:ring-primary"
+                    />
+                    <Label htmlFor="terms-accepted" className="text-sm font-normal leading-snug">
+                      <Trans
+                        i18nKey="termsCheckboxLabel"
+                        ns="auth"
+                        components={{
+                          privacyLink: <a href="/privacidade" target="_blank" rel="noreferrer" className="underline" />,
+                          termsLink: <a href="/termos" target="_blank" rel="noreferrer" className="underline" />,
+                        }}
+                      />
+                    </Label>
+                  </div>
+
                   {hasKey && (
                     <div className="space-y-2">
                       <Label htmlFor="registration-key">{tAuth("registrationKey")}</Label>
@@ -257,7 +279,7 @@ export default function LoginPage() {
                   )}
                 </CardContent>
                 <CardFooter>
-                  <Button className="w-full" type="submit" disabled={isLoading}>
+                  <Button className="w-full" type="submit" disabled={isLoading || !termsAccepted}>
                     {isLoading
                       ? tAuth("createAccountLoading")
                       : (hasKey ? tAuth("createAccount") : tAuth("createAndSubscribe"))}

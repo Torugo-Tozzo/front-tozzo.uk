@@ -18,6 +18,7 @@ export const NAMESPACES = [
   'status',
   'errors',
   'catalog',
+  'legal',
 ]
 export const DEFAULT_LOCALE = 'en'
 const PLACEHOLDER_TRANSLATION_VALUE = /^\s*(?:TODO|TBD|FIXME|PLACEHOLDER|TRANSLATE_ME|TRANSLATION_NEEDED)(?:\s*[:_-].*)?\s*$/i
