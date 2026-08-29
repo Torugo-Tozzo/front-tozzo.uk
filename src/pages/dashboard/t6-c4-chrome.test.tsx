@@ -154,6 +154,42 @@ describe("T6-C4 dashboard chrome", () => {
     }
   })
 
+  test("preserves UUID product type ids in chart filters", async () => {
+    const productTypeId = "550e8400-e29b-41d4-a716-446655440000"
+    const getMock = vi.fn(async (url: string) => {
+      if (url === "/tipos") {
+        return response({ types: [{ id: productTypeId, description: "CUSTOM_UUID_TYPE" }] })
+      }
+      if (url === "/graficos") return response({ products: [], closing: null })
+      if (url === "/graficos/lista") {
+        return response({ data: [{ id: 1, name: "Burger", quantitySold: 1, totalRevenue: 12 }], total: 1 })
+      }
+      return response([])
+    })
+    const restoreGet = replaceProperty(api, "get", getMock as typeof api.get)
+    const user = userEvent.setup()
+
+    try {
+      renderWithProviders(<ChartsPage />)
+
+      await waitFor(() => expect(screen.getByRole("button", { name: "Search" })).not.toBeDisabled())
+      await user.click(screen.getByRole("combobox", { name: "Food type" }))
+      await user.click(await screen.findByRole("option", { name: "CUSTOM_UUID_TYPE" }))
+      await user.click(screen.getByRole("button", { name: "Search" }))
+
+      await waitFor(() => {
+        expect(getMock).toHaveBeenCalledWith("/graficos", {
+          params: expect.objectContaining({ productTypeId }),
+        })
+      })
+      expect(getMock).toHaveBeenCalledWith("/graficos/lista", {
+        params: expect.objectContaining({ productTypeId }),
+      })
+    } finally {
+      restoreGet()
+    }
+  })
+
   test("renders a translated seller fallback without using presentation text as data", async () => {
     const restoreGet = installApiGet((url) => {
       if (url.includes("/pedidos")) {

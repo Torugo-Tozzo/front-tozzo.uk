@@ -19,7 +19,7 @@ export interface User {
 }
 
 export interface ProductType {
-  id: number | string;
+  id: string;
   description: string;
   color?: string;
   isActive?: boolean;
@@ -29,7 +29,7 @@ export interface Product {
   id: number | string;
   name: string;
   price: number;
-  productTypeId?: number | null;
+  productTypeId?: string | null;
   ingredients?: string | null;
   sourceProductId?: number | string | null;
   productType?: ProductType | null;

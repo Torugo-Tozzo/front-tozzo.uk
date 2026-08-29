@@ -215,7 +215,7 @@ export default function ProductsPage() {
         name,
         price: parseFloat(price),
         ingredients,
-        productTypeId: parseInt(typeId),
+        productTypeId: typeId,
       })
       fetchProducts()
       setIsAddDialogOpen(false)
@@ -250,7 +250,7 @@ export default function ProductsPage() {
         name,
         price: parseFloat(price),
         ingredients,
-        productTypeId: parseInt(typeId),
+        productTypeId: typeId,
       })
       fetchProducts()
       setIsEditDialogOpen(false)
@@ -287,7 +287,7 @@ export default function ProductsPage() {
     setCurrentProduct(null)
   }
 
-  const getTypeName = (id: number | string) => {
+  const getTypeName = (id: string) => {
     const type = productTypes.find(t => String(t.id) === String(id))
     return type ? getCatalogLabel(type.id, type.description, activeLocale) : tCommon("notInformed")
   }
@@ -364,7 +364,7 @@ export default function ProductsPage() {
     setTypeColor("#000000")
   }
 
-  const getType = (id: number | string) => {
+  const getType = (id: string) => {
     return productTypes.find(t => String(t.id) === String(id)) || null
   }
 
@@ -540,7 +540,7 @@ export default function ProductsPage() {
                         </TableRow>
                       ))
                   ) : products.filter((product) => {
-                    const type = getType(product.productTypeId ?? 0)
+                    const type = getType(product.productTypeId ?? "")
                     return type ? type.isActive !== false : true
                   }).length === 0 ? (
                     <TableRow>
@@ -551,7 +551,7 @@ export default function ProductsPage() {
                   ) : (
                     products
                       .filter((product) => {
-                      const t = getType(product.productTypeId ?? 0)
+                      const t = getType(product.productTypeId ?? "")
                       // hide products whose type is explicitly inactive
                       return t ? (t.isActive !== false) : true
                     })
@@ -561,7 +561,7 @@ export default function ProductsPage() {
                       <TableCell>{product.name}</TableCell>
                       <TableCell>
                         {(() => {
-                          const t = getType(product.productTypeId ?? 0)
+                          const t = getType(product.productTypeId ?? "")
                           if (t) {
                             return (
                               <span
@@ -574,7 +574,7 @@ export default function ProductsPage() {
                           }
                           return (
                             <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-secondary text-secondary-foreground">
-                              {getTypeName(product.productTypeId ?? 0)}
+                              {getTypeName(product.productTypeId ?? "")}
                             </span>
                           )
                         })()}

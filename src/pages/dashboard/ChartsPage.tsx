@@ -189,7 +189,7 @@ export default function ChartsPage() {
       }
 
       if (selectedTypeId && selectedTypeId !== "0") {
-        params.productTypeId = parseInt(selectedTypeId, 10)
+        params.productTypeId = selectedTypeId
       }
 
       const response = await api.get("/graficos", { params })
@@ -230,7 +230,7 @@ export default function ChartsPage() {
       }
 
       if (selectedTypeId && selectedTypeId !== "0") {
-        params.productTypeId = parseInt(selectedTypeId, 10)
+        params.productTypeId = selectedTypeId
       }
 
       const response = await api.get("/graficos/lista", { params })
@@ -364,7 +364,7 @@ export default function ChartsPage() {
     const body: any = {}
     if (startDate && startTime) body.startAt = new Date(`${startDate}T${startTime}:00`).toISOString()
     if (endDate && endTime) body.endAt = new Date(`${endDate}T${endTime}:59`).toISOString()
-    if (selectedTypeId && selectedTypeId !== "0") body.productTypeId = parseInt(selectedTypeId, 10)
+    if (selectedTypeId && selectedTypeId !== "0") body.productTypeId = selectedTypeId
     return body
   }
 

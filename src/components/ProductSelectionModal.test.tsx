@@ -13,7 +13,7 @@ const product = {
   id: "product-1",
   name: "Hambúrguer Especial",
   price: 24.5,
-  productTypeId: 1,
+  productTypeId: "550e8400-e29b-41d4-a716-446655440000",
 }
 
 function renderModal() {
@@ -48,7 +48,7 @@ describe("ProductSelectionModal chrome", () => {
   test("translates modal chrome, accessible item controls, and preserves business names", async () => {
     const getMock = vi.fn(async (url: string) => {
       if (url === "/tipos") {
-        return { data: { types: [{ id: 1, description: "BURGER" }] }, headers: {} }
+        return { data: { types: [{ id: product.productTypeId, description: "BURGER" }] }, headers: {} }
       }
       return { data: { products: [product], total: 1 }, headers: {} }
     })
