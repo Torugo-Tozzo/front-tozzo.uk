@@ -91,7 +91,12 @@ describe("T6-C4 dashboard chrome", () => {
   })
 
   test("renders translated products chrome while preserving the establishment name", async () => {
-    const restoreGet = installApiGet(() => undefined)
+    const restoreGet = installApiGet((url) => {
+      if (url.includes("/tipos")) {
+        return response({ types: [{ id: 1, description: "Burger", isActive: true }], total: 1 })
+      }
+      return undefined
+    })
 
     try {
       renderWithProviders(<ProductsPage />)

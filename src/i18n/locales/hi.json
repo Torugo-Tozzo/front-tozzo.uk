@@ -362,6 +362,11 @@
       "ingredientsPlaceholder": "अल्पविराम से अलग करें"
     },
     "newType": "नया प्रकार",
+    "typeGate": {
+      "message": "उत्पाद बनाने से पहले कम से कम एक सक्रिय उत्पाद प्रकार जोड़ें।",
+      "ownerAction": "उत्पाद प्रकार जोड़ें",
+      "managerInstruction": "उत्पाद बनाने से पहले मालिक से एक सक्रिय उत्पाद प्रकार जोड़ने के लिए कहें।"
+    },
     "table": {
       "searchPlaceholder": "उत्पाद खोजें...",
       "typesSearchPlaceholder": "प्रकार खोजें...",

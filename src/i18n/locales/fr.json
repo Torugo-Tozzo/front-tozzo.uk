@@ -362,6 +362,11 @@
       "ingredientsPlaceholder": "Séparez par des virgules"
     },
     "newType": "Nouveau type",
+    "typeGate": {
+      "message": "Ajoutez au moins un type de produit actif avant de créer un produit.",
+      "ownerAction": "Ajouter un type de produit",
+      "managerInstruction": "Demandez au propriétaire d’ajouter un type de produit actif avant de créer un produit."
+    },
     "table": {
       "searchPlaceholder": "Rechercher des produits...",
       "typesSearchPlaceholder": "Rechercher des types...",

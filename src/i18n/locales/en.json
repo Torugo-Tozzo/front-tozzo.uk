@@ -362,6 +362,11 @@
       "ingredientsPlaceholder": "Separate with commas"
     },
     "newType": "New type",
+    "typeGate": {
+      "message": "Add at least one active product type before creating a product.",
+      "ownerAction": "Add a product type",
+      "managerInstruction": "Ask the owner to add an active product type before creating a product."
+    },
     "table": {
       "searchPlaceholder": "Search products...",
       "typesSearchPlaceholder": "Search types...",

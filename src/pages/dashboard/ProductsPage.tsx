@@ -102,6 +102,10 @@ export default function ProductsPage() {
   const [isEditTypeDialogOpen, setIsEditTypeDialogOpen] = useState(false)
   const [typeName, setTypeName] = useState("")
   const [currentType, setCurrentType] = useState<EditableProductType | null>(null)
+  const [activeTab, setActiveTab] = useState("products")
+
+  const hasActiveProductType = productTypes.some(type => type.isActive)
+  const canCreateProductType = user?.role === "OWNER"
 
   useEffect(() => {
     // load all types for selects/lookup and load first page for types table
@@ -368,9 +372,15 @@ export default function ProductsPage() {
     return productTypes.find(t => String(t.id) === String(id)) || null
   }
 
+  const openTypeCreation = () => {
+    resetTypeForm()
+    setActiveTab("types")
+    setIsAddTypeDialogOpen(true)
+  }
+
   return (
     <div className="space-y-6">
-      <Tabs defaultValue="products" className="w-full space-y-6">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
             <ShoppingBag className="h-8 w-8" />
@@ -388,7 +398,7 @@ export default function ProductsPage() {
             <TabsContent value="products" className="mt-0">
               <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button onClick={resetForm} disabled={isSaving}>
+                  <Button onClick={resetForm} disabled={isSaving || !hasActiveProductType}>
                     <Plus className="mr-2 h-4 w-4" /> {tProducts("new")}
                   </Button>
                 </DialogTrigger>
@@ -419,7 +429,7 @@ export default function ProductsPage() {
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="type">{tProducts("type")}</Label>
-                      <Select value={typeId} onValueChange={setTypeId}>
+                      <Select name="productTypeId" required value={typeId} onValueChange={setTypeId}>
                         <SelectTrigger aria-label={tProducts("type")}>
                           <SelectValue placeholder={tProducts("forms.typePlaceholder")} />
                         </SelectTrigger>
@@ -511,6 +521,21 @@ export default function ProductsPage() {
               </div>
             </CardHeader>
             <CardContent>
+              {!hasActiveProductType && (
+                <div
+                  role="alert"
+                  className="mb-4 rounded-md border border-amber-500/50 bg-amber-50 p-4 text-sm text-amber-950 dark:bg-amber-950/30 dark:text-amber-100"
+                >
+                  <p>{tProducts("typeGate.message")}</p>
+                  {canCreateProductType ? (
+                    <Button type="button" variant="outline" size="sm" className="mt-3" onClick={openTypeCreation}>
+                      {tProducts("typeGate.ownerAction")}
+                    </Button>
+                  ) : (
+                    <p className="mt-2">{tProducts("typeGate.managerInstruction")}</p>
+                  )}
+                </div>
+              )}
               <div className="mb-4 text-sm text-muted-foreground">
                 {tCommon("recordsTotal", { count: formatNumber(totalItems, activeLocale) })}
               </div>

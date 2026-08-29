@@ -362,6 +362,11 @@
       "ingredientsPlaceholder": "用逗号分隔"
     },
     "newType": "新类型",
+    "typeGate": {
+      "message": "创建产品前，请先添加至少一个启用的产品类型。",
+      "ownerAction": "添加产品类型",
+      "managerInstruction": "请联系店主先添加一个启用的产品类型，然后再创建产品。"
+    },
     "table": {
       "searchPlaceholder": "搜索产品...",
       "typesSearchPlaceholder": "搜索类型...",

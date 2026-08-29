@@ -362,6 +362,11 @@
       "ingredientsPlaceholder": "Separe por vírgulas"
     },
     "newType": "Novo tipo",
+    "typeGate": {
+      "message": "Cadastre pelo menos um tipo de produto ativo antes de criar um produto.",
+      "ownerAction": "Adicionar um tipo de produto",
+      "managerInstruction": "Peça ao dono para cadastrar um tipo de produto ativo antes de criar um produto."
+    },
     "table": {
       "searchPlaceholder": "Buscar produtos...",
       "typesSearchPlaceholder": "Buscar tipos...",
