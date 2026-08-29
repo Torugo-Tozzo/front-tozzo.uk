@@ -199,7 +199,7 @@ describe("T6-C4 dashboard chrome", () => {
   test("preserves UUID product type ids when creating a product", async () => {
     const getMock = vi.fn(async (url: string) => {
       if (url.includes("/tipos")) {
-        return response({ types: [{ id: uuidProductTypeId, description: "CUSTOM_UUID_TYPE" }] })
+        return response({ types: [{ id: uuidProductTypeId, description: "CUSTOM_UUID_TYPE", isActive: true }] })
       }
       return response({ products: [], total: 0 })
     })

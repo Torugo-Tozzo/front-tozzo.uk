@@ -114,7 +114,7 @@ describe("ProductsPage product type gate", () => {
         name: "Burger",
         price: 12.5,
         ingredients: "",
-        productTypeId: 1,
+        productTypeId: "1",
       }))
     } finally {
       requests.restore()
