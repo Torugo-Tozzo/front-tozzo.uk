@@ -655,5 +655,33 @@
     "sushi": "Sushi",
     "other": "Autre",
     "defaultType": "Type de catalogue par défaut"
+  },
+  "legal": {
+    "draftNotice": "Ce document est un modèle/brouillon et n'a pas encore été examiné par un avocat. Il ne constitue pas un conseil juridique et ne doit pas être considéré comme une clause contraignante avant un examen formel.",
+    "privacyTitle": "Politique de confidentialité",
+    "privacyIntro": "Cette Politique de confidentialité explique comment TozzoBurger collecte, utilise et protège les données personnelles traitées via cette plateforme, conformément à la Loi générale brésilienne sur la protection des données (LGPD).",
+    "privacyControllerTitle": "Responsable du traitement",
+    "privacyControllerBody": "L'établissement qui opère sur la plateforme TozzoBurger agit en tant que responsable du traitement des données personnelles de ses propres clients et employés. TozzoBurger fournit le logiciel utilisé pour traiter ces données.",
+    "privacyDataCollectedTitle": "Données que nous collectons",
+    "privacyDataCollectedBody": "Nom, adresse e-mail, numéro de téléphone (lorsqu'il est fourni), identifiants de connexion et historique des commandes/ventes associé à un établissement.",
+    "privacyPurposeTitle": "Finalités du traitement",
+    "privacyPurposeBody": "Exploiter le système de point de vente, conserver un historique des ventes, authentifier les utilisateurs et envoyer des communications transactionnelles liées au compte.",
+    "privacySharingTitle": "Partage avec des tiers",
+    "privacySharingBody": "Le traitement des paiements est assuré par Stripe. L'infrastructure et la diffusion de contenu sont fournies par Cloudflare. Nous ne vendons pas de données personnelles à des tiers.",
+    "privacyRightsTitle": "Vos droits",
+    "privacyRightsBody": "En vertu de la LGPD, vous pouvez demander la confirmation du traitement, l'accès, la rectification, l'anonymisation ou la suppression, la portabilité des données et le retrait du consentement concernant vos données personnelles. Contactez-nous à privacidade@tozzo.uk pour exercer ces droits.",
+    "privacyRetentionTitle": "Conservation des données",
+    "privacyRetentionBody": "Les données sont conservées tant que le compte ou l'établissement reste actif. Les enregistrements supprimés sont conservés en soft-delete (marqués comme supprimés, et non effacés immédiatement) à des fins opérationnelles et juridiques.",
+    "termsTitle": "Conditions d'utilisation",
+    "termsIntro": "Les présentes Conditions d'utilisation régissent l'accès à la plateforme TozzoBurger et son utilisation.",
+    "termsAccountTitle": "Compte et inscription",
+    "termsAccountBody": "En vous inscrivant, vous confirmez que les informations fournies sont exactes et que vous êtes autorisé à créer un compte au nom de l'établissement.",
+    "termsUseTitle": "Utilisation acceptable",
+    "termsUseBody": "La plateforme doit être utilisée uniquement à des fins légitimes de point de vente et de gestion commerciale liées à l'établissement enregistré.",
+    "termsLiabilityTitle": "Limitation de responsabilité",
+    "termsLiabilityBody": "La plateforme est fournie en l'état. TozzoBurger ne peut être tenu responsable des pertes indirectes ou consécutives résultant de l'utilisation du service.",
+    "termsChangesTitle": "Modifications de ces conditions",
+    "termsChangesBody": "Ces conditions peuvent être mises à jour au fil du temps. La poursuite de l'utilisation de la plateforme après une mise à jour vaut acceptation des conditions révisées.",
+    "backToRegister": "Retour à l'inscription"
   }
 }

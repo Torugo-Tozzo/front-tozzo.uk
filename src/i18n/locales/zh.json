@@ -655,5 +655,33 @@
     "sushi": "寿司",
     "other": "其他",
     "defaultType": "默认目录类型"
+  },
+  "legal": {
+    "draftNotice": "本文档是草稿模板，尚未经过律师审查。不构成法律建议，在正式审查前不应被视为具有约束力的条款。",
+    "privacyTitle": "隐私政策",
+    "privacyIntro": "本隐私政策说明 TozzoBurger 如何收集、使用和保护通过本平台处理的个人数据，并遵守巴西《通用数据保护法》（LGPD）。",
+    "privacyControllerTitle": "数据控制者",
+    "privacyControllerBody": "在 TozzoBurger 平台上运营的商家是其自身客户和员工个人数据的数据控制者。TozzoBurger 提供用于处理这些数据的软件。",
+    "privacyDataCollectedTitle": "我们收集的数据",
+    "privacyDataCollectedBody": "姓名、电子邮箱、电话号码（如提供）、登录凭据，以及与商家相关的订单/销售记录。",
+    "privacyPurposeTitle": "处理目的",
+    "privacyPurposeBody": "运营销售点系统、保存销售记录、验证用户身份，以及发送与账户相关的交易通信。",
+    "privacySharingTitle": "与第三方共享",
+    "privacySharingBody": "支付处理由 Stripe 负责。基础设施和内容分发由 Cloudflare 提供。我们不会向第三方出售个人数据。",
+    "privacyRightsTitle": "您的权利",
+    "privacyRightsBody": "根据 LGPD，您可以请求确认数据处理、访问、更正、匿名化或删除、数据可携带性，以及撤回对个人数据的同意。如需行使这些权利，请通过 privacidade@tozzo.uk 联系我们。",
+    "privacyRetentionTitle": "数据保留",
+    "privacyRetentionBody": "只要账户或商家处于活跃状态，数据就会被保留。删除的记录会以软删除状态保留（标记为已删除，但不会立即清除），用于运营和法律目的。",
+    "termsTitle": "使用条款",
+    "termsIntro": "本使用条款规定了对 TozzoBurger 平台的访问和使用。",
+    "termsAccountTitle": "账户与注册",
+    "termsAccountBody": "注册即表示您确认所提供的信息准确无误，并且获授权代表该商家创建账户。",
+    "termsUseTitle": "可接受的使用",
+    "termsUseBody": "平台只能用于与注册商家相关的合法销售点和业务管理目的。",
+    "termsLiabilityTitle": "责任限制",
+    "termsLiabilityBody": "平台按现状提供。对于因使用本服务而产生的间接或后果性损失，TozzoBurger 不承担责任。",
+    "termsChangesTitle": "条款变更",
+    "termsChangesBody": "这些条款可能会不时更新。更新后继续使用平台即表示接受修订后的条款。",
+    "backToRegister": "返回注册"
   }
 }

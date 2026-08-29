@@ -655,5 +655,33 @@
     "sushi": "Sushi",
     "other": "Other",
     "defaultType": "Default catalog type"
+  },
+  "legal": {
+    "draftNotice": "This document is a draft template and has not yet been reviewed by a lawyer. It does not constitute legal advice and should not be treated as a binding term until formally reviewed.",
+    "privacyTitle": "Privacy Policy",
+    "privacyIntro": "This Privacy Policy explains how TozzoBurger collects, uses, and protects personal data processed through this platform, in accordance with Brazil's General Data Protection Law (LGPD).",
+    "privacyControllerTitle": "Data controller",
+    "privacyControllerBody": "The establishment that operates on the TozzoBurger platform acts as the data controller for the personal data of its own customers and staff. TozzoBurger provides the software used to process that data.",
+    "privacyDataCollectedTitle": "Data we collect",
+    "privacyDataCollectedBody": "Name, email address, phone number (when provided), login credentials, and order/sale history associated with an establishment.",
+    "privacyPurposeTitle": "Purpose of processing",
+    "privacyPurposeBody": "Operating the point-of-sale system, keeping a sales history, authenticating users, and sending transactional communications related to the account.",
+    "privacySharingTitle": "Sharing with third parties",
+    "privacySharingBody": "Payment processing is handled by Stripe. Infrastructure and content delivery are provided by Cloudflare. We do not sell personal data to third parties.",
+    "privacyRightsTitle": "Your rights",
+    "privacyRightsBody": "Under LGPD, you may request confirmation of processing, access, correction, anonymization or deletion, data portability, and revocation of consent for your personal data. Contact us at privacidade@tozzo.uk to exercise these rights.",
+    "privacyRetentionTitle": "Data retention",
+    "privacyRetentionBody": "Data is kept while the account or establishment remains active. Deleted records are retained as soft-deleted (marked as removed, not immediately erased) for operational and legal purposes.",
+    "termsTitle": "Terms of Use",
+    "termsIntro": "These Terms of Use govern access to and use of the TozzoBurger platform.",
+    "termsAccountTitle": "Account and registration",
+    "termsAccountBody": "By registering, you confirm that the information provided is accurate and that you are authorized to create an account on behalf of the establishment.",
+    "termsUseTitle": "Acceptable use",
+    "termsUseBody": "The platform must be used only for legitimate point-of-sale and business management purposes related to the registered establishment.",
+    "termsLiabilityTitle": "Limitation of liability",
+    "termsLiabilityBody": "The platform is provided on an as-is basis. TozzoBurger is not liable for indirect or consequential losses arising from use of the service.",
+    "termsChangesTitle": "Changes to these terms",
+    "termsChangesBody": "These terms may be updated over time. Continued use of the platform after an update constitutes acceptance of the revised terms.",
+    "backToRegister": "Back to registration"
   }
 }
