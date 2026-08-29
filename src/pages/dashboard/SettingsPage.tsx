@@ -12,6 +12,14 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import {
   PAPER_WIDTH_PRESETS,
   getStoredPaperWidth,
   persistPaperWidth,
@@ -54,7 +62,7 @@ function readEstablishmentResponse(data: unknown, fallbackId: number | string | 
 }
 
 export default function SettingsPage() {
-  const { user } = useAuth()
+  const { user, logout } = useAuth()
   const { i18n, t } = useTranslation('settings')
   const locale = normalizeLocale(i18n.language)
   const localeLabel = t(`locales.${locale}` as never)
@@ -73,6 +81,9 @@ export default function SettingsPage() {
   const [isLoadingCategory, setIsLoadingCategory] = useState(false)
   const [isSavingCategory, setIsSavingCategory] = useState(false)
   const [isAddingTypes, setIsAddingTypes] = useState(false)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [deletePassword, setDeletePassword] = useState("")
+  const [isDeleting, setIsDeleting] = useState(false)
 
   useEffect(() => {
     if (!canEditCategory) return
@@ -153,6 +164,38 @@ export default function SettingsPage() {
       toast.error(t('category.addTypesError'))
     } finally {
       setIsAddingTypes(false)
+    }
+  }
+
+  const handleExportData = async () => {
+    try {
+      const response = await api.get("/auth/export-data")
+      const blob = new Blob([JSON.stringify(response.data, null, 2)], { type: "application/json" })
+      const link = document.createElement("a")
+      link.href = window.URL.createObjectURL(blob)
+      link.download = "tozzo-export.json"
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+      toast.success(t("dataPrivacy.exportSuccess"))
+    } catch (error) {
+      console.error("Export failed", error)
+      toast.error(t("dataPrivacy.exportError"))
+    }
+  }
+
+  const handleDeleteAccount = async () => {
+    setIsDeleting(true)
+    try {
+      await api.post("/auth/delete-account", { password: deletePassword })
+      toast.success(t("dataPrivacy.deleteSuccess"))
+      setIsDeleteDialogOpen(false)
+      logout()
+    } catch (error) {
+      console.error("Delete account failed", error)
+      toast.error(t("dataPrivacy.deleteWrongPassword"))
+    } finally {
+      setIsDeleting(false)
     }
   }
 
@@ -321,6 +364,55 @@ export default function SettingsPage() {
           )}
         </div>
       )}
+
+      {isOwner && (
+        <div className="space-y-4 border-t pt-4">
+          <div>
+            <h3 className="font-semibold">{t('dataPrivacy.sectionTitle')}</h3>
+            <p className="text-sm text-muted-foreground">{t('dataPrivacy.sectionDescription')}</p>
+          </div>
+          <div className="flex gap-3">
+            <Button type="button" variant="outline" onClick={handleExportData}>
+              {t('dataPrivacy.exportButton')}
+            </Button>
+            <Button type="button" variant="destructive" onClick={() => setIsDeleteDialogOpen(true)}>
+              {t('dataPrivacy.deleteButton')}
+            </Button>
+          </div>
+        </div>
+      )}
+
+      <Dialog open={isDeleteDialogOpen} onOpenChange={(open) => { if (!open) { setIsDeleteDialogOpen(false); setDeletePassword("") } }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t('dataPrivacy.deleteDialogTitle')}</DialogTitle>
+            <DialogDescription>{t('dataPrivacy.deleteDialogDescription')}</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <label htmlFor="delete-account-password" className="text-sm text-muted-foreground">
+              {t('dataPrivacy.deletePasswordLabel')}
+            </label>
+            <Input
+              id="delete-account-password"
+              type="password"
+              value={deletePassword}
+              onChange={(event) => setDeletePassword(event.target.value)}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
+              {t('dataPrivacy.deleteCancelButton')}
+            </Button>
+            <Button
+              variant="destructive"
+              disabled={deletePassword.length === 0 || isDeleting}
+              onClick={handleDeleteAccount}
+            >
+              {t('dataPrivacy.deleteConfirmButton')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <div className="p-10 border-2 border-dashed rounded-lg flex items-center justify-center text-muted-foreground">
         {t('moreComingSoon')}

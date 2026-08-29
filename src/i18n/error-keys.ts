@@ -23,6 +23,7 @@ export type ErrorContext =
   | "createEmployee"
   | "updateEmployee"
   | "deleteEmployee"
+  | "deleteAccount"
 
 type ErrorKey =
   | "generic"
@@ -76,6 +77,7 @@ const fallbackByContext: Record<ErrorContext, ErrorTranslation> = {
   createEmployee: { namespace: "errors", key: "createEmployee" },
   updateEmployee: { namespace: "errors", key: "updateEmployee" },
   deleteEmployee: { namespace: "errors", key: "deleteEmployee" },
+  deleteAccount: { namespace: "errors", key: "generic" },
 }
 
 const errorKeyByContext: Partial<Record<ErrorContext, Record<string, ErrorTranslation>>> = {

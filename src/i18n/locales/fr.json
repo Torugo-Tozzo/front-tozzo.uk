@@ -533,6 +533,21 @@
       "hi": "Hindi",
       "ar": "Arabe"
     },
+    "dataPrivacy": {
+      "sectionTitle": "Données et confidentialité",
+      "sectionDescription": "Exportez les données de votre établissement ou supprimez définitivement votre compte.",
+      "exportButton": "Exporter mes données",
+      "exportSuccess": "Données exportées.",
+      "exportError": "Impossible d’exporter vos données. Réessayez.",
+      "deleteButton": "Supprimer mon compte",
+      "deleteDialogTitle": "Supprimer le compte",
+      "deleteDialogDescription": "Cette action supprime définitivement votre établissement et anonymise les données personnelles de tous les utilisateurs associés. Elle est irréversible. Saisissez votre mot de passe pour confirmer.",
+      "deletePasswordLabel": "Mot de passe actuel",
+      "deleteConfirmButton": "Supprimer définitivement",
+      "deleteCancelButton": "Annuler",
+      "deleteSuccess": "Compte supprimé. Déconnexion...",
+      "deleteWrongPassword": "Mot de passe incorrect."
+    },
     "moreComingSoon": "D'autres paramètres bientôt disponibles...",
     "printing": "Impression",
     "paperWidth": "Largeur du papier",

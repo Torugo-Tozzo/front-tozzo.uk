@@ -533,6 +533,21 @@
       "hi": "Hindi",
       "ar": "Árabe"
     },
+    "dataPrivacy": {
+      "sectionTitle": "Datos y privacidad",
+      "sectionDescription": "Exporta los datos de tu establecimiento o elimina tu cuenta permanentemente.",
+      "exportButton": "Exportar mis datos",
+      "exportSuccess": "Datos exportados.",
+      "exportError": "No se pudieron exportar tus datos. Inténtalo de nuevo.",
+      "deleteButton": "Eliminar mi cuenta",
+      "deleteDialogTitle": "Eliminar cuenta",
+      "deleteDialogDescription": "Esto elimina permanentemente tu establecimiento y anonimiza los datos personales de todos los usuarios vinculados. Esta acción no se puede deshacer. Introduce tu contraseña para confirmar.",
+      "deletePasswordLabel": "Contraseña actual",
+      "deleteConfirmButton": "Eliminar permanentemente",
+      "deleteCancelButton": "Cancelar",
+      "deleteSuccess": "Cuenta eliminada. Cerrando sesión...",
+      "deleteWrongPassword": "Contraseña incorrecta."
+    },
     "moreComingSoon": "Más configuraciones próximamente...",
     "printing": "Impresión",
     "paperWidth": "Ancho del papel",

@@ -533,6 +533,21 @@
       "hi": "Hindi",
       "ar": "Arabic"
     },
+    "dataPrivacy": {
+      "sectionTitle": "Data and privacy",
+      "sectionDescription": "Export your establishment's data or permanently delete your account.",
+      "exportButton": "Export my data",
+      "exportSuccess": "Data exported.",
+      "exportError": "Could not export your data. Try again.",
+      "deleteButton": "Delete my account",
+      "deleteDialogTitle": "Delete account",
+      "deleteDialogDescription": "This permanently deletes your establishment and anonymizes every linked user's personal data. This cannot be undone. Enter your password to confirm.",
+      "deletePasswordLabel": "Current password",
+      "deleteConfirmButton": "Delete permanently",
+      "deleteCancelButton": "Cancel",
+      "deleteSuccess": "Account deleted. Signing out...",
+      "deleteWrongPassword": "Incorrect password."
+    },
     "moreComingSoon": "More settings coming soon...",
     "printing": "Printing",
     "paperWidth": "Paper width",

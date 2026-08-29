@@ -533,6 +533,21 @@
       "hi": "印地语",
       "ar": "阿拉伯语"
     },
+    "dataPrivacy": {
+      "sectionTitle": "数据与隐私",
+      "sectionDescription": "导出您的商家数据或永久删除您的账户。",
+      "exportButton": "导出我的数据",
+      "exportSuccess": "数据已导出。",
+      "exportError": "无法导出您的数据。请重试。",
+      "deleteButton": "删除我的账户",
+      "deleteDialogTitle": "删除账户",
+      "deleteDialogDescription": "此操作将永久删除您的商家，并将所有关联用户的个人数据匿名化。此操作无法撤销。请输入密码确认。",
+      "deletePasswordLabel": "当前密码",
+      "deleteConfirmButton": "永久删除",
+      "deleteCancelButton": "取消",
+      "deleteSuccess": "账户已删除。正在退出...",
+      "deleteWrongPassword": "密码错误。"
+    },
     "moreComingSoon": "更多设置即将推出……",
     "printing": "打印",
     "paperWidth": "纸张宽度",
