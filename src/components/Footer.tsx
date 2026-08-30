@@ -11,9 +11,17 @@ export function Footer() {
     // mesma altura quando ambos ficam no fim da tela.
     <footer className="border-t py-4 bg-muted/40 mt-auto">
       <div className="container mx-auto px-4 flex items-center justify-between gap-4 flex-wrap">
-        <p className="text-muted-foreground text-sm">
-          {t("footerCopyright", { year: new Date().getFullYear() })}
-        </p>
+        <div className="flex items-center gap-4 flex-wrap">
+          <p className="text-muted-foreground text-sm">
+            {t("footerCopyright", { year: new Date().getFullYear() })}
+          </p>
+          <a href="/privacidade" target="_blank" rel="noreferrer" className="text-muted-foreground text-sm underline hover:text-primary">
+            {t("footerPrivacy")}
+          </a>
+          <a href="/termos" target="_blank" rel="noreferrer" className="text-muted-foreground text-sm underline hover:text-primary">
+            {t("footerTerms")}
+          </a>
+        </div>
         <div className="flex items-center gap-4">
           <a href="https://www.linkedin.com/in/victor-hugo-tozzo/" target="_blank" rel="noopener noreferrer">
             <Button variant="ghost" size="icon" className="border border-foreground hover:text-primary">

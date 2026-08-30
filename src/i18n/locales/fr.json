@@ -63,6 +63,8 @@
     "allCategories": "Toutes les catégories",
     "copyright": "Tous droits réservés.",
     "footerCopyright": "© {{year}} Tozzo.uk. Tous droits réservés.",
+    "footerPrivacy": "Confidentialité",
+    "footerTerms": "Conditions",
     "accessibility": {
       "linkedin": "LinkedIn",
       "github": "GitHub",
