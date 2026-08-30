@@ -687,7 +687,7 @@
     "privacySharingTitle": "Partage avec des tiers",
     "privacySharingBody": "Le traitement des paiements est assuré par Stripe. L'infrastructure et la diffusion de contenu sont fournies par Cloudflare. Nous ne vendons pas de données personnelles à des tiers.",
     "privacyRightsTitle": "Vos droits",
-    "privacyRightsBody": "En vertu de la LGPD, vous pouvez demander la confirmation du traitement, l'accès, la rectification, l'anonymisation ou la suppression, la portabilité des données et le retrait du consentement concernant vos données personnelles. Contactez-nous à privacidade@tozzo.uk pour exercer ces droits.",
+    "privacyRightsBody": "En vertu de la LGPD, vous pouvez demander la confirmation du traitement, l'accès, la rectification, l'anonymisation ou la suppression, la portabilité des données et le retrait du consentement concernant vos données personnelles. Contactez-nous à suporte@tozzo.uk pour exercer ces droits.",
     "privacyRetentionTitle": "Conservation des données",
     "privacyRetentionBody": "Les données sont conservées tant que le compte ou l'établissement reste actif. Les enregistrements supprimés sont conservés en soft-delete (marqués comme supprimés, et non effacés immédiatement) à des fins opérationnelles et juridiques.",
     "termsTitle": "Conditions d'utilisation",

@@ -35,7 +35,7 @@ export function Footer() {
               <span className="sr-only">{t("accessibility.github")}</span>
             </Button>
           </a>
-          <a href="mailto:victorhugo.tozzo@gmail.com">
+          <a href="mailto:suporte@tozzo.uk">
             <Button variant="ghost" size="icon" className="border border-foreground hover:text-primary">
               <Mail className="h-5 w-5" />
               <span className="sr-only">{t("accessibility.email")}</span>

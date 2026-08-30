@@ -687,7 +687,7 @@
     "privacySharingTitle": "与第三方共享",
     "privacySharingBody": "支付处理由 Stripe 负责。基础设施和内容分发由 Cloudflare 提供。我们不会向第三方出售个人数据。",
     "privacyRightsTitle": "您的权利",
-    "privacyRightsBody": "根据 LGPD，您可以请求确认数据处理、访问、更正、匿名化或删除、数据可携带性，以及撤回对个人数据的同意。如需行使这些权利，请通过 privacidade@tozzo.uk 联系我们。",
+    "privacyRightsBody": "根据 LGPD，您可以请求确认数据处理、访问、更正、匿名化或删除、数据可携带性，以及撤回对个人数据的同意。如需行使这些权利，请通过 suporte@tozzo.uk 联系我们。",
     "privacyRetentionTitle": "数据保留",
     "privacyRetentionBody": "只要账户或商家处于活跃状态，数据就会被保留。删除的记录会以软删除状态保留（标记为已删除，但不会立即清除），用于运营和法律目的。",
     "termsTitle": "使用条款",
