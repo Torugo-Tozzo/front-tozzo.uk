@@ -14,6 +14,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import logo from "@/assets/images/logo.svg"
 import api, { getErrorCode } from "@/services/api"
+import { authClient } from "@/lib/authClient"
 import { toast } from "sonner"
 import { useAuth } from "@/contexts/AuthContext"
 import { Trans, useTranslation } from "react-i18next"
@@ -21,7 +22,7 @@ import { getErrorTranslationKey } from "@/i18n/error-keys"
 
 export default function LoginPage() {
   const navigate = useNavigate()
-  const { login, isAuthenticated, user } = useAuth()
+  const { isAuthenticated, user } = useAuth()
   const { t: tAuth } = useTranslation("auth")
   const { t: tErrors } = useTranslation("errors")
   const [isLoading, setIsLoading] = useState(false)
@@ -55,30 +56,31 @@ export default function LoginPage() {
   const [registrationKey, setRegistrationKey] = useState("")
   const [hasKey, setHasKey] = useState(false)
   const [termsAccepted, setTermsAccepted] = useState(false)
+  const [mfaChallenge, setMfaChallenge] = useState<{ factorId: string; challengeId: string } | null>(null)
+  const [mfaCode, setMfaCode] = useState('')
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
     try {
-      const response = await api.post("/auth/login", {
-        email: loginEmail,
-        password: loginPassword,
-      })
-      await login(response.data.token)
+      const { error } = await authClient.signInWithPassword({ email: loginEmail, password: loginPassword })
+      if (error?.code === 'mfa_challenge_required') {
+        const { data: factors } = await authClient.mfa.listFactors()
+        const factorId = factors?.totp?.[0]?.id
+        if (factorId) {
+          const { data: challenge } = await authClient.mfa.challenge({ factorId })
+          if (challenge) setMfaChallenge({ factorId, challengeId: challenge.id })
+        }
+        return
+      }
+      if (error) {
+        toast.error(translateError("login", { response: { data: { code: error.code } } }))
+        return
+      }
       navigate("/dashboard")
     } catch (error: any) {
       console.error("Login failed", error)
       
-      if (error.response && error.response.status === 402) {
-        // Se o erro for 402, verifica se o token veio na resposta de erro
-        const token = error.response.data?.token;
-        if (token) {
-          await login(token);
-          navigate("/plan");
-          return;
-        }
-      }
-
       toast.error(translateError("login", error))
     } finally {
       setIsLoading(false)
@@ -89,33 +91,29 @@ export default function LoginPage() {
     e.preventDefault()
     setIsLoading(true)
     try {
-      const payload = {
-        name: registerName,
-        email: registerEmail,
-        password: registerPassword,
-        establishmentName: registerEstablishment,
-        registrationKey: hasKey ? registrationKey : "",
-        termsAccepted,
+      const { data, error } = await authClient.signUp({ email: registerEmail, password: registerPassword })
+      if (error || !data.session) {
+        toast.error(translateError("registration", { response: { data: { code: error?.code } } }))
+        return
       }
-
-      const response = await api.post("/auth/register", payload)
-      
-      if (response.data.token) {
-        await login(response.data.token)
-        if (hasKey) {
-          navigate("/dashboard")
-        } else {
-          navigate("/plan")
-        }
-      } else {
-        toast.success(tAuth("registrationSuccess"))
-      }
+      await api.post("/auth/complete-signup", { tradeName: registerEstablishment, registrationKey: hasKey ? registrationKey : "" })
+      navigate(hasKey ? "/dashboard" : "/plan")
     } catch (error) {
       console.error("Registration failed", error)
       toast.error(translateError("registration", error))
     } finally {
       setIsLoading(false)
     }
+  }
+
+  const handleMfaVerify = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!mfaChallenge) return
+    setIsLoading(true)
+    const { error } = await authClient.mfa.verify({ ...mfaChallenge, code: mfaCode })
+    setIsLoading(false)
+    if (error) { toast.error(tAuth('invalidTotpCode')); return }
+    navigate('/dashboard')
   }
 
   return (
@@ -170,11 +168,20 @@ export default function LoginPage() {
                   </div>
                 </CardContent>
                 <CardFooter>
+                  <a href="/forgot-password" className="text-sm text-muted-foreground underline mb-2 block text-center">
+                    {tAuth("forgotPasswordLink")}
+                  </a>
                   <Button className="w-full" type="submit" disabled={isLoading}>
                     {isLoading ? tAuth("entering") : tAuth("enter")}
                   </Button>
                 </CardFooter>
               </form>
+              <div className="px-6 pb-6"><Button type="button" variant="outline" className="w-full" onClick={() => void authClient.signInWithOAuth({ provider: 'google' })}>{tAuth('continueWithGoogle')}</Button></div>
+              {mfaChallenge && <form onSubmit={handleMfaVerify} className="border-t p-6 space-y-4">
+                <Label htmlFor="mfa-code">{tAuth('totpCode')}</Label>
+                <Input id="mfa-code" value={mfaCode} onChange={(e) => setMfaCode(e.target.value)} required inputMode="numeric" />
+                <Button className="w-full" type="submit" disabled={isLoading}>{tAuth('confirmTotp')}</Button>
+              </form>}
             </Card>
           </TabsContent>
           
@@ -286,6 +293,7 @@ export default function LoginPage() {
                   </Button>
                 </CardFooter>
               </form>
+              <div className="px-6 pb-6"><Button type="button" variant="outline" className="w-full" onClick={() => void authClient.signInWithOAuth({ provider: 'google' })}>{tAuth('continueWithGoogle')}</Button></div>
             </Card>
           </TabsContent>
         </Tabs>

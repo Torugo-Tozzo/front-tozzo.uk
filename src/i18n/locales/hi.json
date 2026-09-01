@@ -220,7 +220,7 @@
     "freeAccessLabel": "मेरे पास पंजीकरण कुंजी है (मुफ़्त पहुँच)",
     "termsCheckboxLabel": "मैंने <privacyLink>गोपनीयता नीति</privacyLink> और <termsLink>उपयोग की शर्तें</termsLink> पढ़ ली हैं और उन्हें स्वीकार करता/करती हूँ",
     "registrationKeyPlaceholder": "पहुँच कुंजी",
-    "createAccountLoading": "खाता बनाया जा रहा है..."
+    "createAccountLoading": "खाता बनाया जा रहा है...", "continueWithGoogle": "Google के साथ जारी रखें", "forgotPasswordLink": "पासवर्ड भूल गए?", "forgotPasswordTitle": "पासवर्ड भूल गए", "forgotPasswordEmailSent": "पासवर्ड रीसेट करने के लिए अपना ईमेल देखें।", "sendResetLink": "लिंक भेजें", "newPassword": "नया पासवर्ड", "resetPassword": "पासवर्ड रीसेट करें", "resetPasswordTitle": "पासवर्ड रीसेट करें", "resetPasswordSuccess": "पासवर्ड सफलतापूर्वक रीसेट हुआ।", "resetPasswordFailed": "पासवर्ड रीसेट नहीं हो सका।", "totpCode": "प्रमाणीकरण कोड", "confirmTotp": "पुष्टि करें", "invalidTotpCode": "अमान्य कोड।"
   },
   "navigation": {
     "dashboard": "डैशबोर्ड",
@@ -550,7 +550,7 @@
       "deleteSuccess": "खाता हटा दिया गया। साइन आउट हो रहा है...",
       "deleteWrongPassword": "गलत पासवर्ड।"
     },
-    "moreComingSoon": "और सेटिंग्स जल्द आ रही हैं...",
+    "moreComingSoon": "और सेटिंग्स जल्द आ रही हैं...", "security": { "title": "सुरक्षा", "enable": "2FA चालू करें", "disable": "2FA बंद करें", "code": "कोड", "qrCode": "QR कोड", "confirm": "पुष्टि करें", "enabled": "2FA चालू है।", "disabled": "2FA बंद है।", "setupError": "2FA सेट अप नहीं हो सका।", "disableError": "2FA बंद नहीं हो सका।" },
     "printing": "प्रिंटिंग",
     "paperWidth": "कागज़ की चौड़ाई",
     "category": {

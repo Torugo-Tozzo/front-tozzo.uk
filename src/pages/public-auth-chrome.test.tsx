@@ -4,7 +4,7 @@ import { MemoryRouter, Route, Routes } from "react-router-dom"
 import { Toaster } from "sonner"
 import { ConfirmProvider } from "@/contexts/ConfirmContext"
 
-import api from "@/services/api"
+import { authClient } from "@/lib/authClient"
 import { i18n } from "@/i18n/config"
 import { I18nProvider } from "@/i18n/provider"
 import { replaceProperty } from "@/test/replace-property"
@@ -108,16 +108,8 @@ describe("public and auth chrome", () => {
 
   test("shows a localized login error selected by API code", async () => {
     const consoleError = vi.spyOn(console, "error").mockImplementation(() => {})
-    const postMock = vi.fn().mockRejectedValue({
-      response: {
-        status: 400,
-        data: {
-          code: "AUTH_INVALID_CREDENTIALS",
-          message: "Invalid credentials.",
-        },
-      },
-    })
-    const restorePost = replaceProperty(api, "post", postMock as typeof api.post)
+    const signInMock = vi.fn().mockResolvedValue({ data: { session: null }, error: { code: "invalid_credentials" } })
+    const restoreSignIn = replaceProperty(authClient, "signInWithPassword", signInMock as typeof authClient.signInWithPassword)
 
     try {
       renderRoute(
@@ -136,7 +128,7 @@ describe("public and auth chrome", () => {
       expect(screen.queryByText("Invalid credentials.")).not.toBeInTheDocument()
     } finally {
       consoleError.mockRestore()
-      restorePost()
+      restoreSignIn()
     }
   })
 })

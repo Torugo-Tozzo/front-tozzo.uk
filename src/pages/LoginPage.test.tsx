@@ -6,13 +6,12 @@ import { ThemeProvider } from '@/components/theme-provider'
 import { I18nProvider } from '@/i18n/provider'
 import { i18n } from '@/i18n/config'
 import api from '@/services/api'
+import { authClient } from '@/lib/authClient'
 import { replaceProperty } from '@/test/replace-property'
 import LoginPage from './LoginPage'
 
-const mockLogin = vi.fn()
-
 vi.mock('@/contexts/AuthContext', () => ({
-  useAuth: () => ({ login: mockLogin, isAuthenticated: false, user: null }),
+  useAuth: () => ({ isAuthenticated: false, user: null }),
 }))
 
 function renderPage() {
@@ -29,7 +28,6 @@ function renderPage() {
 
 describe('LoginPage register form', () => {
   beforeEach(async () => {
-    mockLogin.mockReset()
     await act(async () => {
       await i18n.changeLanguage('en')
     })
@@ -46,8 +44,10 @@ describe('LoginPage register form', () => {
     expect(screen.getByRole('button', { name: /Create/i })).not.toBeDisabled()
   })
 
-  it('sends termsAccepted: true in the register payload', async () => {
+  it('sends signup and complete-signup through auth-js and API', async () => {
     const user = userEvent.setup()
+    const signUpMock = vi.fn().mockResolvedValue({ data: { session: { access_token: 'token' } }, error: null })
+    const restoreSignUp = replaceProperty(authClient, 'signUp', signUpMock as typeof authClient.signUp)
     const postMock = vi.fn().mockResolvedValue({ data: {} })
     const restore = replaceProperty(api, 'post', postMock as typeof api.post)
 
@@ -62,11 +62,10 @@ describe('LoginPage register form', () => {
       await user.click(screen.getByRole('checkbox', { name: /I have read and accept/i }))
       await user.click(screen.getByRole('button', { name: /Create/i }))
 
-      expect(postMock).toHaveBeenCalledWith(
-        '/auth/register',
-        expect.objectContaining({ termsAccepted: true }),
-      )
+      expect(signUpMock).toHaveBeenCalledWith({ email: 'ana@example.com', password: 'senha123' })
+      expect(postMock).toHaveBeenCalledWith('/auth/complete-signup', { tradeName: 'Bar da Ana', registrationKey: '' })
     } finally {
+      restoreSignUp()
       restore()
     }
   })

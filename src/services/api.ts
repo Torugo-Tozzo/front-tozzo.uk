@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { fromLegacyWire, resolveWireContext, toLegacyWire } from '@/lib/legacyWire';
+import { authClient } from '@/lib/authClient';
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3001',
@@ -13,10 +14,10 @@ export function normalizeResponseData(url: string | undefined, value: unknown): 
   return fromLegacyWire(value, resolveWireContext(url));
 }
 
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('tozzo_token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+api.interceptors.request.use(async (config) => {
+  const { data } = await authClient.getSession();
+  if (data.session?.access_token) {
+    config.headers.Authorization = `Bearer ${data.session.access_token}`;
   }
   if (config.data && typeof config.data === 'object' && !(config.data instanceof FormData) && !(config.data instanceof Blob)) {
     config.data = serializeRequestData(config.url, config.data);
@@ -37,8 +38,8 @@ api.interceptors.response.use(
       error.response.data = fromLegacyWire(error.response.data);
     }
     if (error.response && error.response.status === 401) {
-      // Token expired or invalid
-      localStorage.removeItem('tozzo_token');
+      // auth-js tenta refresh automático antes deste ponto.
+      void authClient.signOut();
       window.dispatchEvent(new Event('auth:logout'));
       window.location.href = '/login';
     }

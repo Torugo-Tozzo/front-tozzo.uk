@@ -220,7 +220,7 @@
     "freeAccessLabel": "J’ai une clé d’inscription (Accès gratuit)",
     "termsCheckboxLabel": "J'ai lu et j'accepte la <privacyLink>Politique de confidentialité</privacyLink> et les <termsLink>Conditions d'utilisation</termsLink>",
     "registrationKeyPlaceholder": "Clé d'accès",
-    "createAccountLoading": "Création du compte..."
+    "createAccountLoading": "Création du compte...", "continueWithGoogle": "Continuer avec Google", "forgotPasswordLink": "Mot de passe oublié", "forgotPasswordTitle": "Mot de passe oublié", "forgotPasswordEmailSent": "Consultez votre e-mail pour réinitialiser votre mot de passe.", "sendResetLink": "Envoyer le lien", "newPassword": "Nouveau mot de passe", "resetPassword": "Réinitialiser le mot de passe", "resetPasswordTitle": "Réinitialiser le mot de passe", "resetPasswordSuccess": "Mot de passe réinitialisé.", "resetPasswordFailed": "Impossible de réinitialiser le mot de passe.", "totpCode": "Code d'authentification", "confirmTotp": "Confirmer", "invalidTotpCode": "Code invalide."
   },
   "navigation": {
     "dashboard": "Tableau de bord",
@@ -550,7 +550,7 @@
       "deleteSuccess": "Compte supprimé. Déconnexion...",
       "deleteWrongPassword": "Mot de passe incorrect."
     },
-    "moreComingSoon": "D'autres paramètres bientôt disponibles...",
+    "moreComingSoon": "D'autres paramètres bientôt disponibles...", "security": { "title": "Sécurité", "enable": "Activer la 2FA", "disable": "Désactiver la 2FA", "code": "Code", "qrCode": "Code QR", "confirm": "Confirmer", "enabled": "2FA activée.", "disabled": "2FA désactivée.", "setupError": "Impossible de configurer la 2FA.", "disableError": "Impossible de désactiver la 2FA." },
     "printing": "Impression",
     "paperWidth": "Largeur du papier",
     "category": {
