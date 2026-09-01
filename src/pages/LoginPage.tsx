@@ -97,11 +97,22 @@ export default function LoginPage() {
     setIsLoading(true)
     try {
       const { data, error } = await authClient.signUp({ email: registerEmail, password: registerPassword })
-      if (error || !data.session) {
+      if (error) {
         toast.error(translateError("registration", { response: { data: { code: error?.code } } }))
         return
       }
-      await api.post("/auth/complete-signup", { tradeName: registerEstablishment, registrationKey: hasKey ? registrationKey : "" })
+      // Com a confirmação de e-mail habilitada, o GoTrue cria o usuário sem sessão.
+      // A finalização depende de uma sessão autenticada e só deve ocorrer após a confirmação.
+      if (!data.session) {
+        navigate("/login")
+        return
+      }
+      await api.post("/auth/complete-signup", {
+        name: registerName,
+        termsAccepted,
+        tradeName: registerEstablishment,
+        registrationKey: hasKey ? registrationKey : "",
+      })
       navigate(hasKey ? "/dashboard" : "/plan")
     } catch (error) {
       console.error("Registration failed", error)

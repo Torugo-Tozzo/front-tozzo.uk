@@ -40,7 +40,6 @@ api.interceptors.response.use(
     if (error.response && error.response.status === 401) {
       // auth-js tenta refresh automático antes deste ponto.
       void authClient.signOut();
-      window.dispatchEvent(new Event('auth:logout'));
       window.location.href = '/login';
     }
     // Se receber 402 (Payment Required), não faz logout, mas permite que o frontend trate
@@ -51,6 +50,8 @@ api.interceptors.response.use(
 
 export function getErrorCode(error: unknown): string | undefined {
   if (!error || typeof error !== 'object') return undefined;
+  const directCode = (error as { code?: unknown }).code;
+  if (typeof directCode === 'string' && directCode.length > 0) return directCode;
   const response = (error as { response?: { data?: unknown } }).response;
   const data = response?.data;
   if (!data || typeof data !== 'object') return undefined;

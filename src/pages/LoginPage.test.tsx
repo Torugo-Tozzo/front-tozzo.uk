@@ -63,7 +63,36 @@ describe('LoginPage register form', () => {
       await user.click(screen.getByRole('button', { name: /Create/i }))
 
       expect(signUpMock).toHaveBeenCalledWith({ email: 'ana@example.com', password: 'senha123' })
-      expect(postMock).toHaveBeenCalledWith('/auth/complete-signup', { tradeName: 'Bar da Ana', registrationKey: '' })
+      expect(postMock).toHaveBeenCalledWith('/auth/complete-signup', {
+        name: 'Ana',
+        termsAccepted: true,
+        tradeName: 'Bar da Ana',
+        registrationKey: '',
+      })
+    } finally {
+      restoreSignUp()
+      restore()
+    }
+  })
+
+  it('treats a signup awaiting email confirmation as successful without completing it', async () => {
+    const user = userEvent.setup()
+    const signUpMock = vi.fn().mockResolvedValue({ data: { session: null }, error: null })
+    const restoreSignUp = replaceProperty(authClient, 'signUp', signUpMock as typeof authClient.signUp)
+    const postMock = vi.fn()
+    const restore = replaceProperty(api, 'post', postMock as typeof api.post)
+
+    try {
+      renderPage()
+      await user.click(screen.getByRole('tab', { name: 'Register' }))
+      await user.type(screen.getByLabelText('Manager name'), 'Ana')
+      await user.type(screen.getByLabelText('Establishment name'), 'Bar da Ana')
+      await user.type(screen.getByLabelText('Email'), 'ana@example.com')
+      await user.type(screen.getByLabelText('Password'), 'senha123')
+      await user.click(screen.getByRole('checkbox', { name: /I have read and accept/i }))
+      await user.click(screen.getByRole('button', { name: /Create/i }))
+
+      expect(postMock).not.toHaveBeenCalled()
     } finally {
       restoreSignUp()
       restore()
