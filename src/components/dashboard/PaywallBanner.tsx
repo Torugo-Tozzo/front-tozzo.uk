@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 
-export type PaywallCode = "PLAN_UPGRADE_REQUIRED" | "REPORT_QUOTA_EXCEEDED" | "DEVICE_LIMIT_REACHED";
+export type PaywallCode = "PLAN_UPGRADE_REQUIRED" | "REPORT_QUOTA_EXCEEDED";
 
 interface PaywallBannerProps {
   code: PaywallCode;
@@ -17,9 +17,7 @@ export function PaywallBanner({ code, role }: PaywallBannerProps) {
 
   const message = code === "PLAN_UPGRADE_REQUIRED"
     ? tErrors("planUpgradeRequired")
-    : code === "REPORT_QUOTA_EXCEEDED"
-      ? tErrors("reportQuotaExceeded")
-      : tErrors("deviceLimitReached");
+    : tErrors("reportQuotaExceeded");
 
   return (
     <Alert variant="warning" className="mb-4">

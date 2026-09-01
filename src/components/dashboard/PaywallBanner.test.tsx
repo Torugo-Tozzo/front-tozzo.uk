@@ -5,7 +5,7 @@ import { MemoryRouter } from "react-router-dom";
 import i18n from "@/i18n/config";
 import { PaywallBanner } from "./PaywallBanner";
 
-function renderBanner(code: "PLAN_UPGRADE_REQUIRED" | "REPORT_QUOTA_EXCEEDED" | "DEVICE_LIMIT_REACHED", role: string) {
+function renderBanner(code: "PLAN_UPGRADE_REQUIRED" | "REPORT_QUOTA_EXCEEDED", role: string) {
   i18n.changeLanguage("en");
   return render(
     <I18nextProvider i18n={i18n}>
@@ -33,8 +33,9 @@ describe("PaywallBanner", () => {
     expect(screen.getByText(/monthly report limit/i)).toBeTruthy();
   });
 
-  test("mensagem certa pra DEVICE_LIMIT_REACHED", () => {
-    renderBanner("DEVICE_LIMIT_REACHED", "OWNER");
-    expect(screen.getByText(/device limit reached/i)).toBeTruthy();
+  test("mostra instrucao pro dono ao exceder a cota de relatorios", () => {
+    renderBanner("REPORT_QUOTA_EXCEEDED", "MANAGER");
+    expect(screen.getByText(/ask the owner/i)).toBeTruthy();
   });
+
 });

@@ -64,7 +64,6 @@ const requiredUiInventory: InventoryEntry[] = [
   { source: "src/components/ProductSelectionModal.tsx:486", key: "common.confirm" },
   { source: "src/components/dashboard/PaywallBanner.tsx:19", key: "errors.planUpgradeRequired" },
   { source: "src/components/dashboard/PaywallBanner.tsx:21", key: "errors.reportQuotaExceeded" },
-  { source: "src/components/dashboard/PaywallBanner.tsx:22", key: "errors.deviceLimitReached" },
   { source: "src/components/dashboard/PaywallBanner.tsx:30", key: "errors.upgradeCta" },
   { source: "src/components/dashboard/PaywallBanner.tsx:33", key: "errors.askOwnerCta" },
   { source: "src/components/dashboard/FiltersBar.tsx:96", key: "common.filters" },

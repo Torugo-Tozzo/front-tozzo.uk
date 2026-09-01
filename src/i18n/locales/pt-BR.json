@@ -653,7 +653,6 @@
     "payment": "Erro ao processar pagamento. Verifique se sua sessão está ativa.",
     "planUpgradeRequired": "Este recurso está disponível apenas em planos pagos.",
     "reportQuotaExceeded": "Limite mensal de relatórios atingido no plano Free.",
-    "deviceLimitReached": "Limite de dispositivos atingido no seu plano atual.",
     "upgradeCta": "Fazer upgrade",
     "askOwnerCta": "Peça pro dono fazer upgrade do plano pra liberar isso.",
     "products": {

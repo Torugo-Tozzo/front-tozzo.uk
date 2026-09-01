@@ -72,7 +72,7 @@ export default function PlanSelectionPage() {
                 <li className="flex items-center"><Check className="h-4 w-4 mr-2 text-green-500" /> {t('plans.features.fullAccess')}</li>
               </ul>
             </CardContent>
-            {user?.establishment?.status !== 'ACTIVE' && <CardFooter><span className="text-sm font-medium">{t('plans.currentPlan')}</span></CardFooter>}
+            {user?.establishment?.plan === 'FREE' && <CardFooter><span className="text-sm font-medium">{t('plans.currentPlan')}</span></CardFooter>}
           </Card>
 
           {/* Pago Plan */}

@@ -215,6 +215,7 @@ export default function ChartsPage() {
       if (code === "PLAN_UPGRADE_REQUIRED" || code === "REPORT_QUOTA_EXCEEDED") {
         setPaywallCode(code)
       } else {
+        setPaywallCode(null)
         console.error("Error fetching chart data", error)
         toast.error(tErrors("generic"))
       }
@@ -269,8 +270,14 @@ export default function ChartsPage() {
         setHasMore(data.length === limit)
       }
     } catch (error) {
-      console.error("Error fetching detailed data", error)
-      toast.error(tErrors("generic"))
+      const code = getErrorCode(error)
+      if (code === "PLAN_UPGRADE_REQUIRED" || code === "REPORT_QUOTA_EXCEEDED") {
+        setPaywallCode(code)
+      } else {
+        setPaywallCode(null)
+        console.error("Error fetching detailed data", error)
+        toast.error(tErrors("generic"))
+      }
       setDetailedData([])
     } finally {
       setIsTableLoading(false)
@@ -616,6 +623,7 @@ export default function ChartsPage() {
         </h1>
       </div>
 
+      {!paywallCode && (
       <Tabs defaultValue="products" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="products">{tCharts("tabs.products")}</TabsTrigger>
@@ -1053,6 +1061,7 @@ export default function ChartsPage() {
           </Card>
         </TabsContent>
       </Tabs>
+      )}
     </div>
   )
 }

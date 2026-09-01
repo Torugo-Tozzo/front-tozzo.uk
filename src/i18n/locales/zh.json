@@ -653,7 +653,6 @@
     "payment": "处理付款时出错。请检查会话是否有效。",
     "planUpgradeRequired": "此功能仅适用于付费套餐。",
     "reportQuotaExceeded": "免费套餐的每月报表限额已达到。",
-    "deviceLimitReached": "您当前套餐的设备数量已达到上限。",
     "upgradeCta": "升级套餐",
     "askOwnerCta": "请让所有者升级套餐以解锁此功能。",
     "products": {

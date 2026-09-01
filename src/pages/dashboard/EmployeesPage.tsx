@@ -147,6 +147,7 @@ export default function EmployeesPage() {
       if (code === "PLAN_UPGRADE_REQUIRED") {
         setPaywallCode(code)
       } else {
+        setPaywallCode(null)
         console.error("Error fetching employees", error)
         toast.error(localizedError("loadEmployees", error))
       }

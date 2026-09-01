@@ -653,7 +653,6 @@
     "payment": "Error processing payment. Check that your session is active.",
     "planUpgradeRequired": "This feature is only available on paid plans.",
     "reportQuotaExceeded": "You have reached your monthly report limit.",
-    "deviceLimitReached": "Device limit reached for your current plan.",
     "upgradeCta": "Upgrade plan",
     "askOwnerCta": "Ask the owner to upgrade the plan to unlock this.",
     "products": {

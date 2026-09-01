@@ -46,8 +46,14 @@ type EstablishmentResponse = {
   deviceCount: number | null
 }
 
+const ESTABLISHMENT_PLANS: readonly EstablishmentPlan[] = ['FREE', 'PAGO', 'PAGO_LEGADO', 'ENTERPRISE']
+
 function isEstablishmentCategory(value: unknown): value is EstablishmentCategory {
   return typeof value === "string" && ESTABLISHMENT_CATEGORIES.includes(value as EstablishmentCategory)
+}
+
+function isEstablishmentPlan(value: unknown): value is EstablishmentPlan {
+  return typeof value === "string" && ESTABLISHMENT_PLANS.includes(value as EstablishmentPlan)
 }
 
 function readEstablishmentResponse(data: unknown, fallbackId: number | string | null): EstablishmentResponse {
@@ -64,7 +70,7 @@ function readEstablishmentResponse(data: unknown, fallbackId: number | string | 
   return {
     id,
     category: isEstablishmentCategory(rawEstablishment.category) ? rawEstablishment.category : null,
-    plan: typeof rawEstablishment.plan === "string" ? rawEstablishment.plan as EstablishmentPlan : null,
+    plan: isEstablishmentPlan(rawEstablishment.plan) ? rawEstablishment.plan : null,
     printCountToday: typeof rawEstablishment.printCountToday === "number" ? rawEstablishment.printCountToday : null,
     reportCount: typeof rawEstablishment.reportCount === "number" ? rawEstablishment.reportCount : null,
     deviceCount: typeof (rawEstablishment._count as { devices?: unknown } | undefined)?.devices === "number"
@@ -101,19 +107,8 @@ export default function SettingsPage() {
 
   useEffect(() => {
     let cancelled = false
-    api.get('/estabelecimentos').then((response) => {
-      if (!cancelled) setPlanInfo(readEstablishmentResponse(response.data, fallbackEstablishmentId))
-    }).catch((error) => {
-      console.error('Error fetching plan info', error)
-    })
-    return () => { cancelled = true }
-  }, [fallbackEstablishmentId])
 
-  useEffect(() => {
-    if (!canEditCategory) return
-
-    let cancelled = false
-    setIsLoadingCategory(true)
+    if (canEditCategory) setIsLoadingCategory(true)
 
     const loadEstablishment = async () => {
       try {
@@ -121,16 +116,19 @@ export default function SettingsPage() {
         if (cancelled) return
 
         const establishment = readEstablishmentResponse(response.data, fallbackEstablishmentId)
+        setPlanInfo(establishment)
+        if (!canEditCategory) return
+
         setEstablishmentId(establishment.id)
         setCategory(establishment.category ?? '')
         setSuggestedTypes(establishment.category ? [...CATEGORY_SEEDS[establishment.category]] : [])
       } catch (error) {
         if (!cancelled) {
-          console.error('Error fetching establishment category', error)
-          toast.error(i18n.t('category.loadError', { ns: 'settings' }))
+          console.error('Error fetching establishment info', error)
+          if (canEditCategory) toast.error(i18n.t('category.loadError', { ns: 'settings' }))
         }
       } finally {
-        if (!cancelled) setIsLoadingCategory(false)
+        if (!cancelled && canEditCategory) setIsLoadingCategory(false)
       }
     }
 

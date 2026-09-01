@@ -653,7 +653,6 @@
     "payment": "Erreur lors du traitement du paiement. Vérifiez que votre session est active.",
     "planUpgradeRequired": "Cette fonctionnalité est disponible uniquement avec les forfaits payants.",
     "reportQuotaExceeded": "La limite mensuelle de rapports du forfait Free est atteinte.",
-    "deviceLimitReached": "La limite d'appareils de votre forfait actuel est atteinte.",
     "upgradeCta": "Mettre à niveau le forfait",
     "askOwnerCta": "Demandez au propriétaire de mettre à niveau le forfait pour débloquer cette fonctionnalité.",
     "products": {
