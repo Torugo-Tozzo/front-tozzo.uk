@@ -166,7 +166,12 @@
       "equivalentMonthly": "{{price}} प्रति माह के बराबर",
       "subscribeAnnual": "वार्षिक सदस्यता लें",
       "noPlanTitle": "ऐसा लगता है कि आपके पास अभी कोई प्लान नहीं है या आपकी सदस्यता नवीनीकृत नहीं हुई है",
-      "noPlanDescription": "अपने रेस्तरां का प्रबंधन बेहतर बनाने के लिए नीचे दिए गए प्लानों में से एक चुनें।"
+      "noPlanDescription": "अपने रेस्तरां का प्रबंधन बेहतर बनाने के लिए नीचे दिए गए प्लानों में से एक चुनें।",
+      "currentPlan": "वर्तमान योजना",
+      "enterpriseTitle": "Enterprise",
+      "enterpriseDescription": "अधिक डिवाइस वाले प्रतिष्ठानों के लिए।",
+      "enterpriseExtraDevice": "15 से अधिक प्रत्येक अतिरिक्त डिवाइस के लिए + R$8.00",
+      "subscribeEnterprise": "Enterprise की सदस्यता लें"
     },
     "notFound": {
       "code": "404",

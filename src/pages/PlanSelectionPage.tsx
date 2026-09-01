@@ -25,14 +25,10 @@ export default function PlanSelectionPage() {
     }
   }, [user, navigate]);
 
-  const handleCheckout = async (type: 'monthly' | 'annual') => {
+  const handleCheckout = async (tier: 'PAGO' | 'ENTERPRISE', interval: 'monthly' | 'annual') => {
     setLoading(true);
     try {
-      const endpoint = type === 'monthly' 
-        ? '/payments/stripe/mensal' 
-        : '/payments/stripe/anual';
-
-      const response = await api.post(endpoint);
+      const response = await api.post('/payments/stripe/checkout', { tier, interval });
 
       if (response.data.url) {
         window.location.href = response.data.url;
@@ -63,16 +59,31 @@ export default function PlanSelectionPage() {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-8 mt-8">
-          {/* Monthly Plan */}
+        <div className="grid md:grid-cols-3 gap-8 mt-8">
+          {/* Free Plan */}
+          <Card className="relative flex flex-col border-2 border-transparent">
+            <CardHeader>
+              <CardTitle className="text-2xl">Free</CardTitle>
+              <CardDescription>{t('plans.noPlanDescription')}</CardDescription>
+            </CardHeader>
+            <CardContent className="flex-1">
+              <span className="text-4xl font-bold">{formatCurrencyBRL(0)}</span>
+              <ul className="mt-4 space-y-2 text-sm text-gray-600 dark:text-muted-foreground">
+                <li className="flex items-center"><Check className="h-4 w-4 mr-2 text-green-500" /> {t('plans.features.fullAccess')}</li>
+              </ul>
+            </CardContent>
+            {user?.establishment?.status !== 'ACTIVE' && <CardFooter><span className="text-sm font-medium">{t('plans.currentPlan')}</span></CardFooter>}
+          </Card>
+
+          {/* Pago Plan */}
           <Card className="relative flex flex-col border-2 border-transparent hover:border-primary/50 transition-all">
             <CardHeader>
-              <CardTitle className="text-2xl">{t('plans.monthly')}</CardTitle>
+              <CardTitle className="text-2xl">Pago</CardTitle>
               <CardDescription>{t('plans.monthlyDescription')}</CardDescription>
             </CardHeader>
             <CardContent className="flex-1">
               <div className="mb-4">
-                <span className="text-4xl font-bold">{formatCurrencyBRL(6.9)}</span>
+                <span className="text-4xl font-bold">{formatCurrencyBRL(14.9)}</span>
                 <span className="text-gray-500 dark:text-muted-foreground">{t('plans.monthlyUnit')}</span>
               </div>
               <ul className="space-y-2 text-sm text-gray-600 dark:text-muted-foreground">
@@ -83,11 +94,11 @@ export default function PlanSelectionPage() {
             </CardContent>
             <CardFooter>
               <Button 
-                onClick={() => handleCheckout('monthly')}
+                onClick={() => handleCheckout('PAGO', 'monthly')}
                 disabled={loading}
                 className="w-full"
               >
-                {loading ? t('processing') : t('plans.subscribeMonthly')}
+                {loading ? t('processing') : `${t('plans.subscribeMonthly')} (Pago)`}
               </Button>
             </CardFooter>
           </Card>
@@ -117,11 +128,31 @@ export default function PlanSelectionPage() {
             </CardContent>
             <CardFooter>
               <Button 
-                onClick={() => handleCheckout('annual')}
+                onClick={() => handleCheckout('PAGO', 'annual')}
                 disabled={loading}
                 className="w-full bg-green-600 hover:bg-green-700"
               >
-                {loading ? t('processing') : t('plans.subscribeAnnual')}
+                {loading ? t('processing') : `${t('plans.subscribeAnnual')} (Pago)`}
+              </Button>
+            </CardFooter>
+          </Card>
+
+          {/* Enterprise Plan */}
+          <Card className="relative flex flex-col border-2 border-primary/50">
+            <CardHeader>
+              <CardTitle className="text-2xl">{t('plans.enterpriseTitle')}</CardTitle>
+              <CardDescription>{t('plans.enterpriseDescription')}</CardDescription>
+            </CardHeader>
+            <CardContent className="flex-1">
+              <div className="mb-4">
+                <span className="text-4xl font-bold">{formatCurrencyBRL(79.9)}</span>
+                <span className="text-gray-500 dark:text-muted-foreground">{t('plans.monthlyUnit')}</span>
+              </div>
+              <p className="text-sm text-gray-600 dark:text-muted-foreground">{t('plans.enterpriseExtraDevice')}</p>
+            </CardContent>
+            <CardFooter>
+              <Button onClick={() => handleCheckout('ENTERPRISE', 'monthly')} disabled={loading} className="w-full">
+                {loading ? t('processing') : t('plans.subscribeEnterprise')}
               </Button>
             </CardFooter>
           </Card>

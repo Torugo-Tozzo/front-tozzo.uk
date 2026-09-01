@@ -166,7 +166,12 @@
       "equivalentMonthly": "月均 {{price}}",
       "subscribeAnnual": "订阅年付方案",
       "noPlanTitle": "您似乎还没有方案，或您的订阅尚未续期",
-      "noPlanDescription": "选择以下方案之一，改善您的餐厅管理。"
+      "noPlanDescription": "选择以下方案之一，改善您的餐厅管理。",
+      "currentPlan": "当前方案",
+      "enterpriseTitle": "企业版",
+      "enterpriseDescription": "适合设备数量较多的商户。",
+      "enterpriseExtraDevice": "每个超过15台的额外设备加收 R$8.00",
+      "subscribeEnterprise": "订阅企业版"
     },
     "notFound": {
       "code": "404",

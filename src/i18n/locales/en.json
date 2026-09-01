@@ -166,7 +166,12 @@
       "equivalentMonthly": "Equivalent to {{price}}/month",
       "subscribeAnnual": "Subscribe annually",
       "noPlanTitle": "It looks like you do not have a plan yet or your subscription was not renewed",
-      "noPlanDescription": "Choose one of the plans below to improve your restaurant management."
+      "noPlanDescription": "Choose one of the plans below to improve your restaurant management.",
+      "currentPlan": "Current plan",
+      "enterpriseTitle": "Enterprise",
+      "enterpriseDescription": "For establishments with high device volume.",
+      "enterpriseExtraDevice": "+ R$8.00 per extra device above 15",
+      "subscribeEnterprise": "Subscribe to Enterprise"
     },
     "notFound": {
       "code": "404",

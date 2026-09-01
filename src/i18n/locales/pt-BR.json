@@ -166,7 +166,12 @@
       "equivalentMonthly": "Equivalente a {{price}}/mês",
       "subscribeAnnual": "Assinar anual",
       "noPlanTitle": "Parece que você ainda não possui um plano ou sua assinatura não foi renovada",
-      "noPlanDescription": "Escolha um dos planos abaixo para melhorar a gestão do seu restaurante."
+      "noPlanDescription": "Escolha um dos planos abaixo para melhorar a gestão do seu restaurante.",
+      "currentPlan": "Plano atual",
+      "enterpriseTitle": "Enterprise",
+      "enterpriseDescription": "Para estabelecimentos com alto volume de dispositivos.",
+      "enterpriseExtraDevice": "+ R$8,00 por dispositivo extra acima de 15",
+      "subscribeEnterprise": "Assinar Enterprise"
     },
     "notFound": {
       "code": "404",
