@@ -30,7 +30,7 @@ describe("PlanSelectionPage", () => {
     const restore = replaceProperty(api, "post", vi.fn().mockResolvedValue({ data: { url: "https://checkout.stripe.com/x" } }) as typeof api.post)
     try {
       renderPage()
-      await userEvent.click(screen.getAllByRole("button", { name: /subscribe.*pago|assinar.*pago/i })[0])
+      await userEvent.click(screen.getByRole("button", { name: /subscribe monthly|assinar mensal/i }))
       expect(api.post).toHaveBeenCalledWith("/payments/stripe/checkout", { tier: "PAGO", interval: "monthly" })
     } finally { restore() }
   })

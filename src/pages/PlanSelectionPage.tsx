@@ -78,7 +78,7 @@ export default function PlanSelectionPage() {
           {/* Pago Plan */}
           <Card className="relative flex flex-col border-2 border-transparent hover:border-primary/50 transition-all">
             <CardHeader>
-              <CardTitle className="text-2xl">Pago</CardTitle>
+              <CardTitle className="text-2xl">{t('plans.monthly')}</CardTitle>
               <CardDescription>{t('plans.monthlyDescription')}</CardDescription>
             </CardHeader>
             <CardContent className="flex-1">
@@ -98,7 +98,7 @@ export default function PlanSelectionPage() {
                 disabled={loading}
                 className="w-full"
               >
-                {loading ? t('processing') : `${t('plans.subscribeMonthly')} (Pago)`}
+                {loading ? t('processing') : t('plans.subscribeMonthly')}
               </Button>
             </CardFooter>
           </Card>
@@ -132,7 +132,7 @@ export default function PlanSelectionPage() {
                 disabled={loading}
                 className="w-full bg-green-600 hover:bg-green-700"
               >
-                {loading ? t('processing') : `${t('plans.subscribeAnnual')} (Pago)`}
+                {loading ? t('processing') : t('plans.subscribeAnnual')}
               </Button>
             </CardFooter>
           </Card>
