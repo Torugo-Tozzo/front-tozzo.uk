@@ -40,6 +40,7 @@ import { useTranslation } from "react-i18next"
 import { getErrorTranslationKey, type ErrorContext } from "@/i18n/error-keys"
 import { formatNumber, formatPageIndex } from "@/i18n/format"
 import type { UserRole } from "@/domain/models"
+import { PaywallBanner, type PaywallCode } from "@/components/dashboard/PaywallBanner"
 
 type Employee = {
   id: number | string
@@ -81,6 +82,7 @@ export default function EmployeesPage() {
   const [totalItems, setTotalItems] = useState(0)
   const [hasMore, setHasMore] = useState(false)
   const [search, setSearch] = useState("")
+  const [paywallCode, setPaywallCode] = useState<PaywallCode | null>(null)
 
   // Form states
   const [name, setName] = useState("")
@@ -126,6 +128,7 @@ export default function EmployeesPage() {
   const fetchEmployees = async () => {
     try {
       const response = await api.get(`/usuarios?page=${page}&limit=${limit}&search=${encodeURIComponent(search)}`)
+      setPaywallCode(null)
 
       const { data, total } = parseListResponse<Employee>(response)
 
@@ -140,8 +143,13 @@ export default function EmployeesPage() {
         setHasMore(data.length === limit)
       }
     } catch (error) {
-      console.error("Error fetching employees", error)
-      toast.error(localizedError("loadEmployees", error))
+      const code = getErrorCode(error)
+      if (code === "PLAN_UPGRADE_REQUIRED") {
+        setPaywallCode(code)
+      } else {
+        console.error("Error fetching employees", error)
+        toast.error(localizedError("loadEmployees", error))
+      }
     }
   }
 
@@ -329,7 +337,9 @@ export default function EmployeesPage() {
         )}
       </div>
 
-      <Card>
+      {paywallCode && <PaywallBanner code={paywallCode} role={user?.role} />}
+
+      {!paywallCode && <Card>
         <CardHeader>
           <div className="flex items-center justify-between w-full">
             <CardTitle>{t("team")}</CardTitle>
@@ -453,10 +463,10 @@ export default function EmployeesPage() {
             />
           </div>
         </CardContent>
-      </Card>
+      </Card>}
 
       {/* Edit Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+      {!paywallCode && <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{t("dialog.editTitle")}</DialogTitle>
@@ -522,7 +532,7 @@ export default function EmployeesPage() {
             </DialogFooter>
           </form>
         </DialogContent>
-      </Dialog>
+      </Dialog>}
     </div>
   )
 }
