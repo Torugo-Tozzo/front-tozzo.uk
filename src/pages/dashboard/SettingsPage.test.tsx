@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'bun:test'
 import { act, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { ThemeProvider } from '@/components/theme-provider'
+import { MemoryRouter } from 'react-router-dom'
 import { I18nProvider } from '@/i18n/provider'
 import { i18n } from '@/i18n/config'
 import api from '@/services/api'
@@ -62,11 +63,13 @@ function mockCategoryApi(category: string | null = null) {
 
 function renderWithProviders() {
   return render(
-    <I18nProvider>
-      <ThemeProvider>
-        <SettingsPage />
-      </ThemeProvider>
-    </I18nProvider>,
+    <MemoryRouter>
+      <I18nProvider>
+        <ThemeProvider>
+          <SettingsPage />
+        </ThemeProvider>
+      </I18nProvider>
+    </MemoryRouter>,
   )
 }
 
@@ -123,6 +126,26 @@ describe('SettingsPage', () => {
     localStorage.setItem('tozzo.printerWidth', '58mm')
     renderWithProviders()
     expect(screen.getByRole('combobox', { name: 'Largura do papel' })).toHaveTextContent('58mm')
+  })
+
+  it('shows free plan usage counters', async () => {
+    mockUseAuth.mockReturnValue(authValue('OWNER'))
+    const restoreGet = replaceProperty(api, 'get', vi.fn().mockResolvedValue({ data: { id: 42, plan: 'FREE', printCountToday: 12, reportCount: 2, _count: { devices: 2 } } }) as typeof api.get)
+    try {
+      renderWithProviders()
+      await waitFor(() => expect(screen.getByText('Plano e uso')).toBeInTheDocument())
+      expect(screen.getByText('12/30')).toBeInTheDocument()
+      expect(screen.getByText('2/5')).toBeInTheDocument()
+    } finally { restoreGet() }
+  })
+
+  it('shows unlimited usage for paid plans', async () => {
+    mockUseAuth.mockReturnValue(authValue('OWNER'))
+    const restoreGet = replaceProperty(api, 'get', vi.fn().mockResolvedValue({ data: { id: 42, plan: 'PAGO', printCountToday: 5, reportCount: 0, _count: { devices: 3 } } }) as typeof api.get)
+    try {
+      renderWithProviders()
+      await waitFor(() => expect(screen.getAllByText('Ilimitado').length).toBeGreaterThan(0))
+    } finally { restoreGet() }
   })
 
   it('changes and persists the selected paper width', async () => {

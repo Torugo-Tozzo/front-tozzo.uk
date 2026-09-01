@@ -34,10 +34,16 @@ import api from "@/services/api"
 import { useAuth } from "@/contexts/AuthContext"
 import { toast } from "sonner"
 import { useEffect, useState } from "react"
+import { useNavigate } from "react-router-dom"
+import type { EstablishmentPlan } from "@/domain/models"
 
 type EstablishmentResponse = {
   id: number | string | null
   category: EstablishmentCategory | null
+  plan: EstablishmentPlan | null
+  printCountToday: number | null
+  reportCount: number | null
+  deviceCount: number | null
 }
 
 function isEstablishmentCategory(value: unknown): value is EstablishmentCategory {
@@ -47,7 +53,7 @@ function isEstablishmentCategory(value: unknown): value is EstablishmentCategory
 function readEstablishmentResponse(data: unknown, fallbackId: number | string | null): EstablishmentResponse {
   const rawData = Array.isArray(data) ? data[0] : data
   if (!rawData || typeof rawData !== "object") {
-    return { id: fallbackId, category: null }
+    return { id: fallbackId, category: null, plan: null, printCountToday: null, reportCount: null, deviceCount: null }
   }
 
   const rawEstablishment = rawData as Record<string, unknown>
@@ -58,11 +64,18 @@ function readEstablishmentResponse(data: unknown, fallbackId: number | string | 
   return {
     id,
     category: isEstablishmentCategory(rawEstablishment.category) ? rawEstablishment.category : null,
+    plan: typeof rawEstablishment.plan === "string" ? rawEstablishment.plan as EstablishmentPlan : null,
+    printCountToday: typeof rawEstablishment.printCountToday === "number" ? rawEstablishment.printCountToday : null,
+    reportCount: typeof rawEstablishment.reportCount === "number" ? rawEstablishment.reportCount : null,
+    deviceCount: typeof (rawEstablishment._count as { devices?: unknown } | undefined)?.devices === "number"
+      ? (rawEstablishment._count as { devices: number }).devices
+      : null,
   }
 }
 
 export default function SettingsPage() {
   const { user, logout } = useAuth()
+  const navigate = useNavigate()
   const { i18n, t } = useTranslation('settings')
   const locale = normalizeLocale(i18n.language)
   const localeLabel = t(`locales.${locale}` as never)
@@ -84,6 +97,17 @@ export default function SettingsPage() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [deletePassword, setDeletePassword] = useState("")
   const [isDeleting, setIsDeleting] = useState(false)
+  const [planInfo, setPlanInfo] = useState<EstablishmentResponse | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    api.get('/estabelecimentos').then((response) => {
+      if (!cancelled) setPlanInfo(readEstablishmentResponse(response.data, fallbackEstablishmentId))
+    }).catch((error) => {
+      console.error('Error fetching plan info', error)
+    })
+    return () => { cancelled = true }
+  }, [fallbackEstablishmentId])
 
   useEffect(() => {
     if (!canEditCategory) return
@@ -413,6 +437,17 @@ export default function SettingsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {planInfo && (
+        <div className="p-6 border rounded-lg bg-card space-y-3">
+          <h2 className="text-xl font-semibold">{t('plan.title')}</h2>
+          <div className="flex items-center justify-between"><span className="text-muted-foreground">{t('plan.currentPlan')}</span><span className="font-medium">{t(`plan.tiers.${planInfo.plan ?? 'FREE'}` as never)}</span></div>
+          <div className="flex items-center justify-between"><span className="text-muted-foreground">{t('plan.printsToday')}</span><span className="font-medium">{planInfo.plan === 'FREE' || planInfo.plan === null ? `${planInfo.printCountToday ?? 0}/30` : t('plan.unlimited')}</span></div>
+          <div className="flex items-center justify-between"><span className="text-muted-foreground">{t('plan.reportsThisMonth')}</span><span className="font-medium">{planInfo.plan === 'FREE' || planInfo.plan === null ? `${planInfo.reportCount ?? 0}/5` : t('plan.unlimited')}</span></div>
+          <div className="flex items-center justify-between"><span className="text-muted-foreground">{t('plan.devices')}</span><span className="font-medium">{planInfo.deviceCount ?? 0}</span></div>
+          {isOwner && (planInfo.plan === 'FREE' || planInfo.plan === null) && <Button type="button" variant="outline" size="sm" onClick={() => navigate('/plan')}>{t('plan.upgradeButton')}</Button>}
+        </div>
+      )}
 
       <div className="p-10 border-2 border-dashed rounded-lg flex items-center justify-center text-muted-foreground">
         {t('moreComingSoon')}

@@ -524,6 +524,7 @@
   },
   "settings": {
     "title": "Configurações",
+    "plan": { "title": "Plano e uso", "currentPlan": "Plano atual", "tiers": { "FREE": "Free", "PAGO": "Pago", "PAGO_LEGADO": "Pago (preço legado)", "ENTERPRISE": "Enterprise" }, "printsToday": "Impressões hoje", "reportsThisMonth": "Relatórios este mês", "unlimited": "Ilimitado", "devices": "Dispositivos em uso", "upgradeButton": "Fazer upgrade" },
     "devices": { "title": "Dispositivos", "loadError": "Erro ao carregar dispositivos.", "removeError": "Erro ao remover dispositivo.", "removeButton": "Remover", "removeConfirmDescription": "Remover este dispositivo? Ele vai precisar se registrar de novo pra sincronizar.", "removeConfirmButton": "Remover", "noResults": "Nenhum dispositivo registrado ainda.", "neverSeen": "Nunca sincronizou", "columns": { "id": "Dispositivo", "lastSeen": "Última sincronização", "actions": "Ações" } },
     "appearance": "Aparência",
     "theme": "Tema",
