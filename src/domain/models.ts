@@ -1,4 +1,5 @@
 export type EstablishmentStatus = 'ACTIVE' | 'PENDING_PAYMENT' | 'SUSPENDED';
+export type EstablishmentPlan = 'FREE' | 'PAGO' | 'PAGO_LEGADO' | 'ENTERPRISE';
 export type UserRole = 'OWNER' | 'MANAGER' | 'EMPLOYEE' | 'CUSTOMER';
 export type OrderItemStatus = 'REQUESTED' | 'IN_PREPARATION' | 'DELIVERED';
 
@@ -6,6 +7,18 @@ export interface Establishment {
   id: number | string;
   tradeName: string;
   status: EstablishmentStatus;
+  plan?: EstablishmentPlan;
+  extraDevices?: number;
+  reportCount?: number;
+  reportCountResetAt?: string;
+  printCountToday?: number;
+}
+
+export interface Device {
+  id: number | string;
+  info?: Record<string, unknown> | null;
+  lastSeen?: string | null;
+  createdAt?: string;
 }
 
 export interface User {

@@ -40,6 +40,7 @@ type ErrorKey =
   | "loadProducts"
   | "loadEmployees"
   | "createProduct"
+  | "productLimitReached"
   | "updateProduct"
   | "deleteProduct"
   | "createType"
@@ -129,6 +130,9 @@ const errorKeyByContext: Partial<Record<ErrorContext, Record<string, ErrorTransl
   },
   cancelSale: {
     SALE_NOT_FOUND: { namespace: "errors", key: "cancelSale" },
+  },
+  createProduct: {
+    PRODUCT_LIMIT_REACHED: { namespace: "errors", key: "productLimitReached" },
   },
 }
 
