@@ -64,7 +64,15 @@ export default function LoginPage() {
     setIsLoading(true)
     try {
       const { error } = await authClient.signInWithPassword({ email: loginEmail, password: loginPassword })
-      if (error?.code === 'mfa_challenge_required') {
+      if (error) {
+        toast.error(translateError("login", { response: { data: { code: error.code } } }))
+        return
+      }
+
+      // auth-js não devolve um "código de erro de MFA" no signIn — a senha já autentica numa
+      // sessão AAL1 normal. Pra saber se falta o desafio TOTP, é preciso perguntar o AAL depois.
+      const { data: aal } = await authClient.mfa.getAuthenticatorAssuranceLevel()
+      if (aal && aal.nextLevel === 'aal2' && aal.currentLevel !== 'aal2') {
         const { data: factors } = await authClient.mfa.listFactors()
         const factorId = factors?.totp?.[0]?.id
         if (factorId) {
@@ -73,10 +81,7 @@ export default function LoginPage() {
         }
         return
       }
-      if (error) {
-        toast.error(translateError("login", { response: { data: { code: error.code } } }))
-        return
-      }
+
       navigate("/dashboard")
     } catch (error: any) {
       console.error("Login failed", error)
