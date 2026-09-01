@@ -233,6 +233,7 @@
     "sales": "बिक्री",
     "products": "उत्पाद",
     "employees": "कर्मचारी",
+    "devices": "डिवाइस",
     "reports": "रिपोर्ट",
     "settings": "सेटिंग्स",
     "login": "लॉग इन",
@@ -523,6 +524,7 @@
   },
   "settings": {
     "title": "सेटिंग्स",
+    "devices": { "title": "डिवाइस", "loadError": "डिवाइस लोड करने में त्रुटि।", "removeError": "डिवाइस हटाने में त्रुटि।", "removeButton": "हटाएं", "removeConfirmDescription": "यह डिवाइस हटाएं? सिंक करने के लिए इसे फिर से पंजीकृत करना होगा।", "removeConfirmButton": "हटाएं", "noResults": "अभी कोई डिवाइस पंजीकृत नहीं है।", "neverSeen": "कभी सिंक नहीं हुआ", "columns": { "id": "डिवाइस", "lastSeen": "अंतिम सिंक", "actions": "कार्रवाई" } },
     "appearance": "दिखावट",
     "theme": "थीम",
     "light": "हल्का",

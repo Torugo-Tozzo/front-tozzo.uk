@@ -233,6 +233,7 @@
     "sales": "销售",
     "products": "产品",
     "employees": "员工",
+    "devices": "设备",
     "reports": "报告",
     "settings": "设置",
     "login": "登录",
@@ -523,6 +524,7 @@
   },
   "settings": {
     "title": "设置",
+    "devices": { "title": "设备", "loadError": "加载设备时出错。", "removeError": "删除设备时出错。", "removeButton": "删除", "removeConfirmDescription": "删除此设备？它需要重新注册才能同步。", "removeConfirmButton": "删除", "noResults": "尚未注册设备。", "neverSeen": "从未同步", "columns": { "id": "设备", "lastSeen": "上次同步", "actions": "操作" } },
     "appearance": "外观",
     "theme": "主题",
     "light": "浅色",

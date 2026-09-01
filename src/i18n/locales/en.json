@@ -233,6 +233,7 @@
     "sales": "Sales",
     "products": "Products",
     "employees": "Employees",
+    "devices": "Devices",
     "reports": "Reports",
     "settings": "Settings",
     "login": "Sign in",
@@ -523,6 +524,7 @@
   },
   "settings": {
     "title": "Settings",
+    "devices": { "title": "Devices", "loadError": "Error loading devices.", "removeError": "Error removing device.", "removeButton": "Remove", "removeConfirmDescription": "Remove this device? It will need to register again to sync.", "removeConfirmButton": "Remove", "noResults": "No devices registered yet.", "neverSeen": "Never synced", "columns": { "id": "Device", "lastSeen": "Last sync", "actions": "Actions" } },
     "appearance": "Appearance",
     "theme": "Theme",
     "light": "Light",

@@ -233,6 +233,7 @@
     "sales": "Ventes",
     "products": "Produits",
     "employees": "Employés",
+    "devices": "Appareils",
     "reports": "Rapports",
     "settings": "Paramètres",
     "login": "Se connecter",
@@ -523,6 +524,7 @@
   },
   "settings": {
     "title": "Paramètres",
+    "devices": { "title": "Appareils", "loadError": "Erreur lors du chargement des appareils.", "removeError": "Erreur lors de la suppression de l'appareil.", "removeButton": "Supprimer", "removeConfirmDescription": "Supprimer cet appareil ? Il devra être enregistré à nouveau pour se synchroniser.", "removeConfirmButton": "Supprimer", "noResults": "Aucun appareil enregistré.", "neverSeen": "Jamais synchronisé", "columns": { "id": "Appareil", "lastSeen": "Dernière synchronisation", "actions": "Actions" } },
     "appearance": "Apparence",
     "theme": "Thème",
     "light": "Clair",

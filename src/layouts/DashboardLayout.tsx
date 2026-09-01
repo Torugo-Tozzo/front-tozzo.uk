@@ -8,6 +8,7 @@ import {
   ClipboardList,
   X,
   Users,
+  Smartphone,
   BarChart3,
   PanelLeftClose,
   PanelLeftOpen,
@@ -70,6 +71,7 @@ export default function DashboardLayout() {
     { href: "/dashboard/sales", label: tNavigation("sales"), icon: LayoutDashboard },
     { href: "/dashboard/products", label: tNavigation("products"), icon: ShoppingBag },
     { href: "/dashboard/employees", label: tNavigation("employees"), icon: Users },
+    { href: "/dashboard/devices", label: tNavigation("devices"), icon: Smartphone },
     { href: "/dashboard/charts", label: tNavigation("reports"), icon: BarChart3 },
     { href: "/dashboard/settings", label: tNavigation("settings"), icon: Settings },
   ]

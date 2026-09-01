@@ -233,6 +233,7 @@
     "sales": "Vendas",
     "products": "Produtos",
     "employees": "Funcionários",
+    "devices": "Dispositivos",
     "reports": "Relatórios",
     "settings": "Configurações",
     "login": "Fazer login",
@@ -523,6 +524,7 @@
   },
   "settings": {
     "title": "Configurações",
+    "devices": { "title": "Dispositivos", "loadError": "Erro ao carregar dispositivos.", "removeError": "Erro ao remover dispositivo.", "removeButton": "Remover", "removeConfirmDescription": "Remover este dispositivo? Ele vai precisar se registrar de novo pra sincronizar.", "removeConfirmButton": "Remover", "noResults": "Nenhum dispositivo registrado ainda.", "neverSeen": "Nunca sincronizou", "columns": { "id": "Dispositivo", "lastSeen": "Última sincronização", "actions": "Ações" } },
     "appearance": "Aparência",
     "theme": "Tema",
     "light": "Claro",
