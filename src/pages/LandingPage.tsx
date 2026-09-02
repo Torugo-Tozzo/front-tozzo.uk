@@ -10,7 +10,7 @@ export default function LandingPage() {
   const navigate = useNavigate()
   const { t } = useTranslation("common")
 
-  const handleSubscribe = () => {
+  const handleSubscribe = (_interval: 'monthly' | 'annual') => {
     if (isAuthenticated) {
       if (user?.establishment?.status === 'ACTIVE') {
         navigate('/dashboard')
@@ -245,9 +245,8 @@ export default function LandingPage() {
 
             <PricingCards
               currentPlan={isAuthenticated ? user?.establishment?.plan : null}
-              onSelectMonthly={handleSubscribe}
-              onSelectAnnual={handleSubscribe}
-              onSelectEnterprise={handleSubscribe}
+              onSelectPago={handleSubscribe}
+              onSelectEnterprise={() => handleSubscribe('monthly')}
             />
           </div>
         </section>

@@ -58,8 +58,7 @@ export default function PlanSelectionPage() {
 
         <PricingCards
           currentPlan={user?.establishment?.plan}
-          onSelectMonthly={() => handleCheckout('PAGO', 'monthly')}
-          onSelectAnnual={() => handleCheckout('PAGO', 'annual')}
+          onSelectPago={(interval) => handleCheckout('PAGO', interval)}
           onSelectEnterprise={() => handleCheckout('ENTERPRISE', 'monthly')}
           loading={loading}
         />

@@ -35,6 +35,16 @@ describe("PlanSelectionPage", () => {
     } finally { restore() }
   })
 
+  test("checks out annual Pago through the generic endpoint", async () => {
+    const restore = replaceProperty(api, "post", vi.fn().mockResolvedValue({ data: { url: "https://checkout.stripe.com/x" } }) as typeof api.post)
+    try {
+      renderPage()
+      await userEvent.click(screen.getByRole("button", { name: "Annual" }))
+      await userEvent.click(screen.getByRole("button", { name: /subscribe annually|assinar anualmente/i }))
+      expect(api.post).toHaveBeenCalledWith("/payments/stripe/checkout", { tier: "PAGO", interval: "annual" })
+    } finally { restore() }
+  })
+
   test("checks out Enterprise through the generic endpoint", async () => {
     const restore = replaceProperty(api, "post", vi.fn().mockResolvedValue({ data: { url: "https://checkout.stripe.com/x" } }) as typeof api.post)
     try {

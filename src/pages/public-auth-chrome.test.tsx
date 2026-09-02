@@ -127,7 +127,8 @@ describe("public and auth chrome", () => {
     const { unmount } = renderRoute(<PlanSelectionPage />, "/plan")
 
     expect(screen.getByRole("heading", { name: /you do not have a plan yet/i })).toBeInTheDocument()
-    expect(screen.getByText("Monthly")).toBeInTheDocument()
+    expect(screen.getByRole("heading", { name: "Monthly" })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole("button", { name: "Annual" }))
     expect(screen.getByText("Most popular")).toBeInTheDocument()
     expect(screen.getByRole("button", { name: "Subscribe annually" })).toBeInTheDocument()
 
