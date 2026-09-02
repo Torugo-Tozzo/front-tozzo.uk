@@ -73,9 +73,7 @@ function readEstablishmentResponse(data: unknown, fallbackId: number | string | 
     plan: isEstablishmentPlan(rawEstablishment.plan) ? rawEstablishment.plan : null,
     printCountToday: typeof rawEstablishment.printCountToday === "number" ? rawEstablishment.printCountToday : null,
     reportCount: typeof rawEstablishment.reportCount === "number" ? rawEstablishment.reportCount : null,
-    deviceCount: typeof (rawEstablishment._count as { devices?: unknown } | undefined)?.devices === "number"
-      ? (rawEstablishment._count as { devices: number }).devices
-      : null,
+    deviceCount: typeof rawEstablishment.deviceCount === "number" ? rawEstablishment.deviceCount : null,
     tradeName: readString("tradeName"),
     phone: readString("phone"),
     zipCode: readString("zipCode"),

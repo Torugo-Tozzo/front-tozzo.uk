@@ -77,21 +77,27 @@ describe("SettingsPage", () => {
 
   it("shows free plan usage counters", async () => {
     mockUseAuth.mockReturnValue(authValue("OWNER"))
-    const restoreGet = replaceProperty(api, "get", vi.fn().mockResolvedValue({ data: { id: 42, plan: "FREE", printCountToday: 12, reportCount: 2, _count: { devices: 2 } } }) as typeof api.get)
+    const restoreGet = replaceProperty(api, "get", vi.fn().mockResolvedValue({ data: { id: 42, plan: "FREE", printCountToday: 12, reportCount: 2, deviceCount: 2 } }) as typeof api.get)
     try {
       renderPage()
       await waitFor(() => expect(screen.getByText("Plano e uso")).toBeInTheDocument())
       expect(screen.getByText("12/30")).toBeInTheDocument()
       expect(screen.getByText("2/5")).toBeInTheDocument()
+      // Regressão: deviceCount vinha aninhado em _count.devices, que o
+      // toLegacyWire do backend renomeia recursivamente (devices -> dispositivos)
+      // — o front nunca achava o campo e sempre mostrava 0. Ver
+      // establishments.controller.ts (deviceCount achatado).
+      expect(screen.getByText("2")).toBeInTheDocument()
     } finally { restoreGet() }
   })
 
   it("shows unlimited usage for paid plans", async () => {
     mockUseAuth.mockReturnValue(authValue("OWNER"))
-    const restoreGet = replaceProperty(api, "get", vi.fn().mockResolvedValue({ data: { id: 42, plan: "PAGO", printCountToday: 5, reportCount: 0, _count: { devices: 3 } } }) as typeof api.get)
+    const restoreGet = replaceProperty(api, "get", vi.fn().mockResolvedValue({ data: { id: 42, plan: "PAGO", printCountToday: 5, reportCount: 0, deviceCount: 3 } }) as typeof api.get)
     try {
       renderPage()
       await waitFor(() => expect(screen.getAllByText("Ilimitado").length).toBeGreaterThan(0))
+      expect(screen.getByText("3")).toBeInTheDocument()
     } finally { restoreGet() }
   })
 
