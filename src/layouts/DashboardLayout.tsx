@@ -30,7 +30,7 @@ const MOBILE_MENU_ANIMATION_MS = 200
 
 export default function DashboardLayout() {
   const location = useLocation()
-  const { logout } = useAuth()
+  const { logout, user } = useAuth()
   const confirm = useConfirm()
   const { i18n, t: tCommon } = useTranslation("common")
   const { t: tNavigation } = useTranslation("navigation")
@@ -74,7 +74,7 @@ export default function DashboardLayout() {
     { href: "/dashboard/devices", label: tNavigation("devices"), icon: Smartphone },
     { href: "/dashboard/charts", label: tNavigation("reports"), icon: BarChart3 },
     { href: "/dashboard/settings", label: tNavigation("settings"), icon: Settings },
-  ]
+  ].filter((item) => item.href !== "/dashboard/charts" || user?.role !== "EMPLOYEE")
 
   // Logo/"Tozzo.uk" ja aparecem na Navbar (topo, compartilhada com o resto
   // do site) - sidebar nao duplica mais isso, so nav + toggle de colapsar.

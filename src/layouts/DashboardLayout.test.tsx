@@ -12,11 +12,12 @@ import { replaceProperty } from '@/test/replace-property'
 import DashboardLayout from './DashboardLayout'
 
 const mockLogout = vi.fn()
+let mockUser = { name: 'Test user', role: 'MANAGER', establishment: { tradeName: 'Test establishment' } }
 
 vi.mock('@/contexts/AuthContext', () => ({
   useAuth: () => ({
     isAuthenticated: true,
-    user: { name: 'Test user', establishment: { tradeName: 'Test establishment' } },
+    user: mockUser,
     logout: mockLogout,
   }),
 }))
@@ -45,6 +46,7 @@ describe('DashboardLayout', () => {
   beforeEach(async () => {
     localStorage.clear()
     mockLogout.mockReset()
+    mockUser = { name: 'Test user', role: 'MANAGER', establishment: { tradeName: 'Test establishment' } }
     restoreGet = replaceProperty(api, 'get', vi.fn().mockResolvedValue({ headers: {}, data: [] }) as typeof api.get)
     await act(async () => {
       await i18n.changeLanguage('en')
@@ -79,6 +81,26 @@ describe('DashboardLayout', () => {
 
     await user.click(screen.getByRole('button', { name: 'Open menu' }))
     expect(screen.getByRole('button', { name: 'Close menu' })).toBeInTheDocument()
+  })
+
+  it('hides the Reports link from employees while keeping it visible to managers', () => {
+    mockUser = { name: 'Employee user', role: 'EMPLOYEE', establishment: { tradeName: 'Test establishment' } }
+    const { unmount } = renderLayout()
+
+    expect(screen.queryByRole('link', { name: /Reports/ })).not.toBeInTheDocument()
+
+    unmount()
+    mockUser = { name: 'Manager user', role: 'MANAGER', establishment: { tradeName: 'Test establishment' } }
+    renderLayout()
+
+    expect(screen.getByRole('link', { name: /Reports/ })).toBeInTheDocument()
+  })
+
+  it('keeps the Reports link visible to owners', () => {
+    mockUser = { name: 'Owner user', role: 'OWNER', establishment: { tradeName: 'Test establishment' } }
+    renderLayout()
+
+    expect(screen.getByRole('link', { name: /Reports/ })).toBeInTheDocument()
   })
 
   it('localizes the sidebar logout confirmation', async () => {

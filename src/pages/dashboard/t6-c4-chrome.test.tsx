@@ -34,6 +34,14 @@ function renderWithProviders(ui: React.ReactElement) {
   return render(<I18nProvider>{ui}</I18nProvider>)
 }
 
+function renderChartsPage() {
+  return renderWithProviders(
+    <MemoryRouter>
+      <ChartsPage />
+    </MemoryRouter>,
+  )
+}
+
 function response(data: unknown) {
   return { data, headers: {} }
 }
@@ -141,7 +149,7 @@ describe("T6-C4 dashboard chrome", () => {
     const restoreGet = installApiGet(() => undefined)
 
     try {
-      renderWithProviders(<ChartsPage />)
+      renderChartsPage()
 
       expect(screen.getByRole("heading", { name: "Reports — Café da Nina" })).toBeInTheDocument()
       expect(screen.getByRole("tab", { name: "Products sold" })).toBeInTheDocument()
@@ -176,7 +184,7 @@ describe("T6-C4 dashboard chrome", () => {
     const user = userEvent.setup()
 
     try {
-      renderWithProviders(<ChartsPage />)
+      renderChartsPage()
 
       await waitFor(() => expect(screen.getByRole("button", { name: "Search" })).not.toBeDisabled())
       await user.click(screen.getByRole("combobox", { name: "Food type" }))
@@ -333,7 +341,7 @@ describe("T6-C4 dashboard chrome", () => {
     const user = userEvent.setup()
 
     try {
-      renderWithProviders(<ChartsPage />)
+      renderChartsPage()
 
       const generateButton = await screen.findByRole("button", { name: "Generate Excel" })
       await waitFor(() => expect(screen.getByText("Total records: 1")).toBeInTheDocument())
@@ -376,7 +384,7 @@ describe("T6-C4 dashboard chrome", () => {
     const user = userEvent.setup()
 
     try {
-      renderWithProviders(<ChartsPage />)
+      renderChartsPage()
 
       const generateButton = await screen.findByRole("button", { name: "Generate Excel" })
       await waitFor(() => expect(screen.getByText("Total records: 1")).toBeInTheDocument())

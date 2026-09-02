@@ -1,6 +1,6 @@
 import { act, render, screen, waitFor } from "@testing-library/react"
 import { beforeEach, describe, expect, test, vi } from "bun:test"
-import { MemoryRouter } from "react-router-dom"
+import { MemoryRouter, Route, Routes } from "react-router-dom"
 
 import { I18nProvider } from "@/i18n/provider"
 import { i18n } from "@/i18n/config"
@@ -14,11 +14,14 @@ vi.mock("@/contexts/AuthContext", () => ({
   useAuth: () => mockUseAuth(),
 }))
 
-function renderPage() {
+function renderPage(initialEntry = "/dashboard/charts") {
   return render(
-    <MemoryRouter>
+    <MemoryRouter initialEntries={[initialEntry]}>
       <I18nProvider>
-        <ChartsPage />
+        <Routes>
+          <Route path="/dashboard/charts" element={<ChartsPage />} />
+          <Route path="/dashboard" element={<div>Dashboard home</div>} />
+        </Routes>
       </I18nProvider>
     </MemoryRouter>,
   )
@@ -73,6 +76,22 @@ describe("ChartsPage — paywall", () => {
       await waitFor(() => {
         expect(screen.getByRole("alert")).toHaveTextContent("You have reached your monthly report limit.")
       })
+    } finally {
+      restore()
+    }
+  })
+
+  test("redirects employees to the dashboard before rendering report content", async () => {
+    mockUseAuth.mockReturnValue({ user: { role: "EMPLOYEE" } })
+    const restore = mockChartRequestError("PLAN_UPGRADE_REQUIRED")
+
+    try {
+      renderPage()
+
+      await waitFor(() => {
+        expect(screen.getByText("Dashboard home")).toBeInTheDocument()
+      })
+      expect(screen.queryByRole("alert")).not.toBeInTheDocument()
     } finally {
       restore()
     }

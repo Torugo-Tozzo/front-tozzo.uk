@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react"
 import { useTranslation } from "react-i18next"
+import { useNavigate } from "react-router-dom"
 import { useAuth } from "@/contexts/AuthContext"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -108,6 +109,13 @@ export default function ChartsPage() {
     other: tCommon('unitCount.other'),
   }
   const { user } = useAuth()
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    if (user?.role === "EMPLOYEE") {
+      navigate("/dashboard", { replace: true })
+    }
+  }, [user, navigate])
   const getTodayDate = () => {
     const today = new Date()
     const yyyy = today.getFullYear()
@@ -609,6 +617,10 @@ export default function ChartsPage() {
       default:
         return null
     }
+  }
+
+  if (user?.role === "EMPLOYEE") {
+    return null
   }
 
   return (
