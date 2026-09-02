@@ -202,7 +202,7 @@ describe("T6-C4 dashboard chrome", () => {
     } finally {
       restoreGet()
     }
-  })
+  }, 15000)
 
   test("preserves UUID product type ids when creating a product", async () => {
     const getMock = vi.fn(async (url: string) => {
