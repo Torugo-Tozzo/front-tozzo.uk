@@ -178,7 +178,8 @@
       "enterpriseTitle": "Enterprise",
       "enterpriseDescription": "Para establecimientos con gran volumen de dispositivos.",
       "enterpriseExtraDevice": "+ R$8,00 por dispositivo extra por encima de 15",
-      "subscribeEnterprise": "Suscribirse a Enterprise"
+      "subscribeEnterprise": "Suscribirse a Enterprise",
+      "continueFree": "Continuar con Free"
     },
     "notFound": {
       "code": "404",
@@ -232,7 +233,7 @@
     "freeAccessLabel": "Tengo una clave de registro (Acceso gratuito)",
     "termsCheckboxLabel": "He leído y acepto la <privacyLink>Política de Privacidad</privacyLink> y los <termsLink>Términos de Uso</termsLink>",
     "registrationKeyPlaceholder": "Clave de acceso",
-    "createAccountLoading": "Creando cuenta...", "continueWithGoogle": "Continuar con Google", "forgotPasswordLink": "Olvidé mi contraseña", "forgotPasswordTitle": "Olvidé mi contraseña", "forgotPasswordEmailSent": "Revisa tu correo para restablecer tu contraseña.", "sendResetLink": "Enviar enlace", "newPassword": "Nueva contraseña", "resetPassword": "Restablecer contraseña", "resetPasswordTitle": "Restablecer contraseña", "resetPasswordSuccess": "Contraseña restablecida correctamente.", "resetPasswordFailed": "No se pudo restablecer la contraseña.", "totpCode": "Código de autenticación", "confirmTotp": "Confirmar", "invalidTotpCode": "Código inválido."
+    "createAccountLoading": "Creando cuenta...", "continueWithGoogle": "Iniciar sesión con Google", "forgotPasswordLink": "Olvidé mi contraseña", "forgotPasswordTitle": "Olvidé mi contraseña", "forgotPasswordEmailSent": "Revisa tu correo para restablecer tu contraseña.", "sendResetLink": "Enviar enlace", "newPassword": "Nueva contraseña", "resetPassword": "Restablecer contraseña", "resetPasswordTitle": "Restablecer contraseña", "resetPasswordSuccess": "Contraseña restablecida correctamente.", "resetPasswordFailed": "No se pudo restablecer la contraseña.", "totpCode": "Código de autenticación", "confirmTotp": "Confirmar", "invalidTotpCode": "Código inválido."
   },
   "navigation": {
     "dashboard": "Panel",

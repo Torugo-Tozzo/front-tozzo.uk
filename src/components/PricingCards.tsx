@@ -63,7 +63,7 @@ export function PricingCards({
           </ul>
         </CardContent>
         {currentPlan === "FREE" ? <CardFooter><span className="text-sm font-medium">{t("plans.currentPlan")}</span></CardFooter> : null}
-        {onSelectFree ? <CardFooter><Button onClick={onSelectFree} disabled={loading} className="w-full">{t("select")}</Button></CardFooter> : null}
+        {onSelectFree ? <CardFooter><Button onClick={onSelectFree} disabled={loading} className="w-full">{t("plans.continueFree")}</Button></CardFooter> : null}
       </Card>
 
       <Card className={isAnnual ? "relative flex flex-col border-2 border-green-500 shadow-lg transition-all" : "relative flex flex-col border-2 border-transparent hover:border-primary/50 transition-all"}>

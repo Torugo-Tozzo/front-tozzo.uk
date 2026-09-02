@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { beforeEach, describe, expect, test, vi } from "bun:test"
-import { MemoryRouter } from "react-router-dom"
+import { MemoryRouter, Route, Routes } from "react-router-dom"
 
 import { I18nProvider } from "@/i18n/provider"
 import { ConfirmProvider } from "@/contexts/ConfirmContext"
@@ -14,6 +14,21 @@ vi.mock("@/contexts/AuthContext", () => ({ useAuth: () => mockUseAuth() }))
 
 function renderPage() {
   return render(<MemoryRouter><I18nProvider><ConfirmProvider><PlanSelectionPage /></ConfirmProvider></I18nProvider></MemoryRouter>)
+}
+
+function renderPageWithDashboardRoute() {
+  return render(
+    <MemoryRouter initialEntries={["/plan"]}>
+      <I18nProvider>
+        <ConfirmProvider>
+          <Routes>
+            <Route path="/plan" element={<PlanSelectionPage />} />
+            <Route path="/dashboard" element={<div>dashboard page</div>} />
+          </Routes>
+        </ConfirmProvider>
+      </I18nProvider>
+    </MemoryRouter>,
+  )
 }
 
 describe("PlanSelectionPage", () => {
@@ -52,5 +67,12 @@ describe("PlanSelectionPage", () => {
       await userEvent.click(screen.getByRole("button", { name: /subscribe.*enterprise|assinar.*enterprise/i }))
       expect(api.post).toHaveBeenCalledWith("/payments/stripe/checkout", { tier: "ENTERPRISE", interval: "monthly" })
     } finally { restore() }
+  })
+
+  test("lets a Free-plan establishment continue straight to the dashboard", async () => {
+    mockUseAuth.mockReturnValue({ user: { establishment: { status: "ACTIVE", plan: "FREE" } } })
+    renderPageWithDashboardRoute()
+    await userEvent.click(screen.getByRole("button", { name: /continue.*free|continuar.*free/i }))
+    expect(screen.getByText("dashboard page")).toBeInTheDocument()
   })
 })

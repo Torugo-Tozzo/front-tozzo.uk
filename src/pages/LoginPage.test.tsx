@@ -192,7 +192,7 @@ describe('LoginPage login form — 2FA', () => {
       renderPage()
       await user.type(screen.getByLabelText('Email'), 'ana@example.com')
       await user.type(screen.getByLabelText('Password'), 'senha123')
-      await user.click(screen.getByRole('button', { name: /Sign in/i }))
+      await user.click(screen.getByRole('button', { name: 'Sign in' }))
 
       expect(signInMock).toHaveBeenCalledWith({ email: 'ana@example.com', password: 'senha123' })
       expect(aalMock).toHaveBeenCalled()
@@ -220,7 +220,7 @@ describe('LoginPage login form — 2FA', () => {
       renderPage()
       await user.type(screen.getByLabelText('Email'), 'ana@example.com')
       await user.type(screen.getByLabelText('Password'), 'senha123')
-      await user.click(screen.getByRole('button', { name: /Sign in/i }))
+      await user.click(screen.getByRole('button', { name: 'Sign in' }))
 
       expect(challengeMock).toHaveBeenCalledWith({ factorId: 'factor-1' })
       const codeInput = await screen.findByLabelText(/authentication code/i)
@@ -235,6 +235,37 @@ describe('LoginPage login form — 2FA', () => {
       restoreListFactors()
       restoreChallenge()
       restoreVerify()
+    }
+  })
+})
+
+describe('LoginPage Google Sign-In', () => {
+  beforeEach(() => {
+    mockUseAuth.mockReset()
+    mockUseAuth.mockReturnValue({
+      isAuthenticated: false,
+      user: null,
+      isLoading: false,
+      refreshUserProfile: mockRefreshUserProfile,
+      logout: vi.fn(),
+    })
+  })
+
+  it('sends the user back to /login after Google auth, not the bare index (GoTrue defaults to SITE_URL, which has no post-login redirect logic)', async () => {
+    const user = userEvent.setup()
+    const signInWithOAuthMock = vi.fn().mockResolvedValue({ data: {}, error: null })
+    const restore = replaceProperty(authClient, 'signInWithOAuth', signInWithOAuthMock as typeof authClient.signInWithOAuth)
+
+    try {
+      renderPage()
+      await user.click(screen.getByRole('button', { name: /Sign in with Google/i }))
+
+      expect(signInWithOAuthMock).toHaveBeenCalledWith({
+        provider: 'google',
+        options: { redirectTo: expect.stringContaining('/login') },
+      })
+    } finally {
+      restore()
     }
   })
 })

@@ -178,7 +178,8 @@
       "enterpriseTitle": "Enterprise",
       "enterpriseDescription": "अधिक डिवाइस वाले प्रतिष्ठानों के लिए।",
       "enterpriseExtraDevice": "15 से अधिक प्रत्येक अतिरिक्त डिवाइस के लिए + R$8.00",
-      "subscribeEnterprise": "Enterprise की सदस्यता लें"
+      "subscribeEnterprise": "Enterprise की सदस्यता लें",
+      "continueFree": "Free पर जारी रखें"
     },
     "notFound": {
       "code": "404",
@@ -232,7 +233,7 @@
     "freeAccessLabel": "मेरे पास पंजीकरण कुंजी है (मुफ़्त पहुँच)",
     "termsCheckboxLabel": "मैंने <privacyLink>गोपनीयता नीति</privacyLink> और <termsLink>उपयोग की शर्तें</termsLink> पढ़ ली हैं और उन्हें स्वीकार करता/करती हूँ",
     "registrationKeyPlaceholder": "पहुँच कुंजी",
-    "createAccountLoading": "खाता बनाया जा रहा है...", "continueWithGoogle": "Google के साथ जारी रखें", "forgotPasswordLink": "पासवर्ड भूल गए?", "forgotPasswordTitle": "पासवर्ड भूल गए", "forgotPasswordEmailSent": "पासवर्ड रीसेट करने के लिए अपना ईमेल देखें।", "sendResetLink": "लिंक भेजें", "newPassword": "नया पासवर्ड", "resetPassword": "पासवर्ड रीसेट करें", "resetPasswordTitle": "पासवर्ड रीसेट करें", "resetPasswordSuccess": "पासवर्ड सफलतापूर्वक रीसेट हुआ।", "resetPasswordFailed": "पासवर्ड रीसेट नहीं हो सका।", "totpCode": "प्रमाणीकरण कोड", "confirmTotp": "पुष्टि करें", "invalidTotpCode": "अमान्य कोड।"
+    "createAccountLoading": "खाता बनाया जा रहा है...", "continueWithGoogle": "Google से साइन इन करें", "forgotPasswordLink": "पासवर्ड भूल गए?", "forgotPasswordTitle": "पासवर्ड भूल गए", "forgotPasswordEmailSent": "पासवर्ड रीसेट करने के लिए अपना ईमेल देखें।", "sendResetLink": "लिंक भेजें", "newPassword": "नया पासवर्ड", "resetPassword": "पासवर्ड रीसेट करें", "resetPasswordTitle": "पासवर्ड रीसेट करें", "resetPasswordSuccess": "पासवर्ड सफलतापूर्वक रीसेट हुआ।", "resetPasswordFailed": "पासवर्ड रीसेट नहीं हो सका।", "totpCode": "प्रमाणीकरण कोड", "confirmTotp": "पुष्टि करें", "invalidTotpCode": "अमान्य कोड।"
   },
   "navigation": {
     "dashboard": "डैशबोर्ड",

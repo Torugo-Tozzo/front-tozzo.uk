@@ -58,6 +58,7 @@ export default function PlanSelectionPage() {
 
         <PricingCards
           currentPlan={user?.establishment?.plan}
+          onSelectFree={() => navigate('/dashboard')}
           onSelectPago={(interval) => handleCheckout('PAGO', interval)}
           onSelectEnterprise={() => handleCheckout('ENTERPRISE', 'monthly')}
           loading={loading}

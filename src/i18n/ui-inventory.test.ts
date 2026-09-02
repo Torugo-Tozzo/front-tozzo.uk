@@ -147,7 +147,7 @@ const requiredUiInventory: InventoryEntry[] = [
   { source: "src/components/PricingCards.tsx:61", key: "common.plans.features.freePrints" },
   { source: "src/components/PricingCards.tsx:62", key: "common.plans.features.freeReports" },
   { source: "src/components/PricingCards.tsx:65", key: "common.plans.currentPlan" },
-  { source: "src/components/PricingCards.tsx:66", key: "common.select" },
+  { source: "src/components/PricingCards.tsx:66", key: "common.plans.continueFree" },
   { source: "src/components/PricingCards.tsx:70", key: "common.plans.popular" },
   { source: "src/components/PricingCards.tsx:72", key: "common.plans.monthly" },
   { source: "src/components/PricingCards.tsx:72", key: "common.plans.annual" },

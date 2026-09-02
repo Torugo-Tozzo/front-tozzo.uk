@@ -178,7 +178,8 @@
       "enterpriseTitle": "Enterprise",
       "enterpriseDescription": "Para estabelecimentos com alto volume de dispositivos.",
       "enterpriseExtraDevice": "+ R$8,00 por dispositivo extra acima de 15",
-      "subscribeEnterprise": "Assinar Enterprise"
+      "subscribeEnterprise": "Assinar Enterprise",
+      "continueFree": "Continuar no Free"
     },
     "notFound": {
       "code": "404",
@@ -233,7 +234,7 @@
     "termsCheckboxLabel": "Li e aceito a <privacyLink>Política de Privacidade</privacyLink> e os <termsLink>Termos de Uso</termsLink>",
     "registrationKeyPlaceholder": "Chave de acesso",
     "createAccountLoading": "Criando conta...",
-    "continueWithGoogle": "Continuar com Google",
+    "continueWithGoogle": "Entrar com o Google",
     "forgotPasswordLink": "Esqueci minha senha",
     "forgotPasswordTitle": "Esqueci minha senha",
     "forgotPasswordEmailSent": "Verifique seu email para redefinir sua senha.",

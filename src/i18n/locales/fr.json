@@ -178,7 +178,8 @@
       "enterpriseTitle": "Enterprise",
       "enterpriseDescription": "Pour les établissements avec un grand volume d'appareils.",
       "enterpriseExtraDevice": "+ 8,00 R$ par appareil supplémentaire au-delà de 15",
-      "subscribeEnterprise": "S'abonner à Enterprise"
+      "subscribeEnterprise": "S'abonner à Enterprise",
+      "continueFree": "Continuer avec Free"
     },
     "notFound": {
       "code": "404",
@@ -232,7 +233,7 @@
     "freeAccessLabel": "J’ai une clé d’inscription (Accès gratuit)",
     "termsCheckboxLabel": "J'ai lu et j'accepte la <privacyLink>Politique de confidentialité</privacyLink> et les <termsLink>Conditions d'utilisation</termsLink>",
     "registrationKeyPlaceholder": "Clé d'accès",
-    "createAccountLoading": "Création du compte...", "continueWithGoogle": "Continuer avec Google", "forgotPasswordLink": "Mot de passe oublié", "forgotPasswordTitle": "Mot de passe oublié", "forgotPasswordEmailSent": "Consultez votre e-mail pour réinitialiser votre mot de passe.", "sendResetLink": "Envoyer le lien", "newPassword": "Nouveau mot de passe", "resetPassword": "Réinitialiser le mot de passe", "resetPasswordTitle": "Réinitialiser le mot de passe", "resetPasswordSuccess": "Mot de passe réinitialisé.", "resetPasswordFailed": "Impossible de réinitialiser le mot de passe.", "totpCode": "Code d'authentification", "confirmTotp": "Confirmer", "invalidTotpCode": "Code invalide."
+    "createAccountLoading": "Création du compte...", "continueWithGoogle": "Se connecter avec Google", "forgotPasswordLink": "Mot de passe oublié", "forgotPasswordTitle": "Mot de passe oublié", "forgotPasswordEmailSent": "Consultez votre e-mail pour réinitialiser votre mot de passe.", "sendResetLink": "Envoyer le lien", "newPassword": "Nouveau mot de passe", "resetPassword": "Réinitialiser le mot de passe", "resetPasswordTitle": "Réinitialiser le mot de passe", "resetPasswordSuccess": "Mot de passe réinitialisé.", "resetPasswordFailed": "Impossible de réinitialiser le mot de passe.", "totpCode": "Code d'authentification", "confirmTotp": "Confirmer", "invalidTotpCode": "Code invalide."
   },
   "navigation": {
     "dashboard": "Tableau de bord",

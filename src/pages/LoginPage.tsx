@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import logo from "@/assets/images/logo.svg"
+import { GoogleIcon } from "@/components/icons/GoogleIcon"
 import api, { getErrorCode } from "@/services/api"
 import { authClient } from "@/lib/authClient"
 import { toast } from "sonner"
@@ -135,6 +136,16 @@ export default function LoginPage() {
     }
   }
 
+  const handleGoogleSignIn = async () => {
+    // GoTrue sem redirectTo explícito volta pro SITE_URL puro ("/", a Landing) — só
+    // /login tem a lógica de redirect pós-auth (dashboard vs /plan). Achado em QA:
+    // 1o login com Google caía na Landing autenticado, sem navegar pra lugar nenhum.
+    await authClient.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: `${window.location.origin}/login` },
+    })
+  }
+
   const handleMfaVerify = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!mfaChallenge) return
@@ -197,15 +208,17 @@ export default function LoginPage() {
                   </div>
                 </CardContent>
                 <CardFooter>
-                  <a href="/forgot-password" className="text-sm text-muted-foreground underline mb-2 block text-center">
-                    {tAuth("forgotPasswordLink")}
-                  </a>
                   <Button className="w-full" type="submit" disabled={isLoading}>
                     {isLoading ? tAuth("entering") : tAuth("enter")}
                   </Button>
                 </CardFooter>
               </form>
-              <div className="px-6 pb-6"><Button type="button" variant="outline" className="w-full" onClick={() => void authClient.signInWithOAuth({ provider: 'google' })}>{tAuth('continueWithGoogle')}</Button></div>
+              <div className="px-6 pb-6 space-y-4">
+                <Button type="button" variant="outline" className="w-full" onClick={() => void handleGoogleSignIn()}><GoogleIcon className="h-4 w-4 mr-2" />{tAuth('continueWithGoogle')}</Button>
+                <a href="/forgot-password" className="text-sm text-muted-foreground underline block text-center">
+                  {tAuth("forgotPasswordLink")}
+                </a>
+              </div>
               {mfaChallenge && <form onSubmit={handleMfaVerify} className="border-t p-6 space-y-4">
                 <Label htmlFor="mfa-code">{tAuth('totpCode')}</Label>
                 <Input id="mfa-code" value={mfaCode} onChange={(e) => setMfaCode(e.target.value)} required inputMode="numeric" />
@@ -322,7 +335,7 @@ export default function LoginPage() {
                   </Button>
                 </CardFooter>
               </form>
-              <div className="px-6 pb-6"><Button type="button" variant="outline" className="w-full" onClick={() => void authClient.signInWithOAuth({ provider: 'google' })}>{tAuth('continueWithGoogle')}</Button></div>
+              <div className="px-6 pb-6"><Button type="button" variant="outline" className="w-full" onClick={() => void handleGoogleSignIn()}><GoogleIcon className="h-4 w-4 mr-2" />{tAuth('continueWithGoogle')}</Button></div>
             </Card>
           </TabsContent>
         </Tabs>

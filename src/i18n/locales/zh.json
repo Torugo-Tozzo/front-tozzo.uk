@@ -178,7 +178,8 @@
       "enterpriseTitle": "企业版",
       "enterpriseDescription": "适合设备数量较多的商户。",
       "enterpriseExtraDevice": "每个超过15台的额外设备加收 R$8.00",
-      "subscribeEnterprise": "订阅企业版"
+      "subscribeEnterprise": "订阅企业版",
+      "continueFree": "继续使用免费版"
     },
     "notFound": {
       "code": "404",
@@ -232,7 +233,7 @@
     "freeAccessLabel": "我有注册密钥（免费访问）",
     "termsCheckboxLabel": "我已阅读并接受<privacyLink>隐私政策</privacyLink>和<termsLink>使用条款</termsLink>",
     "registrationKeyPlaceholder": "访问密钥",
-    "createAccountLoading": "正在创建账户...", "continueWithGoogle": "继续使用 Google", "forgotPasswordLink": "忘记密码", "forgotPasswordTitle": "忘记密码", "forgotPasswordEmailSent": "请检查您的电子邮件以重置密码。", "sendResetLink": "发送链接", "newPassword": "新密码", "resetPassword": "重置密码", "resetPasswordTitle": "重置密码", "resetPasswordSuccess": "密码重置成功。", "resetPasswordFailed": "无法重置密码。", "totpCode": "验证码", "confirmTotp": "确认", "invalidTotpCode": "验证码无效。"
+    "createAccountLoading": "正在创建账户...", "continueWithGoogle": "使用 Google 登录", "forgotPasswordLink": "忘记密码", "forgotPasswordTitle": "忘记密码", "forgotPasswordEmailSent": "请检查您的电子邮件以重置密码。", "sendResetLink": "发送链接", "newPassword": "新密码", "resetPassword": "重置密码", "resetPasswordTitle": "重置密码", "resetPasswordSuccess": "密码重置成功。", "resetPasswordFailed": "无法重置密码。", "totpCode": "验证码", "confirmTotp": "确认", "invalidTotpCode": "验证码无效。"
   },
   "navigation": {
     "dashboard": "仪表板",
