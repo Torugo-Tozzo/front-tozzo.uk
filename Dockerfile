@@ -6,6 +6,9 @@ WORKDIR /app
 ARG VITE_API_URL
 ENV VITE_API_URL=$VITE_API_URL
 
+ARG VITE_AUTH_URL
+ENV VITE_AUTH_URL=$VITE_AUTH_URL
+
 COPY package.json bun.lock ./
 RUN bun install
 

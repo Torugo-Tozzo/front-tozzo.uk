@@ -28,6 +28,7 @@ import {
 import api from "@/services/api"
 import { useAuth } from "@/contexts/AuthContext"
 import { toast } from "sonner"
+import { authClient } from "@/lib/authClient"
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import type { EstablishmentPlan } from "@/domain/models"
@@ -100,6 +101,7 @@ export default function SettingsPage() {
 
   const [paperWidth, setPaperWidth] = useState<PaperWidthPreset>(() => getStoredPaperWidth())
   const isOwner = user?.role === 'OWNER'
+  const canManageSecurity = user?.role === 'OWNER' || user?.role === 'MANAGER'
   const fallbackEstablishmentId = user?.establishmentId ?? user?.establishment?.id ?? null
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [deletePassword, setDeletePassword] = useState("")
@@ -107,6 +109,41 @@ export default function SettingsPage() {
   const [planInfo, setPlanInfo] = useState<EstablishmentResponse | null>(null)
   const [establishmentInfo, setEstablishmentInfo] = useState<EstablishmentResponse | null>(null)
   const [isSavingEstablishmentInfo, setIsSavingEstablishmentInfo] = useState(false)
+  const [totpFactor, setTotpFactor] = useState<{ id: string; qrCode?: string } | null>(null)
+  const [totpCode, setTotpCode] = useState('')
+  const [isTotpLoading, setIsTotpLoading] = useState(false)
+
+  useEffect(() => {
+    if (!canManageSecurity) return
+    void authClient.mfa.listFactors().then(({ data }: any) => {
+      const factor = data?.totp?.find((item: any) => item.status === 'verified')
+      if (factor) setTotpFactor({ id: factor.id })
+    }).catch((error: unknown) => console.error('Error loading MFA factors', error))
+  }, [canManageSecurity])
+
+  const handleEnrollTotp = async () => {
+    setIsTotpLoading(true)
+    const { data, error } = await authClient.mfa.enroll({ factorType: 'totp' })
+    setIsTotpLoading(false)
+    if (error || !data) { toast.error(t('security.setupError')); return }
+    setTotpFactor({ id: data.id, qrCode: data.totp?.qr_code })
+  }
+
+  const handleVerifyTotp = async () => {
+    if (!totpFactor) return
+    setIsTotpLoading(true)
+    const { data: challenge, error: challengeError } = await authClient.mfa.challenge({ factorId: totpFactor.id })
+    const { error } = challengeError || !challenge ? { error: challengeError ?? new Error('MFA challenge failed') } : await authClient.mfa.verify({ factorId: totpFactor.id, challengeId: challenge.id, code: totpCode })
+    setIsTotpLoading(false)
+    if (error) { toast.error(t('security.setupError')); return }
+    setTotpFactor({ id: totpFactor.id }); setTotpCode(''); toast.success(t('security.enabled'))
+  }
+
+  const handleUnenrollTotp = async () => {
+    if (!totpFactor) return
+    setIsTotpLoading(true); const { error } = await authClient.mfa.unenroll({ factorId: totpFactor.id }); setIsTotpLoading(false)
+    if (error) { toast.error(t('security.disableError')); return }; setTotpFactor(null); toast.success(t('security.disabled'))
+  }
 
   useEffect(() => {
     let cancelled = false
@@ -313,6 +350,13 @@ export default function SettingsPage() {
             {isSavingEstablishmentInfo ? t('establishmentInfo.saving') : t('establishmentInfo.save')}
           </Button>
         </section>
+      )}
+
+      {canManageSecurity && (
+        <div className="p-6 border rounded-lg bg-card space-y-4">
+          <h2 className="text-xl font-semibold">{t('security.title')}</h2>
+          {!totpFactor ? <Button type="button" onClick={handleEnrollTotp} disabled={isTotpLoading}>{t('security.enable')}</Button> : totpFactor.qrCode ? <div className="space-y-3"><img src={totpFactor.qrCode} alt={t('security.qrCode')} className="h-48 w-48" /><label htmlFor="totp-code">{t('security.code')}</label><Input id="totp-code" value={totpCode} onChange={(e) => setTotpCode(e.target.value)} /><Button type="button" onClick={handleVerifyTotp} disabled={isTotpLoading}>{t('security.confirm')}</Button></div> : <Button type="button" variant="outline" onClick={handleUnenrollTotp} disabled={isTotpLoading}>{t('security.disable')}</Button>}
+        </div>
       )}
 
       {isOwner && (

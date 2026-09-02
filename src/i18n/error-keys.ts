@@ -85,6 +85,9 @@ const errorKeyByContext: Partial<Record<ErrorContext, Record<string, ErrorTransl
   login: {
     AUTH_INVALID_CREDENTIALS: { namespace: "auth", key: "loginFailure" },
     AUTH_INTERNAL_ERROR: { namespace: "errors", key: "generic" },
+    invalid_credentials: { namespace: "auth", key: "loginFailure" },
+    email_not_confirmed: { namespace: "auth", key: "loginFailure" },
+    user_banned: { namespace: "auth", key: "loginFailure" },
   },
   registration: {
     AUTH_ACTIVE_LIMIT_REACHED: { namespace: "auth", key: "registerFailure" },
@@ -94,6 +97,13 @@ const errorKeyByContext: Partial<Record<ErrorContext, Record<string, ErrorTransl
     AUTH_PENDING_LIMIT_REACHED: { namespace: "auth", key: "registerFailure" },
     AUTH_TERMS_NOT_ACCEPTED: { namespace: "auth", key: "registerFailure" },
     AUTH_INTERNAL_ERROR: { namespace: "errors", key: "generic" },
+    email_exists: { namespace: "auth", key: "registerFailure" },
+    weak_password: { namespace: "auth", key: "registerFailure" },
+    signup_disabled: { namespace: "auth", key: "registerFailure" },
+    over_email_send_rate_limit: { namespace: "auth", key: "registerFailure" },
+    over_request_rate_limit: { namespace: "auth", key: "registerFailure" },
+    validation_failed: { namespace: "auth", key: "registerFailure" },
+    unexpected_failure: { namespace: "errors", key: "generic" },
   },
   payment: {
     PAYMENT_CHECKOUT_CREATE_FAILED: { namespace: "errors", key: "payment" },

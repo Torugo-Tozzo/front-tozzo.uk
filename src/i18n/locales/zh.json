@@ -232,7 +232,7 @@
     "freeAccessLabel": "我有注册密钥（免费访问）",
     "termsCheckboxLabel": "我已阅读并接受<privacyLink>隐私政策</privacyLink>和<termsLink>使用条款</termsLink>",
     "registrationKeyPlaceholder": "访问密钥",
-    "createAccountLoading": "正在创建账户..."
+    "createAccountLoading": "正在创建账户...", "continueWithGoogle": "继续使用 Google", "forgotPasswordLink": "忘记密码", "forgotPasswordTitle": "忘记密码", "forgotPasswordEmailSent": "请检查您的电子邮件以重置密码。", "sendResetLink": "发送链接", "newPassword": "新密码", "resetPassword": "重置密码", "resetPasswordTitle": "重置密码", "resetPasswordSuccess": "密码重置成功。", "resetPasswordFailed": "无法重置密码。", "totpCode": "验证码", "confirmTotp": "确认", "invalidTotpCode": "验证码无效。"
   },
   "navigation": {
     "dashboard": "仪表板",
@@ -565,7 +565,7 @@
       "deleteSuccess": "账户已删除。正在退出...",
       "deleteWrongPassword": "密码错误。"
     },
-    "moreComingSoon": "更多设置即将推出……",
+    "moreComingSoon": "更多设置即将推出……", "security": { "title": "安全", "enable": "启用 2FA", "disable": "停用 2FA", "code": "验证码", "qrCode": "二维码", "confirm": "确认", "enabled": "2FA 已启用。", "disabled": "2FA 已停用。", "setupError": "无法设置 2FA。", "disableError": "无法停用 2FA。" },
     "printing": "打印",
     "paperWidth": "纸张宽度",
     "establishmentInfo": {

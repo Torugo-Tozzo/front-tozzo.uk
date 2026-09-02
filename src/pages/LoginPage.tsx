@@ -14,6 +14,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import logo from "@/assets/images/logo.svg"
 import api, { getErrorCode } from "@/services/api"
+import { authClient } from "@/lib/authClient"
 import { toast } from "sonner"
 import { useAuth } from "@/contexts/AuthContext"
 import { Trans, useTranslation } from "react-i18next"
@@ -21,7 +22,7 @@ import { getErrorTranslationKey } from "@/i18n/error-keys"
 
 export default function LoginPage() {
   const navigate = useNavigate()
-  const { login, isAuthenticated, user, isLoading: isAuthLoading } = useAuth()
+  const { isAuthenticated, user, isLoading: isAuthLoading, refreshUserProfile } = useAuth()
   const { t: tAuth } = useTranslation("auth")
   const { t: tErrors } = useTranslation("errors")
   const [isLoading, setIsLoading] = useState(false)
@@ -64,30 +65,36 @@ export default function LoginPage() {
   const [registrationKey, setRegistrationKey] = useState("")
   const [hasKey, setHasKey] = useState(false)
   const [termsAccepted, setTermsAccepted] = useState(false)
+  const [mfaChallenge, setMfaChallenge] = useState<{ factorId: string; challengeId: string } | null>(null)
+  const [mfaCode, setMfaCode] = useState('')
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
     try {
-      const response = await api.post("/auth/login", {
-        email: loginEmail,
-        password: loginPassword,
-      })
-      await login(response.data.token)
+      const { error } = await authClient.signInWithPassword({ email: loginEmail, password: loginPassword })
+      if (error) {
+        toast.error(translateError("login", { response: { data: { code: error.code } } }))
+        return
+      }
+
+      // auth-js não devolve um "código de erro de MFA" no signIn — a senha já autentica numa
+      // sessão AAL1 normal. Pra saber se falta o desafio TOTP, é preciso perguntar o AAL depois.
+      const { data: aal } = await authClient.mfa.getAuthenticatorAssuranceLevel()
+      if (aal && aal.nextLevel === 'aal2' && aal.currentLevel !== 'aal2') {
+        const { data: factors } = await authClient.mfa.listFactors()
+        const factorId = factors?.totp?.[0]?.id
+        if (factorId) {
+          const { data: challenge } = await authClient.mfa.challenge({ factorId })
+          if (challenge) setMfaChallenge({ factorId, challengeId: challenge.id })
+        }
+        return
+      }
+
       navigate("/dashboard")
     } catch (error: any) {
       console.error("Login failed", error)
       
-      if (error.response && error.response.status === 402) {
-        // Se o erro for 402, verifica se o token veio na resposta de erro
-        const token = error.response.data?.token;
-        if (token) {
-          await login(token);
-          navigate("/plan");
-          return;
-        }
-      }
-
       toast.error(translateError("login", error))
     } finally {
       setIsLoading(false)
@@ -98,34 +105,44 @@ export default function LoginPage() {
     e.preventDefault()
     setIsLoading(true)
     try {
-      const payload = {
+      const { data, error } = await authClient.signUp({ email: registerEmail, password: registerPassword })
+      if (error) {
+        toast.error(translateError("registration", { response: { data: { code: error?.code } } }))
+        return
+      }
+      // Com a confirmação de e-mail habilitada, o GoTrue cria o usuário sem sessão.
+      // A finalização depende de uma sessão autenticada e só deve ocorrer após a confirmação.
+      if (!data.session) {
+        navigate("/login")
+        return
+      }
+      await api.post("/auth/complete-signup", {
         name: registerName,
-        email: registerEmail,
-        password: registerPassword,
-        establishmentName: registerEstablishment,
-        registrationKey: hasKey ? registrationKey : "",
         termsAccepted,
-      }
-
-      const response = await api.post("/auth/register", payload)
-
-      if (response.data.token) {
-        // Sem navigate() explícito aqui: o useEffect de isAuthenticated/user
-        // acima já decide certo entre /dashboard e /plan a partir do status
-        // real do estabelecimento retornado pelo login (Free ativa direto,
-        // sem exigir pagamento) — navegar aqui também duplicava a decisão e,
-        // pro caminho sem chave de convite, mandava sempre pra /plan mesmo
-        // com a conta já ativa.
-        await login(response.data.token)
-      } else {
-        toast.success(tAuth("registrationSuccess"))
-      }
+        tradeName: registerEstablishment,
+        registrationKey: hasKey ? registrationKey : "",
+      })
+      // Sem navigate() explícito aqui: o useEffect de isAuthenticated/user
+      // acima já decide certo entre /dashboard e /plan a partir do status
+      // real do estabelecimento (Free ativa direto, sem exigir pagamento) —
+      // só precisa atualizar o user com o establishment recém-criado.
+      await refreshUserProfile()
     } catch (error) {
       console.error("Registration failed", error)
       toast.error(translateError("registration", error))
     } finally {
       setIsLoading(false)
     }
+  }
+
+  const handleMfaVerify = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!mfaChallenge) return
+    setIsLoading(true)
+    const { error } = await authClient.mfa.verify({ ...mfaChallenge, code: mfaCode })
+    setIsLoading(false)
+    if (error) { toast.error(tAuth('invalidTotpCode')); return }
+    navigate('/dashboard')
   }
 
   return (
@@ -180,11 +197,20 @@ export default function LoginPage() {
                   </div>
                 </CardContent>
                 <CardFooter>
+                  <a href="/forgot-password" className="text-sm text-muted-foreground underline mb-2 block text-center">
+                    {tAuth("forgotPasswordLink")}
+                  </a>
                   <Button className="w-full" type="submit" disabled={isLoading}>
                     {isLoading ? tAuth("entering") : tAuth("enter")}
                   </Button>
                 </CardFooter>
               </form>
+              <div className="px-6 pb-6"><Button type="button" variant="outline" className="w-full" onClick={() => void authClient.signInWithOAuth({ provider: 'google' })}>{tAuth('continueWithGoogle')}</Button></div>
+              {mfaChallenge && <form onSubmit={handleMfaVerify} className="border-t p-6 space-y-4">
+                <Label htmlFor="mfa-code">{tAuth('totpCode')}</Label>
+                <Input id="mfa-code" value={mfaCode} onChange={(e) => setMfaCode(e.target.value)} required inputMode="numeric" />
+                <Button className="w-full" type="submit" disabled={isLoading}>{tAuth('confirmTotp')}</Button>
+              </form>}
             </Card>
           </TabsContent>
           
@@ -296,6 +322,7 @@ export default function LoginPage() {
                   </Button>
                 </CardFooter>
               </form>
+              <div className="px-6 pb-6"><Button type="button" variant="outline" className="w-full" onClick={() => void authClient.signInWithOAuth({ provider: 'google' })}>{tAuth('continueWithGoogle')}</Button></div>
             </Card>
           </TabsContent>
         </Tabs>

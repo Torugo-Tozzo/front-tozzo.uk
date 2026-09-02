@@ -232,7 +232,8 @@
     "freeAccessLabel": "I have a registration key (Free access)",
     "termsCheckboxLabel": "I have read and accept the <privacyLink>Privacy Policy</privacyLink> and <termsLink>Terms of Use</termsLink>",
     "registrationKeyPlaceholder": "Access key",
-    "createAccountLoading": "Creating account..."
+    "createAccountLoading": "Creating account...",
+    "continueWithGoogle": "Continue with Google", "forgotPasswordLink": "Forgot my password", "forgotPasswordTitle": "Forgot password", "forgotPasswordEmailSent": "Check your email to reset your password.", "sendResetLink": "Send reset link", "newPassword": "New password", "resetPassword": "Reset password", "resetPasswordTitle": "Reset password", "resetPasswordSuccess": "Password reset successfully.", "resetPasswordFailed": "Could not reset password.", "totpCode": "Authentication code", "confirmTotp": "Confirm", "invalidTotpCode": "Invalid code."
   },
   "navigation": {
     "dashboard": "Dashboard",
@@ -565,7 +566,7 @@
       "deleteSuccess": "Account deleted. Signing out...",
       "deleteWrongPassword": "Incorrect password."
     },
-    "moreComingSoon": "More settings coming soon...",
+    "moreComingSoon": "More settings coming soon...", "security": { "title": "Security", "enable": "Enable 2FA", "disable": "Disable 2FA", "code": "Code", "qrCode": "QR code", "confirm": "Confirm", "enabled": "2FA enabled.", "disabled": "2FA disabled.", "setupError": "Could not set up 2FA.", "disableError": "Could not disable 2FA." },
     "printing": "Printing",
     "paperWidth": "Paper width",
     "establishmentInfo": {

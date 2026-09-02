@@ -445,7 +445,7 @@ const requiredUiInventory: InventoryEntry[] = [
 const firstBatchNamespaces = new Set(["common", "auth", "navigation", "settings", "status", "printer", "errors"])
 const firstBatchUiInventory = requiredUiInventory.filter(({ key }) => firstBatchNamespaces.has(key.split(".")[0]))
 const requiredSourceCoordinates = [
-  { source: "src/contexts/AuthContext.tsx:78", marker: "PENDING_PAYMENT" },
+  { source: "src/contexts/AuthContext.tsx:38", marker: "PENDING_PAYMENT" },
 ]
 
 function hasResourceLeaf(resource: unknown, key: string): boolean {

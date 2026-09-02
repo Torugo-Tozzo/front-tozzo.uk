@@ -44,6 +44,8 @@ const router = createBrowserRouter([
         children: [
           { path: "/", lazy: lazyPage(() => import('./pages/LandingPage')) },
           { path: "/login", lazy: lazyPage(() => import('./pages/LoginPage')) },
+          { path: "/forgot-password", lazy: lazyPage(() => import('./pages/ForgotPasswordPage')) },
+          { path: "/reset-password", lazy: lazyPage(() => import('./pages/ResetPasswordPage')) },
           { path: "/privacidade", lazy: lazyPage(() => import('./pages/PrivacyPolicyPage')) },
           { path: "/termos", lazy: lazyPage(() => import('./pages/TermsOfUsePage')) },
         ]

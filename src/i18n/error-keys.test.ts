@@ -15,6 +15,13 @@ describe("structured API error outcomes", () => {
     expect(getErrorTranslationKey("payment", "PAYMENT_UNKNOWN")).toEqual({ namespace: "errors", key: "payment" })
   })
 
+  test("maps lowercase auth-js codes while retaining legacy mappings", () => {
+    expect(getErrorTranslationKey("login", "invalid_credentials")).toEqual({ namespace: "auth", key: "loginFailure" })
+    expect(getErrorTranslationKey("registration", "email_exists")).toEqual({ namespace: "auth", key: "registerFailure" })
+    expect(getErrorTranslationKey("registration", "weak_password")).toEqual({ namespace: "auth", key: "registerFailure" })
+    expect(getErrorTranslationKey("registration", "unexpected_failure")).toEqual({ namespace: "errors", key: "generic" })
+  })
+
   test("supports operation-specific dashboard outcomes without reading server text", () => {
     expect(getErrorTranslationKey("saveOrder", "ORDER_LIMIT_REACHED")).toEqual({ namespace: "errors", key: "saveOrder" })
     expect(getErrorTranslationKey("deleteOrder", "ORDER_NOT_FOUND")).toEqual({ namespace: "errors", key: "deleteOrder" })

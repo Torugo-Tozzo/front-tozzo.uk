@@ -8,11 +8,8 @@ import { ConfirmProvider } from '@/contexts/ConfirmContext'
 import { Navbar } from '@/components/Navbar'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import { replaceProperty } from '@/test/replace-property'
+import { authClient } from '@/lib/authClient'
 import { AuthProvider, useAuth } from './AuthContext'
-
-function tokenFor(payload: Record<string, unknown>) {
-  return `header.${btoa(JSON.stringify(payload))}.signature`
-}
 
 function AuthState() {
   const { isAuthenticated, isLoading, user } = useAuth()
@@ -26,12 +23,17 @@ function AuthState() {
 }
 
 describe('AuthProvider', () => {
+  let restoreGetSession: () => void
+  let restoreOnAuthStateChange: () => void
   beforeEach(() => {
     localStorage.clear()
-    localStorage.setItem('tozzo_token', tokenFor({ id: 42, nome: 'Ana', role: 'DONO' }))
+    restoreGetSession = replaceProperty(authClient, 'getSession', (async () => ({ data: { session: { access_token: 'fake-token', user: { id: '42', email: 'ana@example.com' } } }, error: null })) as typeof authClient.getSession)
+    restoreOnAuthStateChange = replaceProperty(authClient, 'onAuthStateChange', ((callback: any) => { queueMicrotask(() => callback('SIGNED_IN', { access_token: 'fake-token', user: { id: '42' } })); return { data: { subscription: { unsubscribe: () => {} } } } }) as typeof authClient.onAuthStateChange)
   })
 
   afterEach(async () => {
+    restoreGetSession()
+    restoreOnAuthStateChange()
     localStorage.clear()
     await act(async () => {
       await i18n.changeLanguage('en')

@@ -1,5 +1,12 @@
 import { describe, it, expect, vi } from 'bun:test'
-import api, { getSseToken, normalizeResponseData, serializeRequestData } from './api'
+import api, { getErrorCode, getSseToken, normalizeResponseData, serializeRequestData } from './api'
+
+describe('getErrorCode', () => {
+  it('reads native auth-js codes while retaining legacy API codes', () => {
+    expect(getErrorCode({ code: 'invalid_credentials' })).toBe('invalid_credentials')
+    expect(getErrorCode({ response: { data: { code: 'AUTH_INVALID_CREDENTIALS' } } })).toBe('AUTH_INVALID_CREDENTIALS')
+  })
+})
 
 describe('getSseToken', () => {
   it('faz POST /auth/sse-token e retorna o token da resposta', async () => {
