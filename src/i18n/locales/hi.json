@@ -156,7 +156,14 @@
         "cancelAnytime": "जब चाहें रद्द करें",
         "sameAsMonthly": "मासिक प्लान की सभी सुविधाएँ",
         "discount": "लगभग 27% की छूट",
-        "annualBilling": "वार्षिक बिलिंग"
+        "annualBilling": "वार्षिक बिलिंग",
+        "freeProducts": "अधिकतम 60 उत्पाद पंजीकृत कर सकते हैं",
+        "freeDevices": "अधिकतम 3 डिवाइस",
+        "freePrints": "प्रति दिन 30 प्रिंट",
+        "freeReports": "प्रति माह 5 रिपोर्ट",
+        "unlimitedAll": "असीमित उत्पाद, प्रिंट और रिपोर्ट",
+        "pagoDevices": "अधिकतम 8 डिवाइस",
+        "enterpriseDevices": "15 डिवाइस शामिल"
       },
       "subscribeMonthly": "मासिक सदस्यता लें",
       "popular": "सबसे लोकप्रिय",
@@ -166,7 +173,12 @@
       "equivalentMonthly": "{{price}} प्रति माह के बराबर",
       "subscribeAnnual": "वार्षिक सदस्यता लें",
       "noPlanTitle": "ऐसा लगता है कि आपके पास अभी कोई प्लान नहीं है या आपकी सदस्यता नवीनीकृत नहीं हुई है",
-      "noPlanDescription": "अपने रेस्तरां का प्रबंधन बेहतर बनाने के लिए नीचे दिए गए प्लानों में से एक चुनें।"
+      "noPlanDescription": "अपने रेस्तरां का प्रबंधन बेहतर बनाने के लिए नीचे दिए गए प्लानों में से एक चुनें।",
+      "currentPlan": "वर्तमान योजना",
+      "enterpriseTitle": "Enterprise",
+      "enterpriseDescription": "अधिक डिवाइस वाले प्रतिष्ठानों के लिए।",
+      "enterpriseExtraDevice": "15 से अधिक प्रत्येक अतिरिक्त डिवाइस के लिए + R$8.00",
+      "subscribeEnterprise": "Enterprise की सदस्यता लें"
     },
     "notFound": {
       "code": "404",
@@ -228,6 +240,7 @@
     "sales": "बिक्री",
     "products": "उत्पाद",
     "employees": "कर्मचारी",
+    "devices": "डिवाइस",
     "reports": "रिपोर्ट",
     "settings": "सेटिंग्स",
     "login": "लॉग इन",
@@ -518,6 +531,8 @@
   },
   "settings": {
     "title": "सेटिंग्स",
+    "plan": { "title": "योजना और उपयोग", "currentPlan": "वर्तमान योजना", "tiers": { "FREE": "Free", "PAGO": "Pago", "PAGO_LEGADO": "Pago (पुरानी कीमत)", "ENTERPRISE": "Enterprise" }, "printsToday": "आज के प्रिंट", "reportsThisMonth": "इस महीने की रिपोर्ट", "unlimited": "असीमित", "devices": "उपयोग में डिवाइस", "upgradeButton": "योजना अपग्रेड करें" },
+    "devices": { "title": "डिवाइस", "loadError": "डिवाइस लोड करने में त्रुटि।", "removeError": "डिवाइस हटाने में त्रुटि।", "removeButton": "हटाएं", "removeConfirmDescription": "यह डिवाइस हटाएं? सिंक करने के लिए इसे फिर से पंजीकृत करना होगा।", "removeConfirmButton": "हटाएं", "noResults": "अभी कोई डिवाइस पंजीकृत नहीं है।", "neverSeen": "कभी सिंक नहीं हुआ", "notAvailable": "अज्ञात", "columns": { "platform": "डिवाइस", "user": "उपयोगकर्ता", "lastSeen": "अंतिम सिंक", "actions": "कार्रवाई" } },
     "appearance": "दिखावट",
     "theme": "थीम",
     "light": "हल्का",
@@ -553,6 +568,12 @@
     "moreComingSoon": "और सेटिंग्स जल्द आ रही हैं...",
     "printing": "प्रिंटिंग",
     "paperWidth": "कागज़ की चौड़ाई",
+    "establishmentInfo": {
+      "title": "प्रतिष्ठान की जानकारी संपादित करें",
+      "description": "अपने प्रतिष्ठान का विवरण अद्यतन रखें।",
+      "tradeName": "प्रतिष्ठान का नाम", "phone": "फ़ोन", "zipCode": "पिन कोड", "addressStreet": "सड़क", "addressNumber": "नंबर", "addressComplement": "पूरक पता", "addressNeighborhood": "पड़ोस", "addressCity": "शहर", "addressState": "राज्य", "cnpj": "कर पहचान संख्या (CNPJ)",
+      "save": "जानकारी सहेजें", "saving": "सहेजा जा रहा है...", "saved": "प्रतिष्ठान की जानकारी अपडेट हो गई।", "saveError": "जानकारी सहेजी नहीं जा सकी। पुनः प्रयास करें।"
+    },
     "category": {
       "title": "प्रतिष्ठान की श्रेणी",
       "description": "अपने प्रतिष्ठान की श्रेणी चुनें।",
@@ -628,6 +649,7 @@
     "cancelSale": "बिक्री रद्द करने में त्रुटि।",
     "loadProducts": "उत्पाद लोड करने में त्रुटि।",
     "createProduct": "उत्पाद बनाने में त्रुटि।",
+    "productLimitReached": "आपकी वर्तमान योजना की उत्पाद सीमा पूरी हो गई है।",
     "updateProduct": "उत्पाद अपडेट करने में त्रुटि।",
     "deleteProduct": "उत्पाद हटाने में त्रुटि।",
     "createType": "प्रकार बनाने में त्रुटि।",
@@ -642,6 +664,10 @@
     "invalidResponse": "सर्वर की प्रतिक्रिया अमान्य है।",
     "paymentUrl": "भुगतान शुरू नहीं कर सके: URL नहीं मिला।",
     "payment": "भुगतान संसाधित करने में त्रुटि। अपना सत्र जाँचें।",
+    "planUpgradeRequired": "यह सुविधा केवल सशुल्क प्लान में उपलब्ध है।",
+    "reportQuotaExceeded": "Free प्लान में मासिक रिपोर्ट की सीमा पूरी हो गई है।",
+    "upgradeCta": "प्लान अपग्रेड करें",
+    "askOwnerCta": "इसे अनलॉक करने के लिए मालिक से प्लान अपग्रेड करने को कहें।",
     "products": {
       "selectType": "कृपया उत्पाद का प्रकार चुनें।",
       "selectItems": "कृपया कम से कम एक उत्पाद चुनें।",

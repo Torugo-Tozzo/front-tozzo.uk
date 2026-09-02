@@ -156,7 +156,14 @@
         "cancelAnytime": "随时取消",
         "sameAsMonthly": "包含月付方案的全部内容",
         "discount": "约 27% 折扣",
-        "annualBilling": "按年计费"
+        "annualBilling": "按年计费",
+        "freeProducts": "最多可注册 60 个产品",
+        "freeDevices": "最多 3 台设备",
+        "freePrints": "每天 30 次打印",
+        "freeReports": "每月 5 份报表",
+        "unlimitedAll": "产品、打印和报表均不受限",
+        "pagoDevices": "最多 8 台设备",
+        "enterpriseDevices": "含 15 台设备"
       },
       "subscribeMonthly": "订阅月付方案",
       "popular": "最受欢迎",
@@ -166,7 +173,12 @@
       "equivalentMonthly": "月均 {{price}}",
       "subscribeAnnual": "订阅年付方案",
       "noPlanTitle": "您似乎还没有方案，或您的订阅尚未续期",
-      "noPlanDescription": "选择以下方案之一，改善您的餐厅管理。"
+      "noPlanDescription": "选择以下方案之一，改善您的餐厅管理。",
+      "currentPlan": "当前方案",
+      "enterpriseTitle": "企业版",
+      "enterpriseDescription": "适合设备数量较多的商户。",
+      "enterpriseExtraDevice": "每个超过15台的额外设备加收 R$8.00",
+      "subscribeEnterprise": "订阅企业版"
     },
     "notFound": {
       "code": "404",
@@ -228,6 +240,7 @@
     "sales": "销售",
     "products": "产品",
     "employees": "员工",
+    "devices": "设备",
     "reports": "报告",
     "settings": "设置",
     "login": "登录",
@@ -518,6 +531,8 @@
   },
   "settings": {
     "title": "设置",
+    "plan": { "title": "方案与使用情况", "currentPlan": "当前方案", "tiers": { "FREE": "免费", "PAGO": "付费", "PAGO_LEGADO": "付费（旧价格）", "ENTERPRISE": "企业版" }, "printsToday": "今日打印", "reportsThisMonth": "本月报告", "unlimited": "无限", "devices": "使用中的设备", "upgradeButton": "升级方案" },
+    "devices": { "title": "设备", "loadError": "加载设备时出错。", "removeError": "删除设备时出错。", "removeButton": "删除", "removeConfirmDescription": "删除此设备？它需要重新注册才能同步。", "removeConfirmButton": "删除", "noResults": "尚未注册设备。", "neverSeen": "从未同步", "notAvailable": "未识别", "columns": { "platform": "设备", "user": "用户", "lastSeen": "上次同步", "actions": "操作" } },
     "appearance": "外观",
     "theme": "主题",
     "light": "浅色",
@@ -553,6 +568,12 @@
     "moreComingSoon": "更多设置即将推出……",
     "printing": "打印",
     "paperWidth": "纸张宽度",
+    "establishmentInfo": {
+      "title": "编辑商家信息",
+      "description": "请保持您的商家信息为最新状态。",
+      "tradeName": "商家名称", "phone": "电话", "zipCode": "邮政编码", "addressStreet": "街道", "addressNumber": "门牌号", "addressComplement": "地址补充", "addressNeighborhood": "街区", "addressCity": "城市", "addressState": "州", "cnpj": "税务识别号 (CNPJ)",
+      "save": "保存信息", "saving": "正在保存...", "saved": "商家信息已更新。", "saveError": "无法保存信息。请重试。"
+    },
     "category": {
       "title": "商家类别",
       "description": "请选择您的商家类别。",
@@ -628,6 +649,7 @@
     "cancelSale": "取消销售时出错。",
     "loadProducts": "加载产品时出错。",
     "createProduct": "创建产品时出错。",
+    "productLimitReached": "已达到您当前套餐的产品数量上限。",
     "updateProduct": "更新产品时出错。",
     "deleteProduct": "删除产品时出错。",
     "createType": "创建类型时出错。",
@@ -642,6 +664,10 @@
     "invalidResponse": "服务器响应无效。",
     "paymentUrl": "无法开始付款：找不到地址。",
     "payment": "处理付款时出错。请检查会话是否有效。",
+    "planUpgradeRequired": "此功能仅适用于付费套餐。",
+    "reportQuotaExceeded": "免费套餐的每月报表限额已达到。",
+    "upgradeCta": "升级套餐",
+    "askOwnerCta": "请让所有者升级套餐以解锁此功能。",
     "products": {
       "selectType": "请选择产品类型。",
       "selectItems": "请至少选择一个产品。",

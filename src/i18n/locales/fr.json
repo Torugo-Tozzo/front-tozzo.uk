@@ -156,7 +156,14 @@
         "cancelAnytime": "Résiliez quand vous voulez",
         "sameAsMonthly": "Tout ce qui est inclus dans le plan mensuel",
         "discount": "Remise d'environ 27 %",
-        "annualBilling": "Facturation annuelle"
+        "annualBilling": "Facturation annuelle",
+        "freeProducts": "Jusqu'à 60 produits enregistrés",
+        "freeDevices": "Jusqu'à 3 appareils",
+        "freePrints": "30 impressions par jour",
+        "freeReports": "5 rapports par mois",
+        "unlimitedAll": "Produits, impressions et rapports illimités",
+        "pagoDevices": "Jusqu'à 8 appareils",
+        "enterpriseDevices": "15 appareils inclus"
       },
       "subscribeMonthly": "S'abonner au plan mensuel",
       "popular": "Le plus populaire",
@@ -166,7 +173,12 @@
       "equivalentMonthly": "Équivalent à {{price}}/mois",
       "subscribeAnnual": "S'abonner au plan annuel",
       "noPlanTitle": "Vous n'avez pas encore de plan ou votre abonnement n'a pas été renouvelé",
-      "noPlanDescription": "Choisissez l'un des plans ci-dessous pour améliorer la gestion de votre restaurant."
+      "noPlanDescription": "Choisissez l'un des plans ci-dessous pour améliorer la gestion de votre restaurant.",
+      "currentPlan": "Plan actuel",
+      "enterpriseTitle": "Enterprise",
+      "enterpriseDescription": "Pour les établissements avec un grand volume d'appareils.",
+      "enterpriseExtraDevice": "+ 8,00 R$ par appareil supplémentaire au-delà de 15",
+      "subscribeEnterprise": "S'abonner à Enterprise"
     },
     "notFound": {
       "code": "404",
@@ -228,6 +240,7 @@
     "sales": "Ventes",
     "products": "Produits",
     "employees": "Employés",
+    "devices": "Appareils",
     "reports": "Rapports",
     "settings": "Paramètres",
     "login": "Se connecter",
@@ -518,6 +531,8 @@
   },
   "settings": {
     "title": "Paramètres",
+    "plan": { "title": "Plan et utilisation", "currentPlan": "Plan actuel", "tiers": { "FREE": "Gratuit", "PAGO": "Payant", "PAGO_LEGADO": "Payant (ancien prix)", "ENTERPRISE": "Enterprise" }, "printsToday": "Impressions aujourd'hui", "reportsThisMonth": "Rapports ce mois-ci", "unlimited": "Illimité", "devices": "Appareils utilisés", "upgradeButton": "Améliorer le plan" },
+    "devices": { "title": "Appareils", "loadError": "Erreur lors du chargement des appareils.", "removeError": "Erreur lors de la suppression de l'appareil.", "removeButton": "Supprimer", "removeConfirmDescription": "Supprimer cet appareil ? Il devra être enregistré à nouveau pour se synchroniser.", "removeConfirmButton": "Supprimer", "noResults": "Aucun appareil enregistré.", "neverSeen": "Jamais synchronisé", "notAvailable": "Non identifié", "columns": { "platform": "Appareil", "user": "Utilisateur", "lastSeen": "Dernière synchronisation", "actions": "Actions" } },
     "appearance": "Apparence",
     "theme": "Thème",
     "light": "Clair",
@@ -553,6 +568,12 @@
     "moreComingSoon": "D'autres paramètres bientôt disponibles...",
     "printing": "Impression",
     "paperWidth": "Largeur du papier",
+    "establishmentInfo": {
+      "title": "Modifier les informations de l'établissement",
+      "description": "Gardez les informations de votre établissement à jour.",
+      "tradeName": "Nom de l'établissement", "phone": "Téléphone", "zipCode": "Code postal", "addressStreet": "Rue", "addressNumber": "Numéro", "addressComplement": "Complément", "addressNeighborhood": "Quartier", "addressCity": "Ville", "addressState": "État", "cnpj": "Identifiant fiscal (CNPJ)",
+      "save": "Enregistrer les informations", "saving": "Enregistrement...", "saved": "Informations de l'établissement mises à jour.", "saveError": "Impossible d'enregistrer les informations. Réessayez."
+    },
     "category": {
       "title": "Catégorie de l'établissement",
       "description": "Choisissez la catégorie de votre établissement.",
@@ -628,6 +649,7 @@
     "cancelSale": "Erreur lors de l'annulation de la vente.",
     "loadProducts": "Erreur lors du chargement des produits.",
     "createProduct": "Erreur lors de la création du produit.",
+    "productLimitReached": "La limite de produits de votre forfait actuel est atteinte.",
     "updateProduct": "Erreur lors de la mise à jour du produit.",
     "deleteProduct": "Erreur lors de la suppression du produit.",
     "createType": "Erreur lors de la création du type.",
@@ -642,6 +664,10 @@
     "invalidResponse": "Réponse invalide du serveur.",
     "paymentUrl": "Impossible de démarrer le paiement : URL introuvable.",
     "payment": "Erreur lors du traitement du paiement. Vérifiez que votre session est active.",
+    "planUpgradeRequired": "Cette fonctionnalité est disponible uniquement avec les forfaits payants.",
+    "reportQuotaExceeded": "La limite mensuelle de rapports du forfait Free est atteinte.",
+    "upgradeCta": "Mettre à niveau le forfait",
+    "askOwnerCta": "Demandez au propriétaire de mettre à niveau le forfait pour débloquer cette fonctionnalité.",
     "products": {
       "selectType": "Veuillez sélectionner un type de produit.",
       "selectItems": "Veuillez sélectionner au moins un produit.",

@@ -156,7 +156,14 @@
         "cancelAnytime": "Cancela cuando quieras",
         "sameAsMonthly": "Todo lo incluido en el plan mensual",
         "discount": "Descuento de aproximadamente un 27%",
-        "annualBilling": "Facturación anual"
+        "annualBilling": "Facturación anual",
+        "freeProducts": "Hasta 60 productos registrados",
+        "freeDevices": "Hasta 3 dispositivos",
+        "freePrints": "30 impresiones por día",
+        "freeReports": "5 informes por mes",
+        "unlimitedAll": "Productos, impresiones e informes ilimitados",
+        "pagoDevices": "Hasta 8 dispositivos",
+        "enterpriseDevices": "15 dispositivos incluidos"
       },
       "subscribeMonthly": "Suscribirse al plan mensual",
       "popular": "Más popular",
@@ -166,7 +173,12 @@
       "equivalentMonthly": "Equivalente a {{price}}/mes",
       "subscribeAnnual": "Suscribirse al plan anual",
       "noPlanTitle": "Parece que aún no tienes un plan o tu suscripción no se ha renovado",
-      "noPlanDescription": "Elige uno de los planes siguientes para mejorar la gestión de tu restaurante."
+      "noPlanDescription": "Elige uno de los planes siguientes para mejorar la gestión de tu restaurante.",
+      "currentPlan": "Plan actual",
+      "enterpriseTitle": "Enterprise",
+      "enterpriseDescription": "Para establecimientos con gran volumen de dispositivos.",
+      "enterpriseExtraDevice": "+ R$8,00 por dispositivo extra por encima de 15",
+      "subscribeEnterprise": "Suscribirse a Enterprise"
     },
     "notFound": {
       "code": "404",
@@ -228,6 +240,7 @@
     "sales": "Ventas",
     "products": "Productos",
     "employees": "Empleados",
+    "devices": "Dispositivos",
     "reports": "Informes",
     "settings": "Configuración",
     "login": "Iniciar sesión",
@@ -518,6 +531,8 @@
   },
   "settings": {
     "title": "Configuración",
+    "plan": { "title": "Plan y uso", "currentPlan": "Plan actual", "tiers": { "FREE": "Gratis", "PAGO": "Pago", "PAGO_LEGADO": "Pago (precio anterior)", "ENTERPRISE": "Enterprise" }, "printsToday": "Impresiones de hoy", "reportsThisMonth": "Informes este mes", "unlimited": "Ilimitado", "devices": "Dispositivos en uso", "upgradeButton": "Mejorar plan" },
+    "devices": { "title": "Dispositivos", "loadError": "Error al cargar dispositivos.", "removeError": "Error al eliminar el dispositivo.", "removeButton": "Eliminar", "removeConfirmDescription": "¿Eliminar este dispositivo? Tendrá que registrarse de nuevo para sincronizar.", "removeConfirmButton": "Eliminar", "noResults": "Aún no hay dispositivos registrados.", "neverSeen": "Nunca sincronizado", "notAvailable": "No identificado", "columns": { "platform": "Dispositivo", "user": "Usuario", "lastSeen": "Última sincronización", "actions": "Acciones" } },
     "appearance": "Apariencia",
     "theme": "Tema",
     "light": "Claro",
@@ -553,6 +568,12 @@
     "moreComingSoon": "Más configuraciones próximamente...",
     "printing": "Impresión",
     "paperWidth": "Ancho del papel",
+    "establishmentInfo": {
+      "title": "Editar información del establecimiento",
+      "description": "Mantén actualizados los datos de tu establecimiento.",
+      "tradeName": "Nombre del establecimiento", "phone": "Teléfono", "zipCode": "Código postal", "addressStreet": "Calle", "addressNumber": "Número", "addressComplement": "Complemento", "addressNeighborhood": "Barrio", "addressCity": "Ciudad", "addressState": "Estado", "cnpj": "Identificación fiscal (CNPJ)",
+      "save": "Guardar información", "saving": "Guardando...", "saved": "Información del establecimiento actualizada.", "saveError": "No se pudo guardar la información. Inténtalo de nuevo."
+    },
     "category": {
       "title": "Categoría del establecimiento",
       "description": "Elige la categoría de tu establecimiento.",
@@ -628,6 +649,7 @@
     "cancelSale": "Error al cancelar la venta.",
     "loadProducts": "Error al cargar los productos.",
     "createProduct": "Error al crear el producto.",
+    "productLimitReached": "Se alcanzó el límite de productos en tu plan actual.",
     "updateProduct": "Error al actualizar el producto.",
     "deleteProduct": "Error al eliminar el producto.",
     "createType": "Error al crear el tipo.",
@@ -642,6 +664,10 @@
     "invalidResponse": "Respuesta no válida del servidor.",
     "paymentUrl": "No se pudo iniciar el pago: falta la URL.",
     "payment": "Error al procesar el pago. Comprueba que tu sesión esté activa.",
+    "planUpgradeRequired": "Esta función solo está disponible en planes de pago.",
+    "reportQuotaExceeded": "Se alcanzó el límite mensual de informes del plan Free.",
+    "upgradeCta": "Mejorar plan",
+    "askOwnerCta": "Pídele al propietario que mejore el plan para desbloquear esto.",
     "products": {
       "selectType": "Selecciona un tipo de producto.",
       "selectItems": "Selecciona al menos un producto.",

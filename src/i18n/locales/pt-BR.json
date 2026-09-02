@@ -156,7 +156,14 @@
         "cancelAnytime": "Cancele quando quiser",
         "sameAsMonthly": "Tudo do plano mensal",
         "discount": "Desconto de aproximadamente 27%",
-        "annualBilling": "Cobrança anual"
+        "annualBilling": "Cobrança anual",
+        "freeProducts": "Até 60 produtos cadastrados",
+        "freeDevices": "Até 3 dispositivos",
+        "freePrints": "30 impressões por dia",
+        "freeReports": "5 relatórios por mês",
+        "unlimitedAll": "Produtos, impressões e relatórios ilimitados",
+        "pagoDevices": "Até 8 dispositivos",
+        "enterpriseDevices": "15 dispositivos inclusos"
       },
       "subscribeMonthly": "Assinar mensal",
       "popular": "Mais popular",
@@ -166,7 +173,12 @@
       "equivalentMonthly": "Equivalente a {{price}}/mês",
       "subscribeAnnual": "Assinar anual",
       "noPlanTitle": "Parece que você ainda não possui um plano ou sua assinatura não foi renovada",
-      "noPlanDescription": "Escolha um dos planos abaixo para melhorar a gestão do seu restaurante."
+      "noPlanDescription": "Escolha um dos planos abaixo para melhorar a gestão do seu restaurante.",
+      "currentPlan": "Plano atual",
+      "enterpriseTitle": "Enterprise",
+      "enterpriseDescription": "Para estabelecimentos com alto volume de dispositivos.",
+      "enterpriseExtraDevice": "+ R$8,00 por dispositivo extra acima de 15",
+      "subscribeEnterprise": "Assinar Enterprise"
     },
     "notFound": {
       "code": "404",
@@ -228,6 +240,7 @@
     "sales": "Vendas",
     "products": "Produtos",
     "employees": "Funcionários",
+    "devices": "Dispositivos",
     "reports": "Relatórios",
     "settings": "Configurações",
     "login": "Fazer login",
@@ -518,6 +531,8 @@
   },
   "settings": {
     "title": "Configurações",
+    "plan": { "title": "Plano e uso", "currentPlan": "Plano atual", "tiers": { "FREE": "Free", "PAGO": "Pago", "PAGO_LEGADO": "Pago (preço legado)", "ENTERPRISE": "Enterprise" }, "printsToday": "Impressões hoje", "reportsThisMonth": "Relatórios este mês", "unlimited": "Ilimitado", "devices": "Dispositivos em uso", "upgradeButton": "Fazer upgrade" },
+    "devices": { "title": "Dispositivos", "loadError": "Erro ao carregar dispositivos.", "removeError": "Erro ao remover dispositivo.", "removeButton": "Remover", "removeConfirmDescription": "Remover este dispositivo? Ele vai precisar se registrar de novo pra sincronizar.", "removeConfirmButton": "Remover", "noResults": "Nenhum dispositivo registrado ainda.", "neverSeen": "Nunca sincronizou", "notAvailable": "Não identificado", "columns": { "platform": "Dispositivo", "user": "Usuário", "lastSeen": "Última sincronização", "actions": "Ações" } },
     "appearance": "Aparência",
     "theme": "Tema",
     "light": "Claro",
@@ -553,6 +568,12 @@
     "moreComingSoon": "Mais configurações em breve...",
     "printing": "Impressão",
     "paperWidth": "Largura do papel",
+    "establishmentInfo": {
+      "title": "Editar Informações do Estabelecimento",
+      "description": "Mantenha os dados do seu estabelecimento atualizados.",
+      "tradeName": "Nome do estabelecimento", "phone": "Telefone", "zipCode": "CEP", "addressStreet": "Rua/Logradouro", "addressNumber": "Número", "addressComplement": "Complemento", "addressNeighborhood": "Bairro", "addressCity": "Cidade", "addressState": "Estado (UF)", "cnpj": "CNPJ",
+      "save": "Salvar informações", "saving": "Salvando...", "saved": "Informações do estabelecimento atualizadas.", "saveError": "Não foi possível salvar as informações. Tente novamente."
+    },
     "category": {
       "title": "Categoria do estabelecimento",
       "description": "Escolha a categoria do seu estabelecimento.",
@@ -628,6 +649,7 @@
     "cancelSale": "Erro ao cancelar venda.",
     "loadProducts": "Erro ao carregar produtos.",
     "createProduct": "Erro ao criar produto.",
+    "productLimitReached": "Limite de produtos atingido no plano atual.",
     "updateProduct": "Erro ao atualizar produto.",
     "deleteProduct": "Erro ao excluir produto.",
     "createType": "Erro ao criar tipo.",
@@ -642,6 +664,10 @@
     "invalidResponse": "Resposta inválida do servidor.",
     "paymentUrl": "Erro ao iniciar pagamento: URL não encontrada.",
     "payment": "Erro ao processar pagamento. Verifique se sua sessão está ativa.",
+    "planUpgradeRequired": "Este recurso está disponível apenas em planos pagos.",
+    "reportQuotaExceeded": "Limite mensal de relatórios atingido no plano Free.",
+    "upgradeCta": "Fazer upgrade",
+    "askOwnerCta": "Peça pro dono fazer upgrade do plano pra liberar isso.",
     "products": {
       "selectType": "Por favor, selecione um tipo de produto.",
       "selectItems": "Selecione pelo menos um produto.",

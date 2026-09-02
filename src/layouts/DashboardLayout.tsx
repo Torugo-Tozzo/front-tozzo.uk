@@ -8,6 +8,7 @@ import {
   ClipboardList,
   X,
   Users,
+  Smartphone,
   BarChart3,
   PanelLeftClose,
   PanelLeftOpen,
@@ -23,13 +24,14 @@ import { useTranslation } from "react-i18next"
 import api from "@/services/api"
 import { useRealtimeEvents } from "@/hooks/useRealtimeEvents"
 import { formatNumber } from "@/i18n/format"
+import { EstablishmentOnboardingModal } from "@/components/dashboard/EstablishmentOnboardingModal"
 
 const SIDEBAR_COLLAPSED_KEY = "sidebar-collapsed"
 const MOBILE_MENU_ANIMATION_MS = 200
 
 export default function DashboardLayout() {
   const location = useLocation()
-  const { logout } = useAuth()
+  const { logout, user, refreshUserProfile } = useAuth()
   const confirm = useConfirm()
   const { i18n, t: tCommon } = useTranslation("common")
   const { t: tNavigation } = useTranslation("navigation")
@@ -70,9 +72,14 @@ export default function DashboardLayout() {
     { href: "/dashboard/sales", label: tNavigation("sales"), icon: LayoutDashboard },
     { href: "/dashboard/products", label: tNavigation("products"), icon: ShoppingBag },
     { href: "/dashboard/employees", label: tNavigation("employees"), icon: Users },
+    { href: "/dashboard/devices", label: tNavigation("devices"), icon: Smartphone },
     { href: "/dashboard/charts", label: tNavigation("reports"), icon: BarChart3 },
     { href: "/dashboard/settings", label: tNavigation("settings"), icon: Settings },
-  ]
+  ].filter((item) => {
+    if (item.href === "/dashboard/charts") return user?.role !== "EMPLOYEE"
+    if (item.href === "/dashboard/devices") return user?.role === "OWNER" || user?.role === "MANAGER"
+    return true
+  })
 
   // Logo/"Tozzo.uk" ja aparecem na Navbar (topo, compartilhada com o resto
   // do site) - sidebar nao duplica mais isso, so nav + toggle de colapsar.
@@ -185,6 +192,14 @@ export default function DashboardLayout() {
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar onMenuClick={() => setIsMobileMenuOpen(true)} />
+
+      {user?.role === "OWNER" && user.establishment?.category == null && (
+        <EstablishmentOnboardingModal
+          open
+          establishmentId={user.establishmentId ?? user.establishment?.id ?? null}
+          onSaved={() => { void refreshUserProfile() }}
+        />
+      )}
 
       <div className="flex-1 flex bg-muted/20">
         {/* Desktop Sidebar */}

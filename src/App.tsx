@@ -69,6 +69,7 @@ const router = createBrowserRouter([
               { path: "sales", lazy: lazyPage(() => import('./pages/dashboard/SalesPage')) },
               { path: "products", lazy: lazyPage(() => import('./pages/dashboard/ProductsPage')) },
               { path: "employees", lazy: lazyPage(() => import('./pages/dashboard/EmployeesPage')) },
+              { path: "devices", lazy: lazyPage(() => import('./pages/dashboard/DevicesPage')) },
               { path: "charts", lazy: lazyPage(() => import('./pages/dashboard/ChartsPage')) },
               { path: "settings", lazy: lazyPage(() => import('./pages/dashboard/SettingsPage')) },
             ]

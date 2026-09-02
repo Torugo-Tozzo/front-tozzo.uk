@@ -1,4 +1,4 @@
-import { Languages, Loader2, Printer, Tags } from "lucide-react"
+import { Languages, Printer } from "lucide-react"
 import { ModeToggle } from "@/components/mode-toggle"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -25,29 +25,41 @@ import {
   persistPaperWidth,
   type PaperWidthPreset,
 } from "@/lib/printPreferences"
-import {
-  CATEGORY_SEEDS,
-  ESTABLISHMENT_CATEGORIES,
-  type EstablishmentCategory,
-} from "@/lib/categorySeeds"
 import api from "@/services/api"
 import { useAuth } from "@/contexts/AuthContext"
 import { toast } from "sonner"
 import { useEffect, useState } from "react"
+import { useNavigate } from "react-router-dom"
+import type { EstablishmentPlan } from "@/domain/models"
 
 type EstablishmentResponse = {
   id: number | string | null
-  category: EstablishmentCategory | null
+  plan: EstablishmentPlan | null
+  printCountToday: number | null
+  reportCount: number | null
+  deviceCount: number | null
+  tradeName: string
+  phone: string
+  zipCode: string
+  addressStreet: string
+  addressNumber: string
+  addressComplement: string
+  addressNeighborhood: string
+  addressCity: string
+  addressState: string
+  cnpj: string
 }
 
-function isEstablishmentCategory(value: unknown): value is EstablishmentCategory {
-  return typeof value === "string" && ESTABLISHMENT_CATEGORIES.includes(value as EstablishmentCategory)
+const ESTABLISHMENT_PLANS: readonly EstablishmentPlan[] = ['FREE', 'PAGO', 'PAGO_LEGADO', 'ENTERPRISE']
+
+function isEstablishmentPlan(value: unknown): value is EstablishmentPlan {
+  return typeof value === "string" && ESTABLISHMENT_PLANS.includes(value as EstablishmentPlan)
 }
 
 function readEstablishmentResponse(data: unknown, fallbackId: number | string | null): EstablishmentResponse {
   const rawData = Array.isArray(data) ? data[0] : data
   if (!rawData || typeof rawData !== "object") {
-    return { id: fallbackId, category: null }
+    return { id: fallbackId, plan: null, printCountToday: null, reportCount: null, deviceCount: null, tradeName: "", phone: "", zipCode: "", addressStreet: "", addressNumber: "", addressComplement: "", addressNeighborhood: "", addressCity: "", addressState: "", cnpj: "" }
   }
 
   const rawEstablishment = rawData as Record<string, unknown>
@@ -55,14 +67,29 @@ function readEstablishmentResponse(data: unknown, fallbackId: number | string | 
     ? rawEstablishment.id
     : fallbackId
 
+  const readString = (key: string) => typeof rawEstablishment[key] === "string" ? rawEstablishment[key] : ""
   return {
     id,
-    category: isEstablishmentCategory(rawEstablishment.category) ? rawEstablishment.category : null,
+    plan: isEstablishmentPlan(rawEstablishment.plan) ? rawEstablishment.plan : null,
+    printCountToday: typeof rawEstablishment.printCountToday === "number" ? rawEstablishment.printCountToday : null,
+    reportCount: typeof rawEstablishment.reportCount === "number" ? rawEstablishment.reportCount : null,
+    deviceCount: typeof rawEstablishment.deviceCount === "number" ? rawEstablishment.deviceCount : null,
+    tradeName: readString("tradeName"),
+    phone: readString("phone"),
+    zipCode: readString("zipCode"),
+    addressStreet: readString("addressStreet"),
+    addressNumber: readString("addressNumber"),
+    addressComplement: readString("addressComplement"),
+    addressNeighborhood: readString("addressNeighborhood"),
+    addressCity: readString("addressCity"),
+    addressState: readString("addressState"),
+    cnpj: readString("cnpj"),
   }
 }
 
 export default function SettingsPage() {
-  const { user, logout } = useAuth()
+  const { user, logout, refreshUserProfile } = useAuth()
+  const navigate = useNavigate()
   const { i18n, t } = useTranslation('settings')
   const locale = normalizeLocale(i18n.language)
   const localeLabel = t(`locales.${locale}` as never)
@@ -72,24 +99,17 @@ export default function SettingsPage() {
   }
 
   const [paperWidth, setPaperWidth] = useState<PaperWidthPreset>(() => getStoredPaperWidth())
-  const canEditCategory = user?.role === 'OWNER' || user?.role === 'MANAGER'
   const isOwner = user?.role === 'OWNER'
   const fallbackEstablishmentId = user?.establishmentId ?? user?.establishment?.id ?? null
-  const [establishmentId, setEstablishmentId] = useState<number | string | null>(fallbackEstablishmentId)
-  const [category, setCategory] = useState<EstablishmentCategory | ''>('')
-  const [suggestedTypes, setSuggestedTypes] = useState<string[]>([])
-  const [isLoadingCategory, setIsLoadingCategory] = useState(false)
-  const [isSavingCategory, setIsSavingCategory] = useState(false)
-  const [isAddingTypes, setIsAddingTypes] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [deletePassword, setDeletePassword] = useState("")
   const [isDeleting, setIsDeleting] = useState(false)
+  const [planInfo, setPlanInfo] = useState<EstablishmentResponse | null>(null)
+  const [establishmentInfo, setEstablishmentInfo] = useState<EstablishmentResponse | null>(null)
+  const [isSavingEstablishmentInfo, setIsSavingEstablishmentInfo] = useState(false)
 
   useEffect(() => {
-    if (!canEditCategory) return
-
     let cancelled = false
-    setIsLoadingCategory(true)
 
     const loadEstablishment = async () => {
       try {
@@ -97,16 +117,12 @@ export default function SettingsPage() {
         if (cancelled) return
 
         const establishment = readEstablishmentResponse(response.data, fallbackEstablishmentId)
-        setEstablishmentId(establishment.id)
-        setCategory(establishment.category ?? '')
-        setSuggestedTypes(establishment.category ? [...CATEGORY_SEEDS[establishment.category]] : [])
+        setPlanInfo(establishment)
+        setEstablishmentInfo(establishment)
       } catch (error) {
         if (!cancelled) {
-          console.error('Error fetching establishment category', error)
-          toast.error(i18n.t('category.loadError', { ns: 'settings' }))
+          console.error('Error fetching establishment info', error)
         }
-      } finally {
-        if (!cancelled) setIsLoadingCategory(false)
       }
     }
 
@@ -114,56 +130,32 @@ export default function SettingsPage() {
     return () => {
       cancelled = true
     }
-  }, [canEditCategory, fallbackEstablishmentId, i18n])
+  }, [fallbackEstablishmentId])
 
   const handlePaperWidthChange = (value: string) => {
     setPaperWidth(persistPaperWidth(value))
   }
 
-  const handleCategoryChange = (value: string) => {
-    if (!isEstablishmentCategory(value)) return
-    setCategory(value)
-    setSuggestedTypes([...CATEGORY_SEEDS[value]])
+  const handleEstablishmentInfoChange = (field: keyof Omit<EstablishmentResponse, 'id' | 'plan' | 'printCountToday' | 'reportCount' | 'deviceCount'>, value: string) => {
+    setEstablishmentInfo((current) => current ? { ...current, [field]: value } : current)
   }
 
-  const handleSaveCategory = async () => {
-    if (!category || establishmentId == null) return
+  const handleSaveEstablishmentInfo = async () => {
+    if (!establishmentInfo) return
 
-    setIsSavingCategory(true)
+    const { tradeName, phone, zipCode, addressStreet, addressNumber, addressComplement, addressNeighborhood, addressCity, addressState, cnpj } = establishmentInfo
+    setIsSavingEstablishmentInfo(true)
     try {
-      await api.patch(`/establishments/${establishmentId}`, { category })
-      toast.success(t('category.saved'))
+      await api.put('/estabelecimentos', { tradeName, phone, zipCode, addressStreet, addressNumber, addressComplement, addressNeighborhood, addressCity, addressState, cnpj })
+      toast.success(t('establishmentInfo.saved'))
+      // Nome do estabelecimento aparece na navbar (fora desta página) — precisa
+      // atualizar o AuthContext, não só o estado local do form.
+      await refreshUserProfile()
     } catch (error) {
-      console.error('Error updating establishment category', error)
-      toast.error(t('category.saveError'))
+      console.error('Error updating establishment information', error)
+      toast.error(t('establishmentInfo.saveError'))
     } finally {
-      setIsSavingCategory(false)
-    }
-  }
-
-  const handleSuggestedTypeChange = (index: number, value: string) => {
-    setSuggestedTypes((currentTypes) => currentTypes.map((currentType, currentIndex) => (
-      currentIndex === index ? value : currentType
-    )))
-  }
-
-  const handleAddSuggestedTypes = async () => {
-    if (!isOwner || suggestedTypes.length === 0 || suggestedTypes.some((type) => type.trim().length === 0)) return
-
-    setIsAddingTypes(true)
-    try {
-      for (const description of suggestedTypes) {
-        await api.post('/tipos', {
-          description: description.trim(),
-          color: '#9E9E9E',
-        })
-      }
-      toast.success(t('category.typesAdded'))
-    } catch (error) {
-      console.error('Error creating suggested product types', error)
-      toast.error(t('category.addTypesError'))
-    } finally {
-      setIsAddingTypes(false)
+      setIsSavingEstablishmentInfo(false)
     }
   }
 
@@ -198,6 +190,19 @@ export default function SettingsPage() {
       setIsDeleting(false)
     }
   }
+
+  const establishmentFields = [
+    { field: 'tradeName', label: t('establishmentInfo.tradeName') },
+    { field: 'phone', label: t('establishmentInfo.phone') },
+    { field: 'zipCode', label: t('establishmentInfo.zipCode') },
+    { field: 'addressStreet', label: t('establishmentInfo.addressStreet') },
+    { field: 'addressNumber', label: t('establishmentInfo.addressNumber') },
+    { field: 'addressComplement', label: t('establishmentInfo.addressComplement') },
+    { field: 'addressNeighborhood', label: t('establishmentInfo.addressNeighborhood') },
+    { field: 'addressCity', label: t('establishmentInfo.addressCity') },
+    { field: 'addressState', label: t('establishmentInfo.addressState') },
+    { field: 'cnpj', label: t('establishmentInfo.cnpj') },
+  ] as const
 
   return (
     <div className="space-y-6">
@@ -272,97 +277,42 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      {canEditCategory && (
-        <div className="p-6 border rounded-lg bg-card space-y-4">
-          <h2 className="text-xl font-semibold flex items-center gap-2">
-            <Tags className="h-5 w-5" />
-            {t('category.title')}
-          </h2>
-          <p className="text-sm text-muted-foreground">{t('category.description')}</p>
-
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-            <div className="flex flex-1 flex-col gap-2">
-              <label htmlFor="establishment-category-select" className="text-muted-foreground">
-                {t('category.label')}
-              </label>
-              <Select
-                value={category}
-                onValueChange={handleCategoryChange}
-              >
-                <SelectTrigger
-                  id="establishment-category-select"
-                  aria-label={t('category.label')}
-                  disabled={isLoadingCategory || isSavingCategory}
-                  className="sm:max-w-[280px]"
-                >
-                  <SelectValue placeholder={t('category.placeholder')} />
-                </SelectTrigger>
-                <SelectContent>
-                  {ESTABLISHMENT_CATEGORIES.map((categoryOption) => (
-                    <SelectItem key={categoryOption} value={categoryOption}>
-                      {t(`category.options.${categoryOption}` as never)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <Button
-              type="button"
-              onClick={handleSaveCategory}
-              disabled={!category || establishmentId == null || isLoadingCategory || isSavingCategory}
-            >
-              {isSavingCategory ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  {t('category.saving')}
-                </>
-              ) : (
-                t('category.save')
-              )}
-            </Button>
-          </div>
-
-          {isOwner && suggestedTypes.length > 0 && (
-            <div className="space-y-4 border-t pt-4">
-              <div>
-                <h3 className="font-semibold">{t('category.suggestedTypesTitle')}</h3>
-                <p className="text-sm text-muted-foreground">{t('category.suggestedTypesDescription')}</p>
-              </div>
-              <div className="grid gap-3 sm:grid-cols-2">
-                {suggestedTypes.map((suggestedType, index) => {
-                  const inputId = `suggested-type-${index}`
-                  return (
-                    <div key={inputId} className="space-y-2">
-                      <label htmlFor={inputId} className="text-sm text-muted-foreground">
-                        {t('category.typeLabel', { number: index + 1 })}
-                      </label>
-                      <Input
-                        id={inputId}
-                        value={suggestedType}
-                        onChange={(event) => handleSuggestedTypeChange(index, event.target.value)}
-                        disabled={isAddingTypes}
-                      />
-                    </div>
-                  )
-                })}
-              </div>
-              <Button
-                type="button"
-                onClick={handleAddSuggestedTypes}
-                disabled={isAddingTypes || suggestedTypes.some((type) => type.trim().length === 0)}
-              >
-                {isAddingTypes ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    {t('category.addingTypes')}
-                  </>
-                ) : (
-                  t('category.addTypes')
-                )}
-              </Button>
-            </div>
-          )}
+      {planInfo && (
+        <div className="p-6 border rounded-lg bg-card space-y-3">
+          <h2 className="text-xl font-semibold">{t('plan.title')}</h2>
+          <div className="flex items-center justify-between"><span className="text-muted-foreground">{t('plan.currentPlan')}</span><span className="font-medium">{t(`plan.tiers.${planInfo.plan ?? 'FREE'}` as never)}</span></div>
+          <div className="flex items-center justify-between"><span className="text-muted-foreground">{t('plan.printsToday')}</span><span className="font-medium">{planInfo.plan === 'FREE' || planInfo.plan === null ? `${planInfo.printCountToday ?? 0}/30` : t('plan.unlimited')}</span></div>
+          <div className="flex items-center justify-between"><span className="text-muted-foreground">{t('plan.reportsThisMonth')}</span><span className="font-medium">{planInfo.plan === 'FREE' || planInfo.plan === null ? `${planInfo.reportCount ?? 0}/5` : t('plan.unlimited')}</span></div>
+          <div className="flex items-center justify-between"><span className="text-muted-foreground">{t('plan.devices')}</span><span className="font-medium">{planInfo.deviceCount ?? 0}</span></div>
+          {isOwner && (planInfo.plan === 'FREE' || planInfo.plan === null) && <Button type="button" variant="outline" size="sm" onClick={() => navigate('/plan')}>{t('plan.upgradeButton')}</Button>}
         </div>
+      )}
+
+      {isOwner && establishmentInfo && (
+        <section className="p-6 border rounded-lg bg-card space-y-4" aria-labelledby="establishment-info-title">
+          <div>
+            <h2 id="establishment-info-title" className="text-xl font-semibold">{t('establishmentInfo.title')}</h2>
+            <p className="text-sm text-muted-foreground">{t('establishmentInfo.description')}</p>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {establishmentFields.map(({ field, label }) => (
+              <div key={field} className="space-y-2">
+                <label htmlFor={`establishment-${field}`} className="text-sm text-muted-foreground">{label}</label>
+                <Input
+                  id={`establishment-${field}`}
+                  value={establishmentInfo[field]}
+                  maxLength={field === 'addressState' ? 2 : undefined}
+                  placeholder={field === 'addressComplement' ? 'Apto, sala, etc.' : undefined}
+                  onChange={(event) => handleEstablishmentInfoChange(field, event.target.value)}
+                  disabled={isSavingEstablishmentInfo}
+                />
+              </div>
+            ))}
+          </div>
+          <Button type="button" onClick={handleSaveEstablishmentInfo} disabled={isSavingEstablishmentInfo}>
+            {isSavingEstablishmentInfo ? t('establishmentInfo.saving') : t('establishmentInfo.save')}
+          </Button>
+        </section>
       )}
 
       {isOwner && (

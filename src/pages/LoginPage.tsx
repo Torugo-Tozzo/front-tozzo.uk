@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { useNavigate } from "react-router-dom"
+import { useNavigate, useSearchParams } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -21,10 +21,13 @@ import { getErrorTranslationKey } from "@/i18n/error-keys"
 
 export default function LoginPage() {
   const navigate = useNavigate()
-  const { login, isAuthenticated, user } = useAuth()
+  const { login, isAuthenticated, user, isLoading: isAuthLoading } = useAuth()
   const { t: tAuth } = useTranslation("auth")
   const { t: tErrors } = useTranslation("errors")
   const [isLoading, setIsLoading] = useState(false)
+  const [searchParams] = useSearchParams()
+  const initialTab = searchParams.get("tab") === "register" ? "register" : "login"
+  const [activeTab, setActiveTab] = useState(initialTab)
 
   const translateError = (context: "login" | "registration", error: unknown) => {
     const translation = getErrorTranslationKey(context, getErrorCode(error))
@@ -34,14 +37,20 @@ export default function LoginPage() {
   }
 
   useEffect(() => {
-    if (isAuthenticated) {
+    // isAuthenticated liga antes do perfil (com establishment) terminar de
+    // carregar — tanto no login() quanto no restore de sessão, ver
+    // AuthContext.tsx. Sem esperar !isAuthLoading, esse efeito decidia com
+    // user ainda null (status undefined) e mandava pra /plan antes da conta
+    // recém-criada (ACTIVE, Free) terminar de carregar — achado durante QA
+    // visual: cadastro novo caindo na tela de escolha de plano.
+    if (isAuthenticated && !isAuthLoading) {
       if (user?.establishment?.status === 'ACTIVE') {
         navigate('/dashboard')
       } else {
         navigate('/plan')
       }
     }
-  }, [isAuthenticated, user, navigate])
+  }, [isAuthenticated, isAuthLoading, user, navigate])
 
   // Login States
   const [loginEmail, setLoginEmail] = useState("")
@@ -99,14 +108,15 @@ export default function LoginPage() {
       }
 
       const response = await api.post("/auth/register", payload)
-      
+
       if (response.data.token) {
+        // Sem navigate() explícito aqui: o useEffect de isAuthenticated/user
+        // acima já decide certo entre /dashboard e /plan a partir do status
+        // real do estabelecimento retornado pelo login (Free ativa direto,
+        // sem exigir pagamento) — navegar aqui também duplicava a decisão e,
+        // pro caminho sem chave de convite, mandava sempre pra /plan mesmo
+        // com a conta já ativa.
         await login(response.data.token)
-        if (hasKey) {
-          navigate("/dashboard")
-        } else {
-          navigate("/plan")
-        }
       } else {
         toast.success(tAuth("registrationSuccess"))
       }
@@ -131,7 +141,7 @@ export default function LoginPage() {
           </p>
         </div>
 
-        <Tabs defaultValue="login" className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="login">{tAuth("login")}</TabsTrigger>
             <TabsTrigger value="register">{tAuth("register")}</TabsTrigger>

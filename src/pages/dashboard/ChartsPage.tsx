@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from "react"
 import { useTranslation } from "react-i18next"
+import { useNavigate } from "react-router-dom"
 import { useAuth } from "@/contexts/AuthContext"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
-import api from "@/services/api"
+import api, { getErrorCode } from "@/services/api"
 import { toast } from "sonner"
 import {
   Select,
@@ -47,6 +48,7 @@ import { formatChartValue, formatCount, formatCurrencyBRL, formatDate, formatNum
 import { getCatalogLabel } from "@/i18n/labels"
 import { normalizeLocale } from "@/i18n/locale"
 import type { ProductType } from "@/domain/models"
+import { PaywallBanner, type PaywallCode } from "@/components/dashboard/PaywallBanner"
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884d8", "#82ca9d", "#ffc658"];
 
@@ -84,6 +86,23 @@ type HourlyChartPoint = {
 }
 
 export default function ChartsPage() {
+  const { user } = useAuth()
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    if (user?.role === "EMPLOYEE") {
+      navigate("/dashboard", { replace: true })
+    }
+  }, [user, navigate])
+
+  if (user?.role === "EMPLOYEE") {
+    return null
+  }
+
+  return <ChartsContent />
+}
+
+function ChartsContent() {
   const { i18n } = useTranslation()
   const { t: tCharts } = useTranslation("charts")
   const { t: tCommon } = useTranslation("common")
@@ -127,6 +146,7 @@ export default function ChartsPage() {
   const [chartData, setChartData] = useState<ChartPoint[]>([])
   const [productTypes, setProductTypes] = useState<ProductType[]>([])
   const [periodTotal, setPeriodTotal] = useState<SalesSummary | null>(null)
+  const [paywallCode, setPaywallCode] = useState<PaywallCode | null>(null)
 
   // Detailed List Data
   const [detailedData, setDetailedData] = useState<DetailedSalesRow[]>([])
@@ -193,6 +213,7 @@ export default function ChartsPage() {
       }
 
       const response = await api.get("/graficos", { params })
+      setPaywallCode(null)
       
       if (response.data && response.data.products) {
         const formattedData = response.data.products.map((item: { name: string; quantitySold: number; totalRevenue: number | string }) => ({
@@ -208,8 +229,14 @@ export default function ChartsPage() {
       }
 
     } catch (error) {
-      console.error("Error fetching chart data", error)
-      toast.error(tErrors("generic"))
+      const code = getErrorCode(error)
+      if (code === "PLAN_UPGRADE_REQUIRED" || code === "REPORT_QUOTA_EXCEEDED") {
+        setPaywallCode(code)
+      } else {
+        setPaywallCode(null)
+        console.error("Error fetching chart data", error)
+        toast.error(tErrors("generic"))
+      }
       setChartData([])
     } finally {
       setIsChartLoading(false)
@@ -261,8 +288,14 @@ export default function ChartsPage() {
         setHasMore(data.length === limit)
       }
     } catch (error) {
-      console.error("Error fetching detailed data", error)
-      toast.error(tErrors("generic"))
+      const code = getErrorCode(error)
+      if (code === "PLAN_UPGRADE_REQUIRED" || code === "REPORT_QUOTA_EXCEEDED") {
+        setPaywallCode(code)
+      } else {
+        setPaywallCode(null)
+        console.error("Error fetching detailed data", error)
+        toast.error(tErrors("generic"))
+      }
       setDetailedData([])
     } finally {
       setIsTableLoading(false)
@@ -598,6 +631,7 @@ export default function ChartsPage() {
 
   return (
     <div className="space-y-6">
+      {paywallCode && <PaywallBanner code={paywallCode} role={user?.role} />}
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
           <BarChart3 className="h-8 w-8" />
@@ -607,6 +641,7 @@ export default function ChartsPage() {
         </h1>
       </div>
 
+      {!paywallCode && (
       <Tabs defaultValue="products" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="products">{tCharts("tabs.products")}</TabsTrigger>
@@ -1044,6 +1079,7 @@ export default function ChartsPage() {
           </Card>
         </TabsContent>
       </Tabs>
+      )}
     </div>
   )
 }

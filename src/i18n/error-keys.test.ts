@@ -22,4 +22,8 @@ describe("structured API error outcomes", () => {
     expect(getErrorTranslationKey("cancelSale", "SALE_NOT_FOUND")).toEqual({ namespace: "errors", key: "cancelSale" })
     expect(getErrorTranslationKey("changeOrderItemStatus", "ORDER_ITEM_NOT_FOUND")).toEqual({ namespace: "errors", key: "changeOrderItemStatus" })
   })
+
+  test("mapeia PRODUCT_LIMIT_REACHED pro createProduct", () => {
+    expect(getErrorTranslationKey("createProduct", "PRODUCT_LIMIT_REACHED")).toEqual({ namespace: "errors", key: "productLimitReached" })
+  })
 })

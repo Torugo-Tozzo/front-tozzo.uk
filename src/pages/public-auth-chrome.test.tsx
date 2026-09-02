@@ -1,6 +1,6 @@
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react"
 import { afterEach, beforeEach, describe, expect, test, vi } from "bun:test"
-import { MemoryRouter, Route, Routes } from "react-router-dom"
+import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom"
 import { Toaster } from "sonner"
 import { ConfirmProvider } from "@/contexts/ConfirmContext"
 
@@ -35,6 +35,35 @@ function renderRoute(element: React.ReactElement, path = "/") {
   )
 }
 
+function renderPlanRoute(user: { establishment: { status: string; plan: string | null } }) {
+  mockUseAuth.mockReturnValue({
+    isAuthenticated: true,
+    user,
+    login: vi.fn(),
+    logout: vi.fn(),
+    isLoading: false,
+    refreshUserProfile: vi.fn(),
+  })
+
+  return render(
+    <I18nProvider>
+      <ConfirmProvider>
+        <MemoryRouter initialEntries={["/plan"]}>
+          <Routes>
+            <Route path="/plan" element={<PlanSelectionPage />} />
+            <Route path="/dashboard" element={<p>Dashboard</p>} />
+          </Routes>
+        </MemoryRouter>
+      </ConfirmProvider>
+    </I18nProvider>,
+  )
+}
+
+function RegistrationDestination() {
+  const location = useLocation()
+  return <p>{`Registration destination ${location.search}`}</p>
+}
+
 describe("public and auth chrome", () => {
   beforeEach(async () => {
     mockUseAuth.mockReturnValue({
@@ -61,6 +90,27 @@ describe("public and auth chrome", () => {
     expect(screen.getByText("Restaurants and bars")).toBeInTheDocument()
     expect(screen.getByText("Kitchen management")).toBeInTheDocument()
     expect(screen.getByRole("button", { name: "View plans" })).toBeInTheDocument()
+    expect(screen.getByText("Free")).toBeInTheDocument()
+    expect(screen.getByText("Enterprise")).toBeInTheDocument()
+  })
+
+  test("sends unauthenticated paid-plan subscribers straight to registration", async () => {
+    render(
+      <I18nProvider>
+        <ConfirmProvider>
+          <MemoryRouter initialEntries={["/"]}>
+            <Routes>
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/login" element={<RegistrationDestination />} />
+            </Routes>
+          </MemoryRouter>
+        </ConfirmProvider>
+      </I18nProvider>,
+    )
+
+    fireEvent.click(screen.getByRole("button", { name: "Subscribe monthly" }))
+
+    await waitFor(() => expect(screen.getByText("Registration destination ?tab=register")).toBeInTheDocument())
   })
 
   test("renders login labels, placeholders, and actions in the active locale", () => {
@@ -77,7 +127,8 @@ describe("public and auth chrome", () => {
     const { unmount } = renderRoute(<PlanSelectionPage />, "/plan")
 
     expect(screen.getByRole("heading", { name: /you do not have a plan yet/i })).toBeInTheDocument()
-    expect(screen.getByText("Monthly")).toBeInTheDocument()
+    expect(screen.getByRole("heading", { name: "Monthly" })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole("button", { name: "Annual" }))
     expect(screen.getByText("Most popular")).toBeInTheDocument()
     expect(screen.getByRole("button", { name: "Subscribe annually" })).toBeInTheDocument()
 
@@ -87,6 +138,28 @@ describe("public and auth chrome", () => {
     expect(screen.getByRole("heading", { name: "Payment confirmed!" })).toBeInTheDocument()
     expect(screen.getByText("We are preparing your environment...")).toBeInTheDocument()
     expect(screen.getByText("You will be redirected in a moment.")).toBeInTheDocument()
+  })
+
+  test("keeps ACTIVE FREE establishments on the plan selection page", () => {
+    renderPlanRoute({ establishment: { status: "ACTIVE", plan: "FREE" } })
+
+    expect(screen.getByRole("heading", { name: /you do not have a plan yet/i })).toBeInTheDocument()
+    expect(screen.queryByText("Dashboard")).not.toBeInTheDocument()
+  })
+
+  test("redirects ACTIVE paid establishments to the dashboard", async () => {
+    renderPlanRoute({ establishment: { status: "ACTIVE", plan: "PAGO" } })
+
+    await waitFor(() => {
+      expect(screen.getByText("Dashboard")).toBeInTheDocument()
+    })
+  })
+
+  test("keeps pending-payment establishments without a plan on plan selection", () => {
+    renderPlanRoute({ establishment: { status: "PENDING_PAYMENT", plan: null } })
+
+    expect(screen.getByRole("heading", { name: /you do not have a plan yet/i })).toBeInTheDocument()
+    expect(screen.queryByText("Dashboard")).not.toBeInTheDocument()
   })
 
   test("renders not-found actions in the active locale", () => {

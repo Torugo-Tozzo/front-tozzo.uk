@@ -1,4 +1,7 @@
+import type { EstablishmentCategory } from "@/lib/categorySeeds";
+
 export type EstablishmentStatus = 'ACTIVE' | 'PENDING_PAYMENT' | 'SUSPENDED';
+export type EstablishmentPlan = 'FREE' | 'PAGO' | 'PAGO_LEGADO' | 'ENTERPRISE';
 export type UserRole = 'OWNER' | 'MANAGER' | 'EMPLOYEE' | 'CUSTOMER';
 export type OrderItemStatus = 'REQUESTED' | 'IN_PREPARATION' | 'DELIVERED';
 
@@ -6,6 +9,20 @@ export interface Establishment {
   id: number | string;
   tradeName: string;
   status: EstablishmentStatus;
+  plan?: EstablishmentPlan;
+  category?: EstablishmentCategory | null;
+  extraDevices?: number;
+  reportCount?: number;
+  reportCountResetAt?: string;
+  printCountToday?: number;
+}
+
+export interface Device {
+  id: number | string;
+  info?: { platform?: string } | Record<string, unknown> | null;
+  lastUserName?: string | null;
+  lastSeen?: string | null;
+  createdAt?: string;
 }
 
 export interface User {
