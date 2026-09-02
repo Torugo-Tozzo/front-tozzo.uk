@@ -156,7 +156,14 @@
         "cancelAnytime": "Cancela cuando quieras",
         "sameAsMonthly": "Todo lo incluido en el plan mensual",
         "discount": "Descuento de aproximadamente un 27%",
-        "annualBilling": "Facturación anual"
+        "annualBilling": "Facturación anual",
+        "freeProducts": "Hasta 60 productos registrados",
+        "freeDevices": "Hasta 3 dispositivos",
+        "freePrints": "30 impresiones por día",
+        "freeReports": "5 informes por mes",
+        "unlimitedAll": "Productos, impresiones e informes ilimitados",
+        "pagoDevices": "Hasta 8 dispositivos",
+        "enterpriseDevices": "15 dispositivos incluidos"
       },
       "subscribeMonthly": "Suscribirse al plan mensual",
       "popular": "Más popular",

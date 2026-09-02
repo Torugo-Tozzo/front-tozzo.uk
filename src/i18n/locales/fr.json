@@ -156,7 +156,14 @@
         "cancelAnytime": "Résiliez quand vous voulez",
         "sameAsMonthly": "Tout ce qui est inclus dans le plan mensuel",
         "discount": "Remise d'environ 27 %",
-        "annualBilling": "Facturation annuelle"
+        "annualBilling": "Facturation annuelle",
+        "freeProducts": "Jusqu'à 60 produits enregistrés",
+        "freeDevices": "Jusqu'à 3 appareils",
+        "freePrints": "30 impressions par jour",
+        "freeReports": "5 rapports par mois",
+        "unlimitedAll": "Produits, impressions et rapports illimités",
+        "pagoDevices": "Jusqu'à 8 appareils",
+        "enterpriseDevices": "15 appareils inclus"
       },
       "subscribeMonthly": "S'abonner au plan mensuel",
       "popular": "Le plus populaire",

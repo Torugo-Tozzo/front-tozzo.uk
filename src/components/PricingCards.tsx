@@ -56,7 +56,10 @@ export function PricingCards({
         <CardContent className="flex-1">
           <span className="text-4xl font-bold">{formatCurrencyBRL(0)}</span>
           <ul className="mt-4 space-y-2 text-sm text-gray-600 dark:text-muted-foreground">
-            <li className="flex items-center"><Check className="h-4 w-4 mr-2 text-green-500" /> {t("plans.features.fullAccess")}</li>
+            <li className="flex items-center"><Check className="h-4 w-4 mr-2 text-green-500" /> {t("plans.features.freeProducts")}</li>
+            <li className="flex items-center"><Check className="h-4 w-4 mr-2 text-green-500" /> {t("plans.features.freeDevices")}</li>
+            <li className="flex items-center"><Check className="h-4 w-4 mr-2 text-green-500" /> {t("plans.features.freePrints")}</li>
+            <li className="flex items-center"><Check className="h-4 w-4 mr-2 text-green-500" /> {t("plans.features.freeReports")}</li>
           </ul>
         </CardContent>
         {currentPlan === "FREE" ? <CardFooter><span className="text-sm font-medium">{t("plans.currentPlan")}</span></CardFooter> : null}
@@ -76,7 +79,8 @@ export function PricingCards({
           </div>
           {isAnnual ? <p className="text-sm text-green-600 font-medium mb-4">{t("plans.equivalentMonthly", { price: formatCurrencyBRL(5.07) })}</p> : null}
           <ul className="space-y-2 text-sm text-gray-600 dark:text-muted-foreground">
-            <li className="flex items-center"><Check className="h-4 w-4 mr-2 text-green-500" /> {t("plans.features.fullAccess")}</li>
+            <li className="flex items-center"><Check className="h-4 w-4 mr-2 text-green-500" /> {t("plans.features.unlimitedAll")}</li>
+            <li className="flex items-center"><Check className="h-4 w-4 mr-2 text-green-500" /> {t("plans.features.pagoDevices")}</li>
             <li className="flex items-center"><Check className="h-4 w-4 mr-2 text-green-500" /> {t("plans.features.prioritySupport")}</li>
             <li className="flex items-center"><Check className="h-4 w-4 mr-2 text-green-500" /> {isAnnual ? t("plans.features.discount") : t("plans.features.cancelAnytime")}</li>
           </ul>
@@ -95,7 +99,11 @@ export function PricingCards({
             <span className="text-4xl font-bold">{formatCurrencyBRL(79.9)}</span>
             <span className="text-gray-500 dark:text-muted-foreground">{t("plans.monthlyUnit")}</span>
           </div>
-          <p className="text-sm text-gray-600 dark:text-muted-foreground">{t("plans.enterpriseExtraDevice")}</p>
+          <ul className="space-y-2 text-sm text-gray-600 dark:text-muted-foreground">
+            <li className="flex items-center"><Check className="h-4 w-4 mr-2 text-green-500" /> {t("plans.features.unlimitedAll")}</li>
+            <li className="flex items-center"><Check className="h-4 w-4 mr-2 text-green-500" /> {t("plans.features.enterpriseDevices")}</li>
+          </ul>
+          <p className="mt-2 text-sm text-gray-600 dark:text-muted-foreground">{t("plans.enterpriseExtraDevice")}</p>
         </CardContent>
         {currentPlan === "ENTERPRISE" ? <CardFooter><span className="text-sm font-medium">{t("plans.currentPlan")}</span></CardFooter> : null}
         <CardFooter><Button onClick={onSelectEnterprise} disabled={loading} className="w-full">{loading ? t("processing") : t("plans.subscribeEnterprise")}</Button></CardFooter>

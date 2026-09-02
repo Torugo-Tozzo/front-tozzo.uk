@@ -156,7 +156,14 @@
         "cancelAnytime": "जब चाहें रद्द करें",
         "sameAsMonthly": "मासिक प्लान की सभी सुविधाएँ",
         "discount": "लगभग 27% की छूट",
-        "annualBilling": "वार्षिक बिलिंग"
+        "annualBilling": "वार्षिक बिलिंग",
+        "freeProducts": "अधिकतम 60 उत्पाद पंजीकृत कर सकते हैं",
+        "freeDevices": "अधिकतम 3 डिवाइस",
+        "freePrints": "प्रति दिन 30 प्रिंट",
+        "freeReports": "प्रति माह 5 रिपोर्ट",
+        "unlimitedAll": "असीमित उत्पाद, प्रिंट और रिपोर्ट",
+        "pagoDevices": "अधिकतम 8 डिवाइस",
+        "enterpriseDevices": "15 डिवाइस शामिल"
       },
       "subscribeMonthly": "मासिक सदस्यता लें",
       "popular": "सबसे लोकप्रिय",

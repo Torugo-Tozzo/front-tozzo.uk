@@ -156,7 +156,14 @@
         "cancelAnytime": "随时取消",
         "sameAsMonthly": "包含月付方案的全部内容",
         "discount": "约 27% 折扣",
-        "annualBilling": "按年计费"
+        "annualBilling": "按年计费",
+        "freeProducts": "最多可注册 60 个产品",
+        "freeDevices": "最多 3 台设备",
+        "freePrints": "每天 30 次打印",
+        "freeReports": "每月 5 份报表",
+        "unlimitedAll": "产品、打印和报表均不受限",
+        "pagoDevices": "最多 8 台设备",
+        "enterpriseDevices": "含 15 台设备"
       },
       "subscribeMonthly": "订阅月付方案",
       "popular": "最受欢迎",

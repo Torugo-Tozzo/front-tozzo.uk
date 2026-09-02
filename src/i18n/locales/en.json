@@ -156,7 +156,14 @@
         "cancelAnytime": "Cancel anytime",
         "sameAsMonthly": "Everything in the monthly plan",
         "discount": "About 27% off",
-        "annualBilling": "Annual billing"
+        "annualBilling": "Annual billing",
+        "freeProducts": "Up to 60 registered products",
+        "freeDevices": "Up to 3 devices",
+        "freePrints": "30 prints per day",
+        "freeReports": "5 reports per month",
+        "unlimitedAll": "Unlimited products, prints, and reports",
+        "pagoDevices": "Up to 8 devices",
+        "enterpriseDevices": "15 devices included"
       },
       "subscribeMonthly": "Subscribe monthly",
       "popular": "Most popular",

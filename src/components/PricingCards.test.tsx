@@ -36,6 +36,22 @@ describe("PricingCards", () => {
     expect(screen.getByText(/79[,.]90/)).toBeInTheDocument()
   })
 
+  test("shows plan limits so Free's caps are visible against the unlimited paid tiers", () => {
+    // Achado durante QA visual: o card Free dizia "Full access to the system",
+    // igual aos pagos, sem diferenciar os limites reais (produtos/
+    // dispositivos/impressões/relatórios). Regressão pra garantir que os
+    // limites concretos aparecem, não só um texto genérico de "acesso completo".
+    renderCards()
+
+    expect(screen.getByText(/60 registered products/i)).toBeInTheDocument()
+    expect(screen.getByText(/3 devices/i)).toBeInTheDocument()
+    expect(screen.getByText(/30 prints per day/i)).toBeInTheDocument()
+    expect(screen.getByText(/5 reports per month/i)).toBeInTheDocument()
+    expect(screen.getAllByText(/unlimited products, prints, and reports/i).length).toBeGreaterThanOrEqual(2)
+    expect(screen.getByText(/8 devices/i)).toBeInTheDocument()
+    expect(screen.getByText(/15 devices included/i)).toBeInTheDocument()
+  })
+
   test("changes the Pago price and callback interval with the shared toggle", async () => {
     const user = userEvent.setup()
     const callbacks = renderCards()

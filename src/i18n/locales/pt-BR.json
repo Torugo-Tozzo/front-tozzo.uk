@@ -156,7 +156,14 @@
         "cancelAnytime": "Cancele quando quiser",
         "sameAsMonthly": "Tudo do plano mensal",
         "discount": "Desconto de aproximadamente 27%",
-        "annualBilling": "Cobrança anual"
+        "annualBilling": "Cobrança anual",
+        "freeProducts": "Até 60 produtos cadastrados",
+        "freeDevices": "Até 3 dispositivos",
+        "freePrints": "30 impressões por dia",
+        "freeReports": "5 relatórios por mês",
+        "unlimitedAll": "Produtos, impressões e relatórios ilimitados",
+        "pagoDevices": "Até 8 dispositivos",
+        "enterpriseDevices": "15 dispositivos inclusos"
       },
       "subscribeMonthly": "Assinar mensal",
       "popular": "Mais popular",
