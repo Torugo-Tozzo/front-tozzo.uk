@@ -561,6 +561,12 @@
     "moreComingSoon": "Más configuraciones próximamente...",
     "printing": "Impresión",
     "paperWidth": "Ancho del papel",
+    "establishmentInfo": {
+      "title": "Editar información del establecimiento",
+      "description": "Mantén actualizados los datos de tu establecimiento.",
+      "tradeName": "Nombre del establecimiento", "phone": "Teléfono", "zipCode": "Código postal", "addressStreet": "Calle", "addressNumber": "Número", "addressComplement": "Complemento", "addressNeighborhood": "Barrio", "addressCity": "Ciudad", "addressState": "Estado", "cnpj": "Identificación fiscal (CNPJ)",
+      "save": "Guardar información", "saving": "Guardando...", "saved": "Información del establecimiento actualizada.", "saveError": "No se pudo guardar la información. Inténtalo de nuevo."
+    },
     "category": {
       "title": "Categoría del establecimiento",
       "description": "Elige la categoría de tu establecimiento.",

@@ -561,6 +561,12 @@
     "moreComingSoon": "More settings coming soon...",
     "printing": "Printing",
     "paperWidth": "Paper width",
+    "establishmentInfo": {
+      "title": "Edit Establishment Information",
+      "description": "Keep your establishment's details up to date.",
+      "tradeName": "Establishment name", "phone": "Phone", "zipCode": "ZIP code", "addressStreet": "Street", "addressNumber": "Number", "addressComplement": "Complement", "addressNeighborhood": "Neighborhood", "addressCity": "City", "addressState": "State", "cnpj": "Tax ID (CNPJ)",
+      "save": "Save information", "saving": "Saving...", "saved": "Establishment information updated.", "saveError": "Could not save the information. Try again."
+    },
     "category": {
       "title": "Establishment category",
       "description": "Choose the category for your establishment.",

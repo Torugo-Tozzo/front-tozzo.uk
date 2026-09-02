@@ -1,3 +1,5 @@
+import type { EstablishmentCategory } from "@/lib/categorySeeds";
+
 export type EstablishmentStatus = 'ACTIVE' | 'PENDING_PAYMENT' | 'SUSPENDED';
 export type EstablishmentPlan = 'FREE' | 'PAGO' | 'PAGO_LEGADO' | 'ENTERPRISE';
 export type UserRole = 'OWNER' | 'MANAGER' | 'EMPLOYEE' | 'CUSTOMER';
@@ -8,6 +10,7 @@ export interface Establishment {
   tradeName: string;
   status: EstablishmentStatus;
   plan?: EstablishmentPlan;
+  category?: EstablishmentCategory | null;
   extraDevices?: number;
   reportCount?: number;
   reportCountResetAt?: string;

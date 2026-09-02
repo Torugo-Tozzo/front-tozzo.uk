@@ -419,6 +419,22 @@ const requiredUiInventory: InventoryEntry[] = [
   { source: "src/pages/dashboard/SettingsPage.tsx:41", key: "settings.locales.hi" },
   { source: "src/pages/dashboard/SettingsPage.tsx:41", key: "settings.locales.ar" },
   { source: "src/pages/dashboard/SettingsPage.tsx:59", key: "settings.moreComingSoon" },
+  { source: "src/pages/dashboard/SettingsPage.tsx:152", key: "settings.establishmentInfo.saved" },
+  { source: "src/pages/dashboard/SettingsPage.tsx:155", key: "settings.establishmentInfo.saveError" },
+  { source: "src/pages/dashboard/SettingsPage.tsx:194", key: "settings.establishmentInfo.tradeName" },
+  { source: "src/pages/dashboard/SettingsPage.tsx:195", key: "settings.establishmentInfo.phone" },
+  { source: "src/pages/dashboard/SettingsPage.tsx:196", key: "settings.establishmentInfo.zipCode" },
+  { source: "src/pages/dashboard/SettingsPage.tsx:197", key: "settings.establishmentInfo.addressStreet" },
+  { source: "src/pages/dashboard/SettingsPage.tsx:198", key: "settings.establishmentInfo.addressNumber" },
+  { source: "src/pages/dashboard/SettingsPage.tsx:199", key: "settings.establishmentInfo.addressComplement" },
+  { source: "src/pages/dashboard/SettingsPage.tsx:200", key: "settings.establishmentInfo.addressNeighborhood" },
+  { source: "src/pages/dashboard/SettingsPage.tsx:201", key: "settings.establishmentInfo.addressCity" },
+  { source: "src/pages/dashboard/SettingsPage.tsx:202", key: "settings.establishmentInfo.addressState" },
+  { source: "src/pages/dashboard/SettingsPage.tsx:203", key: "settings.establishmentInfo.cnpj" },
+  { source: "src/pages/dashboard/SettingsPage.tsx:293", key: "settings.establishmentInfo.title" },
+  { source: "src/pages/dashboard/SettingsPage.tsx:294", key: "settings.establishmentInfo.description" },
+  { source: "src/pages/dashboard/SettingsPage.tsx:312", key: "settings.establishmentInfo.saving" },
+  { source: "src/pages/dashboard/SettingsPage.tsx:312", key: "settings.establishmentInfo.save" },
 ]
 
 const firstBatchNamespaces = new Set(["common", "auth", "navigation", "settings", "status", "printer", "errors"])

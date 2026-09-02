@@ -12,7 +12,7 @@ import { replaceProperty } from '@/test/replace-property'
 import DashboardLayout from './DashboardLayout'
 
 const mockLogout = vi.fn()
-let mockUser = { name: 'Test user', role: 'MANAGER', establishment: { tradeName: 'Test establishment' } }
+let mockUser: { name: string; role: string; establishment: { tradeName: string; category?: string } } = { name: 'Test user', role: 'MANAGER', establishment: { tradeName: 'Test establishment' } }
 
 vi.mock('@/contexts/AuthContext', () => ({
   useAuth: () => ({
@@ -97,7 +97,7 @@ describe('DashboardLayout', () => {
   })
 
   it('keeps the Reports link visible to owners', () => {
-    mockUser = { name: 'Owner user', role: 'OWNER', establishment: { tradeName: 'Test establishment' } }
+    mockUser = { name: 'Owner user', role: 'OWNER', establishment: { tradeName: 'Test establishment', category: 'HAMBURGUERIA' } }
     renderLayout()
 
     expect(screen.getByRole('link', { name: /Reports/ })).toBeInTheDocument()
