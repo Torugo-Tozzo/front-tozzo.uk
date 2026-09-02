@@ -1,6 +1,6 @@
 import { act, render, screen, waitFor } from "@testing-library/react"
 import { beforeEach, describe, expect, test, vi } from "bun:test"
-import { MemoryRouter, Route, Routes } from "react-router-dom"
+import { MemoryRouter, Route, Routes, useNavigationType } from "react-router-dom"
 
 import { I18nProvider } from "@/i18n/provider"
 import { i18n } from "@/i18n/config"
@@ -20,11 +20,15 @@ function renderPage(initialEntry = "/dashboard/charts") {
       <I18nProvider>
         <Routes>
           <Route path="/dashboard/charts" element={<ChartsPage />} />
-          <Route path="/dashboard" element={<div>Dashboard home</div>} />
+          <Route path="/dashboard" element={<DashboardHome />} />
         </Routes>
       </I18nProvider>
     </MemoryRouter>,
   )
+}
+
+function DashboardHome() {
+  return <div>Dashboard home ({useNavigationType()})</div>
 }
 
 function mockChartRequestError(code: "PLAN_UPGRADE_REQUIRED" | "REPORT_QUOTA_EXCEEDED") {
@@ -81,17 +85,20 @@ describe("ChartsPage — paywall", () => {
     }
   })
 
-  test("redirects employees to the dashboard before rendering report content", async () => {
+  test("redirects employees without loading or mounting report content", async () => {
     mockUseAuth.mockReturnValue({ user: { role: "EMPLOYEE" } })
-    const restore = mockChartRequestError("PLAN_UPGRADE_REQUIRED")
+    const getMock = vi.fn(async () => ({ data: {}, headers: {} }))
+    const restore = replaceProperty(api, "get", getMock as typeof api.get)
 
     try {
       renderPage()
 
       await waitFor(() => {
-        expect(screen.getByText("Dashboard home")).toBeInTheDocument()
+        expect(screen.getByText("Dashboard home (REPLACE)")).toBeInTheDocument()
       })
+      expect(getMock).not.toHaveBeenCalled()
       expect(screen.queryByRole("alert")).not.toBeInTheDocument()
+      expect(screen.queryByRole("heading", { name: "Reports" })).not.toBeInTheDocument()
     } finally {
       restore()
     }

@@ -86,6 +86,23 @@ type HourlyChartPoint = {
 }
 
 export default function ChartsPage() {
+  const { user } = useAuth()
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    if (user?.role === "EMPLOYEE") {
+      navigate("/dashboard", { replace: true })
+    }
+  }, [user, navigate])
+
+  if (user?.role === "EMPLOYEE") {
+    return null
+  }
+
+  return <ChartsContent />
+}
+
+function ChartsContent() {
   const { i18n } = useTranslation()
   const { t: tCharts } = useTranslation("charts")
   const { t: tCommon } = useTranslation("common")
@@ -109,13 +126,6 @@ export default function ChartsPage() {
     other: tCommon('unitCount.other'),
   }
   const { user } = useAuth()
-  const navigate = useNavigate()
-
-  useEffect(() => {
-    if (user?.role === "EMPLOYEE") {
-      navigate("/dashboard", { replace: true })
-    }
-  }, [user, navigate])
   const getTodayDate = () => {
     const today = new Date()
     const yyyy = today.getFullYear()
@@ -617,10 +627,6 @@ export default function ChartsPage() {
       default:
         return null
     }
-  }
-
-  if (user?.role === "EMPLOYEE") {
-    return null
   }
 
   return (
