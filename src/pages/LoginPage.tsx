@@ -102,14 +102,15 @@ export default function LoginPage() {
       }
 
       const response = await api.post("/auth/register", payload)
-      
+
       if (response.data.token) {
+        // Sem navigate() explícito aqui: o useEffect de isAuthenticated/user
+        // acima já decide certo entre /dashboard e /plan a partir do status
+        // real do estabelecimento retornado pelo login (Free ativa direto,
+        // sem exigir pagamento) — navegar aqui também duplicava a decisão e,
+        // pro caminho sem chave de convite, mandava sempre pra /plan mesmo
+        // com a conta já ativa.
         await login(response.data.token)
-        if (hasKey) {
-          navigate("/dashboard")
-        } else {
-          navigate("/plan")
-        }
       } else {
         toast.success(tAuth("registrationSuccess"))
       }
