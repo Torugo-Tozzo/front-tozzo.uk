@@ -19,7 +19,8 @@ export interface Establishment {
 
 export interface Device {
   id: number | string;
-  info?: Record<string, unknown> | null;
+  info?: { platform?: string } | Record<string, unknown> | null;
+  lastUserName?: string | null;
   lastSeen?: string | null;
   createdAt?: string;
 }

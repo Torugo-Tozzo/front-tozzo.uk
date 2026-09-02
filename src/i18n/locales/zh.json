@@ -525,7 +525,7 @@
   "settings": {
     "title": "设置",
     "plan": { "title": "方案与使用情况", "currentPlan": "当前方案", "tiers": { "FREE": "免费", "PAGO": "付费", "PAGO_LEGADO": "付费（旧价格）", "ENTERPRISE": "企业版" }, "printsToday": "今日打印", "reportsThisMonth": "本月报告", "unlimited": "无限", "devices": "使用中的设备", "upgradeButton": "升级方案" },
-    "devices": { "title": "设备", "loadError": "加载设备时出错。", "removeError": "删除设备时出错。", "removeButton": "删除", "removeConfirmDescription": "删除此设备？它需要重新注册才能同步。", "removeConfirmButton": "删除", "noResults": "尚未注册设备。", "neverSeen": "从未同步", "columns": { "id": "设备", "lastSeen": "上次同步", "actions": "操作" } },
+    "devices": { "title": "设备", "loadError": "加载设备时出错。", "removeError": "删除设备时出错。", "removeButton": "删除", "removeConfirmDescription": "删除此设备？它需要重新注册才能同步。", "removeConfirmButton": "删除", "noResults": "尚未注册设备。", "neverSeen": "从未同步", "notAvailable": "未识别", "columns": { "platform": "设备", "user": "用户", "lastSeen": "上次同步", "actions": "操作" } },
     "appearance": "外观",
     "theme": "主题",
     "light": "浅色",

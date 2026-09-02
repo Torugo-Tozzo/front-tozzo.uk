@@ -525,7 +525,7 @@
   "settings": {
     "title": "सेटिंग्स",
     "plan": { "title": "योजना और उपयोग", "currentPlan": "वर्तमान योजना", "tiers": { "FREE": "Free", "PAGO": "Pago", "PAGO_LEGADO": "Pago (पुरानी कीमत)", "ENTERPRISE": "Enterprise" }, "printsToday": "आज के प्रिंट", "reportsThisMonth": "इस महीने की रिपोर्ट", "unlimited": "असीमित", "devices": "उपयोग में डिवाइस", "upgradeButton": "योजना अपग्रेड करें" },
-    "devices": { "title": "डिवाइस", "loadError": "डिवाइस लोड करने में त्रुटि।", "removeError": "डिवाइस हटाने में त्रुटि।", "removeButton": "हटाएं", "removeConfirmDescription": "यह डिवाइस हटाएं? सिंक करने के लिए इसे फिर से पंजीकृत करना होगा।", "removeConfirmButton": "हटाएं", "noResults": "अभी कोई डिवाइस पंजीकृत नहीं है।", "neverSeen": "कभी सिंक नहीं हुआ", "columns": { "id": "डिवाइस", "lastSeen": "अंतिम सिंक", "actions": "कार्रवाई" } },
+    "devices": { "title": "डिवाइस", "loadError": "डिवाइस लोड करने में त्रुटि।", "removeError": "डिवाइस हटाने में त्रुटि।", "removeButton": "हटाएं", "removeConfirmDescription": "यह डिवाइस हटाएं? सिंक करने के लिए इसे फिर से पंजीकृत करना होगा।", "removeConfirmButton": "हटाएं", "noResults": "अभी कोई डिवाइस पंजीकृत नहीं है।", "neverSeen": "कभी सिंक नहीं हुआ", "notAvailable": "अज्ञात", "columns": { "platform": "डिवाइस", "user": "उपयोगकर्ता", "lastSeen": "अंतिम सिंक", "actions": "कार्रवाई" } },
     "appearance": "दिखावट",
     "theme": "थीम",
     "light": "हल्का",

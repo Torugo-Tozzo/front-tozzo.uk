@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
+import { useNavigate } from "react-router-dom"
 import { useAuth } from "@/contexts/AuthContext"
 import { useConfirm } from "@/contexts/ConfirmContext"
 import api from "@/services/api"
@@ -11,7 +12,32 @@ import { useMinLoadingDuration } from "@/hooks/useMinLoadingDuration"
 import { formatDate } from "@/i18n/format"
 import type { Device } from "@/domain/models"
 
+function formatPlatform(info: Device["info"], fallback: string): string {
+  const platform = info && typeof info === "object" && "platform" in info ? String((info as { platform?: unknown }).platform ?? "") : ""
+  if (platform.toLowerCase() === "android") return "Android"
+  if (platform.toLowerCase() === "ios") return "iOS"
+  return platform || fallback
+}
+
 export default function DevicesPage() {
+  const { user } = useAuth()
+  const navigate = useNavigate()
+  const canView = user?.role === "OWNER" || user?.role === "MANAGER"
+
+  useEffect(() => {
+    if (!canView) {
+      navigate("/dashboard", { replace: true })
+    }
+  }, [canView, navigate])
+
+  if (!canView) {
+    return null
+  }
+
+  return <DevicesContent />
+}
+
+function DevicesContent() {
   const { t } = useTranslation("settings")
   const { user } = useAuth()
   const confirm = useConfirm()
@@ -60,17 +86,19 @@ export default function DevicesPage() {
     <div className="border rounded-lg bg-card">
       <Table>
         <TableHeader><TableRow>
-          <TableHead>{t("devices.columns.id")}</TableHead>
+          <TableHead>{t("devices.columns.platform")}</TableHead>
+          <TableHead>{t("devices.columns.user")}</TableHead>
           <TableHead>{t("devices.columns.lastSeen")}</TableHead>
           {isOwner && <TableHead className="text-right">{t("devices.columns.actions")}</TableHead>}
         </TableRow></TableHeader>
         <TableBody>
           {showSkeleton ? Array.from({ length: 3 }).map((_, index) => <TableRow key={index}>
-            <TableCell><Skeleton className="h-4 w-32" /></TableCell><TableCell><Skeleton className="h-4 w-24" /></TableCell>{isOwner && <TableCell />}
+            <TableCell><Skeleton className="h-4 w-24" /></TableCell><TableCell><Skeleton className="h-4 w-32" /></TableCell><TableCell><Skeleton className="h-4 w-24" /></TableCell>{isOwner && <TableCell />}
           </TableRow>) : devices.length === 0 ? <TableRow>
-            <TableCell colSpan={isOwner ? 3 : 2}>{t("devices.noResults")}</TableCell>
+            <TableCell colSpan={isOwner ? 4 : 3}>{t("devices.noResults")}</TableCell>
           </TableRow> : devices.map((device) => <TableRow key={device.id}>
-            <TableCell>{device.id}</TableCell>
+            <TableCell>{formatPlatform(device.info, t("devices.notAvailable"))}</TableCell>
+            <TableCell>{device.lastUserName ?? t("devices.notAvailable")}</TableCell>
             <TableCell>{device.lastSeen ? formatDate(device.lastSeen) : t("devices.neverSeen")}</TableCell>
             {isOwner && <TableCell className="text-right"><Button type="button" variant="destructive" size="sm" disabled={removingId === device.id} onClick={() => handleRemove(device)}>{t("devices.removeButton")}</Button></TableCell>}
           </TableRow>)}

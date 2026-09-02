@@ -525,7 +525,7 @@
   "settings": {
     "title": "Settings",
     "plan": { "title": "Plan & usage", "currentPlan": "Current plan", "tiers": { "FREE": "Free", "PAGO": "Pago", "PAGO_LEGADO": "Pago (legacy price)", "ENTERPRISE": "Enterprise" }, "printsToday": "Prints today", "reportsThisMonth": "Reports this month", "unlimited": "Unlimited", "devices": "Devices in use", "upgradeButton": "Upgrade plan" },
-    "devices": { "title": "Devices", "loadError": "Error loading devices.", "removeError": "Error removing device.", "removeButton": "Remove", "removeConfirmDescription": "Remove this device? It will need to register again to sync.", "removeConfirmButton": "Remove", "noResults": "No devices registered yet.", "neverSeen": "Never synced", "columns": { "id": "Device", "lastSeen": "Last sync", "actions": "Actions" } },
+    "devices": { "title": "Devices", "loadError": "Error loading devices.", "removeError": "Error removing device.", "removeButton": "Remove", "removeConfirmDescription": "Remove this device? It will need to register again to sync.", "removeConfirmButton": "Remove", "noResults": "No devices registered yet.", "neverSeen": "Never synced", "notAvailable": "Unknown", "columns": { "platform": "Device", "user": "User", "lastSeen": "Last sync", "actions": "Actions" } },
     "appearance": "Appearance",
     "theme": "Theme",
     "light": "Light",

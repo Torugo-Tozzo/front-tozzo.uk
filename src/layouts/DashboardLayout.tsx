@@ -75,7 +75,11 @@ export default function DashboardLayout() {
     { href: "/dashboard/devices", label: tNavigation("devices"), icon: Smartphone },
     { href: "/dashboard/charts", label: tNavigation("reports"), icon: BarChart3 },
     { href: "/dashboard/settings", label: tNavigation("settings"), icon: Settings },
-  ].filter((item) => item.href !== "/dashboard/charts" || user?.role !== "EMPLOYEE")
+  ].filter((item) => {
+    if (item.href === "/dashboard/charts") return user?.role !== "EMPLOYEE"
+    if (item.href === "/dashboard/devices") return user?.role === "OWNER" || user?.role === "MANAGER"
+    return true
+  })
 
   // Logo/"Tozzo.uk" ja aparecem na Navbar (topo, compartilhada com o resto
   // do site) - sidebar nao duplica mais isso, so nav + toggle de colapsar.
