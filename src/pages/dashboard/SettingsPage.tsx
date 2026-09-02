@@ -294,6 +294,17 @@ export default function SettingsPage() {
         </div>
       </div>
 
+      {planInfo && (
+        <div className="p-6 border rounded-lg bg-card space-y-3">
+          <h2 className="text-xl font-semibold">{t('plan.title')}</h2>
+          <div className="flex items-center justify-between"><span className="text-muted-foreground">{t('plan.currentPlan')}</span><span className="font-medium">{t(`plan.tiers.${planInfo.plan ?? 'FREE'}` as never)}</span></div>
+          <div className="flex items-center justify-between"><span className="text-muted-foreground">{t('plan.printsToday')}</span><span className="font-medium">{planInfo.plan === 'FREE' || planInfo.plan === null ? `${planInfo.printCountToday ?? 0}/30` : t('plan.unlimited')}</span></div>
+          <div className="flex items-center justify-between"><span className="text-muted-foreground">{t('plan.reportsThisMonth')}</span><span className="font-medium">{planInfo.plan === 'FREE' || planInfo.plan === null ? `${planInfo.reportCount ?? 0}/5` : t('plan.unlimited')}</span></div>
+          <div className="flex items-center justify-between"><span className="text-muted-foreground">{t('plan.devices')}</span><span className="font-medium">{planInfo.deviceCount ?? 0}</span></div>
+          {isOwner && (planInfo.plan === 'FREE' || planInfo.plan === null) && <Button type="button" variant="outline" size="sm" onClick={() => navigate('/plan')}>{t('plan.upgradeButton')}</Button>}
+        </div>
+      )}
+
       {canEditCategory && (
         <div className="p-6 border rounded-lg bg-card space-y-4">
           <h2 className="text-xl font-semibold flex items-center gap-2">
@@ -435,17 +446,6 @@ export default function SettingsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      {planInfo && (
-        <div className="p-6 border rounded-lg bg-card space-y-3">
-          <h2 className="text-xl font-semibold">{t('plan.title')}</h2>
-          <div className="flex items-center justify-between"><span className="text-muted-foreground">{t('plan.currentPlan')}</span><span className="font-medium">{t(`plan.tiers.${planInfo.plan ?? 'FREE'}` as never)}</span></div>
-          <div className="flex items-center justify-between"><span className="text-muted-foreground">{t('plan.printsToday')}</span><span className="font-medium">{planInfo.plan === 'FREE' || planInfo.plan === null ? `${planInfo.printCountToday ?? 0}/30` : t('plan.unlimited')}</span></div>
-          <div className="flex items-center justify-between"><span className="text-muted-foreground">{t('plan.reportsThisMonth')}</span><span className="font-medium">{planInfo.plan === 'FREE' || planInfo.plan === null ? `${planInfo.reportCount ?? 0}/5` : t('plan.unlimited')}</span></div>
-          <div className="flex items-center justify-between"><span className="text-muted-foreground">{t('plan.devices')}</span><span className="font-medium">{planInfo.deviceCount ?? 0}</span></div>
-          {isOwner && (planInfo.plan === 'FREE' || planInfo.plan === null) && <Button type="button" variant="outline" size="sm" onClick={() => navigate('/plan')}>{t('plan.upgradeButton')}</Button>}
-        </div>
-      )}
 
       <div className="p-10 border-2 border-dashed rounded-lg flex items-center justify-center text-muted-foreground">
         {t('moreComingSoon')}
