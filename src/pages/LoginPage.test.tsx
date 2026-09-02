@@ -15,9 +15,9 @@ vi.mock('@/contexts/AuthContext', () => ({
   useAuth: () => ({ login: mockLogin, isAuthenticated: false, user: null }),
 }))
 
-function renderPage() {
+function renderPage(path = '/login') {
   return render(
-    <MemoryRouter>
+    <MemoryRouter initialEntries={[path]}>
       <I18nProvider>
         <ThemeProvider>
           <LoginPage />
@@ -69,5 +69,12 @@ describe('LoginPage register form', () => {
     } finally {
       restore()
     }
+  })
+
+  it('opens the registration tab when requested by the URL', () => {
+    renderPage('/login?tab=register')
+
+    expect(screen.getByRole('tab', { name: 'Register' }).getAttribute('data-state')).toBe('active')
+    expect(screen.getByText('Create account')).toBeInTheDocument()
   })
 })

@@ -1,6 +1,6 @@
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react"
 import { afterEach, beforeEach, describe, expect, test, vi } from "bun:test"
-import { MemoryRouter, Route, Routes } from "react-router-dom"
+import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom"
 import { Toaster } from "sonner"
 import { ConfirmProvider } from "@/contexts/ConfirmContext"
 
@@ -59,6 +59,11 @@ function renderPlanRoute(user: { establishment: { status: string; plan: string |
   )
 }
 
+function RegistrationDestination() {
+  const location = useLocation()
+  return <p>{`Registration destination ${location.search}`}</p>
+}
+
 describe("public and auth chrome", () => {
   beforeEach(async () => {
     mockUseAuth.mockReturnValue({
@@ -85,6 +90,27 @@ describe("public and auth chrome", () => {
     expect(screen.getByText("Restaurants and bars")).toBeInTheDocument()
     expect(screen.getByText("Kitchen management")).toBeInTheDocument()
     expect(screen.getByRole("button", { name: "View plans" })).toBeInTheDocument()
+    expect(screen.getByText("Free")).toBeInTheDocument()
+    expect(screen.getByText("Enterprise")).toBeInTheDocument()
+  })
+
+  test("sends unauthenticated paid-plan subscribers straight to registration", async () => {
+    render(
+      <I18nProvider>
+        <ConfirmProvider>
+          <MemoryRouter initialEntries={["/"]}>
+            <Routes>
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/login" element={<RegistrationDestination />} />
+            </Routes>
+          </MemoryRouter>
+        </ConfirmProvider>
+      </I18nProvider>,
+    )
+
+    fireEvent.click(screen.getByRole("button", { name: "Subscribe monthly" }))
+
+    await waitFor(() => expect(screen.getByText("Registration destination ?tab=register")).toBeInTheDocument())
   })
 
   test("renders login labels, placeholders, and actions in the active locale", () => {

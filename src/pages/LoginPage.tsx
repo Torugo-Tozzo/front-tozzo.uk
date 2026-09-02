@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { useNavigate } from "react-router-dom"
+import { useNavigate, useSearchParams } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -25,6 +25,9 @@ export default function LoginPage() {
   const { t: tAuth } = useTranslation("auth")
   const { t: tErrors } = useTranslation("errors")
   const [isLoading, setIsLoading] = useState(false)
+  const [searchParams] = useSearchParams()
+  const initialTab = searchParams.get("tab") === "register" ? "register" : "login"
+  const [activeTab, setActiveTab] = useState(initialTab)
 
   const translateError = (context: "login" | "registration", error: unknown) => {
     const translation = getErrorTranslationKey(context, getErrorCode(error))
@@ -131,7 +134,7 @@ export default function LoginPage() {
           </p>
         </div>
 
-        <Tabs defaultValue="login" className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="login">{tAuth("login")}</TabsTrigger>
             <TabsTrigger value="register">{tAuth("register")}</TabsTrigger>

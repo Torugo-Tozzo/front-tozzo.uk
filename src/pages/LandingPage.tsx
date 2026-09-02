@@ -1,10 +1,9 @@
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Link, useNavigate } from "react-router-dom"
-import { UtensilsCrossed, ChefHat, Beer, Wifi, BarChart3, History, Rocket, Smartphone, Check } from "lucide-react"
+import { UtensilsCrossed, ChefHat, Beer, Wifi, BarChart3, History, Rocket, Smartphone } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
 import { useTranslation } from "react-i18next"
-import { formatCurrencyBRL } from "@/i18n/format"
+import { PricingCards } from "@/components/PricingCards"
 
 export default function LandingPage() {
   const { isAuthenticated, user } = useAuth()
@@ -19,7 +18,7 @@ export default function LandingPage() {
         navigate('/plan')
       }
     } else {
-      navigate('/login')
+      navigate('/login?tab=register')
     }
   }
 
@@ -244,79 +243,12 @@ export default function LandingPage() {
               </p>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto items-start">
-              {/* Monthly Plan */}
-              <Card className="relative flex flex-col border-2 border-transparent hover:border-primary/50 transition-all duration-300 hover:scale-105 hover:shadow-xl bg-card">
-                <CardHeader>
-                  <CardTitle className="text-2xl">{t("plans.monthly")}</CardTitle>
-                  <CardDescription>{t("plans.monthlyDescription")}</CardDescription>
-                </CardHeader>
-                <CardContent className="flex-1">
-                  <div className="mb-4">
-                    <span className="text-4xl font-bold">{formatCurrencyBRL(6.9)}</span>
-                    <span className="text-muted-foreground ml-2">{t("plans.monthlyUnit")}</span>
-                  </div>
-                  <ul className="space-y-3 mb-8">
-                    <li className="flex items-center gap-2">
-                      <Check className="h-4 w-4 text-primary" />
-                      <span>{t("plans.features.fullAccess")}</span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <Check className="h-4 w-4 text-primary" />
-                      <span>{t("plans.features.prioritySupport")}</span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <Check className="h-4 w-4 text-primary" />
-                      <span>{t("plans.features.cancelAnytime")}</span>
-                    </li>
-                  </ul>
-                </CardContent>
-                <CardFooter>
-                  <Button size="lg" className="w-full" onClick={handleSubscribe}>
-                    {t("plans.subscribeMonthly")}
-                  </Button>
-                </CardFooter>
-              </Card>
-
-              {/* Annual Plan */}
-              <Card className="relative flex flex-col border-2 border-green-500 shadow-lg z-10 transition-all duration-300 hover:scale-110 hover:shadow-2xl bg-card">
-                <div className="absolute top-0 right-0 bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-bl-lg rounded-tr-lg">
-                  {t("plans.popular")}
-                </div>
-                <CardHeader>
-                  <CardTitle className="text-2xl">{t("plans.annual")}</CardTitle>
-                  <CardDescription>{t("plans.annualDescription")}</CardDescription>
-                </CardHeader>
-                <CardContent className="flex-1">
-                  <div className="mb-4">
-                    <span className="text-4xl font-bold">{formatCurrencyBRL(60.91)}</span>
-                    <span className="text-muted-foreground ml-2">{t("plans.annualUnit")}</span>
-                  </div>
-                  <p className="text-sm text-green-600 font-medium mb-4">
-                    {t("plans.equivalentMonthly", { price: formatCurrencyBRL(5.07) })}
-                  </p>
-                  <ul className="space-y-3 mb-8">
-                    <li className="flex items-center gap-2">
-                      <Check className="h-4 w-4 text-green-500" />
-                      <span>{t("plans.features.sameAsMonthly")}</span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <Check className="h-4 w-4 text-green-500" />
-                      <span>{t("plans.features.discount")}</span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <Check className="h-4 w-4 text-green-500" />
-                      <span>{t("plans.features.annualBilling")}</span>
-                    </li>
-                  </ul>
-                </CardContent>
-                <CardFooter>
-                  <Button size="lg" className="w-full bg-green-600 hover:bg-green-700" onClick={handleSubscribe}>
-                    {t("plans.subscribeAnnual")}
-                  </Button>
-                </CardFooter>
-              </Card>
-            </div>
+            <PricingCards
+              currentPlan={isAuthenticated ? user?.establishment?.plan : null}
+              onSelectMonthly={handleSubscribe}
+              onSelectAnnual={handleSubscribe}
+              onSelectEnterprise={handleSubscribe}
+            />
           </div>
         </section>
     </>
