@@ -88,7 +88,7 @@ function readEstablishmentResponse(data: unknown, fallbackId: number | string | 
 }
 
 export default function SettingsPage() {
-  const { user, logout } = useAuth()
+  const { user, logout, refreshUserProfile } = useAuth()
   const navigate = useNavigate()
   const { i18n, t } = useTranslation('settings')
   const locale = normalizeLocale(i18n.language)
@@ -148,6 +148,9 @@ export default function SettingsPage() {
     try {
       await api.put('/estabelecimentos', { tradeName, phone, zipCode, addressStreet, addressNumber, addressComplement, addressNeighborhood, addressCity, addressState, cnpj })
       toast.success(t('establishmentInfo.saved'))
+      // Nome do estabelecimento aparece na navbar (fora desta página) — precisa
+      // atualizar o AuthContext, não só o estado local do form.
+      await refreshUserProfile()
     } catch (error) {
       console.error('Error updating establishment information', error)
       toast.error(t('establishmentInfo.saveError'))

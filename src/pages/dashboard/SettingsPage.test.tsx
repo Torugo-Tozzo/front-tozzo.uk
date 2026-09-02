@@ -15,7 +15,7 @@ const mockUseAuth = vi.fn()
 vi.mock("@/contexts/AuthContext", () => ({ useAuth: () => mockUseAuth() }))
 
 function authValue(role: UserRole) {
-  return { user: { id: 7, name: "Ana", email: "ana@example.com", role, establishmentId: 42, establishment: { id: 42, tradeName: "Hamburgueria da Ana", status: "ACTIVE" } }, logout: vi.fn() }
+  return { user: { id: 7, name: "Ana", email: "ana@example.com", role, establishmentId: 42, establishment: { id: 42, tradeName: "Hamburgueria da Ana", status: "ACTIVE" } }, logout: vi.fn(), refreshUserProfile: vi.fn().mockResolvedValue(undefined) }
 }
 
 function renderPage() {
@@ -164,9 +164,10 @@ describe("SettingsPage", () => {
     }
   })
 
-  it("saves establishment information through PUT", async () => {
+  it("saves establishment information through PUT and refreshes the navbar name", async () => {
     const user = userEvent.setup()
-    mockUseAuth.mockReturnValue(authValue("OWNER"))
+    const auth = authValue("OWNER")
+    mockUseAuth.mockReturnValue(auth)
     const getMock = vi.fn().mockResolvedValue({ data: { id: 42, tradeName: "Burger", phone: "11999999999", zipCode: "01001000", addressStreet: "Rua A", addressNumber: "10", addressComplement: "Sala 1", addressNeighborhood: "Centro", addressCity: "São Paulo", addressState: "SP", cnpj: "123" } })
     const putMock = vi.fn().mockResolvedValue({ data: { id: 42 } })
     const restoreGet = replaceProperty(api, "get", getMock as typeof api.get)
@@ -180,6 +181,10 @@ describe("SettingsPage", () => {
       await waitFor(() => expect(putMock).toHaveBeenCalledWith("/estabelecimentos", {
         tradeName: "Novo Burger", phone: "11999999999", zipCode: "01001000", addressStreet: "Rua A", addressNumber: "10", addressComplement: "Sala 1", addressNeighborhood: "Centro", addressCity: "São Paulo", addressState: "SP", cnpj: "123",
       }))
+      // Regressão: nome editado aqui também aparece na navbar (fora desta
+      // página), que lê user.establishment.tradeName do AuthContext — sem
+      // refreshUserProfile() a navbar só atualizava depois de um F5.
+      await waitFor(() => expect(auth.refreshUserProfile).toHaveBeenCalled())
     } finally {
       restoreGet()
       restorePut()
