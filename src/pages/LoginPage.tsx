@@ -21,7 +21,7 @@ import { getErrorTranslationKey } from "@/i18n/error-keys"
 
 export default function LoginPage() {
   const navigate = useNavigate()
-  const { login, isAuthenticated, user } = useAuth()
+  const { login, isAuthenticated, user, isLoading: isAuthLoading } = useAuth()
   const { t: tAuth } = useTranslation("auth")
   const { t: tErrors } = useTranslation("errors")
   const [isLoading, setIsLoading] = useState(false)
@@ -37,14 +37,20 @@ export default function LoginPage() {
   }
 
   useEffect(() => {
-    if (isAuthenticated) {
+    // isAuthenticated liga antes do perfil (com establishment) terminar de
+    // carregar — tanto no login() quanto no restore de sessão, ver
+    // AuthContext.tsx. Sem esperar !isAuthLoading, esse efeito decidia com
+    // user ainda null (status undefined) e mandava pra /plan antes da conta
+    // recém-criada (ACTIVE, Free) terminar de carregar — achado durante QA
+    // visual: cadastro novo caindo na tela de escolha de plano.
+    if (isAuthenticated && !isAuthLoading) {
       if (user?.establishment?.status === 'ACTIVE') {
         navigate('/dashboard')
       } else {
         navigate('/plan')
       }
     }
-  }, [isAuthenticated, user, navigate])
+  }, [isAuthenticated, isAuthLoading, user, navigate])
 
   // Login States
   const [loginEmail, setLoginEmail] = useState("")
