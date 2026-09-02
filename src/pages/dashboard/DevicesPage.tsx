@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
+import { Loader2, Trash2 } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
 import { useConfirm } from "@/contexts/ConfirmContext"
 import api from "@/services/api"
@@ -100,7 +101,20 @@ function DevicesContent() {
             <TableCell>{formatPlatform(device.info, t("devices.notAvailable"))}</TableCell>
             <TableCell>{device.lastUserName ?? t("devices.notAvailable")}</TableCell>
             <TableCell>{device.lastSeen ? formatDate(device.lastSeen) : t("devices.neverSeen")}</TableCell>
-            {isOwner && <TableCell className="text-right"><Button type="button" variant="destructive" size="sm" disabled={removingId === device.id} onClick={() => handleRemove(device)}>{t("devices.removeButton")}</Button></TableCell>}
+            {isOwner && <TableCell className="text-right">
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="text-destructive hover:text-destructive"
+                disabled={removingId === device.id}
+                onClick={() => handleRemove(device)}
+                aria-label={t("devices.removeButton")}
+                title={t("devices.removeButton")}
+              >
+                {removingId === device.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+              </Button>
+            </TableCell>}
           </TableRow>)}
         </TableBody>
       </Table>
