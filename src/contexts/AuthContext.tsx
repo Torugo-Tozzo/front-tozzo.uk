@@ -19,27 +19,43 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
+  const fetchProfile = async (): Promise<User> => {
+    const userResponse = await api.get('/usuarios/me')
+    const authenticatedUser: User = {
+      id: userResponse.data.id,
+      name: userResponse.data.name || '',
+      email: userResponse.data.email || '',
+      role: normalizeRole(userResponse.data.role),
+      establishment: undefined,
+    }
+    try {
+      const response = await api.get('/estabelecimentos')
+      const raw = Array.isArray(response.data) ? response.data[0] : response.data
+      if (raw) authenticatedUser.establishment = fromLegacyWire<unknown>(raw, 'establishment') as Establishment
+    } catch (error: any) {
+      console.warn('Não foi possível buscar detalhes do estabelecimento', error)
+      if (error.response?.status === 402) authenticatedUser.establishment = { id: 0, tradeName: '', status: 'PENDING_PAYMENT' }
+    }
+    return authenticatedUser
+  }
+
   const refreshUserProfile = async () => {
     try {
-      const userResponse = await api.get('/usuarios/me')
-      const authenticatedUser: User = {
-        id: userResponse.data.id,
-        name: userResponse.data.name || '',
-        email: userResponse.data.email || '',
-        role: normalizeRole(userResponse.data.role),
-        establishment: undefined,
+      setUser(await fetchProfile())
+    } catch (error: any) {
+      if (error.response?.status !== 401) {
+        console.error('Error fetching user profile', error)
+        return
       }
+      // Primeiro acesso autenticado pelo GoTrue (Google Sign-In ou 1o login após
+      // confirmação de email) ainda não tem Usuario local — completa o cadastro
+      // (idempotente) e tenta buscar o perfil de novo.
       try {
-        const response = await api.get('/estabelecimentos')
-        const raw = Array.isArray(response.data) ? response.data[0] : response.data
-        if (raw) authenticatedUser.establishment = fromLegacyWire<unknown>(raw, 'establishment') as Establishment
-      } catch (error: any) {
-        console.warn('Não foi possível buscar detalhes do estabelecimento', error)
-        if (error.response?.status === 402) authenticatedUser.establishment = { id: 0, tradeName: '', status: 'PENDING_PAYMENT' }
+        await api.post('/auth/complete-signup', {})
+        setUser(await fetchProfile())
+      } catch (retryError) {
+        console.error('Error completing signup after 401', retryError)
       }
-      setUser(authenticatedUser)
-    } catch (error) {
-      console.error('Error fetching user profile', error)
     }
   }
 

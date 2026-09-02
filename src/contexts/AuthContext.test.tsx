@@ -121,4 +121,46 @@ describe('AuthProvider', () => {
       restoreGet()
     }
   })
+
+  it('completes signup and retries when /usuarios/me 401s on first GoTrue login (Google Sign-In, etc)', async () => {
+    const getMock = vi.fn()
+      .mockRejectedValueOnce({ response: { status: 401 } } as never)
+      .mockResolvedValueOnce({
+        data: { name: 'Ana', email: 'ana@example.com', role: 'OWNER' },
+      } as never)
+      .mockResolvedValueOnce({
+        data: { id: 9, nomeFantasia: 'Tozzo', status: 'ATIVO' },
+      } as never)
+    const postMock = vi.fn().mockResolvedValueOnce({ data: {} } as never)
+    const restoreGet = replaceProperty(api, 'get', getMock as typeof api.get)
+    const restorePost = replaceProperty(api, 'post', postMock as typeof api.post)
+
+    try {
+      render(
+        <I18nProvider>
+          <MemoryRouter initialEntries={['/dashboard']}>
+            <AuthProvider>
+              <AuthState />
+              <Routes>
+                <Route path="/login" element={<div>login page</div>} />
+                <Route element={<ProtectedRoute />}>
+                  <Route path="/dashboard" element={<div>dashboard page</div>} />
+                </Route>
+              </Routes>
+            </AuthProvider>
+          </MemoryRouter>
+        </I18nProvider>,
+      )
+
+      await waitFor(() => {
+        expect(screen.getByTestId('auth-state')).toHaveTextContent('true:ACTIVE')
+      })
+      expect(postMock).toHaveBeenCalledWith('/auth/complete-signup', {})
+      expect(screen.getByText('dashboard page')).toBeInTheDocument()
+      expect(screen.queryByText('login page')).not.toBeInTheDocument()
+    } finally {
+      restoreGet()
+      restorePost()
+    }
+  })
 })
