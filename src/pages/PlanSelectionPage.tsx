@@ -20,7 +20,7 @@ export default function PlanSelectionPage() {
   const { t: tErrors } = useTranslation('errors');
 
   useEffect(() => {
-    if (user?.establishment?.status === 'ACTIVE') {
+    if (user?.establishment?.status === 'ACTIVE' && user?.establishment?.plan && user.establishment.plan !== 'FREE') {
       navigate('/dashboard');
     }
   }, [user, navigate]);

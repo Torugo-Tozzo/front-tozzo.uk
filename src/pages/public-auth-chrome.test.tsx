@@ -35,6 +35,30 @@ function renderRoute(element: React.ReactElement, path = "/") {
   )
 }
 
+function renderPlanRoute(user: { establishment: { status: string; plan: string | null } }) {
+  mockUseAuth.mockReturnValue({
+    isAuthenticated: true,
+    user,
+    login: vi.fn(),
+    logout: vi.fn(),
+    isLoading: false,
+    refreshUserProfile: vi.fn(),
+  })
+
+  return render(
+    <I18nProvider>
+      <ConfirmProvider>
+        <MemoryRouter initialEntries={["/plan"]}>
+          <Routes>
+            <Route path="/plan" element={<PlanSelectionPage />} />
+            <Route path="/dashboard" element={<p>Dashboard</p>} />
+          </Routes>
+        </MemoryRouter>
+      </ConfirmProvider>
+    </I18nProvider>,
+  )
+}
+
 describe("public and auth chrome", () => {
   beforeEach(async () => {
     mockUseAuth.mockReturnValue({
@@ -87,6 +111,28 @@ describe("public and auth chrome", () => {
     expect(screen.getByRole("heading", { name: "Payment confirmed!" })).toBeInTheDocument()
     expect(screen.getByText("We are preparing your environment...")).toBeInTheDocument()
     expect(screen.getByText("You will be redirected in a moment.")).toBeInTheDocument()
+  })
+
+  test("keeps ACTIVE FREE establishments on the plan selection page", () => {
+    renderPlanRoute({ establishment: { status: "ACTIVE", plan: "FREE" } })
+
+    expect(screen.getByRole("heading", { name: /you do not have a plan yet/i })).toBeInTheDocument()
+    expect(screen.queryByText("Dashboard")).not.toBeInTheDocument()
+  })
+
+  test("redirects ACTIVE paid establishments to the dashboard", async () => {
+    renderPlanRoute({ establishment: { status: "ACTIVE", plan: "PAGO" } })
+
+    await waitFor(() => {
+      expect(screen.getByText("Dashboard")).toBeInTheDocument()
+    })
+  })
+
+  test("keeps pending-payment establishments without a plan on plan selection", () => {
+    renderPlanRoute({ establishment: { status: "PENDING_PAYMENT", plan: null } })
+
+    expect(screen.getByRole("heading", { name: /you do not have a plan yet/i })).toBeInTheDocument()
+    expect(screen.queryByText("Dashboard")).not.toBeInTheDocument()
   })
 
   test("renders not-found actions in the active locale", () => {
