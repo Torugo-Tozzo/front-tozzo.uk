@@ -352,7 +352,8 @@
     },
     "confirm": {
       "delete": "Are you sure you want to delete this product?",
-      "toggle": "Are you sure you want to change the status of this type?"
+      "toggle": "Are you sure you want to change the status of this type?",
+      "deleteTypeWithProducts": "Deleting this type will also delete all associated products. Do you want to continue?"
     },
     "managementTitle": "Management",
     "tabs": {
@@ -372,6 +373,7 @@
     "forms": {
       "pricePlaceholder": "0.00",
       "typePlaceholder": "Select the type",
+      "noType": "No type",
       "ingredientsPlaceholder": "Separate with commas"
     },
     "newType": "New type",
@@ -384,7 +386,6 @@
       "searchPlaceholder": "Search products...",
       "typesSearchPlaceholder": "Search types...",
       "typesCaption": "List of registered product types.",
-      "origin": "Origin",
       "inactiveSuffix": "(inactive)",
       "systemOrigin": "System default",
       "userOrigin": "Created by user"

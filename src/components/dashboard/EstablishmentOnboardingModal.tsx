@@ -1,5 +1,5 @@
 import { Loader2 } from "lucide-react"
-import { useState } from "react"
+import { useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 
 import { Button } from "@/components/ui/button"
@@ -26,15 +26,19 @@ export function EstablishmentOnboardingModal({ open, establishmentId, onSaved }:
   const [suggestedTypes, setSuggestedTypes] = useState<string[]>([])
   const [isSavingCategory, setIsSavingCategory] = useState(false)
   const [isAddingTypes, setIsAddingTypes] = useState(false)
+  const addingTypes = useRef(false)
+  const [addedTypes, setAddedTypes] = useState<Set<string>>(new Set())
+  const typeKey = (description: string) => description.trim().toLowerCase()
+  const allTypesAdded = suggestedTypes.length > 0 && suggestedTypes.every(type => addedTypes.has(typeKey(type)))
 
   const handleCategoryChange = (value: string) => {
-    if (!isEstablishmentCategory(value)) return
+    if (addingTypes.current || !isEstablishmentCategory(value)) return
     setCategory(value)
     setSuggestedTypes([...CATEGORY_SEEDS[value]])
   }
 
   const handleSaveCategory = async () => {
-    if (!category || establishmentId == null) return
+    if (addingTypes.current || isSavingCategory || !category || establishmentId == null) return
 
     setIsSavingCategory(true)
     try {
@@ -54,18 +58,25 @@ export function EstablishmentOnboardingModal({ open, establishmentId, onSaved }:
   }
 
   const handleAddSuggestedTypes = async () => {
-    if (suggestedTypes.length === 0 || suggestedTypes.some((type) => type.trim().length === 0)) return
+    if (addingTypes.current || allTypesAdded || suggestedTypes.length === 0 || suggestedTypes.some((type) => type.trim().length === 0)) return
 
+    addingTypes.current = true
     setIsAddingTypes(true)
     try {
+      const completed = new Set(addedTypes)
       for (const description of suggestedTypes) {
+        const key = typeKey(description)
+        if (completed.has(key)) continue
         await api.post("/tipos", { description: description.trim(), color: "#9E9E9E" })
+        completed.add(key)
+        setAddedTypes(new Set(completed))
       }
       toast.success(t("category.typesAdded"))
     } catch (error) {
       console.error("Error creating suggested product types", error)
       toast.error(t("category.addTypesError"))
     } finally {
+      addingTypes.current = false
       setIsAddingTypes(false)
     }
   }
@@ -81,7 +92,7 @@ export function EstablishmentOnboardingModal({ open, establishmentId, onSaved }:
         <div className="flex flex-col gap-2">
           <label htmlFor="establishment-category-select" className="text-muted-foreground">{t("category.label")}</label>
           <Select value={category} onValueChange={handleCategoryChange}>
-            <SelectTrigger id="establishment-category-select" aria-label={t("category.label")} disabled={isSavingCategory}>
+            <SelectTrigger id="establishment-category-select" aria-label={t("category.label")} disabled={isSavingCategory || isAddingTypes}>
               <SelectValue placeholder={t("category.placeholder")} />
             </SelectTrigger>
             <SelectContent>
@@ -109,13 +120,13 @@ export function EstablishmentOnboardingModal({ open, establishmentId, onSaved }:
                 )
               })}
             </div>
-            <Button type="button" onClick={handleAddSuggestedTypes} disabled={isAddingTypes || suggestedTypes.some((type) => type.trim().length === 0)}>
+            <Button type="button" onClick={handleAddSuggestedTypes} disabled={isAddingTypes || allTypesAdded || suggestedTypes.some((type) => type.trim().length === 0)}>
               {isAddingTypes ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />{t("category.addingTypes")}</> : t("category.addTypes")}
             </Button>
           </div>
         )}
 
-        <Button type="button" onClick={handleSaveCategory} disabled={!category || establishmentId == null || isSavingCategory}>
+        <Button type="button" onClick={handleSaveCategory} disabled={!category || establishmentId == null || isSavingCategory || isAddingTypes}>
           {isSavingCategory ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />{t("category.saving")}</> : t("category.save")}
         </Button>
       </DialogContent>

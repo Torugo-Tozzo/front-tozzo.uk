@@ -53,4 +53,39 @@ describe("EstablishmentOnboardingModal", () => {
       restorePatch()
     }
   })
+  it("does not add suggestions again after success", async () => {
+    const post = vi.fn().mockResolvedValue({ data: {} })
+    const restore = replaceProperty(api, "post", post as typeof api.post)
+    try {
+      renderModal()
+      const user = userEvent.setup()
+      await user.click(screen.getByRole("combobox", { name: "Categoria do estabelecimento" }))
+      await user.click(await screen.findByRole("option", { name: "Hamburgueria" }))
+      const button = screen.getByRole("button", { name: "Adicionar tipos sugeridos" })
+      await user.dblClick(button)
+      await waitFor(() => expect(post).toHaveBeenCalledTimes(4))
+      expect(button).toBeDisabled()
+      await user.click(button)
+      expect(post).toHaveBeenCalledTimes(4)
+    } finally { restore() }
+  })
+
+  it("retries only unfinished suggestions after a partial failure", async () => {
+    const post = vi.fn().mockResolvedValueOnce({ data: {} }).mockRejectedValueOnce(new Error("offline")).mockResolvedValue({ data: {} })
+    const restore = replaceProperty(api, "post", post as typeof api.post)
+    try {
+      renderModal()
+      const user = userEvent.setup()
+      await user.click(screen.getByRole("combobox", { name: "Categoria do estabelecimento" }))
+      await user.click(await screen.findByRole("option", { name: "Hamburgueria" }))
+      const button = screen.getByRole("button", { name: "Adicionar tipos sugeridos" })
+      await user.click(button)
+      await waitFor(() => expect(button).toBeEnabled())
+      await user.click(button)
+      await waitFor(() => expect(button).toBeDisabled())
+      expect(post.mock.calls.filter(([, body]) => body.description === "Lanches")).toHaveLength(1)
+      expect(post).toHaveBeenCalledTimes(5)
+    } finally { restore() }
+  })
+
 })

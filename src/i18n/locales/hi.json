@@ -351,7 +351,8 @@
     },
     "confirm": {
       "delete": "क्या आप वाकई इस उत्पाद को हटाना चाहते हैं?",
-      "toggle": "क्या आप वाकई इस प्रकार की स्थिति बदलना चाहते हैं?"
+      "toggle": "क्या आप वाकई इस प्रकार की स्थिति बदलना चाहते हैं?",
+      "deleteTypeWithProducts": "इस प्रकार को हटाने से जुड़े सभी उत्पाद भी हट जाएंगे। क्या आप जारी रखना चाहते हैं?"
     },
     "managementTitle": "प्रबंधन",
     "tabs": {
@@ -371,6 +372,7 @@
     "forms": {
       "pricePlaceholder": "0.00",
       "typePlaceholder": "प्रकार चुनें",
+      "noType": "कोई प्रकार नहीं",
       "ingredientsPlaceholder": "अल्पविराम से अलग करें"
     },
     "newType": "नया प्रकार",
@@ -383,7 +385,6 @@
       "searchPlaceholder": "उत्पाद खोजें...",
       "typesSearchPlaceholder": "प्रकार खोजें...",
       "typesCaption": "पंजीकृत उत्पाद प्रकारों की सूची।",
-      "origin": "स्रोत",
       "inactiveSuffix": "(निष्क्रिय)",
       "systemOrigin": "सिस्टम डिफ़ॉल्ट",
       "userOrigin": "उपयोगकर्ता द्वारा बनाया गया"

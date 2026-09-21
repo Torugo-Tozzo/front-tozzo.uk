@@ -11,7 +11,6 @@ import {
 } from "@/components/ui/table"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Alert } from "@/components/ui/alert"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
@@ -32,7 +31,7 @@ import {
 } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Plus, Pencil, Trash2, ShoppingBag, Search, Loader2, Power } from "lucide-react"
+import { Plus, Pencil, Trash2, ShoppingBag, Search, Loader2 } from "lucide-react"
 import api, { getErrorCode } from "@/services/api"
 import { parseListResponse } from "@/services/parseResponse"
 import { toast } from "sonner"
@@ -45,8 +44,6 @@ import { getCatalogLabel } from "@/i18n/labels"
 import { normalizeLocale } from "@/i18n/locale"
 import { getErrorTranslationKey, type ErrorContext } from "@/i18n/error-keys"
 import type { Product, ProductType } from "@/domain/models"
-
-type EditableProductType = ProductType & { isEditable?: boolean }
 
 export default function ProductsPage() {
   const { i18n } = useTranslation()
@@ -64,8 +61,8 @@ export default function ProductsPage() {
   const { user } = useAuth()
   const confirm = useConfirm()
   const [products, setProducts] = useState<Product[]>([])
-  const [productTypes, setProductTypes] = useState<EditableProductType[]>([])
-  const [pagedTypes, setPagedTypes] = useState<EditableProductType[]>([])
+  const [productTypes, setProductTypes] = useState<ProductType[]>([])
+  const [pagedTypes, setPagedTypes] = useState<ProductType[]>([])
   const [typesPage, setTypesPage] = useState(1)
   const [typesLimit, setTypesLimit] = useState(10)
   const [typesTotalPages, setTypesTotalPages] = useState(0)
@@ -102,11 +99,9 @@ export default function ProductsPage() {
   const [isAddTypeDialogOpen, setIsAddTypeDialogOpen] = useState(false)
   const [isEditTypeDialogOpen, setIsEditTypeDialogOpen] = useState(false)
   const [typeName, setTypeName] = useState("")
-  const [currentType, setCurrentType] = useState<EditableProductType | null>(null)
+  const [currentType, setCurrentType] = useState<ProductType | null>(null)
   const [activeTab, setActiveTab] = useState("products")
 
-  const hasActiveProductType = productTypes.some(type => type.isActive)
-  const canCreateProductType = user?.role === "OWNER"
 
   useEffect(() => {
     // load all types for selects/lookup and load first page for types table
@@ -166,7 +161,7 @@ export default function ProductsPage() {
       const response = await api.get("/tipos?all=true")
       const payload = response.data
       const rawTypes = Array.isArray(payload) ? payload : payload?.types ?? payload?.data ?? []
-      const types: EditableProductType[] = rawTypes.map((t: ProductType) => ({ ...t, isEditable: (t as EditableProductType).isEditable ?? true }))
+      const types: ProductType[] = rawTypes
       setProductTypes(types)
     } catch (error) {
       console.error("Error fetching types", error)
@@ -182,7 +177,7 @@ export default function ProductsPage() {
 
       const { data, total } = parseListResponse<any>(response)
 
-      const types: EditableProductType[] = data.map((t: ProductType) => ({ ...t, isEditable: (t as EditableProductType).isEditable ?? true }))
+      const types: ProductType[] = data
 
       setPagedTypes(types)
       setTypesTotalItems(total)
@@ -210,17 +205,13 @@ export default function ProductsPage() {
 
   const handleAddProduct = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!typeId) {
-      toast.warning(tErrors("products.selectType"))
-      return
-    }
     setIsSaving(true)
     try {
       await api.post("/produtos", {
         name,
         price: parseFloat(price),
         ingredients,
-        productTypeId: typeId,
+        productTypeId: typeId || null,
       })
       fetchProducts()
       setIsAddDialogOpen(false)
@@ -245,17 +236,13 @@ export default function ProductsPage() {
   const handleUpdateProduct = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!currentProduct) return
-    if (!typeId) {
-      toast.warning(tErrors("products.selectType"))
-      return
-    }
     setIsSaving(true)
     try {
       await api.put(`/produtos/${currentProduct.id}`, {
         name,
         price: parseFloat(price),
         ingredients,
-        productTypeId: typeId,
+        productTypeId: typeId || null,
       })
       fetchProducts()
       setIsEditDialogOpen(false)
@@ -290,11 +277,6 @@ export default function ProductsPage() {
     setIngredients("")
     setTypeId("")
     setCurrentProduct(null)
-  }
-
-  const getTypeName = (id: string) => {
-    const type = productTypes.find(t => String(t.id) === String(id))
-    return type ? getCatalogLabel(type.id, type.description, activeLocale) : tCommon("notInformed")
   }
 
   const handleAddType = async (e: React.FormEvent) => {
@@ -340,22 +322,19 @@ export default function ProductsPage() {
   }
 
   const handleDeleteType = async (id: number | string) => {
-    const type = productTypes.find(t => String(t.id) === String(id))
-    const currentlyActive = type?.isActive ?? true
     if (await confirm({
-      description: tProducts("confirm.toggle"),
-      confirmLabel: currentlyActive ? tProducts("deactivateType") : tProducts("activateType"),
-      destructive: currentlyActive,
+      description: tProducts("confirm.deleteTypeWithProducts"),
+      confirmLabel: tCommon("delete"),
+      destructive: true,
     })) {
       setDeletingId(id)
       try {
-        await api.patch(`/tipos/${id}/ativo`, { isActive: !currentlyActive })
-        // refresh types and products because inactive types hide their products
+        await api.delete(`/tipos/${id}`)
         await fetchTypesAll()
         await fetchTypesPage()
         await fetchProducts()
       } catch (error) {
-        console.error("Error toggling type active", error)
+        console.error("Error deleting type", error)
         toast.error(localizedError("updateTypeStatus", error))
       } finally {
         setDeletingId(null)
@@ -371,12 +350,6 @@ export default function ProductsPage() {
 
   const getType = (id: string) => {
     return productTypes.find(t => String(t.id) === String(id)) || null
-  }
-
-  const openTypeCreation = () => {
-    resetTypeForm()
-    setActiveTab("types")
-    setIsAddTypeDialogOpen(true)
   }
 
   return (
@@ -399,7 +372,7 @@ export default function ProductsPage() {
             <TabsContent value="products" className="mt-0">
               <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button onClick={resetForm} disabled={isSaving || !hasActiveProductType}>
+                  <Button onClick={resetForm} disabled={isSaving}>
                     <Plus className="mr-2 h-4 w-4" /> {tProducts("new")}
                   </Button>
                 </DialogTrigger>
@@ -430,11 +403,12 @@ export default function ProductsPage() {
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="type">{tProducts("type")}</Label>
-                      <Select name="productTypeId" required value={typeId} onValueChange={setTypeId}>
+                      <Select name="productTypeId" value={typeId || "none"} onValueChange={(value) => setTypeId(value === "none" ? "" : value)}>
                         <SelectTrigger aria-label={tProducts("type")}>
                           <SelectValue placeholder={tProducts("forms.typePlaceholder")} />
                         </SelectTrigger>
                         <SelectContent>
+                          <SelectItem value="none">{tProducts("forms.noType")}</SelectItem>
                           {productTypes.map((type) => (
                             <SelectItem key={type.id} value={type.id.toString()}>
                               {getCatalogLabel(type.id, type.description, activeLocale)}
@@ -522,18 +496,6 @@ export default function ProductsPage() {
               </div>
             </CardHeader>
             <CardContent>
-              {!hasActiveProductType && (
-                <Alert variant="warning" className="mb-4">
-                  <p>{tProducts("typeGate.message")}</p>
-                  {canCreateProductType ? (
-                    <Button type="button" variant="outline" size="sm" className="mt-3" onClick={openTypeCreation}>
-                      {tProducts("typeGate.ownerAction")}
-                    </Button>
-                  ) : (
-                    <p className="mt-2">{tProducts("typeGate.managerInstruction")}</p>
-                  )}
-                </Alert>
-              )}
               <div className="mb-4 text-sm text-muted-foreground">
                 {tCommon("recordsTotal", { count: formatNumber(totalItems, activeLocale) })}
               </div>
@@ -595,11 +557,7 @@ export default function ProductsPage() {
                               </span>
                             )
                           }
-                          return (
-                            <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-secondary text-secondary-foreground">
-                              {getTypeName(product.productTypeId ?? "")}
-                            </span>
-                          )
+                          return null
                         })()}
                       </TableCell>
                       <TableCell className="text-right">
@@ -679,7 +637,6 @@ export default function ProductsPage() {
                   <TableRow>
                     <TableHead className="w-[50px]">{tCommon("index")}</TableHead>
                     <TableHead>{tProducts("description")}</TableHead>
-                    <TableHead className="w-[160px]">{tProducts("table.origin")}</TableHead>
                     <TableHead className="text-right">{tCommon("actions.label")}</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -694,9 +651,6 @@ export default function ProductsPage() {
                             <Skeleton className="h-4 w-[150px]" />
                           </div>
                         </TableCell>
-                        <TableCell>
-                          <Skeleton className="h-4 w-[100px]" />
-                        </TableCell>
                         <TableCell className="text-right justify-end gap-2 flex">
                           <Skeleton className="h-8 w-8" />
                           <Skeleton className="h-8 w-8" />
@@ -705,7 +659,7 @@ export default function ProductsPage() {
                     ))
                   ) : pagedTypes.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={4} className="py-8 text-center text-muted-foreground">
+                      <TableCell colSpan={3} className="py-8 text-center text-muted-foreground">
                         {tProducts("noTypes")}
                       </TableCell>
                     </TableRow>
@@ -725,44 +679,31 @@ export default function ProductsPage() {
                           </span>
                         </div>
                       </TableCell>
-                      <TableCell>
-                        <div className="text-sm">
-                          {type.isEditable === false ? tProducts("table.systemOrigin") : tProducts("table.userOrigin")}
-                        </div>
-                      </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
-                          {type.isEditable && (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handleEditTypeClick(type)}
-                              disabled={deletingId === type.id}
-                              aria-label={tCommon("edit")}
-                              title={tCommon("edit")}
-                            >
-                              <Pencil className="h-4 w-4" />
-                            </Button>
-                          )}
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleEditTypeClick(type)}
+                            disabled={deletingId === type.id}
+                            aria-label={tCommon("edit")}
+                            title={tCommon("edit")}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
 
                           <Button
                             variant="ghost"
                             size="icon"
                             onClick={() => handleDeleteType(type.id)}
                             disabled={deletingId === type.id}
-                            aria-label={type.isActive === false
-                              ? tProducts("accessibility.activateType")
-                              : tProducts("accessibility.deactivateType")}
-                            title={type.isActive === false
-                              ? tProducts("accessibility.activateType")
-                              : tProducts("accessibility.deactivateType")}
+                            aria-label={tCommon("delete")}
+                            title={tCommon("delete")}
                           >
                             {deletingId === type.id ? (
                               <Loader2 className="h-4 w-4 animate-spin" />
                             ) : (
-                              <Power
-                                className={`h-4 w-4 ${type.isActive === false ? 'text-muted-foreground' : 'text-emerald-600'}`}
-                              />
+                              <Trash2 className="h-4 w-4 text-destructive" />
                             )}
                           </Button>
                         </div>
@@ -819,11 +760,12 @@ export default function ProductsPage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="edit-type">{tProducts("type")}</Label>
-              <Select value={typeId} onValueChange={setTypeId}>
+              <Select value={typeId || "none"} onValueChange={(value) => setTypeId(value === "none" ? "" : value)}>
                 <SelectTrigger aria-label={tProducts("type")}>
                   <SelectValue placeholder={tProducts("forms.typePlaceholder")} />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="none">{tProducts("forms.noType")}</SelectItem>
                   {productTypes.map((type) => (
                     <SelectItem key={type.id} value={type.id.toString()}>
                       {getCatalogLabel(type.id, type.description, activeLocale)}

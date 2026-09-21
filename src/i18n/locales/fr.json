@@ -351,7 +351,8 @@
     },
     "confirm": {
       "delete": "Voulez-vous vraiment supprimer ce produit ?",
-      "toggle": "Voulez-vous vraiment modifier le statut de ce type ?"
+      "toggle": "Voulez-vous vraiment modifier le statut de ce type ?",
+      "deleteTypeWithProducts": "La suppression de ce type supprimera aussi tous les produits associés. Voulez-vous continuer ?"
     },
     "managementTitle": "Gestion",
     "tabs": {
@@ -371,6 +372,7 @@
     "forms": {
       "pricePlaceholder": "0.00",
       "typePlaceholder": "Sélectionnez le type",
+      "noType": "Sans type",
       "ingredientsPlaceholder": "Séparez par des virgules"
     },
     "newType": "Nouveau type",
@@ -383,7 +385,6 @@
       "searchPlaceholder": "Rechercher des produits...",
       "typesSearchPlaceholder": "Rechercher des types...",
       "typesCaption": "Liste des types de produits enregistrés.",
-      "origin": "Origine",
       "inactiveSuffix": "(inactif)",
       "systemOrigin": "Par défaut du système",
       "userOrigin": "Créé par l'utilisateur"

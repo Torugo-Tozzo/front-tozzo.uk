@@ -1,4 +1,4 @@
-import { act, render, screen, waitFor } from "@testing-library/react"
+import { act, render, screen, waitFor, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { beforeEach, describe, expect, test, vi } from "bun:test"
 
@@ -25,13 +25,13 @@ function renderPage() {
   )
 }
 
-function mockProductRequests(types: unknown[]) {
+function mockProductRequests(types: unknown[], products: unknown[] = []) {
   const getMock = vi.fn(async (url: string) => {
     if (url.startsWith("/tipos")) {
       return { data: url === "/tipos?all=true" ? types : { types, total: types.length }, headers: {} }
     }
 
-    return { data: { products: [], total: 0 }, headers: {} }
+    return { data: { products, total: products.length }, headers: {} }
   })
   const postMock = vi.fn(async () => ({ data: {}, headers: {} }))
   const restoreGet = replaceProperty(api, "get", getMock as typeof api.get)
@@ -40,7 +40,7 @@ function mockProductRequests(types: unknown[]) {
   return { getMock, postMock, restore: () => { restoreGet(); restorePost() } }
 }
 
-describe("ProductsPage product type gate", () => {
+describe("ProductsPage optional product type", () => {
   beforeEach(async () => {
     mockUseAuth.mockReset()
     localStorage.clear()
@@ -49,41 +49,53 @@ describe("ProductsPage product type gate", () => {
     })
   })
 
-  test("blocks product creation for an owner without an active type and opens the type dialog", async () => {
-    mockUseAuth.mockReturnValue({ user: { role: "OWNER" } })
-    const requests = mockProductRequests([{ id: 1, description: "Burger", isActive: false }])
+  for (const role of ["OWNER", "MANAGER"]) {
+    test(`allows ${role} to create a product without types`, async () => {
+      mockUseAuth.mockReturnValue({ user: { role } })
+      const requests = mockProductRequests([])
+      try {
+        renderPage()
+        const user = userEvent.setup()
+        expect(screen.queryByRole("alert")).not.toBeInTheDocument()
+        await user.click(screen.getByRole("button", { name: "New product" }))
+        await user.type(screen.getByRole("textbox", { name: "Name" }), "Coffee")
+        await user.type(screen.getByRole("textbox", { name: "Price" }), "500")
+        await user.click(screen.getByRole("button", { name: "Save" }))
+        await waitFor(() => expect(requests.postMock).toHaveBeenCalledWith("/produtos", {
+          name: "Coffee", price: 5, ingredients: "", productTypeId: null,
+        }))
+      } finally { requests.restore() }
+    })
+  }
 
+  test("renders an untyped product without a type badge or color", async () => {
+    mockUseAuth.mockReturnValue({ user: { role: "OWNER" } })
+    const requests = mockProductRequests([], [{ id: "p1", name: "Coffee", price: 5, productTypeId: null }])
     try {
       renderPage()
-
-      const alert = await screen.findByRole("alert")
-      expect(alert).toHaveTextContent("Add at least one active product type before creating a product.")
-      expect(screen.getByRole("button", { name: "New product" })).toBeDisabled()
-
-      const user = userEvent.setup()
-      await user.click(screen.getByRole("button", { name: "Add a product type" }))
-
-      expect(screen.getByRole("tab", { name: "Types", hidden: true })).toHaveAttribute("aria-selected", "true")
-      expect(screen.getByRole("heading", { name: "Add product type" })).toBeInTheDocument()
-    } finally {
-      requests.restore()
-    }
+      const row = (await screen.findByText("Coffee")).closest("tr")!
+      expect(within(row).getAllByRole("cell")[2]).toBeEmptyDOMElement()
+    } finally { requests.restore() }
   })
 
-  test("blocks product creation for a manager without an active type and shows no creation CTA", async () => {
-    mockUseAuth.mockReturnValue({ user: { role: "MANAGER" } })
-    const requests = mockProductRequests([])
-
+  test("clears an existing type when editing a product", async () => {
+    mockUseAuth.mockReturnValue({ user: { role: "OWNER" } })
+    const requests = mockProductRequests([{ id: "t1", description: "Drinks", isActive: true }], [
+      { id: "p1", name: "Coffee", price: 5, productTypeId: "t1" },
+    ])
+    const put = vi.fn(async () => ({ data: {}, headers: {} }))
+    const restorePut = replaceProperty(api, "put", put as typeof api.put)
     try {
       renderPage()
-
-      const alert = await screen.findByRole("alert")
-      expect(alert).toHaveTextContent("Ask the owner to add an active product type before creating a product.")
-      expect(screen.getByRole("button", { name: "New product" })).toBeDisabled()
-      expect(screen.queryByRole("button", { name: "Add a product type" })).not.toBeInTheDocument()
-    } finally {
-      requests.restore()
-    }
+      const user = userEvent.setup()
+      await user.click(await screen.findByRole("button", { name: "Edit" }))
+      await user.click(screen.getByRole("combobox", { name: "Type" }))
+      await user.click(screen.getByRole("option", { name: "No type" }))
+      await user.click(screen.getByRole("button", { name: "Save changes" }))
+      await waitFor(() => expect(put).toHaveBeenCalledWith("/produtos/p1", {
+        name: "Coffee", price: 5, ingredients: "", productTypeId: null,
+      }))
+    } finally { requests.restore(); restorePut() }
   })
 
   test("keeps product creation available and submits the selected active type", async () => {
@@ -103,7 +115,7 @@ describe("ProductsPage product type gate", () => {
       await user.type(screen.getByRole("textbox", { name: "Name" }), "Burger")
       await user.type(screen.getByRole("textbox", { name: "Price" }), "1250")
       const typeSelect = dialog.querySelector('select[name="productTypeId"]') as HTMLSelectElement
-      expect(typeSelect?.hasAttribute("required")).toBe(true)
+      expect(typeSelect?.hasAttribute("required")).toBe(false)
 
       await user.click(screen.getByRole("combobox", { name: "Type" }))
       await user.click(screen.getByRole("option", { name: "Burger" }))
