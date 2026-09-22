@@ -327,6 +327,7 @@ export function VendasTab() {
         title={isReadOnlyModal ? tSales("details") : tSales("new")}
         initialClientName={currentSaleClient}
         initialItems={currentSaleItems}
+        mergeSameProducts
         readOnly={isReadOnlyModal}
         onCancelSale={isReadOnlyModal && currentSaleId ? async () => handleCancelSale(currentSaleId) : undefined}
       />

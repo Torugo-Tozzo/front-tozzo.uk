@@ -57,6 +57,7 @@ interface ProductSelectionModalProps {
     status?: OrderItemStatus;
   }[];
   isEditing?: boolean; // If editing, we might handle things differently
+  mergeSameProducts?: boolean;
   onCloseOrder?: (paymentMethod: PaymentMethod | null) => Promise<void>;
   onChangeItemStatus?: (itemId: number | string, newStatus: OrderItemStatus) => Promise<void> | void;
   onCancelSale?: () => Promise<void>;
@@ -74,6 +75,7 @@ export function ProductSelectionModal({
   initialClientName = "",
   initialItems = DEFAULT_ITEMS,
   isEditing = false,
+  mergeSameProducts = false,
   onCloseOrder,
   onChangeItemStatus,
   onCancelSale,
@@ -210,7 +212,7 @@ export function ProductSelectionModal({
 
   const handleAddItem = (product: Product) => {
     setSelectedItems((prev) => {
-      if (!isEditing) {
+      if (mergeSameProducts) {
         const existingItem = prev.find((item) => item.productId === product.id);
         if (existingItem) {
           return prev.map((item) => item.localKey === existingItem.localKey
