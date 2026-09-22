@@ -69,7 +69,7 @@ export default function DashboardLayout() {
   }
 
   const navItems = [
-    ...(user?.role === "COOK" ? [{ href: "/dashboard/kitchen", label: "Cozinha", icon: ChefHat }] : []),
+    ...(["OWNER", "MANAGER", "EMPLOYEE", "COOK"].includes(user?.role ?? '') ? [{ href: "/dashboard/kitchen", label: "Cozinha", icon: ChefHat }] : []),
     { href: "/dashboard/orders", label: tNavigation("orders"), icon: ClipboardList },
     { href: "/dashboard/sales", label: tNavigation("sales"), icon: LayoutDashboard },
     { href: "/dashboard/products", label: tNavigation("products"), icon: ShoppingBag },

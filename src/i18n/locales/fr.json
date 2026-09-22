@@ -429,6 +429,7 @@
       "owner": "Propriétaire",
       "manager": "Responsable",
       "employee": "Employé",
+      "cook": "Cuisinier",
       "customer": "Client"
     },
     "roleLabel": "Rôle"

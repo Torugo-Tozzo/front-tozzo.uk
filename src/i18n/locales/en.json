@@ -430,6 +430,7 @@
       "owner": "Owner",
       "manager": "Manager",
       "employee": "Employee",
+      "cook": "Cook",
       "customer": "Customer"
     },
     "roleLabel": "Role"

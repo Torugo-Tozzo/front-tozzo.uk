@@ -429,6 +429,7 @@
       "owner": "मालिक",
       "manager": "प्रबंधक",
       "employee": "कर्मचारी",
+      "cook": "रसोइया",
       "customer": "ग्राहक"
     },
     "roleLabel": "भूमिका"

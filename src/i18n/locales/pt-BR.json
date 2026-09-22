@@ -442,6 +442,7 @@
       "owner": "Dono",
       "manager": "Gerente",
       "employee": "Funcionário",
+      "cook": "Cozinheiro",
       "customer": "Cliente"
     },
     "roleLabel": "Cargo"

@@ -87,18 +87,18 @@ const legacyRoles: Record<string, UserRole> = {
   MANAGER: 'MANAGER',
   FUNCIONARIO: 'EMPLOYEE',
   EMPLOYEE: 'EMPLOYEE',
-  CLIENTE: 'CUSTOMER',
-  CUSTOMER: 'CUSTOMER',
   COZINHEIRO: 'COOK',
   COOK: 'COOK',
+  CLIENTE: 'CUSTOMER',
+  CUSTOMER: 'CUSTOMER',
 };
 
 const canonicalRoles: Record<UserRole, string> = {
   OWNER: 'DONO',
   MANAGER: 'GERENTE',
   EMPLOYEE: 'FUNCIONARIO',
-  CUSTOMER: 'CLIENTE',
   COOK: 'COZINHEIRO',
+  CUSTOMER: 'CLIENTE',
 };
 
 const legacyStatuses: Record<string, string> = {
