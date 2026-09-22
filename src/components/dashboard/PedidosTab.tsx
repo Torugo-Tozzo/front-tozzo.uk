@@ -255,7 +255,7 @@ export function PedidosTab() {
     setIsModalOpen(true)
   }
 
-  const handleModalConfirm = async (customerName: string, items: { productId: number | string; quantity: number; unitPrice?: number }[]) => {
+  const handleModalConfirm = async (customerName: string, items: { id?: number | string; productId: number | string; quantity: number; unitPrice?: number }[]) => {
     try {
       if (currentOrder) {
         await api.put(`/pedidos/${currentOrder.id}`, { customerName, items })

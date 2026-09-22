@@ -43,7 +43,7 @@ export type SelectedItem = {
 interface ProductSelectionModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: (customerName: string, items: { productId: number | string; quantity: number; unitPrice?: number }[]) => Promise<void>;
+  onConfirm: (customerName: string, items: { id?: number | string; productId: number | string; quantity: number; unitPrice?: number }[]) => Promise<void>;
   title: string;
   initialClientName?: string;
   initialItems?: {
@@ -265,7 +265,8 @@ export function ProductSelectionModal({
     setIsLoading(true);
     try {
       const finalCustomerName = clientName.trim();
-      const itemsPayload = selectedItems.map(({ productId, quantity, unitPrice, price }) => ({
+      const itemsPayload = selectedItems.map(({ id, productId, quantity, unitPrice, price }) => ({
+        id,
         productId,
         quantity,
         unitPrice: unitPrice != null ? Number(unitPrice) : Number(price || 0),
@@ -284,7 +285,7 @@ export function ProductSelectionModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col">
+      <DialogContent className="w-[80vw] max-w-[80vw] max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>
