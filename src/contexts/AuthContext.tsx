@@ -20,7 +20,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [isLoading, setIsLoading] = useState(true)
 
   const fetchProfile = async (): Promise<User> => {
-    const userResponse = await api.get('/usuarios/me')
+    const userResponse = await api.get('/usuarios/me', { skipAuthRedirect: true })
     const authenticatedUser: User = {
       id: userResponse.data.id,
       name: userResponse.data.name || '',
@@ -53,12 +53,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
       // Primeiro acesso autenticado pelo GoTrue (Google Sign-In ou 1o login após
       // confirmação de email) ainda não tem Usuario local — completa o cadastro
-      // (idempotente) e tenta buscar o perfil de novo.
+      // (idempotente) e tenta buscar o perfil de novo. Os dados do form de cadastro
+      // (nome, estabelecimento, chave) vão no user_metadata do token.
       try {
         await api.post('/auth/complete-signup', {})
         setUser(await fetchProfile())
       } catch (retryError) {
         console.error('Error completing signup after 401', retryError)
+        await authClient.signOut()
       }
     }
   }

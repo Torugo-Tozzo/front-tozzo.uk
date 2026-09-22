@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'bun:test'
 import { act, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
+import { toast } from 'sonner'
 import { ThemeProvider } from '@/components/theme-provider'
 import { I18nProvider } from '@/i18n/provider'
 import { i18n } from '@/i18n/config'
@@ -81,7 +82,14 @@ describe('LoginPage register form', () => {
       await user.click(screen.getByRole('checkbox', { name: /I have read and accept/i }))
       await user.click(screen.getByRole('button', { name: /Create/i }))
 
-      expect(signUpMock).toHaveBeenCalledWith({ email: 'ana@example.com', password: 'senha123' })
+      expect(signUpMock).toHaveBeenCalledWith({
+        email: 'ana@example.com',
+        password: 'senha123',
+        options: {
+          emailRedirectTo: `${window.location.origin}/login`,
+          data: { name: 'Ana', tradeName: 'Bar da Ana', termsAccepted: true },
+        },
+      })
       expect(postMock).toHaveBeenCalledWith('/auth/complete-signup', {
         name: 'Ana',
         termsAccepted: true,
@@ -112,9 +120,102 @@ describe('LoginPage register form', () => {
       await user.click(screen.getByRole('button', { name: /Create/i }))
 
       expect(postMock).not.toHaveBeenCalled()
+      // Antes caía num navigate('/login') silencioso (já estava no /login) — o
+      // usuário clicava de novo e tomava 429 do GoTrue.
+      expect(await screen.findByText('Confirm your email')).toBeInTheDocument()
+      expect(screen.getByText(/We sent a confirmation link to ana@example\.com/)).toBeInTheDocument()
+      expect(screen.getByRole('tab', { name: 'Login' }).getAttribute('data-state')).toBe('active')
+      expect(screen.getByLabelText('Email')).toHaveValue('ana@example.com')
+      expect(screen.getByRole('button', { name: /Resend in \d+s/ })).toBeDisabled()
     } finally {
       restoreSignUp()
       restore()
+    }
+  })
+
+  it('stores the registration key in the signup metadata so it survives email confirmation', async () => {
+    const user = userEvent.setup()
+    const signUpMock = vi.fn().mockResolvedValue({ data: { session: null }, error: null })
+    const restoreSignUp = replaceProperty(authClient, 'signUp', signUpMock as typeof authClient.signUp)
+
+    try {
+      renderPage()
+      await user.click(screen.getByRole('tab', { name: 'Register' }))
+      await user.type(screen.getByLabelText('Manager name'), 'Ana')
+      await user.type(screen.getByLabelText('Establishment name'), 'Bar da Ana')
+      await user.type(screen.getByLabelText('Email'), 'ana@example.com')
+      await user.type(screen.getByLabelText('Password'), 'senha123')
+      await user.click(screen.getByRole('checkbox', { name: /free access/i }))
+      await user.type(screen.getByLabelText('Registration key'), 'chave-secreta')
+      await user.click(screen.getByRole('checkbox', { name: /I have read and accept/i }))
+      await user.click(screen.getByRole('button', { name: /Create/i }))
+
+      expect(signUpMock).toHaveBeenCalledWith(expect.objectContaining({
+        options: expect.objectContaining({
+          data: { name: 'Ana', tradeName: 'Bar da Ana', termsAccepted: true, registrationKey: 'chave-secreta' },
+        }),
+      }))
+    } finally {
+      restoreSignUp()
+    }
+  })
+
+  it('shows a rate-limit message instead of the generic failure when GoTrue answers 429', async () => {
+    const user = userEvent.setup()
+    const signUpMock = vi.fn().mockResolvedValue({ data: { session: null, user: null }, error: { code: 'over_email_send_rate_limit' } })
+    const restoreSignUp = replaceProperty(authClient, 'signUp', signUpMock as typeof authClient.signUp)
+    const toastError = vi.spyOn(toast, 'error').mockImplementation(() => '')
+
+    try {
+      renderPage()
+      await user.click(screen.getByRole('tab', { name: 'Register' }))
+      await user.type(screen.getByLabelText('Manager name'), 'Ana')
+      await user.type(screen.getByLabelText('Establishment name'), 'Bar da Ana')
+      await user.type(screen.getByLabelText('Email'), 'ana@example.com')
+      await user.type(screen.getByLabelText('Password'), 'senha123')
+      await user.click(screen.getByRole('checkbox', { name: /I have read and accept/i }))
+      await user.click(screen.getByRole('button', { name: /Create/i }))
+
+      await waitFor(() => expect(toastError).toHaveBeenCalledWith('Too many attempts in a row. Wait a minute and try again.'))
+    } finally {
+      restoreSignUp()
+      toastError.mockRestore()
+    }
+  })
+
+  it('offers to resend the confirmation when login is blocked by an unconfirmed email', async () => {
+    const user = userEvent.setup()
+    const signInMock = vi.fn().mockResolvedValue({ data: { session: null, user: null }, error: { code: 'email_not_confirmed' } })
+    const restoreSignIn = replaceProperty(authClient, 'signInWithPassword', signInMock as typeof authClient.signInWithPassword)
+    const resendMock = vi.fn().mockResolvedValue({ data: {}, error: null })
+    const restoreResend = replaceProperty(authClient, 'resend', resendMock as typeof authClient.resend)
+    const toastError = vi.spyOn(toast, 'error').mockImplementation(() => '')
+    const toastSuccess = vi.spyOn(toast, 'success').mockImplementation(() => '')
+
+    try {
+      renderPage()
+      await user.type(screen.getByLabelText('Email'), 'ana@example.com')
+      await user.type(screen.getByLabelText('Password'), 'senha123')
+      await user.click(screen.getByRole('button', { name: 'Sign in' }))
+
+      await waitFor(() => expect(toastError).toHaveBeenCalledWith(
+        "Your email hasn't been confirmed yet. Click the link we sent or resend it below.",
+      ))
+      expect(screen.getByText('Confirm your email')).toBeInTheDocument()
+      await user.click(screen.getByRole('button', { name: 'Resend confirmation email' }))
+
+      expect(resendMock).toHaveBeenCalledWith({
+        type: 'signup',
+        email: 'ana@example.com',
+        options: { emailRedirectTo: `${window.location.origin}/login` },
+      })
+      expect(toastSuccess).toHaveBeenCalledWith('We sent a new confirmation link to ana@example.com.')
+      expect(screen.getByRole('button', { name: /Resend in \d+s/ })).toBeDisabled()
+    } finally {
+      restoreSignIn()
+      restoreResend()
+      toastError.mockRestore()
+      toastSuccess.mockRestore()
     }
   })
 

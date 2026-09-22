@@ -2,6 +2,14 @@ import axios from 'axios';
 import { fromLegacyWire, resolveWireContext, toLegacyWire } from '@/lib/legacyWire';
 import { authClient } from '@/lib/authClient';
 
+declare module 'axios' {
+  interface AxiosRequestConfig {
+    // 401 esperado (ex: /usuarios/me no 1o login GoTrue, antes do complete-signup) —
+    // quem chamou trata; o interceptor não desloga nem redireciona.
+    skipAuthRedirect?: boolean;
+  }
+}
+
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3001',
 });
@@ -39,7 +47,7 @@ api.interceptors.response.use(
     if (error.response?.data) {
       error.response.data = fromLegacyWire(error.response.data);
     }
-    if (error.response && error.response.status === 401) {
+    if (error.response && error.response.status === 401 && !error.config?.skipAuthRedirect) {
       // auth-js tenta refresh automático antes deste ponto.
       void authClient.signOut();
       window.location.href = '/login';

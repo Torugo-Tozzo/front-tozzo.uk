@@ -17,9 +17,15 @@ describe("structured API error outcomes", () => {
 
   test("maps lowercase auth-js codes while retaining legacy mappings", () => {
     expect(getErrorTranslationKey("login", "invalid_credentials")).toEqual({ namespace: "auth", key: "loginFailure" })
-    expect(getErrorTranslationKey("registration", "email_exists")).toEqual({ namespace: "auth", key: "registerFailure" })
-    expect(getErrorTranslationKey("registration", "weak_password")).toEqual({ namespace: "auth", key: "registerFailure" })
+    expect(getErrorTranslationKey("registration", "email_exists")).toEqual({ namespace: "auth", key: "emailAlreadyRegistered" })
+    expect(getErrorTranslationKey("registration", "weak_password")).toEqual({ namespace: "auth", key: "weakPassword" })
     expect(getErrorTranslationKey("registration", "unexpected_failure")).toEqual({ namespace: "errors", key: "generic" })
+  })
+
+  test("gives GoTrue signup/login outcomes their own messages instead of the generic failure", () => {
+    expect(getErrorTranslationKey("login", "email_not_confirmed")).toEqual({ namespace: "auth", key: "emailNotConfirmed" })
+    expect(getErrorTranslationKey("registration", "over_email_send_rate_limit")).toEqual({ namespace: "auth", key: "authRateLimited" })
+    expect(getErrorTranslationKey("registration", "user_already_exists")).toEqual({ namespace: "auth", key: "emailAlreadyRegistered" })
   })
 
   test("supports operation-specific dashboard outcomes without reading server text", () => {

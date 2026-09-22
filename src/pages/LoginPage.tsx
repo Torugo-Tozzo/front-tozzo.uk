@@ -12,6 +12,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import logo from "@/assets/images/logo.svg"
 import { GoogleIcon } from "@/components/icons/GoogleIcon"
 import api, { getErrorCode } from "@/services/api"
@@ -68,6 +69,29 @@ export default function LoginPage() {
   const [termsAccepted, setTermsAccepted] = useState(false)
   const [mfaChallenge, setMfaChallenge] = useState<{ factorId: string; challengeId: string } | null>(null)
   const [mfaCode, setMfaCode] = useState('')
+  // Email aguardando confirmação (cadastro recém-feito ou login barrado por
+  // email_not_confirmed) — mostra o aviso com opção de reenviar o link.
+  const [pendingConfirmationEmail, setPendingConfirmationEmail] = useState<string | null>(null)
+  const [resendCooldown, setResendCooldown] = useState(0)
+
+  // Link de confirmação e OAuth voltam pro /login (ver emailRedirectTo/redirectTo).
+  const authRedirectUrl = `${window.location.origin}/login`
+
+  useEffect(() => {
+    if (resendCooldown <= 0) return
+    const timer = setTimeout(() => setResendCooldown((seconds) => seconds - 1), 1000)
+    return () => clearTimeout(timer)
+  }, [resendCooldown])
+
+  useEffect(() => {
+    // GoTrue devolve erros do link de confirmação no hash (ex: link expirado ou já usado).
+    const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""))
+    const errorCode = hash.get("error_code")
+    if (!errorCode) return
+    setActiveTab("login")
+    toast.error(tAuth(errorCode === "otp_expired" ? "confirmationLinkExpired" : "loginFailure"))
+    window.history.replaceState(null, "", window.location.pathname + window.location.search)
+  }, [tAuth])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -75,6 +99,7 @@ export default function LoginPage() {
     try {
       const { error } = await authClient.signInWithPassword({ email: loginEmail, password: loginPassword })
       if (error) {
+        if (error.code === "email_not_confirmed") setPendingConfirmationEmail(loginEmail)
         toast.error(translateError("login", { response: { data: { code: error.code } } }))
         return
       }
@@ -106,7 +131,21 @@ export default function LoginPage() {
     e.preventDefault()
     setIsLoading(true)
     try {
-      const { data, error } = await authClient.signUp({ email: registerEmail, password: registerPassword })
+      const { data, error } = await authClient.signUp({
+        email: registerEmail,
+        password: registerPassword,
+        options: {
+          emailRedirectTo: authRedirectUrl,
+          // Com confirmação de email o complete-signup só roda no 1o login (sem o
+          // form) — o backend lê esses dados do user_metadata do token.
+          data: {
+            name: registerName,
+            tradeName: registerEstablishment,
+            termsAccepted,
+            ...(hasKey ? { registrationKey } : {}),
+          },
+        },
+      })
       if (error) {
         toast.error(translateError("registration", { response: { data: { code: error?.code } } }))
         return
@@ -114,7 +153,12 @@ export default function LoginPage() {
       // Com a confirmação de e-mail habilitada, o GoTrue cria o usuário sem sessão.
       // A finalização depende de uma sessão autenticada e só deve ocorrer após a confirmação.
       if (!data.session) {
-        navigate("/login")
+        setPendingConfirmationEmail(registerEmail)
+        setResendCooldown(60)
+        setLoginEmail(registerEmail)
+        setLoginPassword("")
+        setActiveTab("login")
+        toast.success(tAuth("confirmEmailSent", { email: registerEmail }))
         return
       }
       await api.post("/auth/complete-signup", {
@@ -136,13 +180,33 @@ export default function LoginPage() {
     }
   }
 
+  const handleResendConfirmation = async () => {
+    if (!pendingConfirmationEmail || resendCooldown > 0) return
+    setIsLoading(true)
+    try {
+      const { error } = await authClient.resend({
+        type: "signup",
+        email: pendingConfirmationEmail,
+        options: { emailRedirectTo: authRedirectUrl },
+      })
+      if (error) {
+        toast.error(translateError("registration", { response: { data: { code: error.code } } }))
+        return
+      }
+      setResendCooldown(60)
+      toast.success(tAuth("confirmEmailResent", { email: pendingConfirmationEmail }))
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   const handleGoogleSignIn = async () => {
     // GoTrue sem redirectTo explícito volta pro SITE_URL puro ("/", a Landing) — só
     // /login tem a lógica de redirect pós-auth (dashboard vs /plan). Achado em QA:
     // 1o login com Google caía na Landing autenticado, sem navegar pra lugar nenhum.
     await authClient.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${window.location.origin}/login` },
+      options: { redirectTo: authRedirectUrl },
     })
   }
 
@@ -176,6 +240,25 @@ export default function LoginPage() {
           </TabsList>
           
           <TabsContent value="login">
+            {pendingConfirmationEmail && (
+              <Alert className="mb-4">
+                <AlertTitle>{tAuth("confirmEmailTitle")}</AlertTitle>
+                <AlertDescription className="space-y-3">
+                  <span className="block">{tAuth("confirmEmailDescription", { email: pendingConfirmationEmail })}</span>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={isLoading || resendCooldown > 0}
+                    onClick={() => void handleResendConfirmation()}
+                  >
+                    {resendCooldown > 0
+                      ? tAuth("resendConfirmationIn", { seconds: resendCooldown })
+                      : tAuth("resendConfirmation")}
+                  </Button>
+                </AlertDescription>
+              </Alert>
+            )}
             <Card>
               <CardHeader>
                 <CardTitle>{tAuth("login")}</CardTitle>

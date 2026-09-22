@@ -50,7 +50,16 @@ type ErrorKey =
   | "updateEmployee"
   | "deleteEmployee"
 export type ErrorTranslation =
-  | { namespace: "auth"; key: "loginFailure" | "registerFailure" }
+  | {
+      namespace: "auth"
+      key:
+        | "loginFailure"
+        | "registerFailure"
+        | "emailNotConfirmed"
+        | "emailAlreadyRegistered"
+        | "weakPassword"
+        | "authRateLimited"
+    }
   | { namespace: "errors"; key: ErrorKey }
 
 const fallbackByContext: Record<ErrorContext, ErrorTranslation> = {
@@ -86,22 +95,24 @@ const errorKeyByContext: Partial<Record<ErrorContext, Record<string, ErrorTransl
     AUTH_INVALID_CREDENTIALS: { namespace: "auth", key: "loginFailure" },
     AUTH_INTERNAL_ERROR: { namespace: "errors", key: "generic" },
     invalid_credentials: { namespace: "auth", key: "loginFailure" },
-    email_not_confirmed: { namespace: "auth", key: "loginFailure" },
+    email_not_confirmed: { namespace: "auth", key: "emailNotConfirmed" },
     user_banned: { namespace: "auth", key: "loginFailure" },
+    over_request_rate_limit: { namespace: "auth", key: "authRateLimited" },
   },
   registration: {
     AUTH_ACTIVE_LIMIT_REACHED: { namespace: "auth", key: "registerFailure" },
-    AUTH_EMAIL_ALREADY_EXISTS: { namespace: "auth", key: "registerFailure" },
+    AUTH_EMAIL_ALREADY_EXISTS: { namespace: "auth", key: "emailAlreadyRegistered" },
     AUTH_INVALID_INPUT: { namespace: "auth", key: "registerFailure" },
     AUTH_PASSWORD_TOO_SHORT: { namespace: "auth", key: "registerFailure" },
     AUTH_PENDING_LIMIT_REACHED: { namespace: "auth", key: "registerFailure" },
     AUTH_TERMS_NOT_ACCEPTED: { namespace: "auth", key: "registerFailure" },
     AUTH_INTERNAL_ERROR: { namespace: "errors", key: "generic" },
-    email_exists: { namespace: "auth", key: "registerFailure" },
-    weak_password: { namespace: "auth", key: "registerFailure" },
+    email_exists: { namespace: "auth", key: "emailAlreadyRegistered" },
+    user_already_exists: { namespace: "auth", key: "emailAlreadyRegistered" },
+    weak_password: { namespace: "auth", key: "weakPassword" },
     signup_disabled: { namespace: "auth", key: "registerFailure" },
-    over_email_send_rate_limit: { namespace: "auth", key: "registerFailure" },
-    over_request_rate_limit: { namespace: "auth", key: "registerFailure" },
+    over_email_send_rate_limit: { namespace: "auth", key: "authRateLimited" },
+    over_request_rate_limit: { namespace: "auth", key: "authRateLimited" },
     validation_failed: { namespace: "auth", key: "registerFailure" },
     unexpected_failure: { namespace: "errors", key: "generic" },
   },
