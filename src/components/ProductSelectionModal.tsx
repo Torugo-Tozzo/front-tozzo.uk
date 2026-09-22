@@ -38,6 +38,7 @@ export type SelectedItem = {
   price: number;
   unitPrice: number;
   status?: OrderItemStatus;
+  localKey?: string;
 };
 
 interface ProductSelectionModalProps {
@@ -134,6 +135,7 @@ export function ProductSelectionModal({
           const price = item.price != null ? Number(item.price) : Number(item.unitPrice ?? 0);
           return {
             id: item.id,
+            localKey: item.id != null ? String(item.id) : `draft-${item.productId}`,
             productId: item.productId,
             quantity: item.quantity,
             name: item.name ?? tProducts("selection.fallbackProduct"),
@@ -208,17 +210,9 @@ export function ProductSelectionModal({
 
   const handleAddItem = (product: Product) => {
     setSelectedItems((prev) => {
-      const existing = prev.find((item) => item.productId === product.id);
-      if (existing) {
-        return prev.map((item) =>
-          item.productId === product.id
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
-        );
-      }
       return [
         ...prev,
-        { productId: product.id, quantity: 1, name: product.name, price: product.price, unitPrice: Number(product.price || 0) },
+        { productId: product.id, quantity: 1, name: product.name, price: product.price, unitPrice: Number(product.price || 0), localKey: `draft-${Date.now()}-${prev.length}` },
       ];
     });
   };
@@ -266,7 +260,7 @@ export function ProductSelectionModal({
     try {
       const finalCustomerName = clientName.trim();
       const itemsPayload = selectedItems.map(({ id, productId, quantity, unitPrice, price }) => ({
-        id,
+        ...(id != null ? { id } : {}),
         productId,
         quantity,
         unitPrice: unitPrice != null ? Number(unitPrice) : Number(price || 0),
@@ -411,8 +405,8 @@ export function ProductSelectionModal({
                 {selectedItems.length === 0 ? (
                     <p className="text-gray-500 dark:text-gray-400 text-center py-8">{tProducts("selection.noItems")}</p>
                   ) : (
-                    selectedItems.map((item) => (
-                      <div key={item.productId} className="flex items-center justify-between p-2 bg-white dark:bg-gray-800 rounded shadow-sm border dark:border-gray-700">
+                    selectedItems.map((item, index) => (
+                      <div key={item.localKey ?? `${item.productId}-${index}`} className="flex items-center justify-between p-2 bg-white dark:bg-gray-800 rounded shadow-sm border dark:border-gray-700">
                         <div className="flex-1">
                           <p className="font-medium">{item.name}</p>
                           <p className="text-sm text-gray-500 dark:text-gray-400">
