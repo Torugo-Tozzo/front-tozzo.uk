@@ -628,6 +628,7 @@
   "status": {
     "requested": "已请求",
     "inPreparation": "准备中",
+    "ready": "准备上菜",
     "delivered": "已送达",
     "active": "启用",
     "inactive": "停用",

@@ -629,6 +629,7 @@
   "status": {
     "requested": "Requested",
     "inPreparation": "In preparation",
+    "ready": "Ready to serve",
     "delivered": "Delivered",
     "active": "Active",
     "inactive": "Inactive",

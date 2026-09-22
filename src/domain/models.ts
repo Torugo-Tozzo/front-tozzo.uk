@@ -5,7 +5,7 @@ export type EstablishmentPlan = 'FREE' | 'PAGO' | 'PAGO_LEGADO' | 'ENTERPRISE';
 export type UserRole = 'OWNER' | 'MANAGER' | 'EMPLOYEE' | 'COOK' | 'CUSTOMER';
 export type PaymentMethod = 'CASH' | 'PIX' | 'CREDIT_CARD' | 'DEBIT_CARD' | 'ON_ACCOUNT';
 export const paymentMethodLabels: Record<PaymentMethod, string> = { CASH: 'Dinheiro', PIX: 'Pix', CREDIT_CARD: 'Crédito', DEBIT_CARD: 'Débito', ON_ACCOUNT: 'Fiado' };
-export type OrderItemStatus = 'REQUESTED' | 'IN_PREPARATION' | 'DELIVERED';
+export type OrderItemStatus = 'REQUESTED' | 'IN_PREPARATION' | 'READY' | 'DELIVERED';
 
 export interface Establishment {
   id: number | string;
