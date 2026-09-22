@@ -210,6 +210,15 @@ export function ProductSelectionModal({
 
   const handleAddItem = (product: Product) => {
     setSelectedItems((prev) => {
+      if (!isEditing) {
+        const existingItem = prev.find((item) => item.productId === product.id);
+        if (existingItem) {
+          return prev.map((item) => item.localKey === existingItem.localKey
+            ? { ...item, quantity: item.quantity + 1 }
+            : item);
+        }
+      }
+
       return [
         ...prev,
         { productId: product.id, quantity: 1, name: product.name, price: product.price, unitPrice: Number(product.price || 0), localKey: `draft-${Date.now()}-${prev.length}` },
@@ -217,14 +226,14 @@ export function ProductSelectionModal({
     });
   };
 
-  const handleRemoveItem = (productId: number | string) => {
-    setSelectedItems((prev) => prev.filter((item) => item.productId !== productId));
+  const handleRemoveItem = (localKey: string | undefined, productId: number | string) => {
+    setSelectedItems((prev) => prev.filter((item) => localKey ? item.localKey !== localKey : item.productId !== productId));
   };
 
-  const handleUpdateQuantity = (productId: number | string, delta: number) => {
+  const handleUpdateQuantity = (localKey: string | undefined, productId: number | string, delta: number) => {
     setSelectedItems((prev) =>
       prev.map((item) => {
-        if (item.productId === productId) {
+        if (localKey ? item.localKey === localKey : item.productId === productId) {
           const newQuantity = Math.max(1, item.quantity + delta);
           return { ...item, quantity: newQuantity };
         }
@@ -433,7 +442,7 @@ export function ProductSelectionModal({
                                 className="h-6 w-6"
                                 aria-label={tProducts("selection.decreaseQuantity")}
                                 title={tProducts("selection.decreaseQuantity")}
-                                onClick={() => handleUpdateQuantity(item.productId, -1)}
+                                onClick={() => handleUpdateQuantity(item.localKey, item.productId, -1)}
                               >
                                 <Minus className="h-3 w-3" />
                               </Button>
@@ -444,7 +453,7 @@ export function ProductSelectionModal({
                                 className="h-6 w-6"
                                 aria-label={tProducts("selection.increaseQuantity")}
                                 title={tProducts("selection.increaseQuantity")}
-                                onClick={() => handleUpdateQuantity(item.productId, 1)}
+                                onClick={() => handleUpdateQuantity(item.localKey, item.productId, 1)}
                               >
                                 <Plus className="h-3 w-3" />
                               </Button>
@@ -454,7 +463,7 @@ export function ProductSelectionModal({
                                 className="h-6 w-6 text-red-500"
                                 aria-label={tProducts("selection.removeItem")}
                                 title={tProducts("selection.removeItem")}
-                                onClick={() => handleRemoveItem(item.productId)}
+                                onClick={() => handleRemoveItem(item.localKey, item.productId)}
                               >
                                 <Trash2 className="h-4 w-4" />
                               </Button>
