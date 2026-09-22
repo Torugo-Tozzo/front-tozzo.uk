@@ -196,7 +196,7 @@ describe("public and auth chrome", () => {
       fireEvent.submit(document.querySelector("form")!)
 
       await waitFor(() => {
-        expect(screen.getByText("Login failed. Check your credentials.")).toBeInTheDocument()
+        expect(screen.getByText(/^Incorrect email or password\. If you signed up with Google/)).toBeInTheDocument()
       })
       expect(screen.queryByText("Invalid credentials.")).not.toBeInTheDocument()
     } finally {

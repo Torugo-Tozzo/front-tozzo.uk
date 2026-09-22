@@ -1,14 +1,17 @@
-import { describe, it, expect, vi } from 'bun:test'
+import { describe, it, expect, vi, beforeEach } from 'bun:test'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { I18nProvider } from '@/i18n/provider'
+import { i18n } from '@/i18n/config'
 import { authClient } from '@/lib/authClient'
 import { replaceProperty } from '@/test/replace-property'
 import { toast } from 'sonner'
 import ForgotPasswordPage from './ForgotPasswordPage'
 
 describe('ForgotPasswordPage', () => {
+  beforeEach(async () => { await i18n.changeLanguage('en') })
+
   it('chama resetPasswordForEmail com o email digitado', async () => {
     const resetMock = vi.fn().mockResolvedValue({ data: {}, error: null })
     const restore = replaceProperty(authClient, 'resetPasswordForEmail', resetMock as typeof authClient.resetPasswordForEmail)
@@ -29,7 +32,8 @@ describe('ForgotPasswordPage', () => {
       await waitFor(() => expect(resetMock).toHaveBeenCalledWith('ana@example.com', {
         redirectTo: `${window.location.origin}/reset-password`,
       }))
-      expect(screen.getByText(/check your email|verifique seu email/i)).toBeInTheDocument()
+      // Não afirma que a conta existe (o GoTrue responde sucesso pra qualquer email).
+      expect(screen.getByText(/If an account exists for ana@example\.com/)).toBeInTheDocument()
     } finally {
       restore()
     }
@@ -54,7 +58,7 @@ describe('ForgotPasswordPage', () => {
       await user.click(screen.getByRole('button', { name: /send reset link|enviar/i }))
 
       await waitFor(() => expect(toastError).toHaveBeenCalledWith('Could not reset password.'))
-      expect(screen.queryByText(/check your email|verifique seu email/i)).not.toBeInTheDocument()
+      expect(screen.queryByText(/If an account exists/)).not.toBeInTheDocument()
     } finally {
       restore()
       toastError.mockRestore()

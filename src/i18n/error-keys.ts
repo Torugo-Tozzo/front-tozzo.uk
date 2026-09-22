@@ -24,6 +24,7 @@ export type ErrorContext =
   | "updateEmployee"
   | "deleteEmployee"
   | "deleteAccount"
+  | "passwordReset"
 
 type ErrorKey =
   | "generic"
@@ -59,6 +60,10 @@ export type ErrorTranslation =
         | "emailAlreadyRegistered"
         | "weakPassword"
         | "authRateLimited"
+        | "invalidCredentials"
+        | "invalidEmail"
+        | "samePassword"
+        | "resetPasswordFailed"
     }
   | { namespace: "errors"; key: ErrorKey }
 
@@ -88,13 +93,16 @@ const fallbackByContext: Record<ErrorContext, ErrorTranslation> = {
   updateEmployee: { namespace: "errors", key: "updateEmployee" },
   deleteEmployee: { namespace: "errors", key: "deleteEmployee" },
   deleteAccount: { namespace: "errors", key: "generic" },
+  passwordReset: { namespace: "auth", key: "resetPasswordFailed" },
 }
 
 const errorKeyByContext: Partial<Record<ErrorContext, Record<string, ErrorTranslation>>> = {
   login: {
     AUTH_INVALID_CREDENTIALS: { namespace: "auth", key: "loginFailure" },
     AUTH_INTERNAL_ERROR: { namespace: "errors", key: "generic" },
-    invalid_credentials: { namespace: "auth", key: "loginFailure" },
+    invalid_credentials: { namespace: "auth", key: "invalidCredentials" },
+    validation_failed: { namespace: "auth", key: "invalidEmail" },
+    email_address_invalid: { namespace: "auth", key: "invalidEmail" },
     email_not_confirmed: { namespace: "auth", key: "emailNotConfirmed" },
     user_banned: { namespace: "auth", key: "loginFailure" },
     over_request_rate_limit: { namespace: "auth", key: "authRateLimited" },
@@ -113,8 +121,18 @@ const errorKeyByContext: Partial<Record<ErrorContext, Record<string, ErrorTransl
     signup_disabled: { namespace: "auth", key: "registerFailure" },
     over_email_send_rate_limit: { namespace: "auth", key: "authRateLimited" },
     over_request_rate_limit: { namespace: "auth", key: "authRateLimited" },
-    validation_failed: { namespace: "auth", key: "registerFailure" },
+    validation_failed: { namespace: "auth", key: "invalidEmail" },
+    email_address_invalid: { namespace: "auth", key: "invalidEmail" },
+    AUTH_RATE_LIMITED: { namespace: "auth", key: "authRateLimited" },
     unexpected_failure: { namespace: "errors", key: "generic" },
+  },
+  passwordReset: {
+    weak_password: { namespace: "auth", key: "weakPassword" },
+    same_password: { namespace: "auth", key: "samePassword" },
+    over_email_send_rate_limit: { namespace: "auth", key: "authRateLimited" },
+    over_request_rate_limit: { namespace: "auth", key: "authRateLimited" },
+    validation_failed: { namespace: "auth", key: "invalidEmail" },
+    email_address_invalid: { namespace: "auth", key: "invalidEmail" },
   },
   payment: {
     PAYMENT_CHECKOUT_CREATE_FAILED: { namespace: "errors", key: "payment" },

@@ -21,6 +21,7 @@ import { toast } from "sonner"
 import { useAuth } from "@/contexts/AuthContext"
 import { Trans, useTranslation } from "react-i18next"
 import { getErrorTranslationKey } from "@/i18n/error-keys"
+import { MIN_PASSWORD_LENGTH, normalizeEmail } from "@/lib/authValidation"
 
 export default function LoginPage() {
   const navigate = useNavigate()
@@ -72,6 +73,9 @@ export default function LoginPage() {
   // Email aguardando confirmação (cadastro recém-feito ou login barrado por
   // email_not_confirmed) — mostra o aviso com opção de reenviar o link.
   const [pendingConfirmationEmail, setPendingConfirmationEmail] = useState<string | null>(null)
+  // Cadastro com email que já tem conta: o GoTrue responde 200 sem enviar nada
+  // (anti-enumeração), então o aviso tem que vir daqui.
+  const [existingAccountEmail, setExistingAccountEmail] = useState<string | null>(null)
   const [resendCooldown, setResendCooldown] = useState(0)
 
   // Link de confirmação e OAuth voltam pro /login (ver emailRedirectTo/redirectTo).
@@ -97,9 +101,9 @@ export default function LoginPage() {
     e.preventDefault()
     setIsLoading(true)
     try {
-      const { error } = await authClient.signInWithPassword({ email: loginEmail, password: loginPassword })
+      const { error } = await authClient.signInWithPassword({ email: normalizeEmail(loginEmail), password: loginPassword })
       if (error) {
-        if (error.code === "email_not_confirmed") setPendingConfirmationEmail(loginEmail)
+        if (error.code === "email_not_confirmed") setPendingConfirmationEmail(normalizeEmail(loginEmail))
         toast.error(translateError("login", { response: { data: { code: error.code } } }))
         return
       }
@@ -127,22 +131,51 @@ export default function LoginPage() {
     }
   }
 
+  const goToLogin = (email: string) => {
+    setLoginEmail(email)
+    setLoginPassword("")
+    setActiveTab("login")
+  }
+
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
+    const email = normalizeEmail(registerEmail)
+    const name = registerName.trim()
+    const tradeName = registerEstablishment.trim()
+    const key = hasKey ? registrationKey.trim() : ""
+    // `required` do HTML aceita só espaços.
+    if (!name || !tradeName || (hasKey && !key)) {
+      toast.error(tAuth("requiredFieldsMissing"))
+      return
+    }
+    if (registerPassword.length < MIN_PASSWORD_LENGTH) {
+      toast.error(tAuth("weakPassword"))
+      return
+    }
     setIsLoading(true)
     try {
+      // Valida a chave ANTES de criar a conta: depois do signUp não tem volta, e
+      // chave errada virava conta FREE sem aviso.
+      if (key) {
+        const { data: keyCheck } = await api.post("/auth/registration-key/validate", { registrationKey: key })
+        if (!keyCheck?.valid) {
+          toast.error(tAuth("invalidRegistrationKey"))
+          return
+        }
+      }
+
       const { data, error } = await authClient.signUp({
-        email: registerEmail,
+        email,
         password: registerPassword,
         options: {
           emailRedirectTo: authRedirectUrl,
           // Com confirmação de email o complete-signup só roda no 1o login (sem o
           // form) — o backend lê esses dados do user_metadata do token.
           data: {
-            name: registerName,
-            tradeName: registerEstablishment,
+            name,
+            tradeName,
             termsAccepted,
-            ...(hasKey ? { registrationKey } : {}),
+            ...(key ? { registrationKey: key } : {}),
           },
         },
       })
@@ -150,22 +183,30 @@ export default function LoginPage() {
         toast.error(translateError("registration", { response: { data: { code: error?.code } } }))
         return
       }
+      // Email já cadastrado e confirmado (senha ou Google): o GoTrue devolve um
+      // usuário "falso" com identities vazio, sem sessão e sem mandar email.
+      if (data.user && data.user.identities?.length === 0) {
+        setPendingConfirmationEmail(null)
+        setExistingAccountEmail(email)
+        goToLogin(email)
+        toast.error(tAuth("emailAlreadyRegistered"))
+        return
+      }
       // Com a confirmação de e-mail habilitada, o GoTrue cria o usuário sem sessão.
       // A finalização depende de uma sessão autenticada e só deve ocorrer após a confirmação.
       if (!data.session) {
-        setPendingConfirmationEmail(registerEmail)
+        setExistingAccountEmail(null)
+        setPendingConfirmationEmail(email)
         setResendCooldown(60)
-        setLoginEmail(registerEmail)
-        setLoginPassword("")
-        setActiveTab("login")
-        toast.success(tAuth("confirmEmailSent", { email: registerEmail }))
+        goToLogin(email)
+        toast.success(tAuth("confirmEmailSent", { email }))
         return
       }
       await api.post("/auth/complete-signup", {
-        name: registerName,
+        name,
         termsAccepted,
-        tradeName: registerEstablishment,
-        registrationKey: hasKey ? registrationKey : "",
+        tradeName,
+        registrationKey: key,
       })
       // Sem navigate() explícito aqui: o useEffect de isAuthenticated/user
       // acima já decide certo entre /dashboard e /plan a partir do status
@@ -240,6 +281,15 @@ export default function LoginPage() {
           </TabsList>
           
           <TabsContent value="login">
+            {existingAccountEmail && (
+              <Alert className="mb-4">
+                <AlertTitle>{tAuth("existingAccountTitle")}</AlertTitle>
+                <AlertDescription className="space-y-2">
+                  <span className="block">{tAuth("existingAccountDescription", { email: existingAccountEmail })}</span>
+                  <a href="/forgot-password" className="underline block">{tAuth("forgotPasswordLink")}</a>
+                </AlertDescription>
+              </Alert>
+            )}
             {pendingConfirmationEmail && (
               <Alert className="mb-4">
                 <AlertTitle>{tAuth("confirmEmailTitle")}</AlertTitle>
@@ -359,9 +409,12 @@ export default function LoginPage() {
                       id="register-password" 
                       type="password" 
                       required 
+                      minLength={MIN_PASSWORD_LENGTH}
+                      aria-describedby="register-password-hint"
                       value={registerPassword}
                       onChange={(e) => setRegisterPassword(e.target.value)}
                     />
+                    <p id="register-password-hint" className="text-xs text-muted-foreground">{tAuth("passwordHint", { min: MIN_PASSWORD_LENGTH })}</p>
                   </div>
 
                   <div className="flex items-center space-x-2 py-2">

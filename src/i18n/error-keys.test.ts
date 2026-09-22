@@ -16,7 +16,7 @@ describe("structured API error outcomes", () => {
   })
 
   test("maps lowercase auth-js codes while retaining legacy mappings", () => {
-    expect(getErrorTranslationKey("login", "invalid_credentials")).toEqual({ namespace: "auth", key: "loginFailure" })
+    expect(getErrorTranslationKey("login", "invalid_credentials")).toEqual({ namespace: "auth", key: "invalidCredentials" })
     expect(getErrorTranslationKey("registration", "email_exists")).toEqual({ namespace: "auth", key: "emailAlreadyRegistered" })
     expect(getErrorTranslationKey("registration", "weak_password")).toEqual({ namespace: "auth", key: "weakPassword" })
     expect(getErrorTranslationKey("registration", "unexpected_failure")).toEqual({ namespace: "errors", key: "generic" })
@@ -26,6 +26,15 @@ describe("structured API error outcomes", () => {
     expect(getErrorTranslationKey("login", "email_not_confirmed")).toEqual({ namespace: "auth", key: "emailNotConfirmed" })
     expect(getErrorTranslationKey("registration", "over_email_send_rate_limit")).toEqual({ namespace: "auth", key: "authRateLimited" })
     expect(getErrorTranslationKey("registration", "user_already_exists")).toEqual({ namespace: "auth", key: "emailAlreadyRegistered" })
+  })
+
+  test("covers invalid email, key rate limit and password reset outcomes", () => {
+    expect(getErrorTranslationKey("registration", "validation_failed")).toEqual({ namespace: "auth", key: "invalidEmail" })
+    expect(getErrorTranslationKey("login", "validation_failed")).toEqual({ namespace: "auth", key: "invalidEmail" })
+    expect(getErrorTranslationKey("registration", "AUTH_RATE_LIMITED")).toEqual({ namespace: "auth", key: "authRateLimited" })
+    expect(getErrorTranslationKey("passwordReset", "same_password")).toEqual({ namespace: "auth", key: "samePassword" })
+    expect(getErrorTranslationKey("passwordReset", "weak_password")).toEqual({ namespace: "auth", key: "weakPassword" })
+    expect(getErrorTranslationKey("passwordReset", "unexpected_failure")).toEqual({ namespace: "auth", key: "resetPasswordFailed" })
   })
 
   test("supports operation-specific dashboard outcomes without reading server text", () => {

@@ -104,7 +104,7 @@ describe('LoginPage register form', () => {
 
   it('treats a signup awaiting email confirmation as successful without completing it', async () => {
     const user = userEvent.setup()
-    const signUpMock = vi.fn().mockResolvedValue({ data: { session: null }, error: null })
+    const signUpMock = vi.fn().mockResolvedValue({ data: { session: null, user: { identities: [{ id: '1' }] } }, error: null })
     const restoreSignUp = replaceProperty(authClient, 'signUp', signUpMock as typeof authClient.signUp)
     const postMock = vi.fn()
     const restore = replaceProperty(api, 'post', postMock as typeof api.post)
@@ -133,23 +133,35 @@ describe('LoginPage register form', () => {
     }
   })
 
-  it('stores the registration key in the signup metadata so it survives email confirmation', async () => {
+  async function fillRegisterForm(
+    user: ReturnType<typeof userEvent.setup>,
+    fields: { name?: string; establishment?: string; email?: string; password?: string; key?: string } = {},
+  ) {
+    await user.click(screen.getByRole('tab', { name: 'Register' }))
+    await user.type(screen.getByLabelText('Manager name'), fields.name ?? 'Ana')
+    await user.type(screen.getByLabelText('Establishment name'), fields.establishment ?? 'Bar da Ana')
+    await user.type(screen.getByLabelText('Email'), fields.email ?? 'ana@example.com')
+    await user.type(screen.getByLabelText('Password'), fields.password ?? 'senha123')
+    if (fields.key !== undefined) {
+      await user.click(screen.getByRole('checkbox', { name: /free access/i }))
+      await user.type(screen.getByLabelText('Registration key'), fields.key)
+    }
+    await user.click(screen.getByRole('checkbox', { name: /I have read and accept/i }))
+    await user.click(screen.getByRole('button', { name: /Create/i }))
+  }
+
+  it('validates the registration key before signup and stores it in the metadata so it survives email confirmation', async () => {
     const user = userEvent.setup()
-    const signUpMock = vi.fn().mockResolvedValue({ data: { session: null }, error: null })
+    const signUpMock = vi.fn().mockResolvedValue({ data: { session: null, user: { identities: [{ id: '1' }] } }, error: null })
     const restoreSignUp = replaceProperty(authClient, 'signUp', signUpMock as typeof authClient.signUp)
+    const postMock = vi.fn().mockResolvedValue({ data: { valid: true } })
+    const restorePost = replaceProperty(api, 'post', postMock as typeof api.post)
 
     try {
       renderPage()
-      await user.click(screen.getByRole('tab', { name: 'Register' }))
-      await user.type(screen.getByLabelText('Manager name'), 'Ana')
-      await user.type(screen.getByLabelText('Establishment name'), 'Bar da Ana')
-      await user.type(screen.getByLabelText('Email'), 'ana@example.com')
-      await user.type(screen.getByLabelText('Password'), 'senha123')
-      await user.click(screen.getByRole('checkbox', { name: /free access/i }))
-      await user.type(screen.getByLabelText('Registration key'), 'chave-secreta')
-      await user.click(screen.getByRole('checkbox', { name: /I have read and accept/i }))
-      await user.click(screen.getByRole('button', { name: /Create/i }))
+      await fillRegisterForm(user, { key: ' chave-secreta ' })
 
+      expect(postMock).toHaveBeenCalledWith('/auth/registration-key/validate', { registrationKey: 'chave-secreta' })
       expect(signUpMock).toHaveBeenCalledWith(expect.objectContaining({
         options: expect.objectContaining({
           data: { name: 'Ana', tradeName: 'Bar da Ana', termsAccepted: true, registrationKey: 'chave-secreta' },
@@ -157,6 +169,86 @@ describe('LoginPage register form', () => {
       }))
     } finally {
       restoreSignUp()
+      restorePost()
+    }
+  })
+
+  it('blocks the signup when the registration key is wrong (it used to silently become a Free account)', async () => {
+    const user = userEvent.setup()
+    const signUpMock = vi.fn()
+    const restoreSignUp = replaceProperty(authClient, 'signUp', signUpMock as typeof authClient.signUp)
+    const postMock = vi.fn().mockResolvedValue({ data: { valid: false } })
+    const restorePost = replaceProperty(api, 'post', postMock as typeof api.post)
+    const toastError = vi.spyOn(toast, 'error').mockImplementation(() => '')
+
+    try {
+      renderPage()
+      await fillRegisterForm(user, { key: 'chave-errada' })
+
+      await waitFor(() => expect(toastError).toHaveBeenCalledWith(
+        'Invalid registration key. Check the key or uncheck the option to create a Free account.',
+      ))
+      expect(signUpMock).not.toHaveBeenCalled()
+      expect(screen.getByRole('tab', { name: 'Register' }).getAttribute('data-state')).toBe('active')
+    } finally {
+      restoreSignUp()
+      restorePost()
+      toastError.mockRestore()
+    }
+  })
+
+  it('tells the user the email already has an account when GoTrue answers a repeated signup (identities: [])', async () => {
+    // GoTrue responde 200 sem mandar email (anti-enumeração) — antes a tela
+    // dizia "Conta criada! Enviamos um link", e o email nunca chegava.
+    const user = userEvent.setup()
+    const signUpMock = vi.fn().mockResolvedValue({ data: { session: null, user: { id: 'fake', identities: [] } }, error: null })
+    const restoreSignUp = replaceProperty(authClient, 'signUp', signUpMock as typeof authClient.signUp)
+    const toastError = vi.spyOn(toast, 'error').mockImplementation(() => '')
+    const toastSuccess = vi.spyOn(toast, 'success').mockImplementation(() => '')
+
+    try {
+      renderPage()
+      await fillRegisterForm(user)
+
+      expect(await screen.findByText('This email already has an account')).toBeInTheDocument()
+      expect(screen.getByText(/There is already an account for ana@example\.com/)).toBeInTheDocument()
+      expect(screen.queryByText('Confirm your email')).not.toBeInTheDocument()
+      expect(toastSuccess).not.toHaveBeenCalled()
+      expect(toastError).toHaveBeenCalledWith('This email is already registered. Sign in or reset your password.')
+      expect(screen.getByRole('tab', { name: 'Login' }).getAttribute('data-state')).toBe('active')
+      expect(screen.getByLabelText('Email')).toHaveValue('ana@example.com')
+    } finally {
+      restoreSignUp()
+      toastError.mockRestore()
+      toastSuccess.mockRestore()
+    }
+  })
+
+  it('rejects whitespace-only required fields and normalizes the email', async () => {
+    const user = userEvent.setup()
+    const signUpMock = vi.fn().mockResolvedValue({ data: { session: null, user: { identities: [{ id: '1' }] } }, error: null })
+    const restoreSignUp = replaceProperty(authClient, 'signUp', signUpMock as typeof authClient.signUp)
+    const toastError = vi.spyOn(toast, 'error').mockImplementation(() => '')
+
+    try {
+      renderPage()
+      await fillRegisterForm(user, { establishment: '   ' })
+      expect(toastError).toHaveBeenCalledWith('Fill in all required fields.')
+      expect(signUpMock).not.toHaveBeenCalled()
+
+      await user.clear(screen.getByLabelText('Establishment name'))
+      await user.type(screen.getByLabelText('Establishment name'), '  Bar da Ana  ')
+      await user.clear(screen.getByLabelText('Email'))
+      await user.type(screen.getByLabelText('Email'), '  Ana@Example.COM ')
+      await user.click(screen.getByRole('button', { name: /Create/i }))
+
+      expect(signUpMock).toHaveBeenCalledWith(expect.objectContaining({
+        email: 'ana@example.com',
+        options: expect.objectContaining({ data: expect.objectContaining({ tradeName: 'Bar da Ana' }) }),
+      }))
+    } finally {
+      restoreSignUp()
+      toastError.mockRestore()
     }
   })
 
