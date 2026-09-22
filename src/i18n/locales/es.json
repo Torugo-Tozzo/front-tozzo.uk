@@ -429,6 +429,7 @@
       "owner": "Propietario",
       "manager": "Gerente",
       "employee": "Empleado",
+      "cook": "Cocinero",
       "customer": "Cliente"
     },
     "roleLabel": "Rol"
@@ -627,6 +628,7 @@
   "status": {
     "requested": "Solicitado",
     "inPreparation": "En preparación",
+    "ready": "Listo para servir",
     "delivered": "Entregado",
     "active": "Activo",
     "inactive": "Inactivo",

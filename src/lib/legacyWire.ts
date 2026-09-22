@@ -72,6 +72,8 @@ const fieldToLegacy: Record<string, string> = {
   statusUrl: 'status_url',
   downloadUrl: 'download_url',
   taskId: 'task_id',
+  paymentMethod: 'paymentMethod',
+  kitchenReadyAt: 'kitchenReadyAt',
 };
 
 const legacyToField: Record<string, string> = Object.fromEntries(
@@ -85,6 +87,8 @@ const legacyRoles: Record<string, UserRole> = {
   MANAGER: 'MANAGER',
   FUNCIONARIO: 'EMPLOYEE',
   EMPLOYEE: 'EMPLOYEE',
+  COZINHEIRO: 'COOK',
+  COOK: 'COOK',
   CLIENTE: 'CUSTOMER',
   CUSTOMER: 'CUSTOMER',
 };
@@ -93,6 +97,7 @@ const canonicalRoles: Record<UserRole, string> = {
   OWNER: 'DONO',
   MANAGER: 'GERENTE',
   EMPLOYEE: 'FUNCIONARIO',
+  COOK: 'COZINHEIRO',
   CUSTOMER: 'CLIENTE',
 };
 

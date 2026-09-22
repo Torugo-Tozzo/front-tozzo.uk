@@ -429,6 +429,7 @@
       "owner": "मालिक",
       "manager": "प्रबंधक",
       "employee": "कर्मचारी",
+      "cook": "रसोइया",
       "customer": "ग्राहक"
     },
     "roleLabel": "भूमिका"
@@ -627,6 +628,7 @@
   "status": {
     "requested": "अनुरोधित",
     "inPreparation": "तैयारी में",
+    "ready": "परोसने के लिए तैयार",
     "delivered": "डिलीवर किया गया",
     "active": "सक्रिय",
     "inactive": "निष्क्रिय",

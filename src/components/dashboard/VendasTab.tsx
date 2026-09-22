@@ -24,7 +24,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { formatCurrencyBRL, formatDateTime, formatNumber } from "@/i18n/format"
 import { normalizeLocale } from "@/i18n/locale"
 import { getErrorTranslationKey, type ErrorContext } from "@/i18n/error-keys"
-import type { Sale, SaleItem } from "@/domain/models"
+import { paymentMethodLabels, type Sale, type SaleItem } from "@/domain/models"
 
 type SaleFilters = {
   customerName: string
@@ -327,6 +327,7 @@ export function VendasTab() {
         title={isReadOnlyModal ? tSales("details") : tSales("new")}
         initialClientName={currentSaleClient}
         initialItems={currentSaleItems}
+        mergeSameProducts
         readOnly={isReadOnlyModal}
         onCancelSale={isReadOnlyModal && currentSaleId ? async () => handleCancelSale(currentSaleId) : undefined}
       />
@@ -355,6 +356,7 @@ export function VendasTab() {
                 <TableHead>{tCommon("customer")}</TableHead>
                 <TableHead>{tCommon("createdBy")}</TableHead>
                 <TableHead>{tCommon("date")}</TableHead>
+                <TableHead>Pagamento</TableHead>
                 <TableHead className="text-right">{tCommon("total")}</TableHead>
                 <TableHead className="text-right">{tCommon("actions.label")}</TableHead>
               </TableRow>
@@ -376,7 +378,7 @@ export function VendasTab() {
                 ))
               ) : sales.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                  <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
                     {tSales("empty")}
                   </TableCell>
                 </TableRow>
@@ -397,6 +399,7 @@ export function VendasTab() {
                     </TableCell>
                     <TableCell className="text-muted-foreground">{sale.seller?.name || tCommon("notInformed")}</TableCell>
                     <TableCell>{sale.soldAt ? formatDateTime(sale.soldAt, activeLocale) : tCommon("notInformed")}</TableCell>
+                    <TableCell>{sale.paymentMethod ? paymentMethodLabels[sale.paymentMethod] : tCommon("notInformed")}</TableCell>
                     <TableCell className="text-right">
                       {formatCurrencyBRL(sale.total, activeLocale)}
                     </TableCell>
@@ -417,6 +420,7 @@ export function VendasTab() {
                               })),
                               total: sale.total,
                               totalLabel: tPrinter("receiptTotal"),
+                              paymentLabel: sale.paymentMethod ? paymentMethodLabels[sale.paymentMethod] : tCommon("notInformed"),
                               locale: activeLocale,
                             })
                           }

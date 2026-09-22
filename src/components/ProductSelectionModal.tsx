@@ -24,7 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { OrderItemStatus, Product, ProductType } from "@/domain/models";
+import type { OrderItemStatus, PaymentMethod, Product, ProductType } from "@/domain/models";
 import { formatCount, formatCurrencyBRL, formatNumber } from "@/i18n/format";
 import { getCatalogLabel } from "@/i18n/labels";
 import { normalizeLocale } from "@/i18n/locale";
@@ -38,12 +38,13 @@ export type SelectedItem = {
   price: number;
   unitPrice: number;
   status?: OrderItemStatus;
+  localKey?: string;
 };
 
 interface ProductSelectionModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: (customerName: string, items: { productId: number | string; quantity: number; unitPrice?: number }[]) => Promise<void>;
+  onConfirm: (customerName: string, items: { id?: number | string; productId: number | string; quantity: number; unitPrice?: number }[]) => Promise<void>;
   title: string;
   initialClientName?: string;
   initialItems?: {
@@ -56,7 +57,8 @@ interface ProductSelectionModalProps {
     status?: OrderItemStatus;
   }[];
   isEditing?: boolean; // If editing, we might handle things differently
-  onCloseOrder?: () => Promise<void>;
+  mergeSameProducts?: boolean;
+  onCloseOrder?: (paymentMethod: PaymentMethod | null) => Promise<void>;
   onChangeItemStatus?: (itemId: number | string, newStatus: OrderItemStatus) => Promise<void> | void;
   onCancelSale?: () => Promise<void>;
   readOnly?: boolean;
@@ -73,6 +75,7 @@ export function ProductSelectionModal({
   initialClientName = "",
   initialItems = DEFAULT_ITEMS,
   isEditing = false,
+  mergeSameProducts = false,
   onCloseOrder,
   onChangeItemStatus,
   onCancelSale,
@@ -107,6 +110,7 @@ export function ProductSelectionModal({
   const [productTypes, setProductTypes] = useState<ProductType[]>([]);
   const [selectedItems, setSelectedItems] = useState<SelectedItem[]>([]);
   const [clientName, setClientName] = useState(initialClientName);
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isClosingOrder, setIsClosingOrder] = useState(false);
   const [isCancellingSale, setIsCancellingSale] = useState(false);
@@ -133,6 +137,7 @@ export function ProductSelectionModal({
           const price = item.price != null ? Number(item.price) : Number(item.unitPrice ?? 0);
           return {
             id: item.id,
+            localKey: item.id != null ? String(item.id) : `draft-${item.productId}`,
             productId: item.productId,
             quantity: item.quantity,
             name: item.name ?? tProducts("selection.fallbackProduct"),
@@ -207,29 +212,30 @@ export function ProductSelectionModal({
 
   const handleAddItem = (product: Product) => {
     setSelectedItems((prev) => {
-      const existing = prev.find((item) => item.productId === product.id);
-      if (existing) {
-        return prev.map((item) =>
-          item.productId === product.id
+      if (mergeSameProducts) {
+        const existingItem = prev.find((item) => item.productId === product.id);
+        if (existingItem) {
+          return prev.map((item) => item.localKey === existingItem.localKey
             ? { ...item, quantity: item.quantity + 1 }
-            : item
-        );
+            : item);
+        }
       }
+
       return [
         ...prev,
-        { productId: product.id, quantity: 1, name: product.name, price: product.price, unitPrice: Number(product.price || 0) },
+        { productId: product.id, quantity: 1, name: product.name, price: product.price, unitPrice: Number(product.price || 0), localKey: `draft-${Date.now()}-${prev.length}` },
       ];
     });
   };
 
-  const handleRemoveItem = (productId: number | string) => {
-    setSelectedItems((prev) => prev.filter((item) => item.productId !== productId));
+  const handleRemoveItem = (localKey: string | undefined, productId: number | string) => {
+    setSelectedItems((prev) => prev.filter((item) => localKey ? item.localKey !== localKey : item.productId !== productId));
   };
 
-  const handleUpdateQuantity = (productId: number | string, delta: number) => {
+  const handleUpdateQuantity = (localKey: string | undefined, productId: number | string, delta: number) => {
     setSelectedItems((prev) =>
       prev.map((item) => {
-        if (item.productId === productId) {
+        if (localKey ? item.localKey === localKey : item.productId === productId) {
           const newQuantity = Math.max(1, item.quantity + delta);
           return { ...item, quantity: newQuantity };
         }
@@ -264,7 +270,8 @@ export function ProductSelectionModal({
     setIsLoading(true);
     try {
       const finalCustomerName = clientName.trim();
-      const itemsPayload = selectedItems.map(({ productId, quantity, unitPrice, price }) => ({
+      const itemsPayload = selectedItems.map(({ id, productId, quantity, unitPrice, price }) => ({
+        ...(id != null ? { id } : {}),
         productId,
         quantity,
         unitPrice: unitPrice != null ? Number(unitPrice) : Number(price || 0),
@@ -283,7 +290,7 @@ export function ProductSelectionModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col">
+      <DialogContent className="w-[80vw] max-w-[80vw] max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>
@@ -409,8 +416,8 @@ export function ProductSelectionModal({
                 {selectedItems.length === 0 ? (
                     <p className="text-gray-500 dark:text-gray-400 text-center py-8">{tProducts("selection.noItems")}</p>
                   ) : (
-                    selectedItems.map((item) => (
-                      <div key={item.productId} className="flex items-center justify-between p-2 bg-white dark:bg-gray-800 rounded shadow-sm border dark:border-gray-700">
+                    selectedItems.map((item, index) => (
+                      <div key={item.localKey ?? `${item.productId}-${index}`} className="flex items-center justify-between p-2 bg-white dark:bg-gray-800 rounded shadow-sm border dark:border-gray-700">
                         <div className="flex-1">
                           <p className="font-medium">{item.name}</p>
                           <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -437,7 +444,7 @@ export function ProductSelectionModal({
                                 className="h-6 w-6"
                                 aria-label={tProducts("selection.decreaseQuantity")}
                                 title={tProducts("selection.decreaseQuantity")}
-                                onClick={() => handleUpdateQuantity(item.productId, -1)}
+                                onClick={() => handleUpdateQuantity(item.localKey, item.productId, -1)}
                               >
                                 <Minus className="h-3 w-3" />
                               </Button>
@@ -448,7 +455,7 @@ export function ProductSelectionModal({
                                 className="h-6 w-6"
                                 aria-label={tProducts("selection.increaseQuantity")}
                                 title={tProducts("selection.increaseQuantity")}
-                                onClick={() => handleUpdateQuantity(item.productId, 1)}
+                                onClick={() => handleUpdateQuantity(item.localKey, item.productId, 1)}
                               >
                                 <Plus className="h-3 w-3" />
                               </Button>
@@ -458,7 +465,7 @@ export function ProductSelectionModal({
                                 className="h-6 w-6 text-red-500"
                                 aria-label={tProducts("selection.removeItem")}
                                 title={tProducts("selection.removeItem")}
-                                onClick={() => handleRemoveItem(item.productId)}
+                                onClick={() => handleRemoveItem(item.localKey, item.productId)}
                               >
                                 <Trash2 className="h-4 w-4" />
                               </Button>
@@ -483,13 +490,17 @@ export function ProductSelectionModal({
         <DialogFooter className="flex justify-between sm:justify-between">
           {isEditing && !readOnly && onCloseOrder && (
             <div className="mr-auto">
+              <label className="mr-2 text-sm" htmlFor="payment-method">Método de pagamento</label>
+              <select id="payment-method" className="mr-2 rounded border bg-background px-2 py-2 text-sm" value={paymentMethod ?? ''} onChange={(event) => setPaymentMethod((event.target.value || null) as PaymentMethod | null)} disabled={isClosingOrder}>
+                <option value="">Não Informado</option><option value="CASH">Dinheiro</option><option value="PIX">Pix</option><option value="CREDIT_CARD">Crédito</option><option value="DEBIT_CARD">Débito</option><option value="ON_ACCOUNT">Fiado</option>
+              </select>
               <Button
                 variant="outline"
                 onClick={async () => {
                   if (!(await confirm(tOrders("confirm.close")))) return
                   setIsClosingOrder(true)
                   try {
-                    await onCloseOrder()
+                    await onCloseOrder(paymentMethod)
                     onClose()
                   } catch (err) {
                     console.error("Error closing order", err)

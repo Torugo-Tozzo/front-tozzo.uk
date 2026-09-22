@@ -96,8 +96,8 @@ export default function EmployeesPage() {
 
   // Roles disponíveis para criação/edição baseado no cargo do usuário logado
   const getAvailableRoles = () => {
-    if (isOwner) return ["MANAGER", "EMPLOYEE", "CUSTOMER"]
-    if (isManager) return ["EMPLOYEE", "CUSTOMER"]
+    if (isOwner) return ["MANAGER", "EMPLOYEE", "COOK", "CUSTOMER"]
+    if (isManager) return ["EMPLOYEE", "COOK", "CUSTOMER"]
     return []
   }
 
@@ -238,7 +238,8 @@ export default function EmployeesPage() {
     switch (r) {
       case 'OWNER': return t("role.owner")
       case 'MANAGER': return t("role.manager")
-      case 'EMPLOYEE': return t("role.employee")
+    case 'EMPLOYEE': return t("role.employee")
+    case 'COOK': return t("role.cook")
       case 'CUSTOMER': return t("role.customer")
       default: return tCommon("notInformed")
     }

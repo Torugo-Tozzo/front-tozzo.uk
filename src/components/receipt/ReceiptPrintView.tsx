@@ -14,6 +14,7 @@ export interface ReceiptData {
   items: ReceiptLineItem[]
   total: number
   totalLabel: string
+  paymentLabel?: string
   locale?: string
 }
 
@@ -45,6 +46,7 @@ export function ReceiptPrintView({ data, width }: ReceiptPrintViewProps) {
         <span>{data.totalLabel}</span>
         <span>{formatCurrencyBRL(data.total, data.locale)}</span>
       </div>
+      {data.paymentLabel && <div className="receipt__meta">Forma de pagamento: {data.paymentLabel}</div>}
     </div>
   )
 }
