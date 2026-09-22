@@ -24,7 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { OrderItemStatus, Product, ProductType } from "@/domain/models";
+import type { OrderItemStatus, PaymentMethod, Product, ProductType } from "@/domain/models";
 import { formatCount, formatCurrencyBRL, formatNumber } from "@/i18n/format";
 import { getCatalogLabel } from "@/i18n/labels";
 import { normalizeLocale } from "@/i18n/locale";
@@ -56,7 +56,7 @@ interface ProductSelectionModalProps {
     status?: OrderItemStatus;
   }[];
   isEditing?: boolean; // If editing, we might handle things differently
-  onCloseOrder?: () => Promise<void>;
+  onCloseOrder?: (paymentMethod: PaymentMethod | null) => Promise<void>;
   onChangeItemStatus?: (itemId: number | string, newStatus: OrderItemStatus) => Promise<void> | void;
   onCancelSale?: () => Promise<void>;
   readOnly?: boolean;
@@ -107,6 +107,7 @@ export function ProductSelectionModal({
   const [productTypes, setProductTypes] = useState<ProductType[]>([]);
   const [selectedItems, setSelectedItems] = useState<SelectedItem[]>([]);
   const [clientName, setClientName] = useState(initialClientName);
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isClosingOrder, setIsClosingOrder] = useState(false);
   const [isCancellingSale, setIsCancellingSale] = useState(false);
@@ -483,13 +484,17 @@ export function ProductSelectionModal({
         <DialogFooter className="flex justify-between sm:justify-between">
           {isEditing && !readOnly && onCloseOrder && (
             <div className="mr-auto">
+              <label className="mr-2 text-sm" htmlFor="payment-method">Método de pagamento</label>
+              <select id="payment-method" className="mr-2 rounded border bg-background px-2 py-2 text-sm" value={paymentMethod ?? ''} onChange={(event) => setPaymentMethod((event.target.value || null) as PaymentMethod | null)} disabled={isClosingOrder}>
+                <option value="">Não Informado</option><option value="CASH">Dinheiro</option><option value="PIX">Pix</option><option value="CREDIT_CARD">Crédito</option><option value="DEBIT_CARD">Débito</option><option value="ON_ACCOUNT">Fiado</option>
+              </select>
               <Button
                 variant="outline"
                 onClick={async () => {
                   if (!(await confirm(tOrders("confirm.close")))) return
                   setIsClosingOrder(true)
                   try {
-                    await onCloseOrder()
+                    await onCloseOrder(paymentMethod)
                     onClose()
                   } catch (err) {
                     console.error("Error closing order", err)

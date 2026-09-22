@@ -29,5 +29,9 @@ export default function ProtectedRoute({ allowPending = false }: ProtectedRouteP
     }
   }
 
+  if (user?.role === 'COOK' && !window.location.pathname.startsWith('/dashboard/kitchen')) {
+    return <Navigate to="/dashboard/kitchen" replace />;
+  }
+
   return <Outlet />;
 }

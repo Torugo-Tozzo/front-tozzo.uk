@@ -25,7 +25,7 @@ import { useConfirm } from "@/contexts/ConfirmContext"
 import { formatCurrencyBRL, formatDateTime, formatNumber } from "@/i18n/format"
 import { normalizeLocale } from "@/i18n/locale"
 import { getErrorTranslationKey, type ErrorContext } from "@/i18n/error-keys"
-import type { Order, OrderItem, OrderItemStatus } from "@/domain/models"
+import type { Order, OrderItem, OrderItemStatus, PaymentMethod } from "@/domain/models"
 
 type OrderFilters = {
   customerName: string
@@ -285,8 +285,8 @@ export function PedidosTab() {
     }
   }
 
-  const handleCloseOrder = async (id: number | string) => {
-    await api.post(`/pedidos/${id}/status`, { isOpen: false })
+  const handleCloseOrder = async (id: number | string, paymentMethod: PaymentMethod | null) => {
+    await api.post(`/pedidos/${id}/status`, { isOpen: false, paymentMethod })
     await fetchOrders()
   }
 
@@ -318,7 +318,7 @@ export function PedidosTab() {
         initialClientName={currentOrder?.customerName || ""}
         initialItems={currentOrderItems}
         isEditing={!!currentOrder}
-        onCloseOrder={currentOrder ? () => handleCloseOrder(currentOrder.id) : undefined}
+        onCloseOrder={currentOrder ? (paymentMethod) => handleCloseOrder(currentOrder.id, paymentMethod) : undefined}
         onChangeItemStatus={currentOrder ? (itemId, status) => handleChangeItemStatus(currentOrder.id, itemId, status) : undefined}
       />
 

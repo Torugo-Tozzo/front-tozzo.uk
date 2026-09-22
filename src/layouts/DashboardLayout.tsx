@@ -10,6 +10,7 @@ import {
   Users,
   Smartphone,
   BarChart3,
+  ChefHat,
   PanelLeftClose,
   PanelLeftOpen,
 } from "lucide-react"
@@ -68,6 +69,7 @@ export default function DashboardLayout() {
   }
 
   const navItems = [
+    ...(user?.role === "COOK" ? [{ href: "/dashboard/kitchen", label: "Cozinha", icon: ChefHat }] : []),
     { href: "/dashboard/orders", label: tNavigation("orders"), icon: ClipboardList },
     { href: "/dashboard/sales", label: tNavigation("sales"), icon: LayoutDashboard },
     { href: "/dashboard/products", label: tNavigation("products"), icon: ShoppingBag },
@@ -76,6 +78,7 @@ export default function DashboardLayout() {
     { href: "/dashboard/charts", label: tNavigation("reports"), icon: BarChart3 },
     { href: "/dashboard/settings", label: tNavigation("settings"), icon: Settings },
   ].filter((item) => {
+    if (user?.role === "COOK") return item.href === "/dashboard/kitchen"
     if (item.href === "/dashboard/charts") return user?.role !== "EMPLOYEE"
     if (item.href === "/dashboard/devices") return user?.role === "OWNER" || user?.role === "MANAGER"
     return true
@@ -181,13 +184,14 @@ export default function DashboardLayout() {
     }
   }, [])
 
-  useRealtimeEvents(['orders'], fetchCount)
+  useRealtimeEvents(user?.role === "COOK" ? [] : ['orders'], fetchCount)
 
   useEffect(() => {
+    if (user?.role === "COOK") return
     fetchCount()
     const iv = setInterval(fetchCount, 60000)
     return () => clearInterval(iv)
-  }, [fetchCount])
+  }, [fetchCount, user?.role])
 
   return (
     <div className="min-h-screen flex flex-col">

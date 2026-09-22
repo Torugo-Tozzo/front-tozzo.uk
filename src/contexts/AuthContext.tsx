@@ -28,6 +28,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       role: normalizeRole(userResponse.data.role),
       establishment: undefined,
     }
+    if (authenticatedUser.role === 'COOK' && userResponse.data.establishment) {
+      authenticatedUser.establishment = fromLegacyWire<unknown>(userResponse.data.establishment) as Establishment
+      return authenticatedUser
+    }
     try {
       const response = await api.get('/estabelecimentos')
       const raw = Array.isArray(response.data) ? response.data[0] : response.data

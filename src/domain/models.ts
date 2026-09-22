@@ -2,7 +2,8 @@ import type { EstablishmentCategory } from "@/lib/categorySeeds";
 
 export type EstablishmentStatus = 'ACTIVE' | 'PENDING_PAYMENT' | 'SUSPENDED';
 export type EstablishmentPlan = 'FREE' | 'PAGO' | 'PAGO_LEGADO' | 'ENTERPRISE';
-export type UserRole = 'OWNER' | 'MANAGER' | 'EMPLOYEE' | 'CUSTOMER';
+export type UserRole = 'OWNER' | 'MANAGER' | 'EMPLOYEE' | 'COOK' | 'CUSTOMER';
+export type PaymentMethod = 'CASH' | 'PIX' | 'CREDIT_CARD' | 'DEBIT_CARD' | 'ON_ACCOUNT';
 export type OrderItemStatus = 'REQUESTED' | 'IN_PREPARATION' | 'DELIVERED';
 
 export interface Establishment {
@@ -57,6 +58,7 @@ export interface OrderItem {
   productId: number | string;
   quantity: number;
   status: OrderItemStatus;
+  kitchenReadyAt?: string | null;
   unitPriceAtOrder?: number | null;
   product?: Product | null;
 }
@@ -93,6 +95,7 @@ export interface Sale {
   createdByName?: string | null;
   seller?: User | null;
   items?: SaleItem[];
+  paymentMethod?: PaymentMethod | null;
   deletedAt?: string | null;
 }
 
