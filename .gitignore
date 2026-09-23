@@ -147,3 +147,9 @@ vite.config.ts.timestamp-*
 /audit-context/
 
 .worktrees/
+
+# Playwright browser sessions and test artifacts
+.playwright/
+.playwright-cli/
+test-results/
+playwright-report/

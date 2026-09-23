@@ -67,8 +67,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     let mounted = true
-    const { data: { subscription } } = authClient.onAuthStateChange(async (_event: string, session: { access_token: string } | null) => {
+    let authEvent = 0
+    const { data: { subscription } } = authClient.onAuthStateChange((_event: string, session: { access_token: string } | null) => {
       if (!mounted) return
+      const currentEvent = ++authEvent
       if (!session) {
         setIsAuthenticated(false)
         setUser(null)
@@ -77,10 +79,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
       setIsAuthenticated(true)
       setIsLoading(true)
-      await refreshUserProfile()
-      if (mounted) setIsLoading(false)
+      // O callback do GoTrue precisa terminar antes de consultar getSession no interceptor da API.
+      window.setTimeout(() => {
+        if (!mounted || currentEvent !== authEvent) return
+        void refreshUserProfile().finally(() => {
+          if (mounted && currentEvent === authEvent) setIsLoading(false)
+        })
+      }, 0)
     })
-    return () => { mounted = false; subscription.unsubscribe() }
+    return () => { mounted = false; authEvent += 1; subscription.unsubscribe() }
   }, [])
 
   const logout = async () => {

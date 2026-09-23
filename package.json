@@ -9,6 +9,9 @@
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "test": "bun test --parallel",
+    "test:e2e": "PLAYWRIGHT_BROWSERS_PATH=0 playwright test",
+    "browser:install": "PLAYWRIGHT_BROWSERS_PATH=0 playwright install chromium",
+    "browse": "playwright cli",
     "i18n:check": "node scripts/check-i18n.mjs"
   },
   "dependencies": {
@@ -39,6 +42,7 @@
   },
   "devDependencies": {
     "@happy-dom/global-registrator": "^20.11.6",
+    "@playwright/test": "^1.63.0",
     "@testing-library/jest-dom": "^7.0.0",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.3",
