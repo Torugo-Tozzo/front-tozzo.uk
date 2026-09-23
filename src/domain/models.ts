@@ -2,7 +2,7 @@ import type { EstablishmentCategory } from "@/lib/categorySeeds";
 
 export type EstablishmentStatus = 'ACTIVE' | 'PENDING_PAYMENT' | 'SUSPENDED';
 export type EstablishmentPlan = 'FREE' | 'PAGO' | 'PAGO_LEGADO' | 'ENTERPRISE';
-export type UserRole = 'OWNER' | 'MANAGER' | 'EMPLOYEE' | 'COOK' | 'CUSTOMER';
+export type UserRole = 'OWNER' | 'MANAGER' | 'EMPLOYEE' | 'COOK' | 'DRIVER' | 'CUSTOMER';
 export type PaymentMethod = 'CASH' | 'PIX' | 'CREDIT_CARD' | 'DEBIT_CARD' | 'ON_ACCOUNT';
 export const paymentMethodLabels: Record<PaymentMethod, string> = { CASH: 'Dinheiro', PIX: 'Pix', CREDIT_CARD: 'Crédito', DEBIT_CARD: 'Débito', ON_ACCOUNT: 'Fiado' };
 export type OrderItemStatus = 'REQUESTED' | 'IN_PREPARATION' | 'READY' | 'DELIVERED';
@@ -69,6 +69,13 @@ export interface Order {
   customerName?: string | null;
   total: number;
   isOpen: boolean;
+  status?: 'OPEN' | 'DELIVERING' | 'CLOSED';
+  isDelivery?: boolean;
+  deliveryAddress?: string | null;
+  deliveryStartedAt?: string | null;
+  driverId?: string | null;
+  externalDriverName?: string | null;
+  externalDriverPhone?: string | null;
   openedAt?: string | null;
   updatedAt?: string | null;
   createdBy?: number | string | null;

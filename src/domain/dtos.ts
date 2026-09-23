@@ -7,7 +7,7 @@
  */
 export type WireId = number | string;
 
-export type LegacyUserRole = 'DONO' | 'GERENTE' | 'FUNCIONARIO' | 'CLIENTE';
+export type LegacyUserRole = 'DONO' | 'GERENTE' | 'FUNCIONARIO' | 'COZINHEIRO' | 'ENTREGADOR' | 'CLIENTE';
 export type LegacyEstablishmentStatus = 'ATIVO' | 'PENDENTE_PAGAMENTO' | 'SUSPENSO';
 export type LegacyOrderStatus = 'ABERTO' | 'EM_PREPARO' | 'ENTREGANDO' | 'FECHADO' | 'NAO_FECHADOS';
 
@@ -58,6 +58,8 @@ export interface LegacyOrderDto {
   cliente?: string | null;
   total?: number | string;
   status?: LegacyOrderStatus | string;
+  isDelivery?: boolean;
+  deliveryAddress?: string | null;
   dataCriacao?: string | null;
   updatedAt?: string | null;
   vendedor?: LegacyUserDto | null;

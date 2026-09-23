@@ -15,12 +15,12 @@ const api = axios.create({
 });
 
 export function serializeRequestData(url: string | undefined, value: unknown): unknown {
-  if (url?.includes('/cozinha/')) return value;
+  if (url?.includes('/cozinha/') || url?.includes('/entregas/')) return value;
   return toLegacyWire(value, resolveWireContext(url));
 }
 
 export function normalizeResponseData(url: string | undefined, value: unknown): unknown {
-  if (url?.includes('/cozinha/')) return value;
+  if (url?.includes('/cozinha/') || url?.includes('/entregas/')) return value;
   return fromLegacyWire(value, resolveWireContext(url));
 }
 

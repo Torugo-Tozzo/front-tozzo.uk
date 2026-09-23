@@ -96,8 +96,8 @@ export default function EmployeesPage() {
 
   // Roles disponíveis para criação/edição baseado no cargo do usuário logado
   const getAvailableRoles = () => {
-    if (isOwner) return ["MANAGER", "EMPLOYEE", "COOK", "CUSTOMER"]
-    if (isManager) return ["EMPLOYEE", "COOK", "CUSTOMER"]
+    if (isOwner) return ["MANAGER", "EMPLOYEE", "COOK", "DRIVER", "CUSTOMER"]
+    if (isManager) return ["EMPLOYEE", "COOK", "DRIVER", "CUSTOMER"]
     return []
   }
 
@@ -105,7 +105,7 @@ export default function EmployeesPage() {
   const canEditEmployee = (employee: Employee) => {
     if (employee.role === "OWNER") return false
     if (isOwner) return true
-    if (isManager && (employee.role === "EMPLOYEE" || employee.role === "CUSTOMER")) return true
+    if (isManager && (employee.role === "EMPLOYEE" || employee.role === "COOK" || employee.role === "DRIVER" || employee.role === "CUSTOMER")) return true
     return false
   }
 
@@ -113,7 +113,7 @@ export default function EmployeesPage() {
   const canDeleteEmployee = (employee: Employee) => {
     if (employee.role === "OWNER") return false
     if (isOwner) return true
-    if (isManager && (employee.role === "EMPLOYEE" || employee.role === "CUSTOMER")) return true
+    if (isManager && (employee.role === "EMPLOYEE" || employee.role === "COOK" || employee.role === "DRIVER" || employee.role === "CUSTOMER")) return true
     return false
   }
 
@@ -240,6 +240,7 @@ export default function EmployeesPage() {
       case 'MANAGER': return t("role.manager")
     case 'EMPLOYEE': return t("role.employee")
     case 'COOK': return t("role.cook")
+    case 'DRIVER': return t("role.driver")
       case 'CUSTOMER': return t("role.customer")
       default: return tCommon("notInformed")
     }

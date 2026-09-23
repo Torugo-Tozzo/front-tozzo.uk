@@ -44,9 +44,12 @@ export type SelectedItem = {
 interface ProductSelectionModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: (customerName: string, items: { id?: number | string; productId: number | string; quantity: number; unitPrice?: number }[]) => Promise<void>;
+  onConfirm: (customerName: string, items: { id?: number | string; productId: number | string; quantity: number; unitPrice?: number }[], delivery?: { isDelivery: boolean; deliveryAddress: string | null }) => Promise<void>;
   title: string;
+  description?: string;
   initialClientName?: string;
+  initialDelivery?: { isDelivery: boolean; deliveryAddress: string | null };
+  allowDelivery?: boolean;
   initialItems?: {
     id?: number | string;
     productId: number | string;
@@ -72,7 +75,10 @@ export function ProductSelectionModal({
   onClose,
   onConfirm,
   title,
+  description,
   initialClientName = "",
+  initialDelivery,
+  allowDelivery = false,
   initialItems = DEFAULT_ITEMS,
   isEditing = false,
   mergeSameProducts = false,
@@ -110,6 +116,8 @@ export function ProductSelectionModal({
   const [productTypes, setProductTypes] = useState<ProductType[]>([]);
   const [selectedItems, setSelectedItems] = useState<SelectedItem[]>([]);
   const [clientName, setClientName] = useState(initialClientName);
+  const [isDelivery, setIsDelivery] = useState(false);
+  const [deliveryAddress, setDeliveryAddress] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isClosingOrder, setIsClosingOrder] = useState(false);
@@ -127,6 +135,8 @@ export function ProductSelectionModal({
     if (!isOpen) return;
 
     setClientName(initialClientName);
+    setIsDelivery(initialDelivery?.isDelivery ?? false);
+    setDeliveryAddress(initialDelivery?.deliveryAddress ?? '');
     setSearchTerm("");
     setProductTypeFilter("");
 
@@ -150,11 +160,11 @@ export function ProductSelectionModal({
     } else {
       setSelectedItems([]);
     }
-  }, [isOpen, initialClientName, initialItems]);
+  }, [isOpen, initialClientName, initialItems, initialDelivery?.isDelivery, initialDelivery?.deliveryAddress]);
 
   // Tipos de produto para o filtro de categoria (poucos registros, carrega tudo de uma vez).
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen || readOnly) return;
     api.get("/tipos")
       .then((response) => {
         const payload = response.data;
@@ -165,7 +175,7 @@ export function ProductSelectionModal({
         console.error("Error fetching product types", error);
         toast.error(localizedError("loadProductTypes", error));
       });
-  }, [isOpen]);
+  }, [isOpen, readOnly]);
 
   // Busca produtos no servidor - nunca carrega o catalogo inteiro, so a
   // pagina atual (20 itens) filtrada por nome/categoria.
@@ -199,14 +209,14 @@ export function ProductSelectionModal({
   // Skeleton liga na hora (nao so quando o fetch comeca) - sem isso ficava
   // um instante mostrando "Nenhum produto encontrado" antes do debounce disparar.
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen || readOnly) return;
     setIsProductsLoading(true);
     const timer = setTimeout(() => {
       fetchProductsPage(1);
     }, 300);
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen, searchTerm, productTypeFilter]);
+  }, [isOpen, readOnly, searchTerm, productTypeFilter]);
 
   const productsTotalPages = Math.ceil(productsTotal / PRODUCTS_PAGE_SIZE);
 
@@ -266,6 +276,10 @@ export function ProductSelectionModal({
       toast.warning(tErrors("products.selectItems"));
       return;
     }
+    if (isDelivery && !deliveryAddress.trim()) {
+      toast.warning(tOrders('deliveryAddressRequired'));
+      return;
+    }
 
     setIsLoading(true);
     try {
@@ -277,7 +291,11 @@ export function ProductSelectionModal({
         unitPrice: unitPrice != null ? Number(unitPrice) : Number(price || 0),
       }));
       
-      await onConfirm(finalCustomerName, itemsPayload);
+      if (allowDelivery) {
+        await onConfirm(finalCustomerName, itemsPayload, { isDelivery, deliveryAddress: isDelivery ? deliveryAddress.trim() : null });
+      } else {
+        await onConfirm(finalCustomerName, itemsPayload);
+      }
       onClose();
     } catch (error) {
       console.error("Error confirming", error);
@@ -294,7 +312,7 @@ export function ProductSelectionModal({
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>
-            {tProducts("selection.description")}
+            {description ?? tProducts("selection.description")}
           </DialogDescription>
         </DialogHeader>
 
@@ -309,6 +327,11 @@ export function ProductSelectionModal({
               disabled={readOnly}
             />
           </div>
+          {allowDelivery && !readOnly ? <div className="space-y-2">
+            <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={isDelivery} onChange={event => setIsDelivery(event.target.checked)} />{tOrders('isDelivery')}</label>
+            {isDelivery && <div className="space-y-1"><Label htmlFor="delivery-address">{tOrders('deliveryAddress')}</Label><Input id="delivery-address" value={deliveryAddress} onChange={event => setDeliveryAddress(event.target.value)} maxLength={500} /></div>}
+          </div> : null}
+          {allowDelivery && readOnly && isDelivery && <div className="space-y-1"><Label>{tOrders('deliveryAddress')}</Label><p className="break-words text-sm">{deliveryAddress}</p></div>}
 
           <div className={`grid ${readOnly ? 'grid-cols-1' : 'md:grid-cols-2'} gap-6`}>
             {/* Product List */}

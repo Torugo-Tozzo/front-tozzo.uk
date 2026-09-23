@@ -5,6 +5,7 @@ test.use({ trace: 'off' })
 const modules = [
   { path: 'orders', endpoint: '/pedidos', table: true },
   { path: 'kitchen', endpoint: '/cozinha/pedidos', table: false },
+  { path: 'deliveries', endpoint: '/entregas/pedidos', table: false },
   { path: 'sales', endpoint: '/vendas', table: true },
   { path: 'products', endpoint: '/produtos', table: true },
   { path: 'employees', endpoint: '/usuarios', table: true },

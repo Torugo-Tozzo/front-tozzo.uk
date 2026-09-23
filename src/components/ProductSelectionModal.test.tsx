@@ -104,7 +104,7 @@ describe("ProductSelectionModal chrome", () => {
       </I18nProvider>,
     )
 
-    await waitFor(() => expect(getMock).toHaveBeenCalledWith("/tipos"))
+    expect(getMock).not.toHaveBeenCalled()
     expect(screen.getByRole("button", { name: "Cancel sale" })).toBeInTheDocument()
     expect(screen.getAllByRole("button", { name: "Close" }).length).toBeGreaterThan(0)
     expect(screen.queryByRole("button", { name: "Cancelar Venda" })).not.toBeInTheDocument()

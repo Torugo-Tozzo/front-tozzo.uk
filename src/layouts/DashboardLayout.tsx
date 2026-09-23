@@ -11,6 +11,7 @@ import {
   Smartphone,
   BarChart3,
   ChefHat,
+  Bike,
   PanelLeftClose,
   PanelLeftOpen,
 } from "lucide-react"
@@ -43,6 +44,9 @@ export default function DashboardLayout() {
   const [shouldRenderMobileMenu, setShouldRenderMobileMenu] = useState(false)
   const [openOrdersCount, setOpenOrdersCount] = useState<number>(0)
   const [kitchenOrdersCount, setKitchenOrdersCount] = useState<number>(0)
+  const [deliveryOrdersCount, setDeliveryOrdersCount] = useState<number>(0)
+  const canSeeKitchen = ["OWNER", "MANAGER", "EMPLOYEE", "COOK"].includes(user?.role ?? '')
+  const canSeeDeliveries = ["OWNER", "MANAGER", "EMPLOYEE", "DRIVER"].includes(user?.role ?? '')
 
   useEffect(() => {
     if (isMobileMenuOpen) {
@@ -71,7 +75,8 @@ export default function DashboardLayout() {
 
   const navItems = [
     { href: "/dashboard/orders", label: tNavigation("orders"), icon: ClipboardList },
-    ...(["OWNER", "MANAGER", "EMPLOYEE", "COOK"].includes(user?.role ?? '') ? [{ href: "/dashboard/kitchen", label: tNavigation("kitchen"), icon: ChefHat }] : []),
+    ...(canSeeKitchen ? [{ href: "/dashboard/kitchen", label: tNavigation("kitchen"), icon: ChefHat }] : []),
+    ...(canSeeDeliveries ? [{ href: "/dashboard/deliveries", label: tNavigation("deliveries"), icon: Bike }] : []),
     { href: "/dashboard/sales", label: tNavigation("sales"), icon: LayoutDashboard },
     { href: "/dashboard/products", label: tNavigation("products"), icon: ShoppingBag },
     { href: "/dashboard/employees", label: tNavigation("employees"), icon: Users },
@@ -80,6 +85,7 @@ export default function DashboardLayout() {
     { href: "/dashboard/settings", label: tNavigation("settings"), icon: Settings },
   ].filter((item) => {
     if (user?.role === "COOK") return item.href === "/dashboard/kitchen"
+    if (user?.role === "DRIVER") return item.href === "/dashboard/deliveries"
     if (item.href === "/dashboard/charts") return user?.role !== "EMPLOYEE"
     if (item.href === "/dashboard/devices") return user?.role === "OWNER" || user?.role === "MANAGER"
     return true
@@ -127,7 +133,7 @@ export default function DashboardLayout() {
                     <Icon className="h-5 w-5 shrink-0" />
                     {!collapsed && item.label}
                   </div>
-                  {!collapsed && (item.href === "/dashboard/orders" || item.href === "/dashboard/kitchen") && (
+                  {!collapsed && (item.href === "/dashboard/orders" || item.href === "/dashboard/kitchen" || item.href === "/dashboard/deliveries") && (
                     <div className="ml-2">
                       {/* invertido quando ativo (bg-primary ja e' preto/branco
                           igual o fundo do item ativo - sumiria) */}
@@ -135,7 +141,7 @@ export default function DashboardLayout() {
                         "inline-flex items-center justify-center text-xs font-medium rounded-full h-6 w-6",
                         isActive ? "bg-background text-foreground" : "bg-primary text-primary-foreground"
                       )}>
-                        {formatNumber(item.href === "/dashboard/kitchen" ? kitchenOrdersCount : openOrdersCount, i18n.language)}
+                        {formatNumber(item.href === "/dashboard/kitchen" ? kitchenOrdersCount : item.href === "/dashboard/deliveries" ? deliveryOrdersCount : openOrdersCount, i18n.language)}
                       </span>
                     </div>
                   )}
@@ -194,17 +200,26 @@ export default function DashboardLayout() {
     }
   }, [])
 
-  useRealtimeEvents(['orders'], () => { void fetchCount(); void fetchKitchenCount() })
+  const fetchDeliveryCount = useCallback(async () => {
+    try {
+      const response = await api.get('/entregas/pedidos', { params: { page: 1, limit: 1 } })
+      setDeliveryOrdersCount(Number(response.data?.total ?? 0))
+    } catch (err) { console.error('Error fetching delivery count', err) }
+  }, [])
+
+  useRealtimeEvents(['orders'], () => { if (user?.role !== 'COOK' && user?.role !== 'DRIVER') void fetchCount(); if (canSeeKitchen) void fetchKitchenCount(); if (canSeeDeliveries) void fetchDeliveryCount() })
 
   useEffect(() => {
-    if (user?.role !== "COOK") fetchCount()
-    fetchKitchenCount()
+    if (user?.role !== "COOK" && user?.role !== "DRIVER") fetchCount()
+    if (canSeeKitchen) fetchKitchenCount()
+    if (canSeeDeliveries) fetchDeliveryCount()
     const iv = setInterval(() => {
-      if (user?.role !== "COOK") void fetchCount()
-      void fetchKitchenCount()
+      if (user?.role !== "COOK" && user?.role !== "DRIVER") void fetchCount()
+      if (canSeeKitchen) void fetchKitchenCount()
+      if (canSeeDeliveries) void fetchDeliveryCount()
     }, 60000)
     return () => clearInterval(iv)
-  }, [fetchCount, fetchKitchenCount, user?.role])
+  }, [fetchCount, fetchKitchenCount, fetchDeliveryCount, user?.role, canSeeKitchen, canSeeDeliveries])
 
   return (
     <div className="min-h-screen flex flex-col">

@@ -49,7 +49,7 @@ function isOrdersEqual(a: Order[], b: Order[]) {
     const ai = a[i]
     const bi = b[i]
     if (ai.id !== bi.id) return false
-    if (ai.isOpen !== bi.isOpen) return false
+    if (ai.isOpen !== bi.isOpen || ai.status !== bi.status || ai.isDelivery !== bi.isDelivery || ai.deliveryAddress !== bi.deliveryAddress) return false
     if ((ai.updatedAt || ai.openedAt) !== (bi.updatedAt || bi.openedAt)) return false
     if (ai.total !== bi.total) return false
     if ((ai.items?.length ?? 0) !== (bi.items?.length ?? 0)) return false
@@ -255,12 +255,12 @@ export function PedidosTab() {
     setIsModalOpen(true)
   }
 
-  const handleModalConfirm = async (customerName: string, items: { id?: number | string; productId: number | string; quantity: number; unitPrice?: number }[]) => {
+  const handleModalConfirm = async (customerName: string, items: { id?: number | string; productId: number | string; quantity: number; unitPrice?: number }[], delivery?: { isDelivery: boolean; deliveryAddress: string | null }) => {
     try {
       if (currentOrder) {
-        await api.put(`/pedidos/${currentOrder.id}`, { customerName, items })
+        await api.put(`/pedidos/${currentOrder.id}`, { customerName, items, ...delivery })
       } else {
-        await api.post("/pedidos", { customerName, items })
+        await api.post("/pedidos", { customerName, items, ...delivery })
       }
 
       fetchOrders()
@@ -268,6 +268,7 @@ export function PedidosTab() {
     } catch (error) {
       console.error("Error saving order", error)
       toast.error(localizedError("saveOrder", error))
+      throw error
     }
   }
 
@@ -311,15 +312,17 @@ export function PedidosTab() {
       />
 
       <ProductSelectionModal
+        allowDelivery
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onConfirm={handleModalConfirm}
         title={currentOrder ? tOrders("edit") : tOrders("new")}
         initialClientName={currentOrder?.customerName || ""}
+        initialDelivery={{ isDelivery: currentOrder?.isDelivery ?? false, deliveryAddress: currentOrder?.deliveryAddress ?? null }}
         initialItems={currentOrderItems}
         isEditing={!!currentOrder}
-        onCloseOrder={currentOrder ? (paymentMethod) => handleCloseOrder(currentOrder.id, paymentMethod) : undefined}
-        onChangeItemStatus={currentOrder ? (itemId, status) => handleChangeItemStatus(currentOrder.id, itemId, status) : undefined}
+        onCloseOrder={currentOrder && !currentOrder.isDelivery ? (paymentMethod) => handleCloseOrder(currentOrder.id, paymentMethod) : undefined}
+        onChangeItemStatus={currentOrder && currentOrder.status !== 'DELIVERING' ? (itemId, status) => handleChangeItemStatus(currentOrder.id, itemId, status) : undefined}
       />
 
       <Card>
@@ -367,6 +370,7 @@ export function PedidosTab() {
                     <TableCell className="text-center">{formatNumber((page - 1) * limit + index + 1, activeLocale)}</TableCell>
                     <TableCell>
                       <div className="font-medium">{order.customerName || tCommon("notInformed")}</div>
+                      {order.isDelivery && <div className="text-xs text-muted-foreground">{tOrders(order.status === 'DELIVERING' ? 'statusDelivering' : 'isDelivery')}: {order.deliveryAddress}</div>}
                       {formatItemsSummary(order.items, activeLocale, tOrders("fallback.product")) && (
                         <div
                           className="text-sm text-muted-foreground truncate max-w-[280px]"
@@ -402,13 +406,13 @@ export function PedidosTab() {
                             })
                           }
                         />
-                        <IconButton icon={<Pencil className="h-4 w-4" />} label={tOrders("editLabel")} onClick={() => handleEditClick(order)} />
+                        <IconButton icon={<Pencil className="h-4 w-4" />} label={tOrders("editLabel")} onClick={() => handleEditClick(order)} disabled={order.status === 'DELIVERING'} />
                         <IconButton
                           icon={deletingId === order.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
                           label={tOrders("deleteLabel")}
                           className="text-destructive hover:text-destructive"
                           onClick={() => handleDeleteOrder(order.id)}
-                          disabled={deletingId === order.id}
+                          disabled={deletingId === order.id || order.status === 'DELIVERING'}
                         />
                       </div>
                     </TableCell>

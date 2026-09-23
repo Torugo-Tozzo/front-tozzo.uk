@@ -28,7 +28,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       role: normalizeRole(userResponse.data.role),
       establishment: undefined,
     }
-    if (authenticatedUser.role === 'COOK' && userResponse.data.establishment) {
+    if ((authenticatedUser.role === 'COOK' || authenticatedUser.role === 'DRIVER') && userResponse.data.establishment) {
       authenticatedUser.establishment = fromLegacyWire<unknown>(userResponse.data.establishment) as Establishment
       return authenticatedUser
     }
