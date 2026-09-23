@@ -263,6 +263,7 @@
   "navigation": {
     "dashboard": "Tableau de bord",
     "orders": "Commandes",
+    "kitchen": "Cuisine",
     "sales": "Ventes",
     "products": "Produits",
     "employees": "Employés",
@@ -301,6 +302,33 @@
       "close": "Voulez-vous vraiment clôturer cette commande ? Elle deviendra une vente."
     },
     "empty": "Aucune commande trouvée."
+  },
+  "kitchen": {
+    "pageTitle": "Cuisine — {{establishment}}",
+    "establishmentFallback": "Établissement",
+    "boardTitle": "Commandes en cuisine",
+    "loading": "Chargement de la cuisine…",
+    "loadError": "Impossible de charger la cuisine.",
+    "refreshError": "Impossible d'actualiser la cuisine.",
+    "conflict": "La commande a changé. La file sera bientôt actualisée.",
+    "stages": { "REQUESTED": "En attente", "IN_PREPARATION": "En préparation", "READY": "Prêt à servir" },
+    "unavailableProduct": "Produit indisponible",
+    "orderFallback": "Commande {{id}}",
+    "viewItemInfo": "Voir les détails de l'article",
+    "dragInstructions": "Faites glisser l'article vers une autre colonne avec le pointeur.",
+    "dragStart": "Article sélectionné.",
+    "dragOver": "Déplacez-le vers une autre colonne.",
+    "dragEnd": "Article déplacé.",
+    "dragCancel": "Déplacement annulé.",
+    "pageOrders": "Commandes sur cette page · {{page}}/{{total}}",
+    "infoTitle": "Détails de la commande",
+    "infoDescription": "Détails de l'article sélectionné en cuisine.",
+    "customer": "Client",
+    "order": "Commande",
+    "openedAt": "Passée le",
+    "item": "Article",
+    "stage": "Statut",
+    "notInformed": "Non renseigné"
   },
   "sales": {
     "title": "Ventes",

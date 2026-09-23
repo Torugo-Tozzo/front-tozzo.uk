@@ -263,6 +263,7 @@
   "navigation": {
     "dashboard": "डैशबोर्ड",
     "orders": "ऑर्डर",
+    "kitchen": "रसोई",
     "sales": "बिक्री",
     "products": "उत्पाद",
     "employees": "कर्मचारी",
@@ -301,6 +302,33 @@
       "close": "क्या आप यह ऑर्डर बंद करना चाहते हैं? यह बिक्री में बदल जाएगा।"
     },
     "empty": "कोई ऑर्डर नहीं मिला।"
+  },
+  "kitchen": {
+    "pageTitle": "रसोई — {{establishment}}",
+    "establishmentFallback": "प्रतिष्ठान",
+    "boardTitle": "रसोई के ऑर्डर",
+    "loading": "रसोई लोड हो रही है…",
+    "loadError": "रसोई लोड नहीं हो सकी।",
+    "refreshError": "रसोई अपडेट नहीं हो सकी।",
+    "conflict": "ऑर्डर बदल गया है। सूची जल्द अपडेट होगी।",
+    "stages": { "REQUESTED": "प्रतीक्षा में", "IN_PREPARATION": "तैयारी में", "READY": "परोसने के लिए तैयार" },
+    "unavailableProduct": "उत्पाद उपलब्ध नहीं है",
+    "orderFallback": "ऑर्डर {{id}}",
+    "viewItemInfo": "आइटम का विवरण देखें",
+    "dragInstructions": "पॉइंटर से आइटम को दूसरे कॉलम में खींचें।",
+    "dragStart": "आइटम चुना गया।",
+    "dragOver": "दूसरे कॉलम में ले जाएँ।",
+    "dragEnd": "आइटम स्थानांतरित हो गया।",
+    "dragCancel": "स्थानांतरण रद्द किया गया।",
+    "pageOrders": "इस पेज के ऑर्डर · {{page}}/{{total}}",
+    "infoTitle": "ऑर्डर का विवरण",
+    "infoDescription": "रसोई में चुने गए आइटम का विवरण।",
+    "customer": "ग्राहक",
+    "order": "ऑर्डर",
+    "openedAt": "ऑर्डर का समय",
+    "item": "आइटम",
+    "stage": "स्थिति",
+    "notInformed": "जानकारी नहीं"
   },
   "sales": {
     "title": "बिक्री",

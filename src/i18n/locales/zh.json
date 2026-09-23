@@ -263,6 +263,7 @@
   "navigation": {
     "dashboard": "仪表板",
     "orders": "订单",
+    "kitchen": "厨房",
     "sales": "销售",
     "products": "产品",
     "employees": "员工",
@@ -301,6 +302,33 @@
       "close": "确定要关闭此订单吗？它将变为销售记录。"
     },
     "empty": "未找到订单。"
+  },
+  "kitchen": {
+    "pageTitle": "厨房 — {{establishment}}",
+    "establishmentFallback": "店铺",
+    "boardTitle": "厨房订单",
+    "loading": "正在加载厨房…",
+    "loadError": "无法加载厨房订单。",
+    "refreshError": "无法刷新厨房订单。",
+    "conflict": "订单已更改。队列将很快更新。",
+    "stages": { "REQUESTED": "待制作", "IN_PREPARATION": "制作中", "READY": "待上菜" },
+    "unavailableProduct": "商品不可用",
+    "orderFallback": "订单 {{id}}",
+    "viewItemInfo": "查看商品详情",
+    "dragInstructions": "使用指针将商品拖到另一列。",
+    "dragStart": "已选中商品。",
+    "dragOver": "移动到另一列。",
+    "dragEnd": "商品已移动。",
+    "dragCancel": "已取消移动。",
+    "pageOrders": "本页订单 · {{page}}/{{total}}",
+    "infoTitle": "订单详情",
+    "infoDescription": "所选厨房商品的详细信息。",
+    "customer": "顾客",
+    "order": "订单",
+    "openedAt": "下单时间",
+    "item": "商品",
+    "stage": "状态",
+    "notInformed": "未提供"
   },
   "sales": {
     "title": "销售",

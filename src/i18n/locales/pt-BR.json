@@ -276,6 +276,7 @@
   "navigation": {
     "dashboard": "Dashboard",
     "orders": "Pedidos",
+    "kitchen": "Cozinha",
     "sales": "Vendas",
     "products": "Produtos",
     "employees": "Funcionários",
@@ -314,6 +315,33 @@
       "close": "Tem certeza que deseja fechar este pedido? Ele será transformado em venda."
     },
     "empty": "Nenhum pedido encontrado."
+  },
+  "kitchen": {
+    "pageTitle": "Cozinha — {{establishment}}",
+    "establishmentFallback": "Estabelecimento",
+    "boardTitle": "Pedidos da cozinha",
+    "loading": "Carregando cozinha…",
+    "loadError": "Não foi possível carregar a cozinha.",
+    "refreshError": "Não foi possível atualizar a cozinha.",
+    "conflict": "A comanda mudou. A fila será atualizada em breve.",
+    "stages": { "REQUESTED": "Aguardando", "IN_PREPARATION": "Em preparo", "READY": "Pronto para servir" },
+    "unavailableProduct": "Produto indisponível",
+    "orderFallback": "Pedido {{id}}",
+    "viewItemInfo": "Ver informações do item",
+    "dragInstructions": "Arraste o item para outra coluna com o ponteiro.",
+    "dragStart": "Item selecionado.",
+    "dragOver": "Mova para outra coluna.",
+    "dragEnd": "Item movido.",
+    "dragCancel": "Movimentação cancelada.",
+    "pageOrders": "Pedidos desta página · {{page}}/{{total}}",
+    "infoTitle": "Informações do pedido",
+    "infoDescription": "Detalhes do item selecionado na cozinha.",
+    "customer": "Cliente",
+    "order": "Pedido",
+    "openedAt": "Feito em",
+    "item": "Item",
+    "stage": "Estado",
+    "notInformed": "Não informado"
   },
   "sales": {
     "title": "Vendas",

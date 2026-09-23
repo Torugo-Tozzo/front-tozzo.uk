@@ -264,6 +264,7 @@
   "navigation": {
     "dashboard": "Dashboard",
     "orders": "Orders",
+    "kitchen": "Kitchen",
     "sales": "Sales",
     "products": "Products",
     "employees": "Employees",
@@ -302,6 +303,33 @@
       "close": "Are you sure you want to close this order? It will become a sale."
     },
     "empty": "No orders found."
+  },
+  "kitchen": {
+    "pageTitle": "Kitchen — {{establishment}}",
+    "establishmentFallback": "Establishment",
+    "boardTitle": "Kitchen orders",
+    "loading": "Loading kitchen…",
+    "loadError": "Could not load the kitchen.",
+    "refreshError": "Could not refresh the kitchen.",
+    "conflict": "The order changed. The queue will update shortly.",
+    "stages": { "REQUESTED": "Waiting", "IN_PREPARATION": "In preparation", "READY": "Ready to serve" },
+    "unavailableProduct": "Unavailable product",
+    "orderFallback": "Order {{id}}",
+    "viewItemInfo": "View item details",
+    "dragInstructions": "Drag an item to another column with a pointer.",
+    "dragStart": "Item selected.",
+    "dragOver": "Move to another column.",
+    "dragEnd": "Item moved.",
+    "dragCancel": "Move canceled.",
+    "pageOrders": "Orders on this page · {{page}}/{{total}}",
+    "infoTitle": "Order details",
+    "infoDescription": "Details of the selected kitchen item.",
+    "customer": "Customer",
+    "order": "Order",
+    "openedAt": "Placed at",
+    "item": "Item",
+    "stage": "Status",
+    "notInformed": "Not informed"
   },
   "sales": {
     "title": "Sales",
