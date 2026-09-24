@@ -632,22 +632,22 @@ function ChartsContent() {
   return (
     <div className="space-y-6">
       {paywallCode && <PaywallBanner code={paywallCode} role={user?.role} />}
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-          <BarChart3 className="h-8 w-8" />
-          {user?.establishment?.tradeName
-            ? tCharts("pageTitle", { establishment: user.establishment.tradeName })
-            : tCharts("title")}
-        </h1>
-      </div>
-
-      {!paywallCode && (
-      <Tabs defaultValue="products" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="products">{tCharts("tabs.products")}</TabsTrigger>
-          <TabsTrigger value="hours">{tCharts("tabs.hours")}</TabsTrigger>
-        </TabsList>
-
+      <Tabs defaultValue="products" className="w-full space-y-6">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
+            <BarChart3 className="h-8 w-8" />
+            {user?.establishment?.tradeName
+              ? tCharts("pageTitle", { establishment: user.establishment.tradeName })
+              : tCharts("title")}
+          </h1>
+          {!paywallCode && (
+            <TabsList className="ml-auto">
+              <TabsTrigger value="products">{tCharts("tabs.products")}</TabsTrigger>
+              <TabsTrigger value="hours">{tCharts("tabs.hours")}</TabsTrigger>
+            </TabsList>
+          )}
+        </div>
+        {!paywallCode && <>
         <TabsContent value="products" className="space-y-6">
           <Card>
             <CardHeader>
@@ -1078,8 +1078,8 @@ function ChartsContent() {
             </CardContent>
           </Card>
         </TabsContent>
+        </>}
       </Tabs>
-      )}
     </div>
   )
 }
