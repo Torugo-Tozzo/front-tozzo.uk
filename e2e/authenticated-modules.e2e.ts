@@ -9,6 +9,7 @@ const modules = [
   { path: 'sales', endpoint: '/vendas', table: true },
   { path: 'products', endpoint: '/produtos', table: true },
   { path: 'employees', endpoint: '/usuarios', table: true },
+  { path: 'schedule', endpoint: '/calendar', table: false },
   { path: 'devices', endpoint: '/dispositivos', table: true },
   { path: 'charts', endpoint: '/graficos/lista', table: true },
   { path: 'settings', endpoint: null, table: false },
@@ -54,6 +55,34 @@ test('login carrega os módulos do painel e suas listagens', async ({ page }) =>
       continue
     }
     if (response) expect(response.status(), `${route}: ${response.url()}`).toBe(200)
+
+    if (module.path === 'schedule') {
+      await expect(main.locator('.fc-timegrid')).toBeVisible()
+      await main.getByRole('button', { name: /Edit opening hours|Editar funcionamento/i }).click()
+      await expect(page.getByRole('dialog').getByLabel(/Default opening|Abertura padrão/i)).toBeVisible()
+      await page.getByRole('dialog').getByRole('button', { name: /Cancel|Cancelar/i }).click()
+      const filterButton = main.getByRole('button', { name: /Filter by Employee|Filtrar por Funcionário/i })
+      await expect(filterButton).toBeVisible()
+      await filterButton.click()
+      await expect(page.getByRole('dialog').getByPlaceholder(/Search employee|Buscar funcionário/i)).toBeVisible()
+      await page.getByRole('dialog').getByRole('button', { name: /Cancel|Cancelar/i }).click()
+      const calendar = main.locator('.schedule-calendar')
+      const themeButton = page.getByRole('button', { name: /Alternar tema|Toggle theme/i })
+      for (const theme of ['light', 'dark'] as const) {
+        const isDark = await page.locator('html').evaluate((element) => element.classList.contains('dark'))
+        if ((theme === 'dark') !== isDark) await themeButton.click()
+        const headerColor = await calendar.locator('.fc-col-header-cell').first().evaluate((element) => getComputedStyle(element).backgroundColor)
+        expect(headerColor).toBe(theme === 'dark' ? 'rgb(22, 22, 22)' : 'rgb(255, 255, 255)')
+        const inactiveButtonColor = await calendar.locator('.fc-dayGridMonth-button').evaluate((element) => getComputedStyle(element).backgroundColor)
+        expect(inactiveButtonColor).toBe(theme === 'dark' ? 'rgb(45, 45, 45)' : 'rgb(245, 245, 245)')
+      }
+      await main.locator('.fc-dayGridMonth-button').click()
+      await expect(main.locator('.fc-daygrid')).toBeVisible()
+      await main.locator('.fc-listWeek-button').click()
+      await expect(main.locator('.fc-list')).toBeVisible()
+      await main.locator('.fc-timeGridDay-button').click()
+      await expect(main.locator('.fc-timegrid')).toBeVisible()
+    }
 
     if (module.table) {
       const table = main.getByRole('table').first()

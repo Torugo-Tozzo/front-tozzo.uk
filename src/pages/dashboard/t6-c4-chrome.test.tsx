@@ -131,7 +131,7 @@ describe("T6-C4 dashboard chrome", () => {
     })
 
     try {
-      renderWithProviders(<EmployeesPage />)
+      renderWithProviders(<MemoryRouter><EmployeesPage /></MemoryRouter>)
 
       expect(screen.getByRole("heading", { name: "Employees — Café da Nina" })).toBeInTheDocument()
       expect(screen.getByRole("button", { name: "New employee" })).toBeInTheDocument()
@@ -317,7 +317,7 @@ describe("T6-C4 dashboard chrome", () => {
     })
 
     try {
-      renderWithProviders(<EmployeesPage />)
+      renderWithProviders(<MemoryRouter><EmployeesPage /></MemoryRouter>)
 
       await waitFor(() => expect(screen.getByText("Not informed")).toBeInTheDocument())
       expect(screen.queryByText("LEGACY_ROLE")).not.toBeInTheDocument()

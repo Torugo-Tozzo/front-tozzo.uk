@@ -268,6 +268,7 @@
     "sales": "बिक्री",
     "products": "उत्पाद",
     "employees": "कर्मचारी",
+    "schedule": "समय सारणी",
     "devices": "डिवाइस",
     "reports": "रिपोर्ट",
     "settings": "सेटिंग्स",
@@ -278,6 +279,15 @@
     "openMenu": "मेनू खोलें",
     "closeMenu": "मेनू बंद करें",
     "theme": "थीम"
+  },
+  "calendar": {
+    "newSpecial": "नया विशेष समय",
+    "newShift": "नई शिफ्ट", "editShift": "शिफ्ट बदलें", "editShiftSeries": "साप्ताहिक श्रृंखला बदलें", "shiftTitle": "शिफ्ट का नाम (वैकल्पिक)", "shiftMembersHelp": "कर्मचारी चुनें। अपवाद न होने पर सभी को शिफ्ट का समय मिलेगा।", "employeesInShift": "शिफ्ट के कर्मचारी", "customMemberHours": "{{name}} के लिए अलग समय", "memberStartDate": "{{name}} की आरंभ तारीख", "memberStartTime": "{{name}} का आरंभ समय", "memberEndDate": "{{name}} की अंतिम तारीख", "memberEndTime": "{{name}} का समाप्ति समय", "inheritsShiftHours": "शिफ्ट का समय उपयोग करता है", "saveShift": "शिफ्ट सहेजें", "shiftSaveError": "शिफ्ट सहेजी नहीं जा सकी। तारीखें और कर्मचारी जाँचें।", "shiftDeleteError": "शिफ्ट हटाई नहीं जा सकी।", "deleteShiftConfirm": "यह शिफ्ट और कर्मचारियों का समय हटाएँ?",
+    "filterByEmployee": "कर्मचारी के अनुसार फ़िल्टर करें", "filterEmployeesHelp": "एक कर्मचारी खोजें और उसकी शिफ्ट देखने के लिए चुनें।", "searchEmployee": "कर्मचारी खोजें", "noEmployeesFound": "कोई कर्मचारी नहीं मिला।", "clearFilter": "फ़िल्टर हटाएँ", "applyFilter": "फ़िल्टर लागू करें",
+    "editBusinessHours": "खुलने का समय बदलें", "hoursNotConfigured": "खुलने का समय अभी तय नहीं है।", "defaultOpening": "सामान्य खुलने का समय", "defaultClosing": "सामान्य बंद होने का समय", "allDays": "हर दिन", "weekdays": "सोमवार से शुक्रवार", "mondayToSaturday": "सोमवार से शनिवार", "open": "खुला", "closed": "बंद", "customizeDay": "{{day}} का समय बदलें", "invalidHours": "खुलने और बंद होने का समय जाँचें।",
+    "saveBusinessHours": "खुलने का समय सहेजें",
+    "empty": "इस अवधि में कोई शिफ्ट नहीं है।",
+    "title": "समय सारणी", "description": "कर्मचारियों की शिफ्ट और विशेष समय व्यवस्थित करें।", "schedule": "शिफ्ट", "new": "नया समय", "edit": "समय बदलें", "eventDescription": "तारीखें और वैकल्पिक साप्ताहिक दोहराव तय करें।", "type": "प्रकार", "shift": "शिफ्ट", "special": "छुट्टी या विशेष समय", "employee": "कर्मचारी", "employeeFilter": "कर्मचारी", "chooseEmployee": "कर्मचारी चुनें", "allEmployees": "सभी", "specialTitle": "विवरण", "startDate": "आरंभ तारीख", "endDate": "अंतिम तारीख", "start": "आरंभ", "end": "समाप्ति", "allDay": "पूरा दिन", "repeatWeekly": "हर सप्ताह दोहराएँ", "repeatUntil": "इस तारीख तक दोहराएँ", "repeatUntilHelp": "श्रृंखला समाप्त करने की अंतिम तारीख चुनें; जारी रखने के लिए खाली छोड़ें।", "businessHours": "खुलने का समय", "hoursDescription": "खुले दिन और खुलने तथा बंद होने का समय चुनें। बंद होने का समय आधी रात के बाद भी हो सकता है।", "opening": "खुलना", "closing": "बंद होना", "day": "दिन", "week": "सप्ताह", "month": "महीना", "list": "सूची", "save": "समय सहेजें", "loadError": "समय सारणी लोड नहीं हो सकी।", "saveError": "समय सहेजा नहीं जा सका। तारीखें जाँचें और फिर कोशिश करें।", "deleteError": "समय हटाया नहीं जा सका।", "hoursLoadError": "खुलने का समय लोड नहीं हो सका।", "hoursSaveError": "खुलने का समय सहेजा नहीं जा सका।"
   },
   "orders": {
     "title": "ऑर्डर",
@@ -316,9 +326,14 @@
     "loadError": "डिलीवरी लोड नहीं हो सकीं।",
     "changeError": "डिलीवरी अपडेट नहीं हो सकी।",
     "closeError": "ऑर्डर बंद नहीं हो सका।",
-    "driverRequired": "कर्मी और संपर्क दर्ज करें।",
+    "driverRequired": "डिलीवरी कर्मी का नाम दर्ज करें।",
     "driverBusy": "यह कर्मी अभी व्यस्त है।",
     "notReady": "सभी आइटम तैयार होने चाहिए।",
+    "confirmReadyTitle": "कुछ आइटम अभी तैयार नहीं हैं",
+    "confirmReadyDescription": "इन आइटमों को तैयार चिह्नित करके डिलीवरी शुरू करें?",
+    "confirmReadyAction": "पुष्टि करें और डिलीवरी शुरू करें",
+    "conflictError": "ऑर्डर बदल गया है। अपडेट किए गए आइटम देखें और फिर कोशिश करें।",
+    "removeDriver": "डिलीवरी कर्मी हटाएँ",
     "stages": {
       "WAITING": "तैयार होने की प्रतीक्षा",
       "DELIVERING": "डिलीवरी जारी"
@@ -347,7 +362,7 @@
     "fixedDriver": "स्थायी कर्मी",
     "externalDriver": "बाहरी कर्मी",
     "externalName": "कर्मी का नाम",
-    "externalPhone": "कर्मी का संपर्क",
+    "externalPhone": "कर्मी का संपर्क (वैकल्पिक)",
     "externalExample": "जॉन iFood",
     "saveDriver": "डिलीवरी कर्मी सहेजें",
     "finishTitle": "डिलीवरी पूरी करें",
@@ -508,6 +523,7 @@
     }
   },
   "employees": {
+    "viewSchedule": "समय देखें",
     "title": "कर्मचारी",
     "pageTitle": "कर्मचारी — {{establishment}}",
     "team": "टीम",

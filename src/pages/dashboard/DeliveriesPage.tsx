@@ -41,23 +41,22 @@ function OrderCard({ order, canManage, onAssign, onMove, onClose, onDetails }: {
   const { setNodeRef: setDroppableRef, isOver } = useDroppable({ id: `order-target:${order.id}`, data: { type: 'order-target', order } })
   const { active } = useDndContext()
   const setCardRef = useCallback((node: HTMLElement | null) => { setDraggableRef(node); setDroppableRef(node) }, [setDraggableRef, setDroppableRef])
-  const ready = order.items.length > 0 && order.items.every(item => item.status === 'READY' || item.status === 'DELIVERED')
   const assigned = Boolean(order.driverId || order.externalDriverName)
   const driverDropTarget = canManage && order.stage === 'WAITING' && active?.data.current?.type === 'driver'
   return <article ref={setCardRef} {...listeners} style={{ transform: transform ? `translate3d(${transform.x}px,${transform.y}px,0)` : undefined }} className={cn('rounded-lg border bg-card p-3 shadow-sm transition-shadow', draggable && 'touch-none cursor-grab hover:shadow-md active:cursor-grabbing', isDragging && 'relative z-10 opacity-80 shadow-xl', driverDropTarget && 'border-dashed border-primary/60', driverDropTarget && isOver && 'border-2 border-primary bg-primary/5')}>
     <div className="flex gap-2"><span {...attributes} aria-label={t('dragCard')} title={t('dragCard')} className="mt-1 shrink-0 text-muted-foreground"><GripVertical className="h-4 w-4" /></span><div className="min-w-0"><h3 className="font-semibold">{order.customerName || t('orderFallback', { id: order.id.slice(0, 6) })}</h3><p className="break-words text-sm">{order.address}</p></div></div>
     <p className="mt-2 text-xs text-muted-foreground">{formatDateTime(order.openedAt, i18n.language)} · {formatCurrencyBRL(Number(order.total), i18n.language)}</p>
-    <p className="mt-1 text-sm">{t('driver')}: {order.driverName || t('unassigned')}{order.driverPhone ? ` · ${order.driverPhone}` : ''}</p>
+    <p className="mt-1 text-sm">{t('driver')}: {order.driverName || t('notInformed')}{order.driverPhone ? ` · ${order.driverPhone}` : ''}</p>
     <ul className="mt-2 list-inside list-disc text-sm">{order.items.slice(0, 3).map(item => <li key={item.id}>{item.quantity}× {item.name} · {t(item.status === 'READY' || item.status === 'DELIVERED' ? 'ready' : 'preparing')}</li>)}</ul>
     {order.items.length > 3 && <p className="mt-1 text-sm text-muted-foreground" aria-label={t('moreItems', { count: order.items.length - 3 })}>…</p>}
     <div className="mt-3 grid grid-cols-[1fr_auto_1fr] items-center gap-2">
       <div className="flex min-w-0 justify-start">
-        {canManage && order.stage === 'WAITING' && <Button size="sm" variant="outline" className="max-w-full px-2 sm:px-3" aria-label={t(assigned ? 'editDriver' : 'assign')} onPointerDown={event => event.stopPropagation()} onClick={() => onAssign(order)}>{assigned ? <Pencil className="h-4 w-4 shrink-0 sm:mr-1" /> : <Plus className="h-4 w-4 shrink-0 sm:mr-1" />}<span className="hidden truncate sm:inline">{t(assigned ? 'editDriver' : 'assign')}</span></Button>}
+        {canManage && order.stage === 'WAITING' && <Button size="sm" variant="outline" className="max-w-full px-2 sm:px-3" aria-label={t(assigned ? 'editDriver' : 'assign')} onPointerDown={event => event.stopPropagation()} onClick={() => onAssign(order)}>{assigned ? <Pencil className="h-4 w-4 shrink-0 sm:mr-1" /> : <Plus className="h-4 w-4 shrink-0 sm:mr-1" />}<span className="hidden truncate sm:inline">{t('driver')}</span></Button>}
         {canManage && order.stage === 'DELIVERING' && <Button size="sm" variant="outline" className="max-w-full px-2 sm:px-3" aria-label={t('returnToWaiting')} onPointerDown={event => event.stopPropagation()} onClick={() => onMove(order, 'WAITING')}><RotateCcw className="h-4 w-4 shrink-0 sm:mr-1" /><span className="hidden truncate sm:inline">{t('returnToWaiting')}</span></Button>}
       </div>
       <Button size="sm" variant="outline" className="px-2 sm:px-3" aria-label={t('viewDetails')} onPointerDown={event => event.stopPropagation()} onClick={() => onDetails(order)}><Eye className="h-4 w-4 sm:mr-1" /><span className="hidden sm:inline">{t('viewDetails')}</span></Button>
       <div className="flex min-w-0 justify-end">
-        {order.stage === 'WAITING' && <Button size="sm" className="max-w-full px-2 sm:px-3" aria-label={t('start')} disabled={!ready || !order.driverName} title={!ready ? t('notReady') : undefined} onPointerDown={event => event.stopPropagation()} onClick={() => onMove(order, 'DELIVERING')}><Bike className="h-4 w-4 shrink-0 sm:mr-1" /><span className="hidden truncate sm:inline">{t('start')}</span></Button>}
+        {order.stage === 'WAITING' && <Button size="sm" className="max-w-full px-2 sm:px-3" aria-label={t('start')} disabled={!order.items.length} onPointerDown={event => event.stopPropagation()} onClick={() => onMove(order, 'DELIVERING')}><Bike className="h-4 w-4 shrink-0 sm:mr-1" /><span className="hidden truncate sm:inline">{t('start')}</span></Button>}
         {canManage && order.stage === 'DELIVERING' && <Button size="sm" className="max-w-full px-2 sm:px-3" aria-label={t('finish')} onPointerDown={event => event.stopPropagation()} onClick={() => onClose(order)}><Check className="h-4 w-4 shrink-0 sm:mr-1" /><span className="hidden truncate sm:inline">{t('finish')}</span></Button>}
       </div>
     </div>
@@ -83,7 +82,7 @@ export default function DeliveriesPage() {
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
   const [selected, setSelected] = useState<DeliveryOrder | null>(null)
-  const [dialog, setDialog] = useState<'assign' | 'finish' | 'details' | null>(null)
+  const [dialog, setDialog] = useState<'assign' | 'finish' | 'details' | 'confirmReady' | null>(null)
   const [driverMode, setDriverMode] = useState<'fixed' | 'external'>('fixed')
   const [driverId, setDriverId] = useState('')
   const [externalName, setExternalName] = useState('')
@@ -118,17 +117,26 @@ export default function DeliveriesPage() {
   const columns = useMemo(() => (['WAITING', 'DELIVERING'] as Stage[]).map(stage => ({ stage, orders: orders.filter(order => order.stage === stage) })), [orders])
   const detailItems = useMemo(() => selected?.items.map(item => ({ id: item.id, productId: item.productId, quantity: item.quantity, name: item.name, unitPrice: Number(item.unitPriceAtOrder), status: item.status as 'REQUESTED' | 'IN_PREPARATION' | 'READY' | 'DELIVERED' })) ?? [], [selected])
 
-  const move = async (order: DeliveryOrder, stage: Stage) => {
+  const move = async (order: DeliveryOrder, stage: Stage, confirmReady = false) => {
     if (busy || order.stage === stage) return
+    if (stage === 'DELIVERING' && !confirmReady && order.items.some(item => item.status !== 'READY' && item.status !== 'DELIVERED')) {
+      setSelected(order); setDialog('confirmReady'); return
+    }
     setBusy(true)
     try {
-      await api.patch(`/entregas/pedidos/${order.id}`, { action: stage === 'DELIVERING' ? 'START' : 'WAIT', expectedUpdatedAt: order.updatedAt })
+      await api.patch(`/entregas/pedidos/${order.id}`, { action: stage === 'DELIVERING' ? 'START' : 'WAIT', expectedUpdatedAt: order.updatedAt, ...(confirmReady ? { confirmReady: true } : {}) })
+      setDialog(null)
       await load()
-    } catch (cause) { setError(t(getErrorCode(cause) === 'ORDER_NOT_READY' ? 'notReady' : 'changeError')) }
+    } catch (cause) {
+      const code = getErrorCode(cause)
+      if (code === 'DELIVERY_CONFLICT' || code === 'ORDER_NOT_READY') { setDialog(null); await load() }
+      setError(t(code === 'ORDER_NOT_READY' ? 'notReady' : code === 'DELIVERY_CONFLICT' ? 'conflictError' : code === 'DRIVER_BUSY' ? 'driverBusy' : 'changeError'))
+    }
     finally { setBusy(false) }
   }
 
   const openAssign = (order: DeliveryOrder) => {
+    setError('')
     setSelected(order); setDialog('assign')
     setDriverMode(order.driverId || !order.externalDriverName ? 'fixed' : 'external')
     setDriverId(order.driverId ?? ''); setExternalName(order.externalDriverName ?? ''); setExternalPhone(order.externalDriverPhone ?? '')
@@ -141,7 +149,7 @@ export default function DeliveriesPage() {
       await api.patch(`/entregas/pedidos/${order.id}`, { action: 'ASSIGN', expectedUpdatedAt: order.updatedAt, ...assignment })
       if (closeDialog) setDialog(null)
       await load()
-    } catch (cause) { setError(t(getErrorCode(cause) === 'DRIVER_BUSY' ? 'driverBusy' : 'changeError')) }
+    } catch (cause) { const code = getErrorCode(cause); setError(t(code === 'DRIVER_BUSY' ? 'driverBusy' : code === 'DELIVERY_CONFLICT' ? 'conflictError' : 'changeError')) }
     finally { setBusy(false) }
   }
 
@@ -151,7 +159,7 @@ export default function DeliveriesPage() {
       if (!drivers.some(driver => driver.id === driverId && driver.available)) { setError(t('driverRequired')); return }
       await saveAssignment(selected, { driverId }, true)
     } else {
-      if (!externalName.trim() || !externalPhone.trim()) { setError(t('driverRequired')); return }
+      if (!externalName.trim()) { setError(t('driverRequired')); return }
       await saveAssignment(selected, { externalDriverName: externalName.trim(), externalDriverPhone: externalPhone.trim() }, true)
     }
   }
@@ -191,10 +199,11 @@ export default function DeliveriesPage() {
     </CardContent></Card>
     {canManage && <Card><CardHeader><CardTitle>{t('driversTitle')}</CardTitle></CardHeader><CardContent className="flex flex-wrap gap-2">{drivers.length ? drivers.map(driver => <DriverRosterTile key={driver.id} driver={driver} />) : <p>{t('noDrivers')}</p>}</CardContent></Card>}
     </DndContext>
-    <Dialog open={dialog === 'assign'} onOpenChange={open => { if (!open && !busy) setDialog(null) }}><DialogContent><DialogHeader><DialogTitle>{t(selected?.driverId || selected?.externalDriverName ? 'editDriver' : 'assignTitle')}</DialogTitle><DialogDescription>{selected?.address}</DialogDescription></DialogHeader>
+    <Dialog open={dialog === 'assign'} onOpenChange={open => { if (!open && !busy) setDialog(null) }}><DialogContent><DialogHeader><DialogTitle>{t(selected?.driverId || selected?.externalDriverName ? 'editDriver' : 'assignTitle')}</DialogTitle><DialogDescription>{selected?.address}</DialogDescription></DialogHeader>{error && <p role="alert" className="text-sm text-destructive">{error}</p>}
       <div className="space-y-3"><div className="flex gap-4"><label><input type="radio" checked={driverMode === 'fixed'} onChange={() => setDriverMode('fixed')} /> {t('fixedDriver')}</label><label><input type="radio" checked={driverMode === 'external'} onChange={() => setDriverMode('external')} /> {t('externalDriver')}</label></div>
       {driverMode === 'fixed' ? <div role="group" aria-label={t('fixedDriver')} className="grid max-h-60 gap-2 overflow-y-auto sm:grid-cols-2">{drivers.length ? drivers.map(driver => <button key={driver.id} type="button" disabled={!driver.available} aria-pressed={driverId === driver.id} title={!driver.available ? t('driverBusy') : undefined} onClick={() => setDriverId(driver.id)} className={cn('flex items-center gap-3 rounded-lg border p-2 text-sm transition-colors', driverId === driver.id ? 'border-primary bg-primary/5 ring-1 ring-primary' : 'hover:border-primary/60', driver.available ? 'cursor-pointer' : 'cursor-not-allowed opacity-55')}><DriverIdentity driver={driver} />{!driver.available && <LockKeyhole className="ml-auto h-4 w-4 shrink-0" aria-hidden="true" />}</button>) : <p className="text-sm text-muted-foreground">{t('noDrivers')}</p>}</div> : <><div><Label htmlFor="external-name">{t('externalName')}</Label><Input id="external-name" value={externalName} onChange={event => setExternalName(event.target.value)} maxLength={120} placeholder={t('externalExample')} /></div><div><Label htmlFor="external-phone">{t('externalPhone')}</Label><Input id="external-phone" type="tel" value={externalPhone} onChange={event => setExternalPhone(event.target.value)} maxLength={40} /></div></>}
-      </div><DialogFooter><Button disabled={busy || driverMode === 'fixed' && !drivers.some(driver => driver.id === driverId && driver.available)} onClick={() => void assign()}>{t('saveDriver')}</Button></DialogFooter></DialogContent></Dialog>
+      </div><DialogFooter><Button variant="outline" disabled={busy} onClick={() => setDialog(null)}>{common('cancel')}</Button>{(selected?.driverId || selected?.externalDriverName) && <Button variant="outline" disabled={busy} onClick={() => selected && void saveAssignment(selected, { driverId: '' }, true)}>{t('removeDriver')}</Button>}<Button disabled={busy || driverMode === 'fixed' && !drivers.some(driver => driver.id === driverId && driver.available)} onClick={() => void assign()}>{t('saveDriver')}</Button></DialogFooter></DialogContent></Dialog>
+    <Dialog open={dialog === 'confirmReady'} onOpenChange={open => { if (!open && !busy) setDialog(null) }}><DialogContent><DialogHeader><DialogTitle>{t('confirmReadyTitle')}</DialogTitle><DialogDescription>{t('confirmReadyDescription')}</DialogDescription></DialogHeader><ul className="list-inside list-disc text-sm">{selected?.items.filter(item => item.status !== 'READY' && item.status !== 'DELIVERED').map(item => <li key={item.id}>{item.quantity}× {item.name}</li>)}</ul><DialogFooter><Button variant="outline" disabled={busy} onClick={() => setDialog(null)}>{common('cancel')}</Button><Button disabled={busy} onClick={() => selected && void move(selected, 'DELIVERING', true)}>{t('confirmReadyAction')}</Button></DialogFooter></DialogContent></Dialog>
     <Dialog open={dialog === 'finish'} onOpenChange={open => { if (!open && !busy) setDialog(null) }}><DialogContent><DialogHeader><DialogTitle>{t('finishTitle')}</DialogTitle><DialogDescription>{t('finishDescription')}</DialogDescription></DialogHeader><div><Label htmlFor="delivery-payment">{t('paymentMethod')}</Label><select id="delivery-payment" className="w-full rounded border bg-background p-2" value={paymentMethod} onChange={event => setPaymentMethod(event.target.value as PaymentMethod | '')}><option value="">{t('notInformed')}</option><option value="CASH">{t('payment.CASH')}</option><option value="PIX">{t('payment.PIX')}</option><option value="CREDIT_CARD">{t('payment.CREDIT_CARD')}</option><option value="DEBIT_CARD">{t('payment.DEBIT_CARD')}</option><option value="ON_ACCOUNT">{t('payment.ON_ACCOUNT')}</option></select></div><DialogFooter><Button disabled={busy} onClick={() => void finish()}>{t('confirmFinish')}</Button></DialogFooter></DialogContent></Dialog>
     <ProductSelectionModal isOpen={dialog === 'details'} onClose={() => setDialog(null)} onConfirm={async () => {}} readOnly allowDelivery title={t('detailsTitle')} description={t('detailsDescription')} initialClientName={selected?.customerName ?? ''} initialDelivery={{ isDelivery: true, deliveryAddress: selected?.address ?? null }} initialItems={detailItems} />
   </section>

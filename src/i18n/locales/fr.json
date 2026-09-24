@@ -268,6 +268,7 @@
     "sales": "Ventes",
     "products": "Produits",
     "employees": "Employés",
+    "schedule": "Horaires",
     "devices": "Appareils",
     "reports": "Rapports",
     "settings": "Paramètres",
@@ -278,6 +279,15 @@
     "openMenu": "Ouvrir le menu",
     "closeMenu": "Fermer le menu",
     "theme": "Thème"
+  },
+  "calendar": {
+    "newSpecial": "Nouvel horaire spécial",
+    "newShift": "Nouveau service", "editShift": "Modifier le service", "editShiftSeries": "Modifier la série hebdomadaire", "shiftTitle": "Nom du service (facultatif)", "shiftMembersHelp": "Sélectionnez les employés. Tous reprennent les heures du service sauf en cas d'exception.", "employeesInShift": "Employés du service", "customMemberHours": "Horaires différents pour {{name}}", "memberStartDate": "Date de début pour {{name}}", "memberStartTime": "Début pour {{name}}", "memberEndDate": "Date de fin pour {{name}}", "memberEndTime": "Fin pour {{name}}", "inheritsShiftHours": "Utilise les heures du service", "saveShift": "Enregistrer le service", "shiftSaveError": "Impossible d'enregistrer le service. Vérifiez les dates et les employés.", "shiftDeleteError": "Impossible de supprimer le service.", "deleteShiftConfirm": "Supprimer ce service et les horaires de ses employés ?",
+    "filterByEmployee": "Filtrer par employé", "filterEmployeesHelp": "Recherchez et sélectionnez un employé pour voir son planning.", "searchEmployee": "Rechercher un employé", "noEmployeesFound": "Aucun employé trouvé.", "clearFilter": "Effacer le filtre", "applyFilter": "Appliquer le filtre",
+    "editBusinessHours": "Modifier les heures d'ouverture", "hoursNotConfigured": "Les heures d'ouverture ne sont pas encore définies.", "defaultOpening": "Ouverture habituelle", "defaultClosing": "Fermeture habituelle", "allDays": "Tous les jours", "weekdays": "Du lundi au vendredi", "mondayToSaturday": "Du lundi au samedi", "open": "Ouvert", "closed": "Fermé", "customizeDay": "Personnaliser {{day}}", "invalidHours": "Vérifiez les heures d'ouverture et de fermeture.",
+    "saveBusinessHours": "Enregistrer les heures d'ouverture",
+    "empty": "Aucun horaire pour cette période.",
+    "title": "Horaires", "description": "Organisez les équipes et les horaires exceptionnels.", "schedule": "Planning", "new": "Nouvel horaire", "edit": "Modifier l'horaire", "eventDescription": "Définissez les dates et la répétition hebdomadaire éventuelle.", "type": "Type", "shift": "Service", "special": "Jour férié ou horaire spécial", "employee": "Employé", "employeeFilter": "Employé", "chooseEmployee": "Choisir un employé", "allEmployees": "Tous", "specialTitle": "Description", "startDate": "Date de début", "endDate": "Date de fin", "start": "Début", "end": "Fin", "allDay": "Toute la journée", "repeatWeekly": "Répéter chaque semaine", "repeatUntil": "Répéter jusqu'au", "repeatUntilHelp": "Indiquez la dernière date pour terminer la série ; laissez vide pour continuer.", "businessHours": "Heures d'ouverture", "hoursDescription": "Choisissez les jours ouverts et les heures d'ouverture et de fermeture. La fermeture peut être après minuit.", "opening": "Ouverture", "closing": "Fermeture", "day": "Jour", "week": "Semaine", "month": "Mois", "list": "Liste", "save": "Enregistrer l'horaire", "loadError": "Impossible de charger le planning.", "saveError": "Impossible d'enregistrer l'horaire. Vérifiez les dates et réessayez.", "deleteError": "Impossible de supprimer l'horaire.", "hoursLoadError": "Impossible de charger les heures d'ouverture.", "hoursSaveError": "Impossible d'enregistrer les heures d'ouverture."
   },
   "orders": {
     "title": "Commandes",
@@ -316,9 +326,14 @@
     "loadError": "Impossible de charger les livraisons.",
     "changeError": "Impossible de modifier la livraison.",
     "closeError": "Impossible de clôturer la commande.",
-    "driverRequired": "Indiquez un livreur et un contact.",
+    "driverRequired": "Indiquez le nom du livreur.",
     "driverBusy": "Ce livreur est déjà occupé.",
     "notReady": "Tous les articles doivent être prêts.",
+    "confirmReadyTitle": "Des articles ne sont pas encore prêts",
+    "confirmReadyDescription": "Marquer ces articles comme prêts et lancer la livraison ?",
+    "confirmReadyAction": "Confirmer et lancer la livraison",
+    "conflictError": "La commande a changé. Vérifiez les articles mis à jour et réessayez.",
+    "removeDriver": "Retirer le livreur",
     "stages": {
       "WAITING": "En attente de préparation",
       "DELIVERING": "En livraison"
@@ -347,7 +362,7 @@
     "fixedDriver": "Livreur salarié",
     "externalDriver": "Livreur externe",
     "externalName": "Nom du livreur",
-    "externalPhone": "Contact du livreur",
+    "externalPhone": "Contact du livreur (facultatif)",
     "externalExample": "Jean iFood",
     "saveDriver": "Enregistrer le livreur",
     "finishTitle": "Terminer la livraison",
@@ -508,6 +523,7 @@
     }
   },
   "employees": {
+    "viewSchedule": "Voir les horaires",
     "title": "Employés",
     "pageTitle": "Employés — {{establishment}}",
     "team": "Équipe",

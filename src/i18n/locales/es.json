@@ -268,6 +268,7 @@
     "sales": "Ventas",
     "products": "Productos",
     "employees": "Empleados",
+    "schedule": "Horarios",
     "devices": "Dispositivos",
     "reports": "Informes",
     "settings": "Configuración",
@@ -278,6 +279,15 @@
     "openMenu": "Abrir menú",
     "closeMenu": "Cerrar menú",
     "theme": "Tema"
+  },
+  "calendar": {
+    "newSpecial": "Nuevo horario especial",
+    "newShift": "Nuevo turno", "editShift": "Editar turno", "editShiftSeries": "Editar serie semanal", "shiftTitle": "Nombre del turno (opcional)", "shiftMembersHelp": "Seleccione empleados. Todos heredan el horario del turno salvo que tengan una excepción.", "employeesInShift": "Empleados del turno", "customMemberHours": "Horario diferente para {{name}}", "memberStartDate": "Fecha de entrada de {{name}}", "memberStartTime": "Entrada de {{name}}", "memberEndDate": "Fecha de salida de {{name}}", "memberEndTime": "Salida de {{name}}", "inheritsShiftHours": "Usa el horario del turno", "saveShift": "Guardar turno", "shiftSaveError": "No se pudo guardar el turno. Revise las fechas y los empleados.", "shiftDeleteError": "No se pudo eliminar el turno.", "deleteShiftConfirm": "¿Eliminar este turno y los horarios de sus empleados?",
+    "filterByEmployee": "Filtrar por empleado", "filterEmployeesHelp": "Busque y seleccione un empleado para ver sus turnos.", "searchEmployee": "Buscar empleado", "noEmployeesFound": "No se encontraron empleados.", "clearFilter": "Limpiar filtro", "applyFilter": "Aplicar filtro",
+    "editBusinessHours": "Editar horario de apertura", "hoursNotConfigured": "El horario de apertura aún no está configurado.", "defaultOpening": "Apertura habitual", "defaultClosing": "Cierre habitual", "allDays": "Todos los días", "weekdays": "Lunes a viernes", "mondayToSaturday": "Lunes a sábado", "open": "Abierto", "closed": "Cerrado", "customizeDay": "Personalizar {{day}}", "invalidHours": "Revise las horas de apertura y cierre.",
+    "saveBusinessHours": "Guardar horario de apertura",
+    "empty": "No hay horarios en este período.",
+    "title": "Horarios", "description": "Organice los turnos del equipo y los horarios especiales.", "schedule": "Turnos", "new": "Nuevo horario", "edit": "Editar horario", "eventDescription": "Defina las fechas y la repetición semanal opcional.", "type": "Tipo", "shift": "Turno", "special": "Festivo u horario especial", "employee": "Empleado", "employeeFilter": "Empleado", "chooseEmployee": "Seleccione un empleado", "allEmployees": "Todos", "specialTitle": "Descripción", "startDate": "Fecha inicial", "endDate": "Fecha final", "start": "Inicio", "end": "Fin", "allDay": "Todo el día", "repeatWeekly": "Repetir cada semana", "repeatUntil": "Repetir hasta", "repeatUntilHelp": "Indique la última fecha para terminar la serie; déjelo vacío para continuar.", "businessHours": "Horario de apertura", "hoursDescription": "Seleccione los días abiertos y las horas de apertura y cierre. El cierre puede ser después de medianoche.", "opening": "Apertura", "closing": "Cierre", "day": "Día", "week": "Semana", "month": "Mes", "list": "Lista", "save": "Guardar horario", "loadError": "No se pudo cargar el horario.", "saveError": "No se pudo guardar el horario. Revise las fechas e inténtelo de nuevo.", "deleteError": "No se pudo eliminar el horario.", "hoursLoadError": "No se pudo cargar el horario de apertura.", "hoursSaveError": "No se pudo guardar el horario de apertura."
   },
   "orders": {
     "title": "Pedidos",
@@ -316,9 +326,14 @@
     "loadError": "No se pudieron cargar las entregas.",
     "changeError": "No se pudo actualizar la entrega.",
     "closeError": "No se pudo cerrar el pedido.",
-    "driverRequired": "Indique repartidor y contacto.",
+    "driverRequired": "Indique el nombre del repartidor.",
     "driverBusy": "Este repartidor está ocupado.",
     "notReady": "Todos los artículos deben estar listos.",
+    "confirmReadyTitle": "Hay artículos que aún no están listos",
+    "confirmReadyDescription": "¿Marcar estos artículos como listos e iniciar la entrega?",
+    "confirmReadyAction": "Confirmar e iniciar entrega",
+    "conflictError": "El pedido cambió. Revise los artículos actualizados e inténtelo de nuevo.",
+    "removeDriver": "Quitar repartidor",
     "stages": {
       "WAITING": "Esperando preparación",
       "DELIVERING": "En reparto"
@@ -347,7 +362,7 @@
     "fixedDriver": "Repartidor fijo",
     "externalDriver": "Repartidor externo",
     "externalName": "Nombre del repartidor",
-    "externalPhone": "Contacto del repartidor",
+    "externalPhone": "Contacto del repartidor (opcional)",
     "externalExample": "Juan iFood",
     "saveDriver": "Guardar repartidor",
     "finishTitle": "Finalizar entrega",
@@ -508,6 +523,7 @@
     }
   },
   "employees": {
+    "viewSchedule": "Ver horarios",
     "title": "Empleados",
     "pageTitle": "Empleados — {{establishment}}",
     "team": "Equipo",

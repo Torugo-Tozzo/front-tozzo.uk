@@ -22,6 +22,7 @@ const expectedNamespaces = [
   'common',
   'auth',
   'navigation',
+  'calendar',
   'orders',
   'deliveries',
   'kitchen',

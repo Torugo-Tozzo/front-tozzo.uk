@@ -13,6 +13,7 @@ export const NAMESPACES = [
   'orders',
   'kitchen',
   'deliveries',
+  'calendar',
   'sales',
   'products',
   'employees',

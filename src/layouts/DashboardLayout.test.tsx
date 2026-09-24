@@ -66,6 +66,7 @@ describe('DashboardLayout', () => {
     expect(screen.getByRole('link', { name: /Sales/ })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /Products/ })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /Employees/ })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Schedule/ })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /Reports/ })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /Settings/ })).toBeInTheDocument()
     const toggle = screen.getByRole('button', { name: 'Collapse menu' })

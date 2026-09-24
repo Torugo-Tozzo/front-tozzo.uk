@@ -268,6 +268,7 @@
     "sales": "销售",
     "products": "产品",
     "employees": "员工",
+    "schedule": "排班",
     "devices": "设备",
     "reports": "报告",
     "settings": "设置",
@@ -278,6 +279,15 @@
     "openMenu": "打开菜单",
     "closeMenu": "关闭菜单",
     "theme": "主题"
+  },
+  "calendar": {
+    "newSpecial": "新增特殊营业时间",
+    "newShift": "新建班次", "editShift": "编辑班次", "editShiftSeries": "编辑每周重复班次", "shiftTitle": "班次名称（可选）", "shiftMembersHelp": "选择员工。除非单独设置，所有员工都使用班次时间。", "employeesInShift": "班次员工", "customMemberHours": "为{{name}}设置不同时间", "memberStartDate": "{{name}}的开始日期", "memberStartTime": "{{name}}的开始时间", "memberEndDate": "{{name}}的结束日期", "memberEndTime": "{{name}}的结束时间", "inheritsShiftHours": "使用班次时间", "saveShift": "保存班次", "shiftSaveError": "无法保存班次，请检查日期和员工。", "shiftDeleteError": "无法删除班次。", "deleteShiftConfirm": "删除此班次及关联员工的排班？",
+    "filterByEmployee": "按员工筛选", "filterEmployeesHelp": "搜索并选择一名员工以查看其排班。", "searchEmployee": "搜索员工", "noEmployeesFound": "未找到员工。", "clearFilter": "清除筛选", "applyFilter": "应用筛选",
+    "editBusinessHours": "编辑营业时间", "hoursNotConfigured": "尚未设置营业时间。", "defaultOpening": "常规开门时间", "defaultClosing": "常规关门时间", "allDays": "每天", "weekdays": "周一至周五", "mondayToSaturday": "周一至周六", "open": "营业", "closed": "休息", "customizeDay": "自定义{{day}}", "invalidHours": "请检查开门和关门时间。",
+    "saveBusinessHours": "保存营业时间",
+    "empty": "此期间没有排班。",
+    "title": "排班", "description": "安排员工班次和特殊营业时间。", "schedule": "班次", "new": "新增班次", "edit": "编辑班次", "eventDescription": "设置日期及可选的每周重复。", "type": "类型", "shift": "班次", "special": "假日或特殊营业时间", "employee": "员工", "employeeFilter": "员工", "chooseEmployee": "选择员工", "allEmployees": "全部", "specialTitle": "说明", "startDate": "开始日期", "endDate": "结束日期", "start": "开始", "end": "结束", "allDay": "全天", "repeatWeekly": "每周重复", "repeatUntil": "重复至", "repeatUntilHelp": "设置最后一天以结束重复；留空则持续。", "businessHours": "营业时间", "hoursDescription": "选择营业日以及开门和关门时间。关门时间可以在午夜之后。", "opening": "开门", "closing": "关门", "day": "日", "week": "周", "month": "月", "list": "列表", "save": "保存班次", "loadError": "无法加载排班。", "saveError": "无法保存班次，请检查日期后重试。", "deleteError": "无法删除班次。", "hoursLoadError": "无法加载营业时间。", "hoursSaveError": "无法保存营业时间。"
   },
   "orders": {
     "title": "订单",
@@ -316,9 +326,14 @@
     "loadError": "无法加载配送订单。",
     "changeError": "无法更新配送。",
     "closeError": "无法关闭订单。",
-    "driverRequired": "请输入配送员和联系方式。",
+    "driverRequired": "请输入配送员姓名。",
     "driverBusy": "该配送员正在配送。",
     "notReady": "所有商品必须准备完成。",
+    "confirmReadyTitle": "部分商品尚未准备好",
+    "confirmReadyDescription": "将这些商品标记为已备好并开始配送吗？",
+    "confirmReadyAction": "确认并开始配送",
+    "conflictError": "订单已更新。请检查最新商品并重试。",
+    "removeDriver": "移除配送员",
     "stages": {
       "WAITING": "等待备餐",
       "DELIVERING": "配送中"
@@ -347,7 +362,7 @@
     "fixedDriver": "固定配送员",
     "externalDriver": "第三方配送员",
     "externalName": "配送员姓名",
-    "externalPhone": "配送员联系方式",
+    "externalPhone": "配送员联系方式（可选）",
     "externalExample": "小王 iFood",
     "saveDriver": "保存配送员",
     "finishTitle": "完成配送",
@@ -508,6 +523,7 @@
     }
   },
   "employees": {
+    "viewSchedule": "查看排班",
     "title": "员工",
     "pageTitle": "员工 — {{establishment}}",
     "team": "团队",

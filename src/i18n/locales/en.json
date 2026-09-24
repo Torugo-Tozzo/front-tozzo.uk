@@ -269,6 +269,7 @@
     "sales": "Sales",
     "products": "Products",
     "employees": "Employees",
+    "schedule": "Schedule",
     "devices": "Devices",
     "reports": "Reports",
     "settings": "Settings",
@@ -279,6 +280,15 @@
     "openMenu": "Open menu",
     "closeMenu": "Close menu",
     "theme": "Theme"
+  },
+  "calendar": {
+    "newSpecial": "New special hours",
+    "newShift": "New shift", "editShift": "Edit shift", "editShiftSeries": "Edit weekly series", "shiftTitle": "Shift name (optional)", "shiftMembersHelp": "Select employees. Everyone inherits the shift hours unless they have an exception.", "employeesInShift": "Employees in this shift", "customMemberHours": "Different hours for {{name}}", "memberStartDate": "Start date for {{name}}", "memberStartTime": "Start time for {{name}}", "memberEndDate": "End date for {{name}}", "memberEndTime": "End time for {{name}}", "inheritsShiftHours": "Uses the shift hours", "saveShift": "Save shift", "shiftSaveError": "Could not save the shift. Check the dates and employees.", "shiftDeleteError": "Could not delete the shift.", "deleteShiftConfirm": "Delete this shift and its employees' schedules?",
+    "filterByEmployee": "Filter by Employee", "filterEmployeesHelp": "Search and select one employee to see their schedule.", "searchEmployee": "Search employee", "noEmployeesFound": "No employees found.", "clearFilter": "Clear filter", "applyFilter": "Apply filter",
+    "editBusinessHours": "Edit opening hours", "hoursNotConfigured": "Opening hours have not been set.", "defaultOpening": "Default opening", "defaultClosing": "Default closing", "allDays": "Every day", "weekdays": "Monday to Friday", "mondayToSaturday": "Monday to Saturday", "open": "Open", "closed": "Closed", "customizeDay": "Customize {{day}}", "invalidHours": "Check the opening and closing times.",
+    "saveBusinessHours": "Save opening hours",
+    "empty": "No shifts in this period.",
+    "title": "Schedule", "description": "Organize team shifts and special hours.", "schedule": "Shifts", "new": "New shift", "edit": "Edit shift", "eventDescription": "Set the dates and optional weekly repetition.", "type": "Type", "shift": "Shift", "special": "Holiday or special hours", "employee": "Employee", "employeeFilter": "Employee", "chooseEmployee": "Choose an employee", "allEmployees": "All", "specialTitle": "Description", "startDate": "Start date", "endDate": "End date", "start": "Start", "end": "End", "allDay": "All day", "repeatWeekly": "Repeat every week", "repeatUntil": "Repeat until", "repeatUntilHelp": "Set the last date to end the series; leave blank to continue.", "businessHours": "Opening hours", "hoursDescription": "Choose open days and opening and closing times. Closing can be after midnight.", "opening": "Opening", "closing": "Closing", "day": "Day", "week": "Week", "month": "Month", "list": "List", "save": "Save shift", "loadError": "Could not load the schedule.", "saveError": "Could not save the shift. Check the dates and try again.", "deleteError": "Could not delete the shift.", "hoursLoadError": "Could not load opening hours.", "hoursSaveError": "Could not save opening hours."
   },
   "orders": {
     "title": "Orders",
@@ -317,9 +327,14 @@
     "loadError": "Could not load deliveries.",
     "changeError": "Could not update delivery.",
     "closeError": "Could not close order.",
-    "driverRequired": "Enter a driver and contact.",
+    "driverRequired": "Enter the driver's name.",
     "driverBusy": "This driver is already delivering.",
     "notReady": "All items must be ready.",
+    "confirmReadyTitle": "Some items are not ready",
+    "confirmReadyDescription": "Mark these items ready and start delivery?",
+    "confirmReadyAction": "Confirm and start delivery",
+    "conflictError": "The order changed. Review the updated items and try again.",
+    "removeDriver": "Remove driver",
     "stages": {
       "WAITING": "Waiting for readiness",
       "DELIVERING": "Delivering"
@@ -348,7 +363,7 @@
     "fixedDriver": "Staff driver",
     "externalDriver": "Third-party driver",
     "externalName": "Driver name",
-    "externalPhone": "Driver contact",
+    "externalPhone": "Driver contact (optional)",
     "externalExample": "John iFood",
     "saveDriver": "Save driver",
     "finishTitle": "Finish delivery",
@@ -509,6 +524,7 @@
     }
   },
   "employees": {
+    "viewSchedule": "View schedule",
     "title": "Employees",
     "pageTitle": "Employees — {{establishment}}",
     "team": "Team",

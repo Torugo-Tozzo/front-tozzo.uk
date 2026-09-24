@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback, Suspense } from "react"
 import { Link, Outlet, useLocation } from "react-router-dom"
 import {
-  LayoutDashboard,
+  DollarSign,
+  CalendarDays,
   ShoppingBag,
   Settings,
   LogOut,
@@ -77,9 +78,10 @@ export default function DashboardLayout() {
     { href: "/dashboard/orders", label: tNavigation("orders"), icon: ClipboardList },
     ...(canSeeKitchen ? [{ href: "/dashboard/kitchen", label: tNavigation("kitchen"), icon: ChefHat }] : []),
     ...(canSeeDeliveries ? [{ href: "/dashboard/deliveries", label: tNavigation("deliveries"), icon: Bike }] : []),
-    { href: "/dashboard/sales", label: tNavigation("sales"), icon: LayoutDashboard },
+    { href: "/dashboard/sales", label: tNavigation("sales"), icon: DollarSign },
     { href: "/dashboard/products", label: tNavigation("products"), icon: ShoppingBag },
     { href: "/dashboard/employees", label: tNavigation("employees"), icon: Users },
+    { href: "/dashboard/schedule", label: tNavigation("schedule"), icon: CalendarDays },
     { href: "/dashboard/devices", label: tNavigation("devices"), icon: Smartphone },
     { href: "/dashboard/charts", label: tNavigation("reports"), icon: BarChart3 },
     { href: "/dashboard/settings", label: tNavigation("settings"), icon: Settings },

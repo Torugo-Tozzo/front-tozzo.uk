@@ -95,4 +95,10 @@ describe('wire normalization at the service boundary', () => {
     expect(serializeRequestData('/pedidos/1/status', { isOpen: false })).toEqual({ isOpen: false })
     expect(serializeRequestData('/pedidos/1/items/9', { status: 'IN_PREPARATION' })).toEqual({ status: 'IN_PREPARATION' })
   })
+
+  it('keeps calendar shift members in the API contract', () => {
+    const body = { members: [{ employeeId: 'ana' }] }
+    expect(serializeRequestData('/calendar/shifts', body)).toEqual(body)
+    expect(normalizeResponseData('/calendar', { shifts: [{ assignments: [{ employeeId: 'ana' }] }] })).toEqual({ shifts: [{ assignments: [{ employeeId: 'ana' }] }] })
+  })
 })

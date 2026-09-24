@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react"
+import { useNavigate } from "react-router-dom"
 import {
   Table,
   TableBody,
@@ -50,6 +51,7 @@ type Employee = {
 }
 
 export default function EmployeesPage() {
+  const navigate = useNavigate()
   const { user } = useAuth()
   const confirm = useConfirm()
   const { i18n } = useTranslation()
@@ -522,6 +524,7 @@ export default function EmployeesPage() {
               />
             </div>
             <DialogFooter>
+              <Button type="button" variant="outline" disabled={isSaving || !currentEmployee} onClick={() => { if (currentEmployee) navigate(`/dashboard/schedule?employeeId=${encodeURIComponent(String(currentEmployee.id))}`) }}>{t("viewSchedule")}</Button>
               <Button type="submit" disabled={isSaving}>
                 {isSaving ? (
                   <>
