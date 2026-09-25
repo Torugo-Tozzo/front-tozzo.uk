@@ -11,14 +11,14 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { formatDateTime, formatNumber } from '@/i18n/format'
 import { cn } from '@/lib/utils'
 
-type Stage = 'REQUESTED' | 'IN_PREPARATION' | 'READY'
+type Stage = 'IN_PREPARATION' | 'READY'
 type Item = { id: string; productId: string; productName: string; quantity: number; stage: Stage; kitchenReadyAt: string | null }
 type KitchenItem = Item & { itemIds: string[] }
 type Order = { id: string; customerName: string | null; openedAt: string; updatedAt: string; items: Item[] }
 type KitchenOrder = Omit<Order, 'items'> & { items: KitchenItem[] }
 type KitchenError = 'loadError' | 'refreshError' | 'conflict'
 
-const columns: Stage[] = ['REQUESTED', 'IN_PREPARATION', 'READY']
+const columns: Stage[] = ['IN_PREPARATION', 'READY']
 
 function KitchenCard({ order, item, onInfo }: { order: KitchenOrder; item: KitchenItem; onInfo: (order: KitchenOrder, item: KitchenItem) => void }) {
   const { t, i18n } = useTranslation('kitchen')
@@ -173,7 +173,7 @@ export default function KitchenPage() {
               },
             }}
           >
-            <div className="grid gap-4 lg:grid-cols-3">
+            <div className="grid gap-4 lg:grid-cols-2">
               {grouped.map(column => <KitchenColumn key={column.stage} stage={column.stage} orders={column.orders} onInfo={(order, item) => setSelectedItem({ order, item })} />)}
             </div>
           </DndContext>

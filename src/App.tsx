@@ -7,6 +7,8 @@ import DashboardLayout from './layouts/DashboardLayout'
 import MainLayout from './layouts/MainLayout'
 import { LoadingOverlay } from './components/LoadingOverlay'
 import { Toaster } from 'sonner'
+import { BusinessModuleRoute, DashboardHome } from './components/BusinessModuleRoute'
+import type { NavigationModule } from './domain/businessPreferences'
 
 // Helper to convert default export to route.lazy object
 // This enables React Router to know about the loading state
@@ -15,6 +17,14 @@ function lazyPage(importFn: () => Promise<any>) {
     const module = await importFn();
     return { Component: module.default };
   };
+}
+
+function lazyModulePage(importFn: () => Promise<any>, module: NavigationModule) {
+  return async () => {
+    const page = await importFn()
+    const Page = page.default
+    return { Component: () => <BusinessModuleRoute module={module}><Page /></BusinessModuleRoute> }
+  }
 }
 
 function RootLayout() {
@@ -66,17 +76,17 @@ const router = createBrowserRouter([
             path: "/dashboard",
             element: <DashboardLayout />,
             children: [
-              { index: true, lazy: lazyPage(() => import('./pages/dashboard/OrdersPage')) },
-              { path: "orders", lazy: lazyPage(() => import('./pages/dashboard/OrdersPage')) },
-              { path: "sales", lazy: lazyPage(() => import('./pages/dashboard/SalesPage')) },
-              { path: "products", lazy: lazyPage(() => import('./pages/dashboard/ProductsPage')) },
-              { path: "employees", lazy: lazyPage(() => import('./pages/dashboard/EmployeesPage')) },
-              { path: "schedule", lazy: lazyPage(() => import('./pages/dashboard/SchedulePage')) },
-              { path: "devices", lazy: lazyPage(() => import('./pages/dashboard/DevicesPage')) },
-              { path: "charts", lazy: lazyPage(() => import('./pages/dashboard/ChartsPage')) },
-              { path: "settings", lazy: lazyPage(() => import('./pages/dashboard/SettingsPage')) },
-              { path: "kitchen", lazy: lazyPage(() => import('./pages/dashboard/KitchenPage')) },
-              { path: "deliveries", lazy: lazyPage(() => import('./pages/dashboard/DeliveriesPage')) },
+              { index: true, element: <DashboardHome /> },
+              { path: "orders", lazy: lazyModulePage(() => import('./pages/dashboard/OrdersPage'), 'ORDERS') },
+              { path: "sales", lazy: lazyModulePage(() => import('./pages/dashboard/SalesPage'), 'SALES') },
+              { path: "products", lazy: lazyModulePage(() => import('./pages/dashboard/ProductsPage'), 'PRODUCTS') },
+              { path: "employees", lazy: lazyModulePage(() => import('./pages/dashboard/EmployeesPage'), 'EMPLOYEES') },
+              { path: "schedule", lazy: lazyModulePage(() => import('./pages/dashboard/SchedulePage'), 'SCHEDULE') },
+              { path: "devices", lazy: lazyModulePage(() => import('./pages/dashboard/DevicesPage'), 'DEVICES') },
+              { path: "charts", lazy: lazyModulePage(() => import('./pages/dashboard/ChartsPage'), 'REPORTS') },
+              { path: "settings", lazy: lazyModulePage(() => import('./pages/dashboard/SettingsPage'), 'SETTINGS') },
+              { path: "kitchen", lazy: lazyModulePage(() => import('./pages/dashboard/KitchenPage'), 'KITCHEN') },
+              { path: "deliveries", lazy: lazyModulePage(() => import('./pages/dashboard/DeliveriesPage'), 'DELIVERIES') },
             ]
           }
         ]

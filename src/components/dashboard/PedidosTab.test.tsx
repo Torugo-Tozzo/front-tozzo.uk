@@ -104,8 +104,7 @@ describe("PedidosTab item status workflow", () => {
       await userEvent.setup().click(editButton)
 
       expect(await screen.findByRole("combobox", { name: "Item status: Burger" })).toBeInTheDocument()
-      expect(screen.getByText("Requested")).toBeInTheDocument()
-      expect(screen.getByText("In preparation")).toBeInTheDocument()
+      expect(screen.getAllByText("In preparation")).toHaveLength(2)
 
       const user = userEvent.setup()
       await user.click(screen.getByRole("combobox", { name: "Item status: Burger" }))

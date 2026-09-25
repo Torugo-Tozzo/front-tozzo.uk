@@ -9,10 +9,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { CATEGORY_SEEDS, ESTABLISHMENT_CATEGORIES, type EstablishmentCategory } from "@/lib/categorySeeds"
 import api from "@/services/api"
 import { toast } from "sonner"
+import { BUSINESS_PROFILES, suggestedBusinessModules, type BusinessProfile } from "@/domain/businessPreferences"
 
 type EstablishmentOnboardingModalProps = {
   open: boolean
   establishmentId: number | string | null
+  initialRevision?: number
   onSaved: () => void
 }
 
@@ -20,16 +22,29 @@ function isEstablishmentCategory(value: unknown): value is EstablishmentCategory
   return typeof value === "string" && ESTABLISHMENT_CATEGORIES.includes(value as EstablishmentCategory)
 }
 
-export function EstablishmentOnboardingModal({ open, establishmentId, onSaved }: EstablishmentOnboardingModalProps) {
+export function EstablishmentOnboardingModal({ open, establishmentId, initialRevision = 0, onSaved }: EstablishmentOnboardingModalProps) {
   const { t } = useTranslation("settings")
+  const [profiles, setProfiles] = useState<BusinessProfile[]>([])
   const [category, setCategory] = useState<EstablishmentCategory | "">("")
   const [suggestedTypes, setSuggestedTypes] = useState<string[]>([])
-  const [isSavingCategory, setIsSavingCategory] = useState(false)
+  const [isSavingProfiles, setIsSavingProfiles] = useState(false)
   const [isAddingTypes, setIsAddingTypes] = useState(false)
   const addingTypes = useRef(false)
   const [addedTypes, setAddedTypes] = useState<Set<string>>(new Set())
   const typeKey = (description: string) => description.trim().toLowerCase()
   const allTypesAdded = suggestedTypes.length > 0 && suggestedTypes.every(type => addedTypes.has(typeKey(type)))
+  const includesFood = profiles.includes('FOOD')
+
+  const handleProfileToggle = (profile: BusinessProfile) => {
+    if (isSavingProfiles || isAddingTypes) return
+    setProfiles((current) => current.includes(profile)
+      ? current.filter((item) => item !== profile)
+      : BUSINESS_PROFILES.filter((item) => item === profile || current.includes(item)))
+    if (profile === 'FOOD' && includesFood) {
+      setCategory('')
+      setSuggestedTypes([])
+    }
+  }
 
   const handleCategoryChange = (value: string) => {
     if (addingTypes.current || !isEstablishmentCategory(value)) return
@@ -37,19 +52,24 @@ export function EstablishmentOnboardingModal({ open, establishmentId, onSaved }:
     setSuggestedTypes([...CATEGORY_SEEDS[value]])
   }
 
-  const handleSaveCategory = async () => {
-    if (addingTypes.current || isSavingCategory || !category || establishmentId == null) return
+  const handleSaveProfiles = async () => {
+    if (addingTypes.current || isSavingProfiles || profiles.length === 0 || establishmentId == null) return
 
-    setIsSavingCategory(true)
+    setIsSavingProfiles(true)
     try {
-      await api.patch(`/establishments/${establishmentId}`, { category })
-      toast.success(t("category.saved"))
+      if (includesFood && category) await api.patch(`/establishments/${establishmentId}`, { category })
+      await api.patch('/establishments/preferences', {
+        profiles,
+        visibleModules: suggestedBusinessModules(profiles),
+        expectedRevision: initialRevision,
+      })
+      toast.success(t("businessPreferences.saved"))
       onSaved()
     } catch (error) {
-      console.error("Error updating establishment category", error)
-      toast.error(t("category.saveError"))
+      console.error("Error updating business profiles", error)
+      toast.error(t("businessPreferences.saveError"))
     } finally {
-      setIsSavingCategory(false)
+      setIsSavingProfiles(false)
     }
   }
 
@@ -85,14 +105,29 @@ export function EstablishmentOnboardingModal({ open, establishmentId, onSaved }:
     <Dialog open={open}>
       <DialogContent showCloseButton={false} className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{t("category.title")}</DialogTitle>
-          <DialogDescription>{t("category.description")}</DialogDescription>
+          <DialogTitle>{t("businessPreferences.onboardingTitle")}</DialogTitle>
+          <DialogDescription>{t("businessPreferences.onboardingDescription")}</DialogDescription>
         </DialogHeader>
 
-        <div className="flex flex-col gap-2">
+        <fieldset className="space-y-2">
+          <legend className="text-sm font-medium">{t("businessPreferences.profilesTitle")}</legend>
+          {BUSINESS_PROFILES.map((profile) => (
+            <label key={profile} className="flex items-center gap-2 rounded border p-3">
+              <input
+                type="checkbox"
+                checked={profiles.includes(profile)}
+                onChange={() => handleProfileToggle(profile)}
+                disabled={isSavingProfiles || isAddingTypes}
+              />
+              <span>{t(`businessPreferences.profiles.${profile}` as never)}</span>
+            </label>
+          ))}
+        </fieldset>
+
+        {includesFood && <div className="flex flex-col gap-2">
           <label htmlFor="establishment-category-select" className="text-muted-foreground">{t("category.label")}</label>
           <Select value={category} onValueChange={handleCategoryChange}>
-            <SelectTrigger id="establishment-category-select" aria-label={t("category.label")} disabled={isSavingCategory || isAddingTypes}>
+            <SelectTrigger id="establishment-category-select" aria-label={t("category.label")} disabled={isSavingProfiles || isAddingTypes}>
               <SelectValue placeholder={t("category.placeholder")} />
             </SelectTrigger>
             <SelectContent>
@@ -101,7 +136,7 @@ export function EstablishmentOnboardingModal({ open, establishmentId, onSaved }:
               ))}
             </SelectContent>
           </Select>
-        </div>
+        </div>}
 
         {suggestedTypes.length > 0 && (
           <div className="space-y-4 border-t pt-4">
@@ -126,8 +161,8 @@ export function EstablishmentOnboardingModal({ open, establishmentId, onSaved }:
           </div>
         )}
 
-        <Button type="button" onClick={handleSaveCategory} disabled={!category || establishmentId == null || isSavingCategory || isAddingTypes}>
-          {isSavingCategory ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />{t("category.saving")}</> : t("category.save")}
+        <Button type="button" onClick={handleSaveProfiles} disabled={profiles.length === 0 || establishmentId == null || isSavingProfiles || isAddingTypes}>
+          {isSavingProfiles ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />{t("businessPreferences.saving")}</> : t("businessPreferences.save")}
         </Button>
       </DialogContent>
     </Dialog>

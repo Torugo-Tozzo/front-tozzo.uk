@@ -28,7 +28,7 @@ describe("EstablishmentOnboardingModal", () => {
     vi.restoreAllMocks()
   })
 
-  it("opens, updates the suggested types, and saves the selected category", async () => {
+  it("saves food as a business profile while preserving the optional food category", async () => {
     const user = userEvent.setup()
     const patchMock = vi.fn().mockResolvedValue({ data: {} })
     const restorePatch = replaceProperty(api, "patch", patchMock as typeof api.patch)
@@ -39,19 +39,43 @@ describe("EstablishmentOnboardingModal", () => {
       expect(screen.getByRole("dialog")).toBeInTheDocument()
       expect(screen.queryByRole("button", { name: "Fechar" })).not.toBeInTheDocument()
 
+      await user.click(screen.getByRole("checkbox", { name: "Alimentação" }))
       await user.click(screen.getByRole("combobox", { name: "Categoria do estabelecimento" }))
       await user.click(await screen.findByRole("option", { name: "Hamburgueria" }))
 
       expect(screen.getByDisplayValue("Lanches")).toBeInTheDocument()
       expect(screen.getByDisplayValue("Bebidas")).toBeInTheDocument()
 
-      await user.click(screen.getByRole("button", { name: "Salvar categoria" }))
+      await user.click(screen.getByRole("button", { name: "Salvar perfis" }))
 
-      await waitFor(() => expect(patchMock).toHaveBeenCalledWith("/establishments/42", { category: "HAMBURGUERIA" }))
+      await waitFor(() => expect(patchMock).toHaveBeenCalledWith("/establishments/preferences", {
+        profiles: ["FOOD"],
+        visibleModules: ["ORDERS", "KITCHEN", "DELIVERIES", "SALES", "PRODUCTS", "EMPLOYEES", "SCHEDULE", "DEVICES", "REPORTS", "SETTINGS"],
+        expectedRevision: 0,
+      }))
+      expect(patchMock).toHaveBeenCalledWith("/establishments/42", { category: "HAMBURGUERIA" })
       expect(onSaved).toHaveBeenCalledTimes(1)
     } finally {
       restorePatch()
     }
+  })
+  it("combines store and services without asking for a food category", async () => {
+    const user = userEvent.setup()
+    const patchMock = vi.fn().mockResolvedValue({ data: {} })
+    const restorePatch = replaceProperty(api, "patch", patchMock as typeof api.patch)
+    try {
+      renderModal()
+      await user.click(screen.getByRole("checkbox", { name: "Loja" }))
+      await user.click(screen.getByRole("checkbox", { name: "Prestador de serviços" }))
+      expect(screen.queryByRole("combobox", { name: "Categoria do estabelecimento" })).not.toBeInTheDocument()
+      await user.click(screen.getByRole("button", { name: "Salvar perfis" }))
+      await waitFor(() => expect(patchMock).toHaveBeenCalledWith("/establishments/preferences", {
+        profiles: ["STORE", "SERVICES"],
+        visibleModules: ["SALES", "PRODUCTS", "SERVICES", "ESTIMATES", "EMPLOYEES", "DEVICES", "REPORTS", "SETTINGS"],
+        expectedRevision: 0,
+      }))
+      expect(patchMock).toHaveBeenCalledTimes(1)
+    } finally { restorePatch() }
   })
   it("does not add suggestions again after success", async () => {
     const post = vi.fn().mockResolvedValue({ data: {} })
@@ -59,6 +83,7 @@ describe("EstablishmentOnboardingModal", () => {
     try {
       renderModal()
       const user = userEvent.setup()
+      await user.click(screen.getByRole("checkbox", { name: "Alimentação" }))
       await user.click(screen.getByRole("combobox", { name: "Categoria do estabelecimento" }))
       await user.click(await screen.findByRole("option", { name: "Hamburgueria" }))
       const button = screen.getByRole("button", { name: "Adicionar tipos sugeridos" })
@@ -76,6 +101,7 @@ describe("EstablishmentOnboardingModal", () => {
     try {
       renderModal()
       const user = userEvent.setup()
+      await user.click(screen.getByRole("checkbox", { name: "Alimentação" }))
       await user.click(screen.getByRole("combobox", { name: "Categoria do estabelecimento" }))
       await user.click(await screen.findByRole("option", { name: "Hamburgueria" }))
       const button = screen.getByRole("button", { name: "Adicionar tipos sugeridos" })

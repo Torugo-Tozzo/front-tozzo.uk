@@ -86,7 +86,6 @@ const requiredUiInventory: InventoryEntry[] = [
   { source: "src/components/dashboard/FiltersBar.tsx:234", key: "common.search" },
   { source: "src/components/mode-toggle.tsx:32", key: "common.accessibility.toggleTheme" },
   { source: "src/components/ui/dialog.tsx:53", key: "common.accessibility.close" },
-  { source: "src/components/ui/status-select.tsx", key: "status.requested" },
   { source: "src/components/ui/status-select.tsx", key: "status.inPreparation" },
   { source: "src/components/ui/status-select.tsx", key: "status.delivered" },
   { source: "src/contexts/ConfirmContext.tsx:47", key: "common.confirmQuestion" },

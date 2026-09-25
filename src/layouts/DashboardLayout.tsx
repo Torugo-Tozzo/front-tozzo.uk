@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, Suspense } from "react"
+import { useState, useEffect, useCallback, useRef, Suspense } from "react"
 import { Link, Outlet, useLocation } from "react-router-dom"
 import {
   DollarSign,
@@ -28,6 +28,7 @@ import api from "@/services/api"
 import { useRealtimeEvents } from "@/hooks/useRealtimeEvents"
 import { formatNumber } from "@/i18n/format"
 import { EstablishmentOnboardingModal } from "@/components/dashboard/EstablishmentOnboardingModal"
+import { resolveNavigationModules, type NavigationModule } from "@/domain/businessPreferences"
 
 const SIDEBAR_COLLAPSED_KEY = "sidebar-collapsed"
 const MOBILE_MENU_ANIMATION_MS = 200
@@ -35,6 +36,8 @@ const MOBILE_MENU_ANIMATION_MS = 200
 export default function DashboardLayout() {
   const location = useLocation()
   const { logout, user, refreshUserProfile } = useAuth()
+  const refreshUserProfileRef = useRef(refreshUserProfile)
+  refreshUserProfileRef.current = refreshUserProfile
   const confirm = useConfirm()
   const { i18n, t: tCommon } = useTranslation("common")
   const { t: tNavigation } = useTranslation("navigation")
@@ -46,8 +49,17 @@ export default function DashboardLayout() {
   const [openOrdersCount, setOpenOrdersCount] = useState<number>(0)
   const [kitchenOrdersCount, setKitchenOrdersCount] = useState<number>(0)
   const [deliveryOrdersCount, setDeliveryOrdersCount] = useState<number>(0)
-  const canSeeKitchen = ["OWNER", "MANAGER", "EMPLOYEE", "COOK"].includes(user?.role ?? '')
-  const canSeeDeliveries = ["OWNER", "MANAGER", "EMPLOYEE", "DRIVER"].includes(user?.role ?? '')
+  const visibleModules = resolveNavigationModules(user?.role, user?.establishment)
+  const canSeeOrders = visibleModules.includes('ORDERS')
+  const canSeeKitchen = visibleModules.includes('KITCHEN')
+  const canSeeDeliveries = visibleModules.includes('DELIVERIES')
+
+  useEffect(() => {
+    const refresh = () => { if (!document.hidden) void refreshUserProfileRef.current() }
+    window.addEventListener('focus', refresh)
+    const interval = window.setInterval(refresh, 60_000)
+    return () => { window.removeEventListener('focus', refresh); window.clearInterval(interval) }
+  }, [])
 
   useEffect(() => {
     if (isMobileMenuOpen) {
@@ -75,23 +87,17 @@ export default function DashboardLayout() {
   }
 
   const navItems = [
-    { href: "/dashboard/orders", label: tNavigation("orders"), icon: ClipboardList },
-    ...(canSeeKitchen ? [{ href: "/dashboard/kitchen", label: tNavigation("kitchen"), icon: ChefHat }] : []),
-    ...(canSeeDeliveries ? [{ href: "/dashboard/deliveries", label: tNavigation("deliveries"), icon: Bike }] : []),
-    { href: "/dashboard/sales", label: tNavigation("sales"), icon: DollarSign },
-    { href: "/dashboard/products", label: tNavigation("products"), icon: ShoppingBag },
-    { href: "/dashboard/employees", label: tNavigation("employees"), icon: Users },
-    { href: "/dashboard/schedule", label: tNavigation("schedule"), icon: CalendarDays },
-    { href: "/dashboard/devices", label: tNavigation("devices"), icon: Smartphone },
-    { href: "/dashboard/charts", label: tNavigation("reports"), icon: BarChart3 },
-    { href: "/dashboard/settings", label: tNavigation("settings"), icon: Settings },
-  ].filter((item) => {
-    if (user?.role === "COOK") return item.href === "/dashboard/kitchen"
-    if (user?.role === "DRIVER") return item.href === "/dashboard/deliveries"
-    if (item.href === "/dashboard/charts") return user?.role !== "EMPLOYEE"
-    if (item.href === "/dashboard/devices") return user?.role === "OWNER" || user?.role === "MANAGER"
-    return true
-  })
+    { module: 'ORDERS', href: "/dashboard/orders", label: tNavigation("orders"), icon: ClipboardList },
+    { module: 'KITCHEN', href: "/dashboard/kitchen", label: tNavigation("kitchen"), icon: ChefHat },
+    { module: 'DELIVERIES', href: "/dashboard/deliveries", label: tNavigation("deliveries"), icon: Bike },
+    { module: 'SALES', href: "/dashboard/sales", label: tNavigation("sales"), icon: DollarSign },
+    { module: 'PRODUCTS', href: "/dashboard/products", label: tNavigation("products"), icon: ShoppingBag },
+    { module: 'EMPLOYEES', href: "/dashboard/employees", label: tNavigation("employees"), icon: Users },
+    { module: 'SCHEDULE', href: "/dashboard/schedule", label: tNavigation("schedule"), icon: CalendarDays },
+    { module: 'DEVICES', href: "/dashboard/devices", label: tNavigation("devices"), icon: Smartphone },
+    { module: 'REPORTS', href: "/dashboard/charts", label: tNavigation("reports"), icon: BarChart3 },
+    { module: 'SETTINGS', href: "/dashboard/settings", label: tNavigation("settings"), icon: Settings },
+  ].filter((item) => visibleModules.includes(item.module as NavigationModule))
 
   // Logo/"Tozzo.uk" ja aparecem na Navbar (topo, compartilhada com o resto
   // do site) - sidebar nao duplica mais isso, so nav + toggle de colapsar.
@@ -209,28 +215,31 @@ export default function DashboardLayout() {
     } catch (err) { console.error('Error fetching delivery count', err) }
   }, [])
 
-  useRealtimeEvents(['orders'], () => { if (user?.role !== 'COOK' && user?.role !== 'DRIVER') void fetchCount(); if (canSeeKitchen) void fetchKitchenCount(); if (canSeeDeliveries) void fetchDeliveryCount() })
+  useRealtimeEvents(['orders'], () => { if (canSeeOrders) void fetchCount(); if (canSeeKitchen) void fetchKitchenCount(); if (canSeeDeliveries) void fetchDeliveryCount() })
 
   useEffect(() => {
-    if (user?.role !== "COOK" && user?.role !== "DRIVER") fetchCount()
+    if (canSeeOrders) fetchCount()
     if (canSeeKitchen) fetchKitchenCount()
     if (canSeeDeliveries) fetchDeliveryCount()
     const iv = setInterval(() => {
-      if (user?.role !== "COOK" && user?.role !== "DRIVER") void fetchCount()
+      if (canSeeOrders) void fetchCount()
       if (canSeeKitchen) void fetchKitchenCount()
       if (canSeeDeliveries) void fetchDeliveryCount()
     }, 60000)
     return () => clearInterval(iv)
-  }, [fetchCount, fetchKitchenCount, fetchDeliveryCount, user?.role, canSeeKitchen, canSeeDeliveries])
+  }, [fetchCount, fetchKitchenCount, fetchDeliveryCount, canSeeOrders, canSeeKitchen, canSeeDeliveries])
 
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar onMenuClick={() => setIsMobileMenuOpen(true)} />
 
-      {user?.role === "OWNER" && user.establishment?.category == null && (
+      {user?.role === "OWNER" && (user.establishment?.businessProfiles === undefined
+        ? user.establishment?.category == null
+        : user.establishment.businessProfiles.length === 0) && (
         <EstablishmentOnboardingModal
           open
           establishmentId={user.establishmentId ?? user.establishment?.id ?? null}
+          initialRevision={user.establishment?.preferencesRevision ?? 0}
           onSaved={() => { void refreshUserProfile() }}
         />
       )}

@@ -8,10 +8,10 @@ describe('status', () => {
   })
 
   it('maps each order item status through the requested locale', () => {
-    expect(getStatusLabel('REQUESTED', 'en')).toBe('Requested')
+    expect(getStatusLabel('REQUESTED', 'en')).toBe('In preparation')
     expect(getStatusLabel('IN_PREPARATION', 'en')).toBe('In preparation')
     expect(getStatusLabel('DELIVERED', 'en')).toBe('Delivered')
-    expect(getStatusLabel('REQUESTED', 'pt-BR')).toBe('Solicitado')
+    expect(getStatusLabel('REQUESTED', 'pt-BR')).toBe('Em preparo')
     expect(getStatusLabel('DELIVERED', 'pt-BR')).toBe('Entregue')
   })
 

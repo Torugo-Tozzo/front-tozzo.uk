@@ -1,4 +1,5 @@
 import type { EstablishmentCategory } from "@/lib/categorySeeds";
+import type { BusinessModule, BusinessProfile } from "@/domain/businessPreferences";
 
 export type EstablishmentStatus = 'ACTIVE' | 'PENDING_PAYMENT' | 'SUSPENDED';
 export type EstablishmentPlan = 'FREE' | 'PAGO' | 'PAGO_LEGADO' | 'ENTERPRISE';
@@ -13,6 +14,9 @@ export interface Establishment {
   status: EstablishmentStatus;
   plan?: EstablishmentPlan;
   category?: EstablishmentCategory | null;
+  businessProfiles?: BusinessProfile[];
+  visibleModules?: BusinessModule[];
+  preferencesRevision?: number;
   extraDevices?: number;
   reportCount?: number;
   reportCountResetAt?: string;

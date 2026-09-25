@@ -19,20 +19,22 @@ describe('StatusSelect', () => {
     expect(screen.getByText('Em preparo')).toBeInTheDocument()
   })
 
-  it('shows the requested and delivered item status options', async () => {
+  it('normalizes the legacy requested value and offers preparation, ready and delivered', async () => {
     const user = userEvent.setup()
     renderWithI18n(<StatusSelect value="REQUESTED" onValueChange={vi.fn()} />)
 
     await user.click(screen.getByRole('combobox'))
 
-    expect(await screen.findByRole('option', { name: 'Solicitado' })).toBeInTheDocument()
+    expect(await screen.findByRole('option', { name: 'Em preparo' })).toBeInTheDocument()
+    expect(screen.queryByRole('option', { name: 'Solicitado' })).not.toBeInTheDocument()
+    expect(screen.getByRole('option', { name: 'Pronto' })).toBeInTheDocument()
     expect(screen.getByRole('option', { name: 'Entregue' })).toBeInTheDocument()
   })
 
   it('calls onValueChange with the new status when an option is picked', async () => {
     const onValueChange = vi.fn()
     const user = userEvent.setup()
-    renderWithI18n(<StatusSelect value="REQUESTED" onValueChange={onValueChange} />)
+    renderWithI18n(<StatusSelect value="READY" onValueChange={onValueChange} />)
     await user.click(screen.getByRole('combobox'))
     await user.click(await screen.findByRole('option', { name: 'Em preparo' }))
     expect(onValueChange).toHaveBeenCalledWith('IN_PREPARATION')

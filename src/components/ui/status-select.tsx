@@ -21,7 +21,7 @@ export function StatusSelect({ value, onValueChange, disabled, className, ariaLa
   const { i18n } = useTranslation()
 
   return (
-    <Select value={value} onValueChange={(v) => onValueChange(v as OrderItemStatus)} disabled={disabled}>
+    <Select value={value === 'REQUESTED' ? 'IN_PREPARATION' : value} onValueChange={(v) => onValueChange(v as OrderItemStatus)} disabled={disabled}>
       <SelectTrigger
         aria-label={ariaLabel}
         className={cn("w-[170px] bg-background text-foreground", className)}

@@ -23,7 +23,7 @@ describe('KitchenPage translations', () => {
       orders: [{
         id: 'order-123', customerName: null, openedAt: '2026-09-23T12:00:00.000Z',
         updatedAt: '2026-09-23T12:00:00.000Z',
-        items: [{ id: 'item-1', productId: 'product-1', productName: '', quantity: 2, stage: 'REQUESTED', kitchenReadyAt: null }],
+        items: [{ id: 'item-1', productId: 'product-1', productName: '', quantity: 2, stage: 'IN_PREPARATION', kitchenReadyAt: null }],
       }],
       totalPages: 1,
     } }) as typeof api.get)
@@ -37,7 +37,7 @@ describe('KitchenPage translations', () => {
 
     await waitFor(() => expect(screen.getByRole('heading', { name: 'Kitchen — Bistro' })).toBeInTheDocument())
     expect(screen.getByText('Kitchen orders')).toBeInTheDocument()
-    expect(screen.getByText('Waiting')).toBeInTheDocument()
+    expect(screen.getByText('In preparation')).toBeInTheDocument()
     expect(screen.getByText('2× Unavailable product')).toBeInTheDocument()
     expect(screen.getByText('Order order-')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Previous' })).toBeInTheDocument()

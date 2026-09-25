@@ -386,7 +386,7 @@
     "loadError": "Impossible de charger la cuisine.",
     "refreshError": "Impossible d'actualiser la cuisine.",
     "conflict": "La commande a changé. La file sera bientôt actualisée.",
-    "stages": { "REQUESTED": "En attente", "IN_PREPARATION": "En préparation", "READY": "Prêt à servir" },
+    "stages": { "IN_PREPARATION": "En préparation", "READY": "Prêt à servir" },
     "unavailableProduct": "Produit indisponible",
     "orderFallback": "Commande {{id}}",
     "viewItemInfo": "Voir les détails de l'article",
@@ -707,6 +707,25 @@
       "tradeName": "Nom de l'établissement", "phone": "Téléphone", "zipCode": "Code postal", "addressStreet": "Rue", "addressNumber": "Numéro", "addressComplement": "Complément", "addressNeighborhood": "Quartier", "addressCity": "Ville", "addressState": "État", "cnpj": "Identifiant fiscal (CNPJ)",
       "save": "Enregistrer les informations", "saving": "Enregistrement...", "saved": "Informations de l'établissement mises à jour.", "saveError": "Impossible d'enregistrer les informations. Réessayez."
     },
+    "businessPreferences": {
+      "onboardingTitle": "Quel type d'activité exercez-vous ?",
+      "onboardingDescription": "Choisissez un ou plusieurs profils. Vous pourrez les modifier dans les paramètres.",
+      "profilesTitle": "Profils d'activité",
+      "modulesTitle": "Modules du menu",
+      "modulesDescription": "Ventes, Produits, Employés, Appareils, Rapports et Paramètres sont standard selon le rôle. Choisissez les autres modules.",
+      "save": "Enregistrer les profils",
+      "saving": "Enregistrement...",
+      "saved": "Préférences enregistrées.",
+      "saveError": "Impossible d'enregistrer les préférences.",
+      "conflict": "Une autre session a modifié ces préférences. Rechargez et réessayez.",
+      "loading": "Chargement des préférences...",
+      "loadError": "Impossible de charger les préférences.",
+      "reload": "Recharger les préférences",
+      "requiredModule": "Toujours disponible",
+      "comingSoon": "Ce module sera disponible dans une prochaine mise à jour.",
+      "profiles": { "FOOD": "Restauration", "STORE": "Boutique", "SERVICES": "Prestataire de services" },
+      "modules": { "ORDERS": "Commandes", "KITCHEN": "Cuisine", "DELIVERIES": "Livraisons", "INGREDIENT_INVENTORY": "Stock d'ingrédients", "SALES": "Ventes", "PRODUCTS": "Produits", "STORE_INVENTORY": "Stock du magasin", "SERVICES": "Services", "ESTIMATES": "Devis", "EMPLOYEES": "Employés", "SCHEDULE": "Horaires", "DEVICES": "Appareils", "REPORTS": "Rapports", "SETTINGS": "Paramètres" }
+    },
     "category": {
       "title": "Catégorie de l'établissement",
       "description": "Choisissez la catégorie de votre établissement.",
@@ -756,7 +775,6 @@
     "receiptTotal": "Total"
   },
   "status": {
-    "requested": "Demandé",
     "inPreparation": "En préparation",
     "ready": "Prêt à servir",
     "delivered": "Livré",

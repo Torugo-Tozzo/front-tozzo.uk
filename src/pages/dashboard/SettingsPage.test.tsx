@@ -13,6 +13,7 @@ import SettingsPage from "./SettingsPage"
 
 const mockUseAuth = vi.fn()
 vi.mock("@/contexts/AuthContext", () => ({ useAuth: () => mockUseAuth() }))
+vi.mock("@/components/dashboard/BusinessPreferencesPanel", () => ({ BusinessPreferencesPanel: () => null }))
 
 function authValue(role: UserRole) {
   return { user: { id: 7, name: "Ana", email: "ana@example.com", role, establishmentId: 42, establishment: { id: 42, tradeName: "Hamburgueria da Ana", status: "ACTIVE" } }, logout: vi.fn(), refreshUserProfile: vi.fn().mockResolvedValue(undefined) }

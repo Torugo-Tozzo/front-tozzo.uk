@@ -32,6 +32,7 @@ import { authClient } from "@/lib/authClient"
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import type { EstablishmentPlan } from "@/domain/models"
+import { BusinessPreferencesPanel } from "@/components/dashboard/BusinessPreferencesPanel"
 
 type EstablishmentResponse = {
   id: number | string | null
@@ -244,6 +245,8 @@ export default function SettingsPage() {
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-bold tracking-tight">{t('title')}</h1>
+
+      {user && <BusinessPreferencesPanel />}
       
       <div className="p-6 border rounded-lg bg-card">
         <h2 className="text-xl font-semibold mb-4">{t('appearance')}</h2>

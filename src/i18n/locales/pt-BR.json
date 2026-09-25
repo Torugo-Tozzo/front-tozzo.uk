@@ -398,7 +398,7 @@
     "loadError": "Não foi possível carregar a cozinha.",
     "refreshError": "Não foi possível atualizar a cozinha.",
     "conflict": "A comanda mudou. A fila será atualizada em breve.",
-    "stages": { "REQUESTED": "Aguardando", "IN_PREPARATION": "Em preparo", "READY": "Pronto" },
+    "stages": { "IN_PREPARATION": "Em preparo", "READY": "Pronto" },
     "unavailableProduct": "Produto indisponível",
     "orderFallback": "Pedido {{id}}",
     "viewItemInfo": "Ver informações do item",
@@ -720,6 +720,25 @@
       "tradeName": "Nome do estabelecimento", "phone": "Telefone", "zipCode": "CEP", "addressStreet": "Rua/Logradouro", "addressNumber": "Número", "addressComplement": "Complemento", "addressNeighborhood": "Bairro", "addressCity": "Cidade", "addressState": "Estado (UF)", "cnpj": "CNPJ",
       "save": "Salvar informações", "saving": "Salvando...", "saved": "Informações do estabelecimento atualizadas.", "saveError": "Não foi possível salvar as informações. Tente novamente."
     },
+    "businessPreferences": {
+      "onboardingTitle": "Qual é o tipo do seu negócio?",
+      "onboardingDescription": "Escolha um ou mais perfis. Você pode mudá-los depois em Configurações.",
+      "profilesTitle": "Perfis do negócio",
+      "modulesTitle": "Módulos no menu",
+      "modulesDescription": "Vendas, Produtos, Funcionários, Dispositivos, Relatórios e Configurações são padrão, conforme o papel. Escolha os demais módulos.",
+      "save": "Salvar perfis",
+      "saving": "Salvando...",
+      "saved": "Preferências do negócio salvas.",
+      "saveError": "Não foi possível salvar as preferências do negócio.",
+      "conflict": "Outra sessão alterou essas preferências. Recarregue e tente novamente.",
+      "loading": "Carregando preferências do negócio...",
+      "loadError": "Não foi possível carregar as preferências do negócio.",
+      "reload": "Recarregar preferências",
+      "requiredModule": "Sempre disponível",
+      "comingSoon": "Este módulo estará disponível em uma atualização futura.",
+      "profiles": { "FOOD": "Alimentação", "STORE": "Loja", "SERVICES": "Prestador de serviços" },
+      "modules": { "ORDERS": "Pedidos", "KITCHEN": "Cozinha", "DELIVERIES": "Entregas", "INGREDIENT_INVENTORY": "Estoque de ingredientes", "SALES": "Vendas", "PRODUCTS": "Produtos", "STORE_INVENTORY": "Estoque da loja", "SERVICES": "Serviços", "ESTIMATES": "Orçamentos", "EMPLOYEES": "Funcionários", "SCHEDULE": "Horários", "DEVICES": "Dispositivos", "REPORTS": "Relatórios", "SETTINGS": "Configurações" }
+    },
     "category": {
       "title": "Categoria do estabelecimento",
       "description": "Escolha a categoria do seu estabelecimento.",
@@ -769,7 +788,6 @@
     "receiptTotal": "Total"
   },
   "status": {
-    "requested": "Solicitado",
     "inPreparation": "Em preparo",
     "ready": "Pronto",
     "delivered": "Entregue",

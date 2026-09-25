@@ -386,7 +386,7 @@
     "loadError": "无法加载厨房订单。",
     "refreshError": "无法刷新厨房订单。",
     "conflict": "订单已更改。队列将很快更新。",
-    "stages": { "REQUESTED": "待制作", "IN_PREPARATION": "制作中", "READY": "待上菜" },
+    "stages": { "IN_PREPARATION": "制作中", "READY": "待上菜" },
     "unavailableProduct": "商品不可用",
     "orderFallback": "订单 {{id}}",
     "viewItemInfo": "查看商品详情",
@@ -707,6 +707,25 @@
       "tradeName": "商家名称", "phone": "电话", "zipCode": "邮政编码", "addressStreet": "街道", "addressNumber": "门牌号", "addressComplement": "地址补充", "addressNeighborhood": "街区", "addressCity": "城市", "addressState": "州", "cnpj": "税务识别号 (CNPJ)",
       "save": "保存信息", "saving": "正在保存...", "saved": "商家信息已更新。", "saveError": "无法保存信息。请重试。"
     },
+    "businessPreferences": {
+      "onboardingTitle": "您的企业属于哪种类型？",
+      "onboardingDescription": "可选择一个或多个业务类型，之后可在设置中更改。",
+      "profilesTitle": "业务类型",
+      "modulesTitle": "菜单中的模块",
+      "modulesDescription": "销售、商品、员工、设备、报表和设置是按角色显示的标准模块。请选择其他模块。",
+      "save": "保存业务类型",
+      "saving": "正在保存...",
+      "saved": "业务偏好设置已保存。",
+      "saveError": "无法保存业务偏好设置。",
+      "conflict": "其他会话已更改这些设置。请重新加载后重试。",
+      "loading": "正在加载业务偏好设置...",
+      "loadError": "无法加载业务偏好设置。",
+      "reload": "重新加载设置",
+      "requiredModule": "始终可用",
+      "comingSoon": "此模块将在后续更新中提供。",
+      "profiles": { "FOOD": "餐饮", "STORE": "商店", "SERVICES": "服务提供者" },
+      "modules": { "ORDERS": "订单", "KITCHEN": "厨房", "DELIVERIES": "配送", "INGREDIENT_INVENTORY": "食材库存", "SALES": "销售", "PRODUCTS": "商品", "STORE_INVENTORY": "商店库存", "SERVICES": "服务", "ESTIMATES": "报价", "EMPLOYEES": "员工", "SCHEDULE": "排班", "DEVICES": "设备", "REPORTS": "报表", "SETTINGS": "设置" }
+    },
     "category": {
       "title": "商家类别",
       "description": "请选择您的商家类别。",
@@ -756,7 +775,6 @@
     "receiptTotal": "总计"
   },
   "status": {
-    "requested": "已请求",
     "inPreparation": "准备中",
     "ready": "准备上菜",
     "delivered": "已送达",

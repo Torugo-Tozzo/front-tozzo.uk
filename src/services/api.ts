@@ -11,7 +11,7 @@ declare module 'axios' {
 }
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3001',
+  baseURL: import.meta.env.VITE_API_URL || (import.meta.env.DEV ? '/api' : 'http://localhost:3001'),
 });
 
 export function serializeRequestData(url: string | undefined, value: unknown): unknown {

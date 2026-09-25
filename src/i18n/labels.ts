@@ -5,7 +5,7 @@ import { NAMESPACES } from './resources'
 export type LabelLocale = SupportedLocale | string | undefined
 
 const STATUS_LABEL_KEYS: Record<string, string> = {
-  REQUESTED: 'status.requested',
+  REQUESTED: 'status.inPreparation',
   IN_PREPARATION: 'status.inPreparation',
   READY: 'status.ready',
   DELIVERED: 'status.delivered',

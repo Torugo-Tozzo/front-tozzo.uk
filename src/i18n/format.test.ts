@@ -75,7 +75,7 @@ describe('active-locale helpers', () => {
 
   test('translates stable status and catalog IDs while preserving custom labels', async () => {
     await i18n.changeLanguage('en')
-    expect(getStatusLabel('REQUESTED')).toBe('Requested')
+    expect(getStatusLabel('REQUESTED')).toBe('In preparation')
     expect(getStatusLabel('DELIVERED')).toBe('Delivered')
     expect(getCatalogLabel('FOOD')).toBe('Food')
     expect(getCatalogLabel(1, 'Hambúrguer')).toBe('Burger')

@@ -387,7 +387,7 @@
     "loadError": "Could not load the kitchen.",
     "refreshError": "Could not refresh the kitchen.",
     "conflict": "The order changed. The queue will update shortly.",
-    "stages": { "REQUESTED": "Waiting", "IN_PREPARATION": "In preparation", "READY": "Ready to serve" },
+    "stages": { "IN_PREPARATION": "In preparation", "READY": "Ready to serve" },
     "unavailableProduct": "Unavailable product",
     "orderFallback": "Order {{id}}",
     "viewItemInfo": "View item details",
@@ -708,6 +708,25 @@
       "tradeName": "Establishment name", "phone": "Phone", "zipCode": "ZIP code", "addressStreet": "Street", "addressNumber": "Number", "addressComplement": "Complement", "addressNeighborhood": "Neighborhood", "addressCity": "City", "addressState": "State", "cnpj": "Tax ID (CNPJ)",
       "save": "Save information", "saving": "Saving...", "saved": "Establishment information updated.", "saveError": "Could not save the information. Try again."
     },
+    "businessPreferences": {
+      "onboardingTitle": "What kind of business do you run?",
+      "onboardingDescription": "Choose one or more profiles. You can change them later in Settings.",
+      "profilesTitle": "Business profiles",
+      "modulesTitle": "Modules in the menu",
+      "modulesDescription": "Sales, Products, Employees, Devices, Reports, and Settings are standard for eligible roles. Choose the remaining modules.",
+      "save": "Save profiles",
+      "saving": "Saving...",
+      "saved": "Business preferences saved.",
+      "saveError": "Could not save business preferences.",
+      "conflict": "Another session changed these preferences. Reload and try again.",
+      "loading": "Loading business preferences...",
+      "loadError": "Could not load business preferences.",
+      "reload": "Reload preferences",
+      "requiredModule": "Always available",
+      "comingSoon": "This module will be available in a later update.",
+      "profiles": { "FOOD": "Food service", "STORE": "Store", "SERVICES": "Service provider" },
+      "modules": { "ORDERS": "Orders", "KITCHEN": "Kitchen", "DELIVERIES": "Deliveries", "INGREDIENT_INVENTORY": "Ingredient inventory", "SALES": "Sales", "PRODUCTS": "Products", "STORE_INVENTORY": "Store inventory", "SERVICES": "Services", "ESTIMATES": "Estimates", "EMPLOYEES": "Employees", "SCHEDULE": "Schedule", "DEVICES": "Devices", "REPORTS": "Reports", "SETTINGS": "Settings" }
+    },
     "category": {
       "title": "Establishment category",
       "description": "Choose the category for your establishment.",
@@ -757,7 +776,6 @@
     "receiptTotal": "Total"
   },
   "status": {
-    "requested": "Requested",
     "inPreparation": "In preparation",
     "ready": "Ready to serve",
     "delivered": "Delivered",

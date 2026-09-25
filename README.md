@@ -56,7 +56,7 @@ npm install
 Crie um arquivo `.env` na raiz do projeto:
 
 ```env
-VITE_API_URL=http://localhost:3001
+VITE_API_URL=/api
 ```
 
 **4. Inicie o servidor de desenvolvimento**
@@ -68,6 +68,7 @@ npm run dev
 ```
 
 A aplicação estará disponível em `http://localhost:5173`.
+No desenvolvimento, o Vite encaminha `/api/*` para a API local na porta `3001`.
 
 ## Scripts disponíveis
 
@@ -130,7 +131,7 @@ O Dockerfile realiza o build em um estágio e serve os arquivos estáticos via N
 
 | Variável | Descrição | Padrão |
 |---|---|---|
-| `VITE_API_URL` | URL base da API | `http://localhost:3001` |
+| `VITE_API_URL` | URL base da API (`/api` no desenvolvimento; URL pública no build de produção) | `/api` no desenvolvimento |
 
 > Variáveis do Vite prefixadas com `VITE_` são embutidas no bundle durante o build. Não coloque segredos aqui.
 

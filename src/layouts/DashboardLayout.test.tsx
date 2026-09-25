@@ -10,15 +10,18 @@ import { i18n } from '@/i18n/config'
 import api from '@/services/api'
 import { replaceProperty } from '@/test/replace-property'
 import DashboardLayout from './DashboardLayout'
+import type { BusinessModule, BusinessProfile } from '@/domain/businessPreferences'
 
 const mockLogout = vi.fn()
-let mockUser: { name: string; role: string; establishment: { tradeName: string; category?: string } } = { name: 'Test user', role: 'MANAGER', establishment: { tradeName: 'Test establishment' } }
+const mockRefreshUserProfile = vi.fn().mockResolvedValue(undefined)
+let mockUser: { name: string; role: string; establishment: { tradeName: string; category?: string; businessProfiles?: BusinessProfile[]; visibleModules?: BusinessModule[] } } = { name: 'Test user', role: 'MANAGER', establishment: { tradeName: 'Test establishment' } }
 
 vi.mock('@/contexts/AuthContext', () => ({
   useAuth: () => ({
     isAuthenticated: true,
     user: mockUser,
     logout: mockLogout,
+    refreshUserProfile: mockRefreshUserProfile,
   }),
 }))
 
@@ -46,6 +49,7 @@ describe('DashboardLayout', () => {
   beforeEach(async () => {
     localStorage.clear()
     mockLogout.mockReset()
+    mockRefreshUserProfile.mockClear()
     mockUser = { name: 'Test user', role: 'MANAGER', establishment: { tradeName: 'Test establishment' } }
     restoreGet = replaceProperty(api, 'get', vi.fn().mockResolvedValue({ headers: {}, data: [] }) as typeof api.get)
     await act(async () => {
@@ -102,6 +106,33 @@ describe('DashboardLayout', () => {
     renderLayout()
 
     expect(screen.getByRole('link', { name: /Reports/ })).toBeInTheDocument()
+  })
+
+  it('shows the selected store modules without restaurant links', () => {
+    mockUser = {
+      name: 'Store owner', role: 'OWNER',
+      establishment: {
+        tradeName: 'Store', category: 'HAMBURGUERIA', businessProfiles: ['STORE'],
+        visibleModules: ['SALES', 'SETTINGS'],
+      },
+    }
+    renderLayout()
+
+    expect(screen.getByRole('link', { name: /Sales/ })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Products/ })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Employees/ })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Reports/ })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Devices/ })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Settings/ })).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: /Orders/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: /Kitchen/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: /Deliveries/ })).not.toBeInTheDocument()
+  })
+
+  it('refreshes business preferences when the dashboard tab regains focus', () => {
+    renderLayout()
+    act(() => { window.dispatchEvent(new Event('focus')) })
+    expect(mockRefreshUserProfile).toHaveBeenCalledTimes(1)
   })
 
   it('localizes the sidebar logout confirmation', async () => {
