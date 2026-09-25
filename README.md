@@ -4,6 +4,9 @@ Frontend da plataforma [Tozzo.uk](https://tozzo.uk) — sistema de gestão para 
 
 Construído com React, TypeScript e Vite. Consome a API REST do [api-tozzo.uk](https://github.com/Torugo-Tozzo/api-tozzo.uk) (repositório privado).
 
+O plano da expansão para alimentação, loja e serviços fica no repositório privado da API, em `proximas-etapas/002-plataforma-multinicho/README.md`. A cada entrega web, registre o impacto ou a ausência de impacto no [acompanhamento mobile](../TozzoBurger/docs/pendencias-alinhamento-api-web.md).
+As práticas compartilhadas de implementação, revisão, testes e deploy ficam no [guia de desenvolvimento](../api-tozzo.uk/skills/tozzo-development/SKILL.md).
+
 ## Funcionalidades
 
 - Gestão de pedidos em tempo real (SSE/polling)

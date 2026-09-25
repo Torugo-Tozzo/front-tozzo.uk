@@ -4,6 +4,7 @@
 
 React 18, TypeScript, Vite, React Router, Tailwind, componentes Radix e i18next. API irmã: `../api-tozzo.uk`; mobile: `../TozzoBurger`. São repositórios Git independentes.
 O planejamento compartilhado está no repositório privado da API, em `../api-tozzo.uk/proximas-etapas/README.md`. Não copie documentos privados completos para este repositório. Se a API não estiver disponível, solicite os documentos necessários ao trabalho.
+O guia de trabalho compartilhado fica em `../api-tozzo.uk/skills/tozzo-development/SKILL.md`; leia a referência pertinente à tarefa.
 
 ## Mapa
 
