@@ -40,8 +40,11 @@ describe('KitchenPage translations', () => {
     expect(screen.getByText('In preparation')).toBeInTheDocument()
     expect(screen.getByText('2× Unavailable product')).toBeInTheDocument()
     expect(screen.getByText('Order order-')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Previous' })).toBeInTheDocument()
-    expect(screen.getByText('Orders on this page · 1/1')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Previous 10 items in In preparation' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Next 10 items in In preparation' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Previous 10 items in Ready to serve' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Next 10 items in Ready to serve' })).toBeDisabled()
+    expect(screen.getAllByText('Items · 1/1')).toHaveLength(2)
     await waitFor(() => expect(screen.getByText('Drag an item to another column with a pointer.')).toBeInTheDocument())
 
     fireEvent.click(screen.getByRole('button', { name: 'View item details' }))

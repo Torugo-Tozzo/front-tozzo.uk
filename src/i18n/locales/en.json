@@ -335,6 +335,9 @@
     "confirmReadyAction": "Confirm and start delivery",
     "conflictError": "The order changed. Review the updated items and try again.",
     "removeDriver": "Remove driver",
+    "pageOrders": "Orders · {{page}}/{{total}}",
+    "previousOrders": "Previous 10 orders in {{stage}}",
+    "nextOrders": "Next 10 orders in {{stage}}",
     "stages": {
       "WAITING": "Waiting for readiness",
       "DELIVERING": "Delivering"
@@ -396,7 +399,9 @@
     "dragOver": "Move to another column.",
     "dragEnd": "Item moved.",
     "dragCancel": "Move canceled.",
-    "pageOrders": "Orders on this page · {{page}}/{{total}}",
+    "pageItems": "Items · {{page}}/{{total}}",
+    "previousItems": "Previous 10 items in {{stage}}",
+    "nextItems": "Next 10 items in {{stage}}",
     "infoTitle": "Order details",
     "infoDescription": "Details of the selected kitchen item.",
     "customer": "Customer",

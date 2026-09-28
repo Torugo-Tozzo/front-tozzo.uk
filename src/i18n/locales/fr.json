@@ -334,6 +334,9 @@
     "confirmReadyAction": "Confirmer et lancer la livraison",
     "conflictError": "La commande a changé. Vérifiez les articles mis à jour et réessayez.",
     "removeDriver": "Retirer le livreur",
+    "pageOrders": "Commandes · {{page}}/{{total}}",
+    "previousOrders": "10 commandes précédentes dans {{stage}}",
+    "nextOrders": "10 commandes suivantes dans {{stage}}",
     "stages": {
       "WAITING": "En attente de préparation",
       "DELIVERING": "En livraison"
@@ -395,7 +398,9 @@
     "dragOver": "Déplacez-le vers une autre colonne.",
     "dragEnd": "Article déplacé.",
     "dragCancel": "Déplacement annulé.",
-    "pageOrders": "Commandes sur cette page · {{page}}/{{total}}",
+    "pageItems": "Articles · {{page}}/{{total}}",
+    "previousItems": "10 articles précédents dans {{stage}}",
+    "nextItems": "10 articles suivants dans {{stage}}",
     "infoTitle": "Détails de la commande",
     "infoDescription": "Détails de l'article sélectionné en cuisine.",
     "customer": "Client",

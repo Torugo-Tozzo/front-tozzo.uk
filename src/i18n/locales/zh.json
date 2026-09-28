@@ -334,6 +334,9 @@
     "confirmReadyAction": "确认并开始配送",
     "conflictError": "订单已更新。请检查最新商品并重试。",
     "removeDriver": "移除配送员",
+    "pageOrders": "订单 · {{page}}/{{total}}",
+    "previousOrders": "{{stage}}中的前 10 个订单",
+    "nextOrders": "{{stage}}中的后 10 个订单",
     "stages": {
       "WAITING": "等待备餐",
       "DELIVERING": "配送中"
@@ -395,7 +398,9 @@
     "dragOver": "移动到另一列。",
     "dragEnd": "商品已移动。",
     "dragCancel": "已取消移动。",
-    "pageOrders": "本页订单 · {{page}}/{{total}}",
+    "pageItems": "项目 · {{page}}/{{total}}",
+    "previousItems": "{{stage}}中的前 10 项",
+    "nextItems": "{{stage}}中的后 10 项",
     "infoTitle": "订单详情",
     "infoDescription": "所选厨房商品的详细信息。",
     "customer": "顾客",

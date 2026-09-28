@@ -346,6 +346,9 @@
     "confirmReadyAction": "Confirmar e sair para entrega",
     "conflictError": "O pedido mudou. Confira os itens atualizados e tente novamente.",
     "removeDriver": "Remover entregador",
+    "pageOrders": "Pedidos · {{page}}/{{total}}",
+    "previousOrders": "10 pedidos anteriores em {{stage}}",
+    "nextOrders": "Próximos 10 pedidos em {{stage}}",
     "stages": {
       "WAITING": "Aguardando ficar pronto",
       "DELIVERING": "Entregando"
@@ -407,7 +410,9 @@
     "dragOver": "Mova para outra coluna.",
     "dragEnd": "Item movido.",
     "dragCancel": "Movimentação cancelada.",
-    "pageOrders": "Pedidos desta página · {{page}}/{{total}}",
+    "pageItems": "Itens · {{page}}/{{total}}",
+    "previousItems": "10 itens anteriores em {{stage}}",
+    "nextItems": "Próximos 10 itens em {{stage}}",
     "infoTitle": "Informações do pedido",
     "infoDescription": "Detalhes do item selecionado na cozinha.",
     "customer": "Cliente",

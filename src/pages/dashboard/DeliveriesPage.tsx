@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { DndContext, PointerSensor, closestCenter, pointerWithin, useDndContext, useDraggable, useDroppable, useSensor, useSensors, type CollisionDetection, type DragEndEvent } from '@dnd-kit/core'
-import { Bike, Check, Eye, GripVertical, LockKeyhole, Pencil, Plus, RotateCcw, UserRound } from 'lucide-react'
+import { Bike, Check, ChevronLeft, ChevronRight, Eye, GripVertical, LockKeyhole, Pencil, Plus, RotateCcw, UserRound } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import api, { getErrorCode } from '@/services/api'
 import { useAuth } from '@/contexts/AuthContext'
@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { formatCurrencyBRL, formatDateTime } from '@/i18n/format'
+import { formatCurrencyBRL, formatDateTime, formatNumber } from '@/i18n/format'
 import { cn } from '@/lib/utils'
 import { ProductSelectionModal } from '@/components/ProductSelectionModal'
 import type { PaymentMethod } from '@/domain/models'
@@ -18,6 +18,7 @@ import type { PaymentMethod } from '@/domain/models'
 type Stage = 'WAITING' | 'DELIVERING'
 type Driver = { id: string; name: string; phone: string | null; available: boolean }
 type DeliveryOrder = { id: string; customerName: string | null; address: string; total: number; openedAt: string; updatedAt: string; stage: Stage; driverId: string | null; driverName: string | null; driverPhone: string | null; externalDriverName: string | null; externalDriverPhone: string | null; items: { id: string; productId: string; unitPriceAtOrder: number | string; name: string; quantity: number; status: string }[] }
+const ordersPerColumnPage = 10
 
 const deliveryCollisionDetection: CollisionDetection = args => args.active.data.current?.type === 'driver'
   ? pointerWithin({ ...args, droppableContainers: args.droppableContainers.filter(container => container.data.current?.type === 'order-target' && container.data.current.order?.stage === 'WAITING') })
@@ -63,10 +64,22 @@ function OrderCard({ order, canManage, onAssign, onMove, onClose, onDetails }: {
   </article>
 }
 
-function Column({ stage, orders, canManage, onAssign, onMove, onClose, onDetails }: { stage: Stage; orders: DeliveryOrder[]; canManage: boolean; onAssign: (order: DeliveryOrder) => void; onMove: (order: DeliveryOrder, stage: Stage) => void; onClose: (order: DeliveryOrder) => void; onDetails: (order: DeliveryOrder) => void }) {
-  const { t } = useTranslation('deliveries')
+function Column({ stage, orders, page, onPageChange, canManage, onAssign, onMove, onClose, onDetails }: { stage: Stage; orders: DeliveryOrder[]; page: number; onPageChange: (page: number) => void; canManage: boolean; onAssign: (order: DeliveryOrder) => void; onMove: (order: DeliveryOrder, stage: Stage) => void; onClose: (order: DeliveryOrder) => void; onDetails: (order: DeliveryOrder) => void }) {
+  const { t, i18n } = useTranslation('deliveries')
+  const { t: tCommon } = useTranslation('common')
   const { setNodeRef, isOver } = useDroppable({ id: `stage:${stage}`, data: { type: 'stage', stage } })
-  return <div ref={setNodeRef} className={`min-h-80 rounded-lg border-2 border-dashed p-3 ${isOver ? 'border-primary bg-primary/5' : ''}`}><h2 className="mb-3 font-semibold">{t(`stages.${stage}`)} <span className="text-muted-foreground">({orders.length})</span></h2><div className="space-y-3">{orders.map(order => <OrderCard key={order.id} order={order} canManage={canManage} onAssign={onAssign} onMove={onMove} onClose={onClose} onDetails={onDetails} />)}</div></div>
+  const totalPages = Math.max(1, Math.ceil(orders.length / ordersPerColumnPage))
+  const currentPage = Math.min(page, totalPages)
+  const visibleOrders = orders.slice((currentPage - 1) * ordersPerColumnPage, currentPage * ordersPerColumnPage)
+  return <div ref={setNodeRef} className={`flex min-h-80 flex-col rounded-lg border-2 border-dashed p-3 ${isOver ? 'border-primary bg-primary/5' : ''}`}>
+    <h2 className="mb-3 font-semibold">{t(`stages.${stage}`)} <span className="text-muted-foreground">({formatNumber(orders.length, i18n.language)})</span></h2>
+    <div className="flex-1 space-y-3">{visibleOrders.map(order => <OrderCard key={order.id} order={order} canManage={canManage} onAssign={onAssign} onMove={onMove} onClose={onClose} onDetails={onDetails} />)}</div>
+    <div className="mt-auto flex items-center justify-between gap-2 border-t border-dashed pt-3">
+      <Button type="button" variant="outline" size="sm" aria-label={t('previousOrders', { stage: t(`stages.${stage}`) })} disabled={currentPage <= 1} onClick={() => onPageChange(currentPage - 1)}><ChevronLeft className="mr-1 h-4 w-4" />{tCommon('previous')}</Button>
+      <span className="text-xs text-muted-foreground" aria-live="polite">{t('pageOrders', { page: formatNumber(currentPage, i18n.language), total: formatNumber(totalPages, i18n.language) })}</span>
+      <Button type="button" variant="outline" size="sm" aria-label={t('nextOrders', { stage: t(`stages.${stage}`) })} disabled={currentPage >= totalPages} onClick={() => onPageChange(currentPage + 1)}>{tCommon('next')}<ChevronRight className="ml-1 h-4 w-4" /></Button>
+    </div>
+  </div>
 }
 
 export default function DeliveriesPage() {
@@ -76,8 +89,7 @@ export default function DeliveriesPage() {
   const canManage = user?.role !== 'DRIVER'
   const [orders, setOrders] = useState<DeliveryOrder[]>([])
   const [drivers, setDrivers] = useState<Driver[]>([])
-  const [page, setPage] = useState(1)
-  const [totalPages, setTotalPages] = useState(0)
+  const [columnPages, setColumnPages] = useState<Record<Stage, number>>({ WAITING: 1, DELIVERING: 1 })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
@@ -94,16 +106,22 @@ export default function DeliveriesPage() {
   const load = useCallback(async () => {
     const token = ++sequence.current
     try {
-      const response = await api.get('/entregas/pedidos', { params: { page, limit: 50 } })
+      const response = await api.get('/entregas/pedidos', { params: { page: 1, limit: 100 } })
       if (token !== sequence.current) return
-      setOrders(response.data.orders ?? [])
+      const allOrders: DeliveryOrder[] = [...(response.data.orders ?? [])]
+      const totalPages = Number(response.data.totalPages ?? 1)
+      for (let currentPage = 2; currentPage <= totalPages; currentPage++) {
+        const nextPage = await api.get('/entregas/pedidos', { params: { page: currentPage, limit: 100 } })
+        if (token !== sequence.current) return
+        allOrders.push(...(nextPage.data.orders ?? []))
+      }
+      setOrders(allOrders)
       setDrivers(response.data.drivers ?? [])
-      setTotalPages(response.data.totalPages ?? 0)
       setError('')
     } catch {
       if (token === sequence.current) setError(t('loadError'))
     } finally { if (token === sequence.current) setLoading(false) }
-  }, [page, t])
+  }, [t])
 
   useRealtimeEvents(['orders'], load)
   useEffect(() => {
@@ -194,8 +212,7 @@ export default function DeliveriesPage() {
     {error && <p role="alert" className="text-destructive">{error}</p>}
     <DndContext sensors={sensors} collisionDetection={deliveryCollisionDetection} onDragEnd={onDragEnd}>
     <Card><CardHeader><CardTitle>{t('boardTitle')}</CardTitle></CardHeader><CardContent>
-      <div className="grid gap-4 lg:grid-cols-2">{columns.map(column => <Column key={column.stage} {...column} canManage={canManage} onAssign={openAssign} onMove={move} onDetails={order => { setSelected(order); setDialog('details') }} onClose={order => { setSelected(order); setPaymentMethod(''); setDialog('finish') }} />)}</div>
-      <div className="mt-4 flex items-center justify-between"><Button variant="outline" disabled={page <= 1} onClick={() => setPage(page - 1)}>{common('previous')}</Button><span>{page}/{Math.max(totalPages, 1)}</span><Button variant="outline" disabled={page >= totalPages} onClick={() => setPage(page + 1)}>{common('next')}</Button></div>
+      <div className="grid gap-4 lg:grid-cols-2">{columns.map(column => <Column key={column.stage} {...column} page={columnPages[column.stage]} onPageChange={nextPage => setColumnPages(current => ({ ...current, [column.stage]: nextPage }))} canManage={canManage} onAssign={openAssign} onMove={move} onDetails={order => { setSelected(order); setDialog('details') }} onClose={order => { setSelected(order); setPaymentMethod(''); setDialog('finish') }} />)}</div>
     </CardContent></Card>
     {canManage && <Card><CardHeader><CardTitle>{t('driversTitle')}</CardTitle></CardHeader><CardContent className="flex flex-wrap gap-2">{drivers.length ? drivers.map(driver => <DriverRosterTile key={driver.id} driver={driver} />) : <p>{t('noDrivers')}</p>}</CardContent></Card>}
     </DndContext>

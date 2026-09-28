@@ -334,6 +334,9 @@
     "confirmReadyAction": "पुष्टि करें और डिलीवरी शुरू करें",
     "conflictError": "ऑर्डर बदल गया है। अपडेट किए गए आइटम देखें और फिर कोशिश करें।",
     "removeDriver": "डिलीवरी कर्मी हटाएँ",
+    "pageOrders": "ऑर्डर · {{page}}/{{total}}",
+    "previousOrders": "{{stage}} में पिछले 10 ऑर्डर",
+    "nextOrders": "{{stage}} में अगले 10 ऑर्डर",
     "stages": {
       "WAITING": "तैयार होने की प्रतीक्षा",
       "DELIVERING": "डिलीवरी जारी"
@@ -395,7 +398,9 @@
     "dragOver": "दूसरे कॉलम में ले जाएँ।",
     "dragEnd": "आइटम स्थानांतरित हो गया।",
     "dragCancel": "स्थानांतरण रद्द किया गया।",
-    "pageOrders": "इस पेज के ऑर्डर · {{page}}/{{total}}",
+    "pageItems": "आइटम · {{page}}/{{total}}",
+    "previousItems": "{{stage}} में पिछले 10 आइटम",
+    "nextItems": "{{stage}} में अगले 10 आइटम",
     "infoTitle": "ऑर्डर का विवरण",
     "infoDescription": "रसोई में चुने गए आइटम का विवरण।",
     "customer": "ग्राहक",

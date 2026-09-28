@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { DndContext, PointerSensor, closestCenter, useDroppable, useDraggable, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core'
-import { ChefHat, GripVertical, Info } from 'lucide-react'
+import { ChefHat, ChevronLeft, ChevronRight, GripVertical, Info } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import api from '@/services/api'
 import { useRealtimeEvents } from '@/hooks/useRealtimeEvents'
@@ -19,6 +19,7 @@ type KitchenOrder = Omit<Order, 'items'> & { items: KitchenItem[] }
 type KitchenError = 'loadError' | 'refreshError' | 'conflict'
 
 const columns: Stage[] = ['IN_PREPARATION', 'READY']
+const itemsPerColumnPage = 10
 
 function KitchenCard({ order, item, onInfo }: { order: KitchenOrder; item: KitchenItem; onInfo: (order: KitchenOrder, item: KitchenItem) => void }) {
   const { t, i18n } = useTranslation('kitchen')
@@ -54,18 +55,32 @@ function KitchenCard({ order, item, onInfo }: { order: KitchenOrder; item: Kitch
   )
 }
 
-function KitchenColumn({ stage, orders, onInfo }: { stage: Stage; orders: KitchenOrder[]; onInfo: (order: KitchenOrder, item: KitchenItem) => void }) {
+function KitchenColumn({ stage, orders, page, onPageChange, onInfo }: { stage: Stage; orders: KitchenOrder[]; page: number; onPageChange: (page: number) => void; onInfo: (order: KitchenOrder, item: KitchenItem) => void }) {
   const { t, i18n } = useTranslation('kitchen')
+  const { t: tCommon } = useTranslation('common')
   const { isOver, setNodeRef } = useDroppable({ id: stage })
+  const items = orders.flatMap(order => order.items.map(item => ({ order, item })))
+  const totalPages = Math.max(1, Math.ceil(items.length / itemsPerColumnPage))
+  const currentPage = Math.min(page, totalPages)
+  const visibleItems = items.slice((currentPage - 1) * itemsPerColumnPage, currentPage * itemsPerColumnPage)
 
   return (
-    <div ref={setNodeRef} className={cn('min-h-[360px] rounded-lg border-2 border-dashed p-3 transition-colors', isOver && 'border-primary bg-primary/5')}>
+    <div ref={setNodeRef} className={cn('flex min-h-[360px] flex-col rounded-lg border-2 border-dashed p-3 transition-colors', isOver && 'border-primary bg-primary/5')}>
       <div className="mb-3 flex items-center justify-between">
         <h2 className="font-semibold">{t(`stages.${stage}`)}</h2>
         <span className="rounded-full bg-muted px-2 py-0.5 text-xs">{formatNumber(orders.reduce((total, order) => total + order.items.length, 0), i18n.language)}</span>
       </div>
-      <div className="space-y-3">
-        {orders.flatMap(order => order.items.map(item => <KitchenCard key={item.id} order={order} item={item} onInfo={onInfo} />))}
+      <div className="flex-1 space-y-3">
+        {visibleItems.map(({ order, item }) => <KitchenCard key={item.id} order={order} item={item} onInfo={onInfo} />)}
+      </div>
+      <div className="mt-auto flex items-center justify-between gap-2 border-t border-dashed pt-3">
+        <Button type="button" variant="outline" size="sm" aria-label={t('previousItems', { stage: t(`stages.${stage}`) })} disabled={currentPage <= 1} onClick={() => onPageChange(currentPage - 1)}>
+          <ChevronLeft className="mr-1 h-4 w-4" />{tCommon('previous')}
+        </Button>
+        <span className="text-xs text-muted-foreground" aria-live="polite">{t('pageItems', { page: formatNumber(currentPage, i18n.language), total: formatNumber(totalPages, i18n.language) })}</span>
+        <Button type="button" variant="outline" size="sm" aria-label={t('nextItems', { stage: t(`stages.${stage}`) })} disabled={currentPage >= totalPages} onClick={() => onPageChange(currentPage + 1)}>
+          {tCommon('next')}<ChevronRight className="ml-1 h-4 w-4" />
+        </Button>
       </div>
     </div>
   )
@@ -74,15 +89,14 @@ function KitchenColumn({ stage, orders, onInfo }: { stage: Stage; orders: Kitche
 export default function KitchenPage() {
   const { user } = useAuth()
   const { t, i18n } = useTranslation('kitchen')
-  const { t: tCommon } = useTranslation('common')
   const [orders, setOrders] = useState<Order[]>([])
-  const [page, setPage] = useState(1)
-  const [totalPages, setTotalPages] = useState(0)
+  const [columnPages, setColumnPages] = useState<Record<Stage, number>>({ IN_PREPARATION: 1, READY: 1 })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<KitchenError | null>(null)
   const [refreshError, setRefreshError] = useState<KitchenError | null>(null)
   const [selectedItem, setSelectedItem] = useState<{ order: KitchenOrder; item: KitchenItem } | null>(null)
   const request = useRef(0)
+  const hasOrders = useRef(false)
   const inFlight = useRef(false)
   const queued = useRef(false)
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }))
@@ -92,21 +106,28 @@ export default function KitchenPage() {
     inFlight.current = true
     const token = ++request.current
     try {
-      const response = await api.get('/cozinha/pedidos', { params: { page, limit: 50 } })
+      const response = await api.get('/cozinha/pedidos', { params: { page: 1, limit: 100 } })
       if (token !== request.current) return
-      setOrders(response.data.orders)
-      setTotalPages(response.data.totalPages)
+      const allOrders: Order[] = [...response.data.orders]
+      const totalPages = Number(response.data.totalPages ?? 1)
+      for (let currentPage = 2; currentPage <= totalPages; currentPage++) {
+        const nextPage = await api.get('/cozinha/pedidos', { params: { page: currentPage, limit: 100 } })
+        if (token !== request.current) return
+        allOrders.push(...nextPage.data.orders)
+      }
+      setOrders(allOrders)
+      hasOrders.current = allOrders.length > 0
       setError(null)
       setRefreshError(null)
     } catch {
-      if (orders.length) setRefreshError('refreshError')
+      if (hasOrders.current) setRefreshError('refreshError')
       else setError('loadError')
     } finally {
       inFlight.current = false
       setLoading(false)
       if (queued.current) { queued.current = false; void load() }
     }
-  }, [page])
+  }, [])
 
   useRealtimeEvents(['orders'], load)
   useEffect(() => {
@@ -174,14 +195,9 @@ export default function KitchenPage() {
             }}
           >
             <div className="grid gap-4 lg:grid-cols-2">
-              {grouped.map(column => <KitchenColumn key={column.stage} stage={column.stage} orders={column.orders} onInfo={(order, item) => setSelectedItem({ order, item })} />)}
+              {grouped.map(column => <KitchenColumn key={column.stage} stage={column.stage} orders={column.orders} page={columnPages[column.stage]} onPageChange={nextPage => setColumnPages(current => ({ ...current, [column.stage]: nextPage }))} onInfo={(order, item) => setSelectedItem({ order, item })} />)}
             </div>
           </DndContext>
-          <div className="mt-4 flex items-center justify-between">
-            <Button variant="outline" disabled={page <= 1} onClick={() => setPage(value => value - 1)}>{tCommon('previous')}</Button>
-            <span className="text-sm text-muted-foreground">{t('pageOrders', { page: formatNumber(page, i18n.language), total: formatNumber(Math.max(totalPages, 1), i18n.language) })}</span>
-            <Button variant="outline" disabled={page >= totalPages} onClick={() => setPage(value => value + 1)}>{tCommon('next')}</Button>
-          </div>
         </CardContent>
       </Card>
       <Dialog open={selectedItem !== null} onOpenChange={open => { if (!open) setSelectedItem(null) }}>
