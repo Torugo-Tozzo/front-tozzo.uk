@@ -518,7 +518,8 @@
     },
     "closingPeriod": "Clôture de la période",
     "empty": "Aucune vente trouvée pour cette période.",
-    "viewDetails": "Voir les détails"
+    "viewDetails": "Voir les détails",
+    "serviceLine": "service"
   },
   "products": {
     "title": "Produits",
@@ -1116,6 +1117,21 @@
       "EM_EXECUCAO": "En cours",
       "CONCLUIDA": "Terminé",
       "CANCELADA": "Annulé"
-    }
+    },
+    "all": "Tous",
+    "loading": "Chargement…",
+    "retry": "Réessayer",
+    "back": "Retour aux devis",
+    "details": "Détails du dossier",
+    "editDetails": "Modifier les détails",
+    "saveDetails": "Enregistrer",
+    "cancelEdit": "Annuler la modification",
+    "remove": "Supprimer",
+    "confirmClose": "Clore ce dossier et créer la vente associée ?",
+    "reload": "Recharger",
+    "linkedSale": "Vente associée",
+    "saleServices": "Services",
+    "serviceLine": "{quantity}x {name}",
+    "createError": "Impossible de créer le dossier."
   }
 }

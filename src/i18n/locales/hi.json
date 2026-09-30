@@ -518,7 +518,8 @@
     },
     "closingPeriod": "अवधि का समापन",
     "empty": "इस अवधि में कोई बिक्री नहीं मिली।",
-    "viewDetails": "विवरण देखें"
+    "viewDetails": "विवरण देखें",
+    "serviceLine": "सेवा"
   },
   "products": {
     "title": "उत्पाद",
@@ -1116,6 +1117,21 @@
       "EM_EXECUCAO": "जारी",
       "CONCLUIDA": "पूरा",
       "CANCELADA": "रद्द"
-    }
+    },
+    "all": "सभी",
+    "loading": "लोड हो रहा है…",
+    "retry": "पुनः प्रयास करें",
+    "back": "अनुमानों पर वापस जाएँ",
+    "details": "ऑर्डर विवरण",
+    "editDetails": "विवरण संपादित करें",
+    "saveDetails": "विवरण सहेजें",
+    "cancelEdit": "संपादन रद्द करें",
+    "remove": "हटाएँ",
+    "confirmClose": "क्या यह ऑर्डर बंद करके संबद्ध बिक्री बनाएँ?",
+    "reload": "ऑर्डर फिर लोड करें",
+    "linkedSale": "संबद्ध बिक्री",
+    "saleServices": "सेवाएँ",
+    "serviceLine": "{quantity}x {name}",
+    "createError": "ऑर्डर नहीं बनाया जा सका।"
   }
 }

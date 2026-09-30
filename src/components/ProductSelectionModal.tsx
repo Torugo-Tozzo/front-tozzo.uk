@@ -65,6 +65,7 @@ interface ProductSelectionModalProps {
   onChangeItemStatus?: (itemId: number | string, newStatus: OrderItemStatus) => Promise<void> | void;
   onCancelSale?: () => Promise<void>;
   readOnly?: boolean;
+  additionalReadOnlyItems?: { description: string; quantity: number; unitPrice: number }[];
 }
 
 const DEFAULT_ITEMS: { productId: number; quantity: number }[] = [];
@@ -86,6 +87,7 @@ export function ProductSelectionModal({
   onChangeItemStatus,
   onCancelSale,
   readOnly = false,
+  additionalReadOnlyItems = [],
 }: ProductSelectionModalProps) {
   const confirm = useConfirm();
   const { i18n } = useTranslation();
@@ -304,7 +306,7 @@ export function ProductSelectionModal({
     }
   };
 
-  const total = selectedItems.reduce((acc, item) => acc + ((item.unitPrice != null ? item.unitPrice : item.price) * item.quantity), 0);
+  const total = selectedItems.reduce((acc, item) => acc + ((item.unitPrice != null ? item.unitPrice : item.price) * item.quantity), 0) + additionalReadOnlyItems.reduce((acc, item) => acc + item.unitPrice * item.quantity, 0);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -502,6 +504,12 @@ export function ProductSelectionModal({
                       </div>
                     ))
                   )}
+                {readOnly && additionalReadOnlyItems.map((item, index) => (
+                  <div key={`service-${index}`} className="flex items-center justify-between p-2 bg-white dark:bg-gray-800 rounded shadow-sm border dark:border-gray-700">
+                    <div className="flex-1"><p className="font-medium">{item.description}</p><p className="text-sm text-gray-500 dark:text-gray-400">{formatNumber(item.quantity, activeLocale)} x {formatCurrencyBRL(item.unitPrice, activeLocale)}</p></div>
+                    <span className="font-bold px-4">{formatCount(item.quantity, unitCountMessages, activeLocale)}</span>
+                  </div>
+                ))}
               </div>
               <div className="pt-4 border-t flex justify-between items-center font-bold text-lg text-gray-900 dark:text-gray-100">
                 <span>{tCommon("total")}:</span>

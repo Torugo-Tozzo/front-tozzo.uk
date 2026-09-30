@@ -100,6 +100,7 @@ describe("orders and sales chrome", () => {
               total: 25,
               soldAt: "2026-08-28T12:00:00Z",
               items: [{ productId: 3, quantity: 1, name: "Burger", unitPriceAtSale: 25 }],
+              serviceItems: [{ serviceOfferingId: "svc-1", description: "Tune-up", quantity: 1, unitPriceAtSale: 80 }],
             }],
             total: 1,
             closing: 25,
@@ -115,10 +116,12 @@ describe("orders and sales chrome", () => {
     try {
       renderPage(<SalesPage />)
 
+      expect((await screen.findByRole("row", { name: /Table 7/ })).textContent).toContain("Tune-up (service)")
       const viewButton = await screen.findByRole("button", { name: "View details" })
       await userEvent.setup().click(viewButton)
 
       await waitFor(() => expect(screen.getByText("Table 7")).toBeInTheDocument())
+      expect(screen.getByRole("dialog").textContent).toContain("Tune-up")
       expect(screen.queryByRole("combobox")).not.toBeInTheDocument()
       expect(screen.queryByText("Requested")).not.toBeInTheDocument()
       expect(screen.queryByText("Delivered")).not.toBeInTheDocument()

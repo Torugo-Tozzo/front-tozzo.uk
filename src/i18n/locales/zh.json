@@ -518,7 +518,8 @@
     },
     "closingPeriod": "期间结算",
     "empty": "该期间未找到销售记录。",
-    "viewDetails": "查看详情"
+    "viewDetails": "查看详情",
+    "serviceLine": "服务"
   },
   "products": {
     "title": "产品",
@@ -1116,6 +1117,21 @@
       "EM_EXECUCAO": "进行中",
       "CONCLUIDA": "已完成",
       "CANCELADA": "已取消"
-    }
+    },
+    "all": "全部",
+    "loading": "加载中…",
+    "retry": "重试",
+    "back": "返回报价",
+    "details": "工单详情",
+    "editDetails": "编辑详情",
+    "saveDetails": "保存详情",
+    "cancelEdit": "取消编辑",
+    "remove": "移除",
+    "confirmClose": "关闭工单并创建关联销售？",
+    "reload": "重新加载工单",
+    "linkedSale": "关联销售",
+    "saleServices": "服务",
+    "serviceLine": "{quantity}x {name}",
+    "createError": "无法创建工单。"
   }
 }

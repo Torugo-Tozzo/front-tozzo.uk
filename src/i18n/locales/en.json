@@ -518,7 +518,8 @@
     },
     "closingPeriod": "Period closing",
     "empty": "No sales found for this period.",
-    "viewDetails": "View details"
+    "viewDetails": "View details",
+    "serviceLine": "service"
   },
   "products": {
     "title": "Products",
@@ -1116,6 +1117,21 @@
       "EM_EXECUCAO": "In progress",
       "CONCLUIDA": "Completed",
       "CANCELADA": "Cancelled"
-    }
+    },
+    "all": "All",
+    "loading": "Loading…",
+    "retry": "Retry",
+    "back": "Back to estimates",
+    "details": "Order details",
+    "editDetails": "Edit details",
+    "saveDetails": "Save details",
+    "cancelEdit": "Cancel editing",
+    "remove": "Remove",
+    "confirmClose": "Close this order and create the linked sale?",
+    "reload": "Reload order",
+    "linkedSale": "Linked sale",
+    "saleServices": "Services",
+    "serviceLine": "{quantity}x {name}",
+    "createError": "Could not create the order."
   }
 }

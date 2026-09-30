@@ -24,7 +24,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { formatCurrencyBRL, formatDateTime, formatNumber } from "@/i18n/format"
 import { normalizeLocale } from "@/i18n/locale"
 import { getErrorTranslationKey, type ErrorContext } from "@/i18n/error-keys"
-import { paymentMethodLabels, type Sale, type SaleItem } from "@/domain/models"
+import { paymentMethodLabels, type Sale, type SaleItem, type SaleServiceItem } from "@/domain/models"
 
 type SaleFilters = {
   customerName: string
@@ -49,9 +49,10 @@ function isSalesEqual(a: Sale[], b: Sale[]) {
   return true
 }
 
-function formatItemsSummary(items?: SaleItem[], locale?: string, fallbackProduct?: string): string {
-  if (!items || items.length === 0) return ""
-  return items.map((item) => formatNumber(item.quantity, locale) + "x " + (item.product?.name ?? fallbackProduct)).join(", ")
+function formatItemsSummary(sale: Sale, locale?: string, fallbackProduct?: string, serviceLabel?: string): string {
+  const products = (sale.items ?? []).map((item) => formatNumber(item.quantity, locale) + "x " + (item.product?.name ?? fallbackProduct))
+  const services = (sale.serviceItems ?? []).map((item) => formatNumber(item.quantity, locale) + "x " + item.description + (serviceLabel ? ` (${serviceLabel})` : ""))
+  return [...products, ...services].join(", ")
 }
 
 function buildSaleParams(page: number, limit: number, f: SaleFilters) {
@@ -89,6 +90,8 @@ export function VendasTab() {
 
   const [currentSaleItems, setCurrentSaleItems] = useState<{ productId: number | string; quantity: number; unitPrice?: number; name?: string }[]>([])
   const [currentSaleClient, setCurrentSaleClient] = useState("")
+  const [currentSaleDescription, setCurrentSaleDescription] = useState("")
+  const [currentSaleServiceItems, setCurrentSaleServiceItems] = useState<SaleServiceItem[]>([])
   const [isReadOnlyModal, setIsReadOnlyModal] = useState(false)
   const [currentSaleId, setCurrentSaleId] = useState<number | string | null>(null)
 
@@ -265,6 +268,8 @@ export function VendasTab() {
         setCurrentSaleItems([])
       }
 
+      setCurrentSaleServiceItems(sale.serviceItems ?? [])
+      setCurrentSaleDescription((sale.serviceItems ?? []).map((item) => `${formatNumber(item.quantity, activeLocale)}x ${item.description}`).join(', '))
       setCurrentSaleClient(sale.customerName ?? '')
       setCurrentSaleId(sale.id)
       setIsReadOnlyModal(true)
@@ -279,6 +284,8 @@ export function VendasTab() {
 
   const handleNewSaleClick = () => {
     setCurrentSaleClient("")
+    setCurrentSaleDescription("")
+    setCurrentSaleServiceItems([])
     setCurrentSaleItems([])
     setIsReadOnlyModal(false)
     setCurrentSaleId(null)
@@ -326,7 +333,9 @@ export function VendasTab() {
         onConfirm={handleModalConfirm}
         title={isReadOnlyModal ? tSales("details") : tSales("new")}
         initialClientName={currentSaleClient}
+        description={currentSaleDescription || undefined}
         initialItems={currentSaleItems}
+        additionalReadOnlyItems={currentSaleServiceItems.map((item) => ({ description: item.description, quantity: item.quantity, unitPrice: Number(item.unitPriceAtSale) }))}
         mergeSameProducts
         readOnly={isReadOnlyModal}
         onCancelSale={isReadOnlyModal && currentSaleId ? async () => handleCancelSale(currentSaleId) : undefined}
@@ -388,12 +397,12 @@ export function VendasTab() {
                     <TableCell className="text-center">{formatNumber((page - 1) * limit + index + 1, activeLocale)}</TableCell>
                     <TableCell>
                       <div className="font-medium">{sale.customerName || tCommon("notInformed")}</div>
-                      {formatItemsSummary(sale.items, activeLocale, tSales("fallback.product")) && (
+                      {formatItemsSummary(sale, activeLocale, tSales("fallback.product"), tSales("serviceLine")) && (
                         <div
                           className="text-sm text-muted-foreground truncate max-w-[280px]"
-                          title={formatItemsSummary(sale.items, activeLocale, tSales("fallback.product"))}
+                          title={formatItemsSummary(sale, activeLocale, tSales("fallback.product"), tSales("serviceLine"))}
                         >
-                          {formatItemsSummary(sale.items, activeLocale, tSales("fallback.product"))}
+                          {formatItemsSummary(sale, activeLocale, tSales("fallback.product"), tSales("serviceLine"))}
                         </div>
                       )}
                     </TableCell>
@@ -413,11 +422,11 @@ export function VendasTab() {
                               title: tPrinter("receiptTitleSale", { id: sale.id }),
                               customerName: sale.customerName?.trim() || tCommon("notInformed"),
                               dateLabel: sale.soldAt ? formatDateTime(sale.soldAt, activeLocale) : tCommon("notInformed"),
-                              items: (sale.items ?? []).map((item) => ({
+                              items: [...(sale.items ?? []).map((item) => ({
                                 name: item.product?.name ?? tSales("fallback.product"),
                                 quantity: item.quantity,
                                 unitPrice: item.unitPriceAtSale ?? item.product?.price ?? 0,
-                              })),
+                              })), ...(sale.serviceItems ?? []).map((item) => ({ name: item.description, quantity: item.quantity, unitPrice: item.unitPriceAtSale }))],
                               total: sale.total,
                               totalLabel: tPrinter("receiptTotal"),
                               paymentLabel: sale.paymentMethod ? paymentMethodLabels[sale.paymentMethod] : tCommon("notInformed"),

@@ -46,6 +46,7 @@ export interface ServiceOrder {
   items: ServiceOrderItem[];
   events?: ServiceOrderEvent[];
   total?: number;
+  sale?: { id: WireId; total: number; isCancelled?: boolean } | null;
 }
 
 export interface SaleServiceItem {

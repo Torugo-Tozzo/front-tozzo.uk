@@ -518,7 +518,8 @@
     },
     "closingPeriod": "Fechamento do período",
     "empty": "Nenhuma venda encontrada no período.",
-    "viewDetails": "Ver detalhes"
+    "viewDetails": "Ver detalhes",
+    "serviceLine": "serviço"
   },
   "products": {
     "title": "Produtos",
@@ -1116,6 +1117,21 @@
       "EM_EXECUCAO": "Em execução",
       "CONCLUIDA": "Concluída",
       "CANCELADA": "Cancelada"
-    }
+    },
+    "all": "Todos",
+    "loading": "Carregando…",
+    "retry": "Tentar novamente",
+    "back": "Voltar aos orçamentos",
+    "details": "Detalhes da ordem",
+    "editDetails": "Editar detalhes",
+    "saveDetails": "Salvar detalhes",
+    "cancelEdit": "Cancelar edição",
+    "remove": "Remover",
+    "confirmClose": "Fechar esta ordem e criar a venda vinculada?",
+    "reload": "Recarregar ordem",
+    "linkedSale": "Venda vinculada",
+    "saleServices": "Serviços",
+    "serviceLine": "{quantity}x {name}",
+    "createError": "Não foi possível criar a ordem."
   }
 }
