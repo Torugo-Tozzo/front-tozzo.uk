@@ -97,6 +97,14 @@ export interface SaleItem {
   product?: Product | null;
 }
 
+export interface SaleServiceItem {
+  id?: number | string;
+  serviceOfferingId?: number | string | null;
+  description: string;
+  quantity: number;
+  unitPriceAtSale: number;
+}
+
 export interface Sale {
   id: number | string;
   customerName?: string | null;
@@ -107,6 +115,7 @@ export interface Sale {
   createdByName?: string | null;
   seller?: User | null;
   items?: SaleItem[];
+  serviceItems?: SaleServiceItem[];
   paymentMethod?: PaymentMethod | null;
   deletedAt?: string | null;
 }

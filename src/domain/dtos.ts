@@ -75,6 +75,14 @@ export interface LegacySaleItemDto {
   produto?: LegacyProductDto | null;
 }
 
+export interface SaleServiceItemDto {
+  id?: WireId;
+  serviceOfferingId?: WireId | null;
+  description: string;
+  quantity: number | string;
+  unitPriceAtSale: number | string;
+}
+
 export interface LegacySaleDto {
   id: WireId;
   cliente?: string | null;
@@ -82,6 +90,7 @@ export interface LegacySaleDto {
   horario?: string | null;
   vendedor?: LegacyUserDto | null;
   itens?: LegacySaleItemDto[] | null;
+  serviceItems?: SaleServiceItemDto[] | null;
   excluida?: boolean | null;
 }
 

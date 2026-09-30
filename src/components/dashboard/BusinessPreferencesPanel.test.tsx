@@ -47,6 +47,7 @@ describe('BusinessPreferencesPanel', () => {
 
     const services = within(profiles).getByRole('group', { name: 'Prestador de serviços' })
     expect(within(services).getByRole('checkbox', { name: /Orçamentos/ })).toBeChecked()
+    expect(within(services).queryByText('Este módulo estará disponível em uma atualização futura.')).not.toBeInTheDocument()
     expect(screen.queryByText('Prévia do menu')).not.toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Salvar perfis' }))
 

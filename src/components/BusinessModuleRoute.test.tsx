@@ -21,8 +21,28 @@ describe('BusinessModuleRoute', () => {
     expect(screen.getByText('Order screen')).toBeInTheDocument()
   })
 
+  it('allows a role-authorized service URL even when the module is hidden from the menu', () => {
+    role = 'OWNER'
+    establishment = { businessProfiles: ['SERVICES'], visibleModules: [] }
+    render(<MemoryRouter initialEntries={['/dashboard/services']}><Routes>
+      <Route path="/dashboard/services" element={<BusinessModuleRoute module="SERVICES"><span>Service screen</span></BusinessModuleRoute>} />
+    </Routes></MemoryRouter>)
+    expect(screen.getByText('Service screen')).toBeInTheDocument()
+  })
+
+  it.each(['COOK', 'DRIVER'])('blocks %s from the services URL', (specialRole) => {
+    role = specialRole
+    render(<MemoryRouter initialEntries={['/dashboard/services']}><Routes>
+      <Route path="/dashboard/services" element={<BusinessModuleRoute module="SERVICES"><span>Service screen</span></BusinessModuleRoute>} />
+      <Route path="/dashboard/kitchen" element={<span>Kitchen screen</span>} />
+      <Route path="/dashboard/deliveries" element={<span>Delivery screen</span>} />
+    </Routes></MemoryRouter>)
+    expect(screen.queryByText('Service screen')).not.toBeInTheDocument()
+  })
+
   it('redirects a cook away from an order URL to the kitchen', () => {
     role = 'COOK'
+    establishment = undefined
     renderRoute()
     expect(screen.getByText('Kitchen screen')).toBeInTheDocument()
     expect(screen.queryByText('Order screen')).not.toBeInTheDocument()

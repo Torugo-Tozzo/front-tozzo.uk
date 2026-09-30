@@ -16,6 +16,8 @@ export const NAMESPACES = [
   'calendar',
   'sales',
   'products',
+  'services',
+  'estimates',
   'employees',
   'charts',
   'settings',

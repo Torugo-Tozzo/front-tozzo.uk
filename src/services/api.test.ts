@@ -101,4 +101,31 @@ describe('wire normalization at the service boundary', () => {
     expect(serializeRequestData('/calendar/shifts', body)).toEqual(body)
     expect(normalizeResponseData('/calendar', { shifts: [{ assignments: [{ employeeId: 'ana' }] }] })).toEqual({ shifts: [{ assignments: [{ employeeId: 'ana' }] }] })
   })
+
+  it('keeps service and estimate endpoints in their native English contract', () => {
+    const service = { name: 'Repair', referencePrice: 25 }
+    expect(serializeRequestData('/servicos', service)).toEqual(service)
+    const order = { customerName: 'Ana', description: 'Repair', items: [{ serviceOfferingId: 's1', quantity: 1, unitPrice: 25 }] }
+    expect(serializeRequestData('/ordens-servico', order)).toEqual(order)
+    expect(normalizeResponseData('/ordens-servico/1', { customerName: 'Ana', status: 'ORCADA' })).toEqual({ customerName: 'Ana', status: 'ORCADA' })
+  })
+
+  it('keeps service lines in a mixed sale canonical while retaining legacy product serialization', () => {
+    expect(serializeRequestData('/vendas', { customerName: 'Ana', items: [{ productId: 'p1', quantity: 1 }] })).toEqual({
+      cliente: 'Ana', itens: [{ produtoId: 'p1', quantidade: 1 }],
+    })
+    const request = { customerName: 'Ana', items: [
+      { productId: 'p1', quantity: 1 },
+      { serviceId: 's1', quantity: 2, unitPriceAtSale: 30 },
+    ] }
+    expect(serializeRequestData('/vendas', request)).toEqual(request)
+    expect(normalizeResponseData('/vendas', { itens: [{ produtoId: 'p1', quantidade: 1, precoHistorico: 10 }], serviceItems: [{ serviceOfferingId: 's1', description: 'Repair', quantity: 2, unitPriceAtSale: 30 }] })).toEqual({
+      items: [{ productId: 'p1', quantity: 1, unitPriceAtSale: 10 }],
+      serviceItems: [{ serviceOfferingId: 's1', description: 'Repair', quantity: 2, unitPriceAtSale: 30 }],
+    })
+    expect(request).toEqual({ customerName: 'Ana', items: [
+      { productId: 'p1', quantity: 1 },
+      { serviceId: 's1', quantity: 2, unitPriceAtSale: 30 },
+    ] })
+  })
 })

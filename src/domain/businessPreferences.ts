@@ -1,6 +1,6 @@
 export type BusinessProfile = 'FOOD' | 'STORE' | 'SERVICES'
 export type BusinessModule = 'ORDERS' | 'KITCHEN' | 'DELIVERIES' | 'INGREDIENT_INVENTORY' | 'SALES' | 'PRODUCTS' | 'STORE_INVENTORY' | 'SERVICES' | 'ESTIMATES' | 'EMPLOYEES' | 'SCHEDULE' | 'DEVICES' | 'REPORTS' | 'SETTINGS'
-export type NavigationModule = Exclude<BusinessModule, 'SERVICES' | 'ESTIMATES' | 'INGREDIENT_INVENTORY' | 'STORE_INVENTORY'>
+export type NavigationModule = Exclude<BusinessModule, 'INGREDIENT_INVENTORY' | 'STORE_INVENTORY'>
 
 export const BUSINESS_PROFILES: readonly BusinessProfile[] = ['FOOD', 'STORE', 'SERVICES']
 export const BUSINESS_MODULES: readonly BusinessModule[] = [
@@ -9,8 +9,9 @@ export const BUSINESS_MODULES: readonly BusinessModule[] = [
 ]
 export const NAVIGATION_MODULES: readonly NavigationModule[] = [
   'ORDERS', 'KITCHEN', 'DELIVERIES', 'SALES', 'PRODUCTS',
-  'EMPLOYEES', 'SCHEDULE', 'DEVICES', 'REPORTS', 'SETTINGS',
+  'SERVICES', 'ESTIMATES', 'EMPLOYEES', 'SCHEDULE', 'DEVICES', 'REPORTS', 'SETTINGS',
 ]
+const LEGACY_NAVIGATION_MODULES = NAVIGATION_MODULES.filter((module) => module !== 'SERVICES' && module !== 'ESTIMATES')
 
 export function canAccessBusinessModule(role: string | undefined, module: NavigationModule): boolean {
   if (role === 'COOK') return module === 'KITCHEN'
@@ -53,7 +54,7 @@ export function resolveNavigationModules(
   if (role === 'DRIVER') return establishment?.businessProfiles?.includes('FOOD') === false ? [] : ['DELIVERIES']
 
   const selected = establishment?.businessProfiles === undefined
-    ? new Set<BusinessModule>(NAVIGATION_MODULES)
+    ? new Set<BusinessModule>(LEGACY_NAVIGATION_MODULES)
     : new Set<BusinessModule>(modulesForProfiles(establishment.businessProfiles, establishment.visibleModules?.length
       ? establishment.visibleModules
       : suggestedBusinessModules(establishment.businessProfiles)))

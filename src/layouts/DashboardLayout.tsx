@@ -13,6 +13,8 @@ import {
   BarChart3,
   ChefHat,
   Bike,
+  Wrench,
+  FileText,
   PanelLeftClose,
   PanelLeftOpen,
 } from "lucide-react"
@@ -92,6 +94,8 @@ export default function DashboardLayout() {
     { module: 'DELIVERIES', href: "/dashboard/deliveries", label: tNavigation("deliveries"), icon: Bike },
     { module: 'SALES', href: "/dashboard/sales", label: tNavigation("sales"), icon: DollarSign },
     { module: 'PRODUCTS', href: "/dashboard/products", label: tNavigation("products"), icon: ShoppingBag },
+    { module: 'SERVICES', href: "/dashboard/services", label: tNavigation("services"), icon: Wrench },
+    { module: 'ESTIMATES', href: "/dashboard/estimates", label: tNavigation("estimates"), icon: FileText },
     { module: 'EMPLOYEES', href: "/dashboard/employees", label: tNavigation("employees"), icon: Users },
     { module: 'SCHEDULE', href: "/dashboard/schedule", label: tNavigation("schedule"), icon: CalendarDays },
     { module: 'DEVICES', href: "/dashboard/devices", label: tNavigation("devices"), icon: Smartphone },

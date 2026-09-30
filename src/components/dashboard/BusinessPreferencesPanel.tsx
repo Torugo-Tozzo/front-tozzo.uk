@@ -11,7 +11,7 @@ import {
 import api from '@/services/api'
 
 type PreferencesResponse = { profiles: BusinessProfile[]; visibleModules: BusinessModule[]; revision: number }
-const UPCOMING_MODULES: readonly BusinessModule[] = ['SERVICES', 'ESTIMATES', 'INGREDIENT_INVENTORY', 'STORE_INVENTORY']
+const UPCOMING_MODULES: readonly BusinessModule[] = ['INGREDIENT_INVENTORY', 'STORE_INVENTORY']
 
 export function BusinessPreferencesPanel() {
   const { user, refreshUserProfile } = useAuth()

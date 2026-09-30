@@ -28,6 +28,15 @@ describe('business module navigation', () => {
     })).toEqual(['SALES', 'PRODUCTS', 'EMPLOYEES', 'DEVICES', 'REPORTS', 'SETTINGS'])
   })
 
+  it('adds Services and Estimates for service profiles without granting them to specialist roles', () => {
+    const establishment = { businessProfiles: ['SERVICES'] as const, visibleModules: ['SERVICES', 'ESTIMATES'] as const }
+    expect(resolveNavigationModules('OWNER', establishment)).toContain('SERVICES')
+    expect(resolveNavigationModules('MANAGER', establishment)).toContain('ESTIMATES')
+    expect(resolveNavigationModules('EMPLOYEE', establishment)).toContain('SERVICES')
+    expect(canAccessBusinessModule('COOK', 'SERVICES')).toBe(false)
+    expect(canAccessBusinessModule('DRIVER', 'ESTIMATES')).toBe(false)
+  })
+
   it('does not show food modules left in saved preferences after food is disabled', () => {
     expect(resolveNavigationModules('OWNER', {
       businessProfiles: ['STORE'],
