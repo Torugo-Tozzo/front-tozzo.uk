@@ -40,6 +40,16 @@ describe('BusinessModuleRoute', () => {
     expect(screen.queryByText('Service screen')).not.toBeInTheDocument()
   })
 
+  it.each(['COOK', 'DRIVER'])('blocks %s from the execution URL', (specialRole) => {
+    role = specialRole
+    render(<MemoryRouter initialEntries={['/dashboard/service-orders']}><Routes>
+      <Route path="/dashboard/service-orders" element={<BusinessModuleRoute module="SERVICE_ORDERS"><span>Execution screen</span></BusinessModuleRoute>} />
+      <Route path="/dashboard/kitchen" element={<span>Kitchen screen</span>} />
+      <Route path="/dashboard/deliveries" element={<span>Delivery screen</span>} />
+    </Routes></MemoryRouter>)
+    expect(screen.queryByText('Execution screen')).not.toBeInTheDocument()
+  })
+
   it('redirects a cook away from an order URL to the kitchen', () => {
     role = 'COOK'
     establishment = undefined

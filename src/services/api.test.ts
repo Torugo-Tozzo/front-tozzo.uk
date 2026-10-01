@@ -1,9 +1,36 @@
 import { describe, it, expect, vi } from 'bun:test'
 import { authClient } from '@/lib/authClient'
 import { replaceProperty } from '@/test/replace-property'
-import api, { getErrorCode, getSseToken, normalizeResponseData, serializeRequestData } from './api'
+import type { ServiceOrder } from '@/domain/services'
+import api, { getErrorCode, getSseToken, normalizeResponseData, serializeRequestData, servicesApi } from './api'
 
 describe('getErrorCode', () => {
+  it('normalizes raw order action responses and keeps close sale envelopes', async () => {
+    const originalAdapter = api.defaults.adapter
+    const order: ServiceOrder = { id: 'o1', establishmentId: 'e1', customerName: 'Ana', description: 'Repair', status: 'EM_EXECUCAO', updatedAt: 'new-version', items: [], dueAt: null, responsibleId: null, completedAt: null }
+    api.defaults.adapter = (async (config: any) => ({data: config.url.endsWith('/fechar') ? {order, sale:{id:'sale1',total:12.45},retried:false} : order, status:200, statusText:'OK',headers:{},config})) as typeof api.defaults.adapter
+    try {
+      expect(await servicesApi.action('o1','iniciar','version')).toEqual({order})
+      expect(await servicesApi.action('o1','fechar','version')).toEqual({order,sale:{id:'sale1',total:12.45},retried:false})
+    } finally { api.defaults.adapter = originalAdapter }
+  })
+  it('serializes supplemental labor and optimistic quote deletion over HTTP', async () => {
+    const originalAdapter = api.defaults.adapter
+    const requests: Array<{method?: string; url?: string; data?: string}> = []
+    api.defaults.adapter = (async (config: any) => { requests.push(config); return {data: {}, status: 200, statusText: 'OK', headers: {}, config} }) as typeof api.defaults.adapter
+    try {
+      await servicesApi.replaceSupplements('o1', 'version', [{description:'Labor',details:'Long scope',quantity:1,unitPrice:12.45}])
+      await servicesApi.approveSupplements('o1', 'version')
+      await servicesApi.deleteOrder('o1', 'version')
+      await servicesApi.delete('s1')
+      expect(requests.map(({method,url,data}) => ({method,url,body:data ? JSON.parse(data) : undefined}))).toEqual([
+        {method:'put',url:'/ordens-servico/o1/adicionais',body:{expectedUpdatedAt:'version',items:[{description:'Labor',details:'Long scope',quantity:1,unitPrice:12.45}]}},
+        {method:'post',url:'/ordens-servico/o1/aprovar-adicionais',body:{expectedUpdatedAt:'version'}},
+        {method:'delete',url:'/ordens-servico/o1',body:{expectedUpdatedAt:'version'}},
+        {method:'delete',url:'/servicos/s1',body:undefined},
+      ])
+    } finally { api.defaults.adapter = originalAdapter }
+  })
   it('reads native auth-js codes while retaining legacy API codes', () => {
     expect(getErrorCode({ code: 'invalid_credentials' })).toBe('invalid_credentials')
     expect(getErrorCode({ response: { data: { code: 'AUTH_INVALID_CREDENTIALS' } } })).toBe('AUTH_INVALID_CREDENTIALS')

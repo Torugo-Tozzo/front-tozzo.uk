@@ -101,6 +101,7 @@ export interface SaleServiceItem {
   id?: number | string;
   serviceOfferingId?: number | string | null;
   description: string;
+  details?: string | null;
   quantity: number;
   unitPriceAtSale: number;
 }

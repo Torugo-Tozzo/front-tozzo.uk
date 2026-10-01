@@ -293,7 +293,8 @@
     "closeMenu": "Close menu",
     "theme": "Theme",
     "services": "Services",
-    "estimates": "Estimates"
+    "estimates": "Estimates",
+    "serviceCatalog": "Service catalog"
   },
   "calendar": {
     "newSpecial": "New special hours",
@@ -878,13 +879,14 @@
         "SALES": "Sales",
         "PRODUCTS": "Products",
         "STORE_INVENTORY": "Store inventory",
-        "SERVICES": "Services",
+        "SERVICES": "Service catalog",
         "ESTIMATES": "Estimates",
         "EMPLOYEES": "Employees",
         "SCHEDULE": "Schedule",
         "DEVICES": "Devices",
         "REPORTS": "Reports",
-        "SETTINGS": "Settings"
+        "SETTINGS": "Settings",
+        "SERVICE_ORDERS": "Services"
       }
     },
     "category": {
@@ -1042,7 +1044,7 @@
     "backToRegister": "Back to registration"
   },
   "services": {
-    "title": "Services",
+    "title": "Service catalog",
     "description": "Manage the services your business offers.",
     "search": "Search services",
     "all": "All services",
@@ -1072,13 +1074,17 @@
     "status": "Status",
     "actions": "Actions",
     "confirmDeactivate": "Deactivate {{name}}? Existing estimates and sales keep their saved description and price.",
-    "retry": "Retry"
+    "retry": "Retry",
+    "deleteService": "Delete service",
+    "confirmDelete": "Delete {{name}} from the catalog?",
+    "inUse": "This service is used by open quotes or services.",
+    "viewDescription": "View full description"
   },
   "estimates": {
-    "title": "Estimates and service orders",
-    "description": "Prepare estimates, track work, and close completed jobs as sales.",
-    "newOrder": "New service order",
-    "newOrderButton": "Create order",
+    "title": "Estimates",
+    "description": "Prepare customer estimates and approve them to begin services.",
+    "newOrder": "New estimate",
+    "newOrderButton": "Create estimate",
     "customerName": "Customer name",
     "workDescription": "Work description",
     "dueAt": "Due date",
@@ -1102,7 +1108,7 @@
     "cancelOrder": "Cancel order",
     "reopen": "Reopen order",
     "history": "History",
-    "empty": "No service orders yet.",
+    "empty": "No estimates yet.",
     "emptyItems": "Add at least one product or service.",
     "loadError": "Could not load service orders.",
     "saveError": "Could not save the service order.",
@@ -1132,6 +1138,36 @@
     "linkedSale": "Linked sale",
     "saleServices": "Services",
     "serviceLine": "{quantity}x {name}",
-    "createError": "Could not create the order."
+    "createError": "Could not create the order.",
+    "deleteQuote": "Delete quote",
+    "confirmDeleteQuote": "Delete this unapproved quote?",
+    "viewQuote": "View quote",
+    "editQuote": "Edit quote",
+    "actions": "Actions",
+    "acceptedQuote": "Accepted quote",
+    "acceptedHistory": "Accepted history",
+    "executionTitle": "Services",
+    "executionDescription": "Track approved work and additional client approvals.",
+    "openOnly": "Open only",
+    "addLabor": "Add one-off labor",
+    "lineName": "Item name",
+    "lineDetails": "Full description",
+    "searchProducts": "Search products",
+    "searchServices": "Search catalog services",
+    "choicesError": "Could not load catalog choices. Try again.",
+    "saveBeforeApprove": "Save your changes before approving.",
+    "supplements": "Additional work",
+    "pendingApproval": "Pending client approval",
+    "editSupplements": "Edit additional work",
+    "saveSupplements": "Request client approval",
+    "approveSupplements": "Confirm client approval",
+    "discardSupplements": "Discard pending additions",
+    "saveToCatalog": "Save labor to catalog",
+    "catalogSaved": "Saved to catalog",
+    "catalogSaveError": "Could not save to catalog.",
+    "viewExecution": "View service",
+    "approvedWork": "Approved work",
+    "backToServices": "Back to services",
+    "executionEmpty": "No services to display."
   }
 }

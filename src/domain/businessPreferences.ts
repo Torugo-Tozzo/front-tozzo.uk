@@ -1,17 +1,17 @@
 export type BusinessProfile = 'FOOD' | 'STORE' | 'SERVICES'
-export type BusinessModule = 'ORDERS' | 'KITCHEN' | 'DELIVERIES' | 'INGREDIENT_INVENTORY' | 'SALES' | 'PRODUCTS' | 'STORE_INVENTORY' | 'SERVICES' | 'ESTIMATES' | 'EMPLOYEES' | 'SCHEDULE' | 'DEVICES' | 'REPORTS' | 'SETTINGS'
+export type BusinessModule = 'ORDERS' | 'KITCHEN' | 'DELIVERIES' | 'INGREDIENT_INVENTORY' | 'SALES' | 'PRODUCTS' | 'STORE_INVENTORY' | 'SERVICES' | 'ESTIMATES' | 'SERVICE_ORDERS' | 'EMPLOYEES' | 'SCHEDULE' | 'DEVICES' | 'REPORTS' | 'SETTINGS'
 export type NavigationModule = Exclude<BusinessModule, 'INGREDIENT_INVENTORY' | 'STORE_INVENTORY'>
 
 export const BUSINESS_PROFILES: readonly BusinessProfile[] = ['FOOD', 'STORE', 'SERVICES']
 export const BUSINESS_MODULES: readonly BusinessModule[] = [
   'ORDERS', 'KITCHEN', 'DELIVERIES', 'INGREDIENT_INVENTORY', 'SALES', 'PRODUCTS', 'STORE_INVENTORY',
-  'SERVICES', 'ESTIMATES', 'EMPLOYEES', 'SCHEDULE', 'DEVICES', 'REPORTS', 'SETTINGS',
+  'SERVICES', 'ESTIMATES', 'SERVICE_ORDERS', 'EMPLOYEES', 'SCHEDULE', 'DEVICES', 'REPORTS', 'SETTINGS',
 ]
 export const NAVIGATION_MODULES: readonly NavigationModule[] = [
   'ORDERS', 'KITCHEN', 'DELIVERIES', 'SALES', 'PRODUCTS',
-  'SERVICES', 'ESTIMATES', 'EMPLOYEES', 'SCHEDULE', 'DEVICES', 'REPORTS', 'SETTINGS',
+  'SERVICES', 'ESTIMATES', 'SERVICE_ORDERS', 'EMPLOYEES', 'SCHEDULE', 'DEVICES', 'REPORTS', 'SETTINGS',
 ]
-const LEGACY_NAVIGATION_MODULES = NAVIGATION_MODULES.filter((module) => module !== 'SERVICES' && module !== 'ESTIMATES')
+const LEGACY_NAVIGATION_MODULES = NAVIGATION_MODULES.filter((module) => !['SERVICES', 'ESTIMATES', 'SERVICE_ORDERS'].includes(module))
 
 export function canAccessBusinessModule(role: string | undefined, module: NavigationModule): boolean {
   if (role === 'COOK') return module === 'KITCHEN'
@@ -26,7 +26,7 @@ export const REQUIRED_MODULES: readonly BusinessModule[] = ['SALES', 'PRODUCTS',
 export const PROFILE_MODULES: Record<BusinessProfile, readonly BusinessModule[]> = {
   FOOD: ['ORDERS', 'KITCHEN', 'DELIVERIES', 'INGREDIENT_INVENTORY'],
   STORE: ['STORE_INVENTORY'],
-  SERVICES: ['SERVICES', 'ESTIMATES'],
+  SERVICES: ['SERVICES', 'ESTIMATES', 'SERVICE_ORDERS'],
 }
 const OPT_IN_MODULES: readonly BusinessModule[] = ['INGREDIENT_INVENTORY', 'STORE_INVENTORY']
 

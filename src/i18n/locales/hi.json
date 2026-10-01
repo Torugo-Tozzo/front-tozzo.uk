@@ -293,7 +293,8 @@
     "closeMenu": "मेनू बंद करें",
     "theme": "थीम",
     "services": "सेवाएँ",
-    "estimates": "अनुमान"
+    "estimates": "अनुमान",
+    "serviceCatalog": "सेवा सूची"
   },
   "calendar": {
     "newSpecial": "नया विशेष समय",
@@ -878,13 +879,14 @@
         "SALES": "बिक्री",
         "PRODUCTS": "उत्पाद",
         "STORE_INVENTORY": "दुकान का स्टॉक",
-        "SERVICES": "सेवाएँ",
+        "SERVICES": "सेवा सूची",
         "ESTIMATES": "अनुमान",
         "EMPLOYEES": "कर्मचारी",
         "SCHEDULE": "समय-सारणी",
         "DEVICES": "डिवाइस",
         "REPORTS": "रिपोर्ट",
-        "SETTINGS": "सेटिंग"
+        "SETTINGS": "सेटिंग",
+        "SERVICE_ORDERS": "सेवाएँ"
       }
     },
     "category": {
@@ -1042,7 +1044,7 @@
     "backToRegister": "पंजीकरण पर वापस जाएँ"
   },
   "services": {
-    "title": "सेवाएँ",
+    "title": "सेवा सूची",
     "description": "अपने व्यवसाय की सेवाओं का प्रबंधन करें।",
     "search": "सेवाएँ खोजें",
     "all": "सभी सेवाएँ",
@@ -1072,13 +1074,17 @@
     "status": "स्थिति",
     "actions": "कार्रवाइयाँ",
     "confirmDeactivate": "{{name}} को निष्क्रिय करें? मौजूदा अनुमान और बिक्री सहेजे गए विवरण और मूल्य को बनाए रखेंगे।",
-    "retry": "पुनः प्रयास करें"
+    "retry": "पुनः प्रयास करें",
+    "deleteService": "सेवा हटाएँ",
+    "confirmDelete": "क्या {{name}} को सूची से हटाएँ?",
+    "inUse": "यह सेवा खुले अनुमानों या कार्यों में उपयोग हो रही है।",
+    "viewDescription": "पूरा विवरण देखें"
   },
   "estimates": {
-    "title": "अनुमान और सेवा आदेश",
-    "description": "अनुमान तैयार करें, काम देखें और पूरा होने पर बिक्री दर्ज करें।",
-    "newOrder": "नया सेवा आदेश",
-    "newOrderButton": "आदेश बनाएँ",
+    "title": "अनुमान",
+    "description": "ग्राहक के लिए अनुमान बनाएँ और सेवा शुरू करने के लिए मंज़ूर करें।",
+    "newOrder": "नया अनुमान",
+    "newOrderButton": "अनुमान बनाएँ",
     "customerName": "ग्राहक का नाम",
     "workDescription": "काम का विवरण",
     "dueAt": "नियत तारीख",
@@ -1102,7 +1108,7 @@
     "cancelOrder": "आदेश रद्द करें",
     "reopen": "आदेश फिर खोलें",
     "history": "इतिहास",
-    "empty": "अभी कोई सेवा आदेश नहीं है।",
+    "empty": "अभी कोई अनुमान नहीं है।",
     "emptyItems": "कम से कम एक उत्पाद या सेवा जोड़ें।",
     "loadError": "सेवा आदेश लोड नहीं हो सके।",
     "saveError": "सेवा आदेश सहेजा नहीं जा सका।",
@@ -1132,6 +1138,36 @@
     "linkedSale": "संबद्ध बिक्री",
     "saleServices": "सेवाएँ",
     "serviceLine": "{quantity}x {name}",
-    "createError": "ऑर्डर नहीं बनाया जा सका।"
+    "createError": "ऑर्डर नहीं बनाया जा सका।",
+    "deleteQuote": "अनुमान हटाएँ",
+    "confirmDeleteQuote": "क्या इस अमंज़ूर अनुमान को हटाएँ?",
+    "viewQuote": "अनुमान देखें",
+    "editQuote": "अनुमान संपादित करें",
+    "actions": "कार्रवाइयाँ",
+    "acceptedQuote": "स्वीकृत अनुमान",
+    "acceptedHistory": "स्वीकृत इतिहास",
+    "executionTitle": "सेवाएँ",
+    "executionDescription": "मंज़ूर कार्यों और अतिरिक्त कार्य की ग्राहक स्वीकृति देखें।",
+    "openOnly": "केवल खुले",
+    "addLabor": "एक बार का श्रम जोड़ें",
+    "lineName": "मद का नाम",
+    "lineDetails": "पूरा विवरण",
+    "searchProducts": "उत्पाद खोजें",
+    "searchServices": "सूची में सेवा खोजें",
+    "choicesError": "सूची विकल्प लोड नहीं हुए। फिर कोशिश करें।",
+    "saveBeforeApprove": "मंज़ूरी से पहले बदलाव सहेजें।",
+    "supplements": "अतिरिक्त कार्य",
+    "pendingApproval": "ग्राहक की मंज़ूरी का इंतज़ार",
+    "editSupplements": "अतिरिक्त कार्य संपादित करें",
+    "saveSupplements": "ग्राहक की मंज़ूरी माँगें",
+    "approveSupplements": "ग्राहक की मंज़ूरी की पुष्टि करें",
+    "discardSupplements": "लंबित अतिरिक्त कार्य हटाएँ",
+    "saveToCatalog": "श्रम को सूची में सहेजें",
+    "catalogSaved": "सूची में सहेजा गया",
+    "catalogSaveError": "सूची में सहेजा नहीं जा सका।",
+    "viewExecution": "सेवा देखें",
+    "approvedWork": "मंज़ूर कार्य",
+    "backToServices": "सेवाओं पर लौटें",
+    "executionEmpty": "दिखाने के लिए कोई सेवा नहीं है।"
   }
 }

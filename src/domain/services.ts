@@ -19,6 +19,9 @@ export interface ServiceOrderItem {
   productId: WireId | null;
   serviceOfferingId: WireId | null;
   description: string;
+  details?: string | null;
+  kind?: 'PRODUCT' | 'SERVICE';
+  isSupplement?: boolean;
   quantity: number;
   unitPrice: number;
   updatedAt?: string;
@@ -44,6 +47,8 @@ export interface ServiceOrder {
   completedAt: string | null;
   updatedAt: string;
   items: ServiceOrderItem[];
+  acceptedQuote?: ServiceOrderItem[] | null;
+  pendingItems?: ServiceOrderItem[];
   events?: ServiceOrderEvent[];
   total?: number;
   sale?: { id: WireId; total: number; isCancelled?: boolean } | null;
@@ -53,6 +58,7 @@ export interface SaleServiceItem {
   id?: WireId;
   serviceOfferingId: WireId | null;
   description: string;
+  details?: string | null;
   quantity: number;
   unitPriceAtSale: number;
 }
@@ -63,7 +69,8 @@ export type SaleLineInput =
 
 export function serviceOrderTotal(items: readonly ServiceOrderItem[]): number {
   return items.reduce((total, item) => {
-    if (Boolean(item.productId) === Boolean(item.serviceOfferingId)) throw new Error('Each quote line must reference exactly one product or service')
+    if (item.productId != null && item.serviceOfferingId != null) throw new Error('Ambiguous quote line')
+    if (item.productId == null && item.serviceOfferingId == null && (item.kind !== 'SERVICE' || !item.description.trim())) throw new Error('Invalid one-off service')
     if (!Number.isInteger(item.quantity) || item.quantity < 1 || !Number.isFinite(item.unitPrice) || item.unitPrice < 0) throw new Error('Invalid quote line')
     return total + Math.round(item.unitPrice * 100) * item.quantity / 100
   }, 0)
@@ -71,6 +78,9 @@ export function serviceOrderTotal(items: readonly ServiceOrderItem[]): number {
 
 export function saleLinesFromServiceOrder(items: readonly ServiceOrderItem[]): SaleLineInput[] {
   serviceOrderTotal(items)
+  if (items.some((item) => item.productId == null && item.serviceOfferingId == null)) {
+    throw new Error('Close the service order to sell historical or one-off labor')
+  }
   return items.map((item) => item.productId !== null
     ? { productId: item.productId, quantity: item.quantity }
     : { serviceId: item.serviceOfferingId!, quantity: item.quantity, unitPriceAtSale: item.unitPrice })

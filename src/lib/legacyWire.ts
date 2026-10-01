@@ -259,9 +259,11 @@ export function normalizeStatus(value: unknown): string {
   return canonicalStatuses[String(value ?? '').trim().toUpperCase()] ?? String(value ?? '');
 }
 
-export function normalizeRealtimeEventType(value: unknown): 'orders' | 'sales' | undefined {
+export function normalizeRealtimeEventType(value: unknown): 'orders' | 'sales' | 'service-orders' | 'service-catalog' | undefined {
   const normalized = String(value ?? '').trim().toUpperCase();
   if (normalized === 'PEDIDOS' || normalized === 'ORDERS') return 'orders';
   if (normalized === 'VENDAS' || normalized === 'SALES') return 'sales';
+  if (normalized === 'ORDENS-SERVICO' || normalized === 'SERVICE-ORDERS') return 'service-orders';
+  if (normalized === 'SERVICOS' || normalized === 'SERVICE-CATALOG') return 'service-catalog';
   return undefined;
 }

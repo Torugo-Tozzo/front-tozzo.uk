@@ -13,6 +13,7 @@ describe('business module navigation', () => {
     expect(suggestedBusinessModules(['FOOD', 'SERVICES'])).toContain('KITCHEN')
     expect(suggestedBusinessModules(['FOOD', 'SERVICES'])).toContain('SERVICES')
     expect(suggestedBusinessModules(['FOOD', 'SERVICES'])).toContain('ESTIMATES')
+    expect(suggestedBusinessModules(['SERVICES'])).toContain('SERVICE_ORDERS')
     expect(suggestedBusinessModules(['STORE'])).toEqual(['SALES', 'PRODUCTS', 'EMPLOYEES', 'DEVICES', 'REPORTS', 'SETTINGS'])
   })
 
@@ -59,6 +60,9 @@ describe('business module navigation', () => {
   })
 
   it('keeps direct URLs role protected even when a module is visible to the establishment', () => {
+    expect(canAccessBusinessModule('COOK', 'SERVICE_ORDERS')).toBe(false)
+    expect(canAccessBusinessModule('DRIVER', 'SERVICE_ORDERS')).toBe(false)
+    expect(canAccessBusinessModule('EMPLOYEE', 'SERVICE_ORDERS')).toBe(true)
     expect(canAccessBusinessModule('COOK', 'ORDERS')).toBe(false)
     expect(canAccessBusinessModule('COOK', 'KITCHEN')).toBe(true)
     expect(canAccessBusinessModule('DRIVER', 'KITCHEN')).toBe(false)
@@ -67,5 +71,14 @@ describe('business module navigation', () => {
     expect(canAccessBusinessModule('OWNER', 'REPORTS')).toBe(true)
     expect(canAccessBusinessModule('CUSTOMER', 'ORDERS')).toBe(false)
     expect(canAccessBusinessModule('UNKNOWN', 'SALES')).toBe(false)
+  })
+
+  it('allows execution independently of catalog visibility and respects owner opt-out', () => {
+    expect(resolveNavigationModules('OWNER', {
+      businessProfiles: ['SERVICES'], visibleModules: ['ESTIMATES', 'SERVICE_ORDERS'],
+    })).toContain('SERVICE_ORDERS')
+    expect(resolveNavigationModules('OWNER', {
+      businessProfiles: ['SERVICES'], visibleModules: ['ESTIMATES'],
+    })).not.toContain('SERVICE_ORDERS')
   })
 })

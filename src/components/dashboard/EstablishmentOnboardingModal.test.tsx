@@ -71,7 +71,7 @@ describe("EstablishmentOnboardingModal", () => {
       await user.click(screen.getByRole("button", { name: "Salvar perfis" }))
       await waitFor(() => expect(patchMock).toHaveBeenCalledWith("/establishments/preferences", {
         profiles: ["STORE", "SERVICES"],
-        visibleModules: ["SALES", "PRODUCTS", "SERVICES", "ESTIMATES", "EMPLOYEES", "DEVICES", "REPORTS", "SETTINGS"],
+        visibleModules: ["SALES", "PRODUCTS", "SERVICES", "ESTIMATES", "SERVICE_ORDERS", "EMPLOYEES", "DEVICES", "REPORTS", "SETTINGS"],
         expectedRevision: 0,
       }))
       expect(patchMock).toHaveBeenCalledTimes(1)

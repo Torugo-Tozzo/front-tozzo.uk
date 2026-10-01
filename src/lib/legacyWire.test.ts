@@ -133,6 +133,9 @@ describe('legacy wire adapter', () => {
   it('normalizes legacy and new realtime event names', () => {
     expect(normalizeRealtimeEventType('pedidos')).toBe('orders')
     expect(normalizeRealtimeEventType('sales')).toBe('sales')
+    expect(normalizeRealtimeEventType('ordens-servico')).toBe('service-orders')
+    expect(normalizeRealtimeEventType('service-orders')).toBe('service-orders')
+    expect(normalizeRealtimeEventType('servicos')).toBe('service-catalog')
     expect(normalizeRealtimeEventType('connected')).toBeUndefined()
   })
 })

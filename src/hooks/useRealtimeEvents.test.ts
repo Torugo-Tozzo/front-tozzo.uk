@@ -107,6 +107,26 @@ describe('useRealtimeEvents', () => {
     expect(connections[0].settled).toBe(true)
   })
 
+  it('delivers service changes over the shared connection and refreshes on reconnect', async () => {
+    const catalogChanged = vi.fn()
+    const orderChanged = vi.fn()
+    const first = renderHook(() => useRealtimeEvents(['service-orders'], orderChanged))
+    const second = renderHook(() => useRealtimeEvents(['service-catalog'], catalogChanged))
+    await waitFor(() => expect(connections).toHaveLength(1))
+    await open(connections[0])
+    emit(connections[0], { tipo: 'ordens-servico' })
+    emit(connections[0], { tipo: 'servicos' })
+    expect(orderChanged).toHaveBeenCalledWith('service-orders')
+    expect(catalogChanged).toHaveBeenCalledWith('service-catalog')
+    expect(orderChanged).toHaveBeenCalledTimes(1)
+    expect(catalogChanged).toHaveBeenCalledTimes(1)
+    await open(connections[0])
+    expect(orderChanged).toHaveBeenCalledTimes(2)
+    expect(catalogChanged).toHaveBeenCalledTimes(2)
+    first.unmount()
+    second.unmount()
+  })
+
   it('nao deixa conexao orfa quando o efeito desmonta e remonta antes do token chegar (StrictMode)', async () => {
     // Regressão: com EventSource nativa e flag global, as duas chamadas de
     // connect() abriam conexão e a primeira ficava aberta pra sempre.

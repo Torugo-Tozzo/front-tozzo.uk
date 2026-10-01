@@ -31,7 +31,7 @@ describe('BusinessPreferencesPanel', () => {
       profiles: ['FOOD'], visibleModules: ['ORDERS', 'KITCHEN', 'DELIVERIES', 'SALES', 'PRODUCTS', 'EMPLOYEES', 'SCHEDULE', 'DEVICES', 'REPORTS', 'SETTINGS'], revision: 2,
     } })
     patch = vi.fn().mockResolvedValue({ data: {
-      profiles: ['FOOD', 'SERVICES'], visibleModules: ['ORDERS', 'KITCHEN', 'DELIVERIES', 'SALES', 'PRODUCTS', 'SERVICES', 'ESTIMATES', 'EMPLOYEES', 'SCHEDULE', 'DEVICES', 'REPORTS', 'SETTINGS'], revision: 3,
+      profiles: ['FOOD', 'SERVICES'], visibleModules: ['ORDERS', 'KITCHEN', 'DELIVERIES', 'SALES', 'PRODUCTS', 'SERVICES', 'ESTIMATES', 'SERVICE_ORDERS', 'EMPLOYEES', 'SCHEDULE', 'DEVICES', 'REPORTS', 'SETTINGS'], revision: 3,
     } })
     restoreGet = replaceProperty(api, 'get', get as typeof api.get)
     restorePatch = replaceProperty(api, 'patch', patch as typeof api.patch)
@@ -53,7 +53,7 @@ describe('BusinessPreferencesPanel', () => {
 
     await waitFor(() => expect(patch).toHaveBeenCalledWith('/establishments/preferences', {
       profiles: ['FOOD', 'SERVICES'],
-      visibleModules: ['ORDERS', 'KITCHEN', 'DELIVERIES', 'SALES', 'PRODUCTS', 'SERVICES', 'ESTIMATES', 'EMPLOYEES', 'SCHEDULE', 'DEVICES', 'REPORTS', 'SETTINGS'],
+      visibleModules: ['ORDERS', 'KITCHEN', 'DELIVERIES', 'SALES', 'PRODUCTS', 'SERVICES', 'ESTIMATES', 'SERVICE_ORDERS', 'EMPLOYEES', 'SCHEDULE', 'DEVICES', 'REPORTS', 'SETTINGS'],
       expectedRevision: 2,
     }))
     expect(refreshUserProfile).toHaveBeenCalledTimes(1)

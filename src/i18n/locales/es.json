@@ -293,7 +293,8 @@
     "closeMenu": "Cerrar menú",
     "theme": "Tema",
     "services": "Servicios",
-    "estimates": "Presupuestos"
+    "estimates": "Presupuestos",
+    "serviceCatalog": "Catálogo de servicios"
   },
   "calendar": {
     "newSpecial": "Nuevo horario especial",
@@ -878,13 +879,14 @@
         "SALES": "Ventas",
         "PRODUCTS": "Productos",
         "STORE_INVENTORY": "Inventario de la tienda",
-        "SERVICES": "Servicios",
+        "SERVICES": "Catálogo de servicios",
         "ESTIMATES": "Presupuestos",
         "EMPLOYEES": "Empleados",
         "SCHEDULE": "Horarios",
         "DEVICES": "Dispositivos",
         "REPORTS": "Informes",
-        "SETTINGS": "Configuración"
+        "SETTINGS": "Configuración",
+        "SERVICE_ORDERS": "Servicios"
       }
     },
     "category": {
@@ -1042,7 +1044,7 @@
     "backToRegister": "Volver al registro"
   },
   "services": {
-    "title": "Servicios",
+    "title": "Catálogo de servicios",
     "description": "Administra los servicios que ofrece tu negocio.",
     "search": "Buscar servicios",
     "all": "Todos los servicios",
@@ -1072,13 +1074,17 @@
     "status": "Estado",
     "actions": "Acciones",
     "confirmDeactivate": "¿Desactivar {{name}}? Los presupuestos y ventas existentes conservan la descripción y el precio guardados.",
-    "retry": "Reintentar"
+    "retry": "Reintentar",
+    "deleteService": "Eliminar servicio",
+    "confirmDelete": "¿Eliminar {{name}} del catálogo?",
+    "inUse": "Este servicio se utiliza en presupuestos o trabajos abiertos.",
+    "viewDescription": "Ver descripción completa"
   },
   "estimates": {
-    "title": "Presupuestos y órdenes de servicio",
-    "description": "Prepara presupuestos, sigue el trabajo y registra la venta al terminar.",
-    "newOrder": "Nueva orden de servicio",
-    "newOrderButton": "Crear orden",
+    "title": "Presupuestos",
+    "description": "Prepare presupuestos para clientes y apruébelos para iniciar los servicios.",
+    "newOrder": "Nuevo presupuesto",
+    "newOrderButton": "Crear presupuesto",
     "customerName": "Nombre del cliente",
     "workDescription": "Descripción del trabajo",
     "dueAt": "Fecha límite",
@@ -1102,7 +1108,7 @@
     "cancelOrder": "Cancelar orden",
     "reopen": "Reabrir orden",
     "history": "Historial",
-    "empty": "Aún no hay órdenes de servicio.",
+    "empty": "Todavía no hay presupuestos.",
     "emptyItems": "Añade al menos un producto o servicio.",
     "loadError": "No se pudieron cargar las órdenes.",
     "saveError": "No se pudo guardar la orden.",
@@ -1132,6 +1138,36 @@
     "linkedSale": "Venta vinculada",
     "saleServices": "Servicios",
     "serviceLine": "{quantity}x {name}",
-    "createError": "No se pudo crear la orden."
+    "createError": "No se pudo crear la orden.",
+    "deleteQuote": "Eliminar presupuesto",
+    "confirmDeleteQuote": "¿Eliminar este presupuesto no aprobado?",
+    "viewQuote": "Ver presupuesto",
+    "editQuote": "Editar presupuesto",
+    "actions": "Acciones",
+    "acceptedQuote": "Presupuesto aceptado",
+    "acceptedHistory": "Historial de presupuestos aceptados",
+    "executionTitle": "Servicios",
+    "executionDescription": "Controle los trabajos aprobados y las aprobaciones de adicionales.",
+    "openOnly": "Solo abiertos",
+    "addLabor": "Añadir mano de obra puntual",
+    "lineName": "Nombre del artículo",
+    "lineDetails": "Descripción completa",
+    "searchProducts": "Buscar productos",
+    "searchServices": "Buscar servicios del catálogo",
+    "choicesError": "No se pudieron cargar las opciones del catálogo. Inténtelo de nuevo.",
+    "saveBeforeApprove": "Guarde los cambios antes de aprobar.",
+    "supplements": "Trabajos adicionales",
+    "pendingApproval": "Pendiente de aprobación del cliente",
+    "editSupplements": "Editar trabajos adicionales",
+    "saveSupplements": "Solicitar aprobación del cliente",
+    "approveSupplements": "Confirmar aprobación del cliente",
+    "discardSupplements": "Descartar adicionales pendientes",
+    "saveToCatalog": "Guardar mano de obra en el catálogo",
+    "catalogSaved": "Guardado en el catálogo",
+    "catalogSaveError": "No se pudo guardar en el catálogo.",
+    "viewExecution": "Ver servicio",
+    "approvedWork": "Trabajo aprobado",
+    "backToServices": "Volver a servicios",
+    "executionEmpty": "No hay servicios para mostrar."
   }
 }

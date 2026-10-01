@@ -293,7 +293,8 @@
     "closeMenu": "关闭菜单",
     "theme": "主题",
     "services": "服务",
-    "estimates": "报价"
+    "estimates": "报价",
+    "serviceCatalog": "服务目录"
   },
   "calendar": {
     "newSpecial": "新增特殊营业时间",
@@ -878,13 +879,14 @@
         "SALES": "销售",
         "PRODUCTS": "商品",
         "STORE_INVENTORY": "商店库存",
-        "SERVICES": "服务",
+        "SERVICES": "服务目录",
         "ESTIMATES": "报价",
         "EMPLOYEES": "员工",
         "SCHEDULE": "排班",
         "DEVICES": "设备",
         "REPORTS": "报表",
-        "SETTINGS": "设置"
+        "SETTINGS": "设置",
+        "SERVICE_ORDERS": "服务"
       }
     },
     "category": {
@@ -1042,7 +1044,7 @@
     "backToRegister": "返回注册"
   },
   "services": {
-    "title": "服务",
+    "title": "服务目录",
     "description": "管理您的商家提供的服务。",
     "search": "搜索服务",
     "all": "所有服务",
@@ -1072,13 +1074,17 @@
     "status": "状态",
     "actions": "操作",
     "confirmDeactivate": "停用{{name}}？现有报价和销售仍保留已保存的说明和价格。",
-    "retry": "重试"
+    "retry": "重试",
+    "deleteService": "删除服务",
+    "confirmDelete": "从目录中删除 {{name}}？",
+    "inUse": "此服务正在未结束的报价或工作中使用。",
+    "viewDescription": "查看完整描述"
   },
   "estimates": {
-    "title": "报价和服务工单",
-    "description": "创建报价、跟踪工作，并在完成时登记销售。",
-    "newOrder": "新建服务工单",
-    "newOrderButton": "创建工单",
+    "title": "报价",
+    "description": "为客户准备报价，批准后开始服务。",
+    "newOrder": "新报价",
+    "newOrderButton": "创建报价",
     "customerName": "客户姓名",
     "workDescription": "工作说明",
     "dueAt": "截止日期",
@@ -1102,7 +1108,7 @@
     "cancelOrder": "取消工单",
     "reopen": "重新打开工单",
     "history": "历史记录",
-    "empty": "暂无服务工单。",
+    "empty": "暂无报价。",
     "emptyItems": "请至少添加一个产品或服务。",
     "loadError": "无法加载服务工单。",
     "saveError": "无法保存服务工单。",
@@ -1132,6 +1138,36 @@
     "linkedSale": "关联销售",
     "saleServices": "服务",
     "serviceLine": "{quantity}x {name}",
-    "createError": "无法创建工单。"
+    "createError": "无法创建工单。",
+    "deleteQuote": "删除报价",
+    "confirmDeleteQuote": "删除此未批准的报价？",
+    "viewQuote": "查看报价",
+    "editQuote": "编辑报价",
+    "actions": "操作",
+    "acceptedQuote": "已接受的报价",
+    "acceptedHistory": "已接受的历史记录",
+    "executionTitle": "服务",
+    "executionDescription": "跟踪已批准的工作和客户追加批准。",
+    "openOnly": "仅未结束",
+    "addLabor": "添加临时人工服务",
+    "lineName": "项目名称",
+    "lineDetails": "完整描述",
+    "searchProducts": "搜索产品",
+    "searchServices": "搜索目录服务",
+    "choicesError": "无法加载目录选项。请重试。",
+    "saveBeforeApprove": "批准前请保存更改。",
+    "supplements": "追加工作",
+    "pendingApproval": "等待客户批准",
+    "editSupplements": "编辑追加工作",
+    "saveSupplements": "请求客户批准",
+    "approveSupplements": "确认客户批准",
+    "discardSupplements": "放弃待批准的追加项目",
+    "saveToCatalog": "将人工服务保存到目录",
+    "catalogSaved": "已保存到目录",
+    "catalogSaveError": "无法保存到目录。",
+    "viewExecution": "查看服务",
+    "approvedWork": "已批准的工作",
+    "backToServices": "返回服务",
+    "executionEmpty": "没有可显示的服务。"
   }
 }

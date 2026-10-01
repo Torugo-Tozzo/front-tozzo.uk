@@ -293,7 +293,8 @@
     "closeMenu": "Fermer le menu",
     "theme": "Thème",
     "services": "Services",
-    "estimates": "Devis"
+    "estimates": "Devis",
+    "serviceCatalog": "Catalogue de services"
   },
   "calendar": {
     "newSpecial": "Nouvel horaire spécial",
@@ -878,13 +879,14 @@
         "SALES": "Ventes",
         "PRODUCTS": "Produits",
         "STORE_INVENTORY": "Stock du magasin",
-        "SERVICES": "Services",
+        "SERVICES": "Catalogue de services",
         "ESTIMATES": "Devis",
         "EMPLOYEES": "Employés",
         "SCHEDULE": "Horaires",
         "DEVICES": "Appareils",
         "REPORTS": "Rapports",
-        "SETTINGS": "Paramètres"
+        "SETTINGS": "Paramètres",
+        "SERVICE_ORDERS": "Services"
       }
     },
     "category": {
@@ -1042,7 +1044,7 @@
     "backToRegister": "Retour à l'inscription"
   },
   "services": {
-    "title": "Services",
+    "title": "Catalogue de services",
     "description": "Gérez les services proposés par votre établissement.",
     "search": "Rechercher des services",
     "all": "Tous les services",
@@ -1072,13 +1074,17 @@
     "status": "État",
     "actions": "Actions",
     "confirmDeactivate": "Désactiver {{name}} ? Les devis et ventes existants conservent la description et le prix enregistrés.",
-    "retry": "Réessayer"
+    "retry": "Réessayer",
+    "deleteService": "Supprimer le service",
+    "confirmDelete": "Supprimer {{name}} du catalogue ?",
+    "inUse": "Ce service est utilisé par des devis ou travaux ouverts.",
+    "viewDescription": "Voir la description complète"
   },
   "estimates": {
-    "title": "Devis et ordres de service",
-    "description": "Préparez des devis, suivez les travaux et enregistrez la vente à la clôture.",
-    "newOrder": "Nouvel ordre de service",
-    "newOrderButton": "Créer un ordre",
+    "title": "Devis",
+    "description": "Préparez les devis clients et approuvez-les pour commencer les services.",
+    "newOrder": "Nouveau devis",
+    "newOrderButton": "Créer un devis",
     "customerName": "Nom du client",
     "workDescription": "Description du travail",
     "dueAt": "Échéance",
@@ -1102,7 +1108,7 @@
     "cancelOrder": "Annuler l’ordre",
     "reopen": "Rouvrir l’ordre",
     "history": "Historique",
-    "empty": "Aucun ordre de service pour le moment.",
+    "empty": "Aucun devis pour le moment.",
     "emptyItems": "Ajoutez au moins un produit ou un service.",
     "loadError": "Impossible de charger les ordres de service.",
     "saveError": "Impossible d’enregistrer l’ordre de service.",
@@ -1132,6 +1138,36 @@
     "linkedSale": "Vente associée",
     "saleServices": "Services",
     "serviceLine": "{quantity}x {name}",
-    "createError": "Impossible de créer le dossier."
+    "createError": "Impossible de créer le dossier.",
+    "deleteQuote": "Supprimer le devis",
+    "confirmDeleteQuote": "Supprimer ce devis non approuvé ?",
+    "viewQuote": "Voir le devis",
+    "editQuote": "Modifier le devis",
+    "actions": "Actions",
+    "acceptedQuote": "Devis accepté",
+    "acceptedHistory": "Historique des devis acceptés",
+    "executionTitle": "Services",
+    "executionDescription": "Suivez les travaux approuvés et les accords sur les suppléments.",
+    "openOnly": "Ouverts uniquement",
+    "addLabor": "Ajouter une prestation ponctuelle",
+    "lineName": "Nom de la ligne",
+    "lineDetails": "Description complète",
+    "searchProducts": "Rechercher des produits",
+    "searchServices": "Rechercher dans le catalogue",
+    "choicesError": "Impossible de charger le catalogue. Réessayez.",
+    "saveBeforeApprove": "Enregistrez les modifications avant de les approuver.",
+    "supplements": "Travaux supplémentaires",
+    "pendingApproval": "En attente de l’accord du client",
+    "editSupplements": "Modifier les suppléments",
+    "saveSupplements": "Demander l’accord du client",
+    "approveSupplements": "Confirmer l’accord du client",
+    "discardSupplements": "Abandonner les suppléments en attente",
+    "saveToCatalog": "Enregistrer la prestation au catalogue",
+    "catalogSaved": "Enregistré au catalogue",
+    "catalogSaveError": "Impossible d’enregistrer au catalogue.",
+    "viewExecution": "Voir le service",
+    "approvedWork": "Travail approuvé",
+    "backToServices": "Retour aux services",
+    "executionEmpty": "Aucun service à afficher."
   }
 }

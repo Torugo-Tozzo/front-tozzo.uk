@@ -51,10 +51,12 @@ export default function DashboardLayout() {
   const [openOrdersCount, setOpenOrdersCount] = useState<number>(0)
   const [kitchenOrdersCount, setKitchenOrdersCount] = useState<number>(0)
   const [deliveryOrdersCount, setDeliveryOrdersCount] = useState<number>(0)
+  const [serviceOrdersCount, setServiceOrdersCount] = useState<number>(0)
   const visibleModules = resolveNavigationModules(user?.role, user?.establishment)
   const canSeeOrders = visibleModules.includes('ORDERS')
   const canSeeKitchen = visibleModules.includes('KITCHEN')
   const canSeeDeliveries = visibleModules.includes('DELIVERIES')
+  const canSeeServices = visibleModules.includes('SERVICE_ORDERS')
 
   useEffect(() => {
     const refresh = () => { if (!document.hidden) void refreshUserProfileRef.current() }
@@ -94,8 +96,9 @@ export default function DashboardLayout() {
     { module: 'DELIVERIES', href: "/dashboard/deliveries", label: tNavigation("deliveries"), icon: Bike },
     { module: 'SALES', href: "/dashboard/sales", label: tNavigation("sales"), icon: DollarSign },
     { module: 'PRODUCTS', href: "/dashboard/products", label: tNavigation("products"), icon: ShoppingBag },
-    { module: 'SERVICES', href: "/dashboard/services", label: tNavigation("services"), icon: Wrench },
+    { module: 'SERVICES', href: "/dashboard/services", label: tNavigation("serviceCatalog"), icon: Wrench },
     { module: 'ESTIMATES', href: "/dashboard/estimates", label: tNavigation("estimates"), icon: FileText },
+    { module: 'SERVICE_ORDERS', href: "/dashboard/service-orders", label: tNavigation("services"), icon: ClipboardList },
     { module: 'EMPLOYEES', href: "/dashboard/employees", label: tNavigation("employees"), icon: Users },
     { module: 'SCHEDULE', href: "/dashboard/schedule", label: tNavigation("schedule"), icon: CalendarDays },
     { module: 'DEVICES', href: "/dashboard/devices", label: tNavigation("devices"), icon: Smartphone },
@@ -110,7 +113,7 @@ export default function DashboardLayout() {
       <nav aria-label={tNavigation("dashboard")} className="flex-1 space-y-4 overflow-y-auto overflow-x-hidden">
         {navItems.map((item) => {
           const Icon = item.icon
-          const isActive = location.pathname === item.href || (item.href === "/dashboard/orders" && location.pathname === "/dashboard")
+          const isActive = location.pathname === item.href || location.pathname.startsWith(`${item.href}/`) || (item.href === "/dashboard/orders" && location.pathname === "/dashboard")
 
           return (
             <Link
@@ -145,7 +148,7 @@ export default function DashboardLayout() {
                     <Icon className="h-5 w-5 shrink-0" />
                     {!collapsed && item.label}
                   </div>
-                  {!collapsed && (item.href === "/dashboard/orders" || item.href === "/dashboard/kitchen" || item.href === "/dashboard/deliveries") && (
+                  {!collapsed && (item.href === "/dashboard/orders" || item.href === "/dashboard/kitchen" || item.href === "/dashboard/deliveries" || item.href === "/dashboard/service-orders") && (
                     <div className="ml-2">
                       {/* invertido quando ativo (bg-primary ja e' preto/branco
                           igual o fundo do item ativo - sumiria) */}
@@ -153,7 +156,7 @@ export default function DashboardLayout() {
                         "inline-flex items-center justify-center text-xs font-medium rounded-full h-6 w-6",
                         isActive ? "bg-background text-foreground" : "bg-primary text-primary-foreground"
                       )}>
-                        {formatNumber(item.href === "/dashboard/kitchen" ? kitchenOrdersCount : item.href === "/dashboard/deliveries" ? deliveryOrdersCount : openOrdersCount, i18n.language)}
+                        {formatNumber(item.href === "/dashboard/service-orders" ? serviceOrdersCount : item.href === "/dashboard/kitchen" ? kitchenOrdersCount : item.href === "/dashboard/deliveries" ? deliveryOrdersCount : openOrdersCount, i18n.language)}
                       </span>
                     </div>
                   )}
@@ -219,19 +222,29 @@ export default function DashboardLayout() {
     } catch (err) { console.error('Error fetching delivery count', err) }
   }, [])
 
+  const fetchServiceCount = useCallback(async () => {
+    try {
+      const response = await api.get('/ordens-servico', { params: { page: 1, limit: 1, stage: 'services', open: true } })
+      setServiceOrdersCount(Number(response.headers['x-total-count'] ?? response.data.length))
+    } catch (err) { console.error('Error fetching service count', err) }
+  }, [])
+
   useRealtimeEvents(['orders'], () => { if (canSeeOrders) void fetchCount(); if (canSeeKitchen) void fetchKitchenCount(); if (canSeeDeliveries) void fetchDeliveryCount() })
+  useRealtimeEvents(['service-orders'], () => { if (canSeeServices) void fetchServiceCount() })
 
   useEffect(() => {
     if (canSeeOrders) fetchCount()
     if (canSeeKitchen) fetchKitchenCount()
     if (canSeeDeliveries) fetchDeliveryCount()
+    if (canSeeServices) fetchServiceCount()
     const iv = setInterval(() => {
       if (canSeeOrders) void fetchCount()
       if (canSeeKitchen) void fetchKitchenCount()
       if (canSeeDeliveries) void fetchDeliveryCount()
+      if (canSeeServices) void fetchServiceCount()
     }, 60000)
     return () => clearInterval(iv)
-  }, [fetchCount, fetchKitchenCount, fetchDeliveryCount, canSeeOrders, canSeeKitchen, canSeeDeliveries])
+  }, [fetchCount, fetchKitchenCount, fetchDeliveryCount, fetchServiceCount, canSeeOrders, canSeeKitchen, canSeeDeliveries, canSeeServices])
 
   return (
     <div className="min-h-screen flex flex-col">

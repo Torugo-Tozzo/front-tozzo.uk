@@ -293,7 +293,8 @@
     "closeMenu": "Fechar menu",
     "theme": "Tema",
     "services": "Serviços",
-    "estimates": "Orçamentos"
+    "estimates": "Orçamentos",
+    "serviceCatalog": "Catálogo de serviços"
   },
   "calendar": {
     "newSpecial": "Novo horário especial",
@@ -878,13 +879,14 @@
         "SALES": "Vendas",
         "PRODUCTS": "Produtos",
         "STORE_INVENTORY": "Estoque da loja",
-        "SERVICES": "Serviços",
+        "SERVICES": "Catálogo de serviços",
         "ESTIMATES": "Orçamentos",
         "EMPLOYEES": "Funcionários",
         "SCHEDULE": "Horários",
         "DEVICES": "Dispositivos",
         "REPORTS": "Relatórios",
-        "SETTINGS": "Configurações"
+        "SETTINGS": "Configurações",
+        "SERVICE_ORDERS": "Serviços"
       }
     },
     "category": {
@@ -1042,7 +1044,7 @@
     "backToRegister": "Voltar ao cadastro"
   },
   "services": {
-    "title": "Serviços",
+    "title": "Catálogo de serviços",
     "description": "Gerencie os serviços oferecidos pelo seu negócio.",
     "search": "Buscar serviços",
     "all": "Todos os serviços",
@@ -1072,13 +1074,17 @@
     "status": "Estado",
     "actions": "Ações",
     "confirmDeactivate": "Deseja inativar {{name}}? Orçamentos e vendas existentes mantêm a descrição e o preço salvos.",
-    "retry": "Tentar novamente"
+    "retry": "Tentar novamente",
+    "deleteService": "Excluir serviço",
+    "confirmDelete": "Excluir {{name}} do catálogo?",
+    "inUse": "Este serviço é usado por orçamentos ou serviços abertos.",
+    "viewDescription": "Ver descrição completa"
   },
   "estimates": {
-    "title": "Orçamentos e ordens de serviço",
-    "description": "Prepare orçamentos, acompanhe o trabalho e registre a venda ao concluir.",
-    "newOrder": "Nova ordem de serviço",
-    "newOrderButton": "Criar ordem",
+    "title": "Orçamentos",
+    "description": "Prepare orçamentos para clientes e aprove para iniciar os serviços.",
+    "newOrder": "Novo orçamento",
+    "newOrderButton": "Criar orçamento",
     "customerName": "Nome do cliente",
     "workDescription": "Descrição do trabalho",
     "dueAt": "Prazo",
@@ -1102,7 +1108,7 @@
     "cancelOrder": "Cancelar ordem",
     "reopen": "Reabrir ordem",
     "history": "Histórico",
-    "empty": "Nenhuma ordem de serviço cadastrada.",
+    "empty": "Nenhum orçamento ainda.",
     "emptyItems": "Adicione ao menos um produto ou serviço.",
     "loadError": "Não foi possível carregar as ordens de serviço.",
     "saveError": "Não foi possível salvar a ordem de serviço.",
@@ -1132,6 +1138,36 @@
     "linkedSale": "Venda vinculada",
     "saleServices": "Serviços",
     "serviceLine": "{quantity}x {name}",
-    "createError": "Não foi possível criar a ordem."
+    "createError": "Não foi possível criar a ordem.",
+    "deleteQuote": "Excluir orçamento",
+    "confirmDeleteQuote": "Excluir este orçamento não aprovado?",
+    "viewQuote": "Ver orçamento",
+    "editQuote": "Editar orçamento",
+    "actions": "Ações",
+    "acceptedQuote": "Orçamento aceito",
+    "acceptedHistory": "Histórico aceito",
+    "executionTitle": "Serviços",
+    "executionDescription": "Acompanhe serviços aprovados e o aceite de adicionais.",
+    "openOnly": "Somente abertos",
+    "addLabor": "Adicionar mão de obra avulsa",
+    "lineName": "Nome do item",
+    "lineDetails": "Descrição completa",
+    "searchProducts": "Buscar produtos",
+    "searchServices": "Buscar serviços do catálogo",
+    "choicesError": "Não foi possível carregar as opções do catálogo. Tente novamente.",
+    "saveBeforeApprove": "Salve as alterações antes de aprovar.",
+    "supplements": "Serviços adicionais",
+    "pendingApproval": "Aguardando aprovação do cliente",
+    "editSupplements": "Editar serviços adicionais",
+    "saveSupplements": "Solicitar aprovação do cliente",
+    "approveSupplements": "Confirmar aprovação do cliente",
+    "discardSupplements": "Descartar adicionais pendentes",
+    "saveToCatalog": "Salvar mão de obra no catálogo",
+    "catalogSaved": "Salvo no catálogo",
+    "catalogSaveError": "Não foi possível salvar no catálogo.",
+    "viewExecution": "Ver serviço",
+    "approvedWork": "Serviço aprovado",
+    "backToServices": "Voltar aos serviços",
+    "executionEmpty": "Nenhum serviço para exibir."
   }
 }

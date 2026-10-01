@@ -3,9 +3,9 @@ import { fetchEventSource, EventStreamContentType } from '@microsoft/fetch-event
 import api, { getSseToken } from '@/services/api'
 import { normalizeRealtimeEventType } from '@/lib/legacyWire'
 
-export type RealtimeEvent = 'orders' | 'sales'
+export type RealtimeEvent = 'orders' | 'sales' | 'service-orders' | 'service-catalog'
 
-const ALL_EVENTS: RealtimeEvent[] = ['orders', 'sales']
+const ALL_EVENTS: RealtimeEvent[] = ['orders', 'sales', 'service-orders', 'service-catalog']
 const MAX_RETRY_DELAY_MS = 30_000
 // Aba escondida por mais que isso libera a conexão (limite de ~6 conexões
 // HTTP/1.1 por origem, somando todas as abas). Troca rápida de aba não derruba.

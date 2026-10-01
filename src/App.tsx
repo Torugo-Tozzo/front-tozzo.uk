@@ -83,6 +83,11 @@ const router = createBrowserRouter([
               { path: "services", lazy: lazyModulePage(() => import('./pages/dashboard/ServicesPage'), 'SERVICES') },
               { path: "estimates", lazy: lazyModulePage(() => import('./pages/dashboard/EstimatesPage'), 'ESTIMATES') },
               { path: "estimates/:id", lazy: lazyModulePage(() => import('./pages/dashboard/ServiceOrderPage'), 'ESTIMATES') },
+              { path: "service-orders", lazy: lazyModulePage(() => import('./pages/dashboard/ServiceExecutionPage'), 'SERVICE_ORDERS') },
+              { path: "service-orders/:id", lazy: async () => {
+                const { default: Page } = await import('./pages/dashboard/ServiceOrderPage')
+                return { Component: () => <BusinessModuleRoute module="SERVICE_ORDERS"><Page mode="execution" /></BusinessModuleRoute> }
+              } },
               { path: "employees", lazy: lazyModulePage(() => import('./pages/dashboard/EmployeesPage'), 'EMPLOYEES') },
               { path: "schedule", lazy: lazyModulePage(() => import('./pages/dashboard/SchedulePage'), 'SCHEDULE') },
               { path: "devices", lazy: lazyModulePage(() => import('./pages/dashboard/DevicesPage'), 'DEVICES') },

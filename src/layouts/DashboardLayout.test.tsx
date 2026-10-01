@@ -1,4 +1,4 @@
-import { act, render, screen } from '@testing-library/react'
+import { act, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'bun:test'
 import { MemoryRouter } from 'react-router-dom'
@@ -11,6 +11,7 @@ import api from '@/services/api'
 import { replaceProperty } from '@/test/replace-property'
 import DashboardLayout from './DashboardLayout'
 import type { BusinessModule, BusinessProfile } from '@/domain/businessPreferences'
+import { useRealtimeEvents } from '@/hooks/useRealtimeEvents'
 
 const mockLogout = vi.fn()
 const mockRefreshUserProfile = vi.fn().mockResolvedValue(undefined)
@@ -50,6 +51,7 @@ describe('DashboardLayout', () => {
     localStorage.clear()
     mockLogout.mockReset()
     mockRefreshUserProfile.mockClear()
+    ;(useRealtimeEvents as ReturnType<typeof vi.fn>).mockClear()
     mockUser = { name: 'Test user', role: 'MANAGER', establishment: { tradeName: 'Test establishment' } }
     restoreGet = replaceProperty(api, 'get', vi.fn().mockResolvedValue({ headers: {}, data: [] }) as typeof api.get)
     await act(async () => {
@@ -133,6 +135,30 @@ describe('DashboardLayout', () => {
     renderLayout()
     act(() => { window.dispatchEvent(new Event('focus')) })
     expect(mockRefreshUserProfile).toHaveBeenCalledTimes(1)
+  })
+
+  it('shows a service execution count and refreshes it after a service event', async () => {
+    mockUser = { name: 'Service owner', role: 'OWNER', establishment: {
+      tradeName: 'Workshop', businessProfiles: ['SERVICES'],
+      visibleModules: ['SERVICES', 'ESTIMATES', 'SERVICE_ORDERS'],
+    } }
+    let count = 7
+    const get = vi.fn().mockImplementation(async (url: string) => ({
+      data: [], headers: url === '/ordens-servico' ? { 'x-total-count': String(count) } : {},
+    }))
+    restoreGet?.()
+    restoreGet = replaceProperty(api, 'get', get as typeof api.get)
+    renderLayout()
+    expect(get).toHaveBeenCalledWith('/ordens-servico', { params: { page: 1, limit: 1, stage: 'services', open: true } })
+    const serviceLink = () => screen.getByRole('link', { name: /^Services/ })
+    await waitFor(() => expect(within(serviceLink()).getByText('7')).toBeInTheDocument())
+    expect(get).toHaveBeenCalledWith('/ordens-servico', { params: { page: 1, limit: 1, stage: 'services', open: true } })
+    expect(screen.getByRole('link', { name: 'Service catalog' })).toHaveAttribute('href', '/dashboard/services')
+    const serviceListener = (useRealtimeEvents as ReturnType<typeof vi.fn>).mock.calls.find((call) => (call[0] as string[]).includes('service-orders'))
+    expect(serviceListener).toBeDefined()
+    count = 3
+    act(() => serviceListener![1]('service-orders'))
+    await waitFor(() => expect(within(serviceLink()).getByText('3')).toBeInTheDocument())
   })
 
   it('localizes the sidebar logout confirmation', async () => {

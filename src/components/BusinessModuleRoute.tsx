@@ -5,7 +5,7 @@ import { canAccessBusinessModule, resolveNavigationModules, type NavigationModul
 
 const MODULE_PATHS: Record<NavigationModule, string> = {
   ORDERS: 'orders', KITCHEN: 'kitchen', DELIVERIES: 'deliveries', SALES: 'sales',
-  PRODUCTS: 'products', SERVICES: 'services', ESTIMATES: 'estimates', EMPLOYEES: 'employees', SCHEDULE: 'schedule',
+  PRODUCTS: 'products', SERVICES: 'services', ESTIMATES: 'estimates', SERVICE_ORDERS: 'service-orders', EMPLOYEES: 'employees', SCHEDULE: 'schedule',
   DEVICES: 'devices', REPORTS: 'charts', SETTINGS: 'settings',
 }
 

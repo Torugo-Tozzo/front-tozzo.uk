@@ -18,7 +18,13 @@ describe('service contracts', () => {
       { serviceId: 's1', quantity: 1, unitPriceAtSale: 25 },
     ])
   })
-  it('rejects quote lines without exactly one catalog reference', () => {
+  it('accepts historical and one-off service lines without catalog references', () => {
+    expect(serviceOrderTotal([{ productId: null, serviceOfferingId: null, kind: 'SERVICE', details: 'Full scope', description: 'Labor', quantity: 2, unitPrice: 12.45 }])).toBe(24.9)
+  })
+  it('keeps detached services out of catalog-based direct sale requests', () => {
+    expect(() => saleLinesFromServiceOrder([{ productId: null, serviceOfferingId: null, kind: 'SERVICE', description: 'Historical labor', quantity: 1, unitPrice: 25 }])).toThrow('Close the service order')
+  })
+  it('rejects ambiguous or unnamed quote lines', () => {
     expect(() => serviceOrderTotal([{ productId: null, serviceOfferingId: null, description: 'Invalid', quantity: 1, unitPrice: 5 }])).toThrow()
     expect(() => serviceOrderTotal([{ productId: 'p1', serviceOfferingId: 's1', description: 'Invalid', quantity: 1, unitPrice: 5 }])).toThrow()
   })
