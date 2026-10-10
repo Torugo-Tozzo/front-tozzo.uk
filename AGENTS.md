@@ -6,6 +6,8 @@ React 18, TypeScript, Vite, React Router, Tailwind, componentes Radix e i18next.
 O planejamento compartilhado está no repositório privado da API, em `../api-tozzo.uk/proximas-etapas/README.md`. Não copie documentos privados completos para este repositório. Se a API não estiver disponível, solicite os documentos necessários ao trabalho.
 O guia de trabalho compartilhado fica em `../api-tozzo.uk/skills/tozzo-development/SKILL.md`; leia a referência pertinente à tarefa.
 
+**Migração em andamento (branch `dev`):** o front está sendo refeito em **SolidJS** na pasta `web/`, com o mesmo visual, hospedado no Cloudflare Pages e falando com o `/v1` da nova API Go. O React descrito abaixo está congelado (só correções). Para trabalho no `web/`, siga [`CLAUDE.md`](CLAUDE.md) e [`docs/superpowers/plans/2026-10-10-migracao-solid.md`](docs/superpowers/plans/2026-10-10-migracao-solid.md).
+
 ## Mapa
 
 - `src/App.tsx`: rotas e páginas lazy.
