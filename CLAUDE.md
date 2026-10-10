@@ -24,7 +24,7 @@ As regras do `AGENTS.md` acima valem para o **React na raiz**, que está congela
 5. Tempo real só pelo módulo `web/src/realtime.ts` (uma conexão por aba, que invalida queries). Nenhum componente abre `EventSource`.
 6. Sessão: access token só em memória e refresh via cookie (`/v1/auth/refresh`). Nada de token em `localStorage`.
 7. Rotas pesadas com `lazy()`. O ECharts só no chunk de relatórios. Metas de tamanho no plano.
-8. Biblioteca nova só se o mapa de bibliotecas do plano não resolver. Nesse caso, pergunte antes.
+8. Biblioteca nova só se o mapa de bibliotecas do plano não resolver. Nesse caso, pergunte antes. **Licença:** só MIT, BSD, ISC, Apache-2.0 ou MPL-2.0. Nada comercial ou pago (ex.: versões "Pro" de componentes, AG Grid Enterprise, Highcharts). Confira com `gh api repos/<dono>/<repo> --jq .license.spdx_id`.
 
 ## Testes do `web/`
 
