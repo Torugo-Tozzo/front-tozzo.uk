@@ -1,6 +1,6 @@
 # Plano: front em SolidJS no Cloudflare Pages (mesmo visual)
 
-Data: 2026-10-10. Branch: `dev`. Regras de código: [`CLAUDE.md`](../../../CLAUDE.md).
+Data: 2026-10-10. Branch: `dev`. Regras de código: [`CONVENTIONS.md`](../../../CONVENTIONS.md) (índice em [`AGENTS.md`](../../../AGENTS.md)).
 Plano da API (contrato `/v1` em Go): `api-tozzo.uk/docs/superpowers/plans/2026-10-10-migracao-go.md` e `api-tozzo.uk/docs/superpowers/plans/migracao-go/`.
 
 ## Regra principal
@@ -91,7 +91,7 @@ Conferir em `src/App.tsx` a lista completa na hora de fazer.
 - i18n:
   - copiar `src/i18n/{config,locale,format,labels,resources}.ts` e os `locales/*.json` **sem mudar chaves**;
   - binding Solid em `web/src/i18n/solid.ts`: um signal com o idioma atual; `t()` lê o signal para ser reativo; `I18nProvider`;
-  - portar `error-keys.ts` para os `code` do `/v1` (ver `CLAUDE.md` da API), mantendo as mesmas mensagens;
+  - portar `error-keys.ts` para os `code` do `/v1` (ver `httpx/codes.go` e o `CONVENTIONS.md` da API), mantendo as mesmas mensagens;
   - portar o `ui-inventory.test.ts` e o `i18n:check`.
 - **Primitivas `ui/`**: portar **todas**, com as mesmas classes e variantes CVA:
   - `alert`, `button`, `card`, `dialog`, `dropdown-menu`, `icon-button`, `input`, `label`, `select`, `skeleton`, `status-select`, `table`, `tabs`;
@@ -166,7 +166,7 @@ Junto com a fase 10 da API.
 3. Num commit só na `dev`:
    - apagar o React da raiz (`src/`, `index.html`, `vite.config.ts`, `Dockerfile`, `nginx.conf` e os configs da raiz);
    - mover `web/*` para a raiz;
-   - atualizar o README e o `CLAUDE.md`.
+   - atualizar o README, o `AGENTS.md`, o `ARCHITECTURE.md` e o `CONVENTIONS.md` (tirar o React).
 
 ## Cloudflare Pages
 
