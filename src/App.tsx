@@ -99,6 +99,10 @@ const router = createBrowserRouter([
           }
         ]
       },
+      // Catalogo das primitivas ui/ (so em dev; fora do build de producao).
+      ...(import.meta.env.DEV
+        ? [{ path: "/__ui", lazy: lazyPage(() => import('./pages/dev/UiShowcasePage')) }]
+        : []),
       // Rota 404
       { path: "*", lazy: lazyPage(() => import('./pages/NotFoundPage')) }
     ]

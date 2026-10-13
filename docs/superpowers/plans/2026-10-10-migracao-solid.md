@@ -221,3 +221,53 @@ Medir no fim de cada fase e registrar. `rollup-plugin-visualizer` no build de an
 ## Registro de execução
 
 _(preencher ao fim de cada fase: data, o que foi feito, como foi verificado, medidas de desempenho e desvios aprovados)_
+
+### S0 — 2026-10-13
+
+**Feito:**
+- **Massa canônica:** `e2e/visual/data/canonical.ts`, com:
+  - estabelecimento FOOD + SERVICES e 6 usuários (todos os papéis);
+  - 30 produtos e 5 tipos;
+  - 8 pedidos (aberto, em entrega, fechado; itens em todos os estados);
+  - 200 vendas (PRNG com semente; 30 nas últimas 24 h, que é o filtro padrão);
+  - 6 serviços e 6 ordens (uma por estado);
+  - 3 dispositivos, agenda (eventos, turnos, funcionamento).
+- **Serializadores:** `toLegacyApi()` (Bun: chaves em português, `Decimal` como string, `X-Total-Count`) e `toV1()` (cents, cursor `{items, nextCursor}`, `summary`). `serializers.test.ts` confere contagens, totais e nomes (11 testes).
+- **Mocks** (`e2e/visual/support/`):
+  - `page.route` para API e GoTrue em hosts falsos;
+  - sessão GoTrue semeada no `localStorage`;
+  - SSE parado sem tráfego;
+  - imagens externas trocadas por um pixel fixo;
+  - estados de erro, carregando e vazio por endpoint.
+- **Cenários:** 92 cenários (o menu mobile só no celular) = **548 screenshots** por sistema:
+  - todas as rotas do `App.tsx`;
+  - listas cheia, vazia, carregando e com erro;
+  - diálogos de pedido, venda, produto, tipo, funcionário, turno, horário especial, funcionamento, filtro, entregador, info da cozinha, onboarding, exclusão e seleção de produto;
+  - selects abertos;
+  - abas;
+  - menu mobile;
+  - shells de COOK, DRIVER e EMPLOYEE;
+  - plano pendente;
+  - `/__ui`.
+- **Scripts:** `bun run test:visual:baseline`, `bun run test:visual` e `bun run test:visual:linux`.
+
+**Verificado:**
+- duas rodadas completas seguidas sem nenhum pixel de diferença (524/524);
+- selects abertos repetidos 9 vezes sem diferença;
+- `bun run test` (319), `i18n:check` e `build` passando.
+
+**Desvios e achados:**
+- **Sem cenário de paywall.** O `getErrorCode()` do React devolve o `error.code` do Axios (`ERR_BAD_REQUEST`) antes do `code` do corpo, então o `PaywallBanner` nunca aparece: um 403 `PLAN_UPGRADE_REQUIRED` vira toast de erro. O React está congelado; decidir com o usuário se o Solid reproduz o comportamento ou mostra o banner.
+- **`/__ui` no React** (ok do usuário em 2026-10-13): `src/pages/dev/UiShowcasePage.tsx`, rota só com `import.meta.env.DEV` (fora do `dist/`). Mais 4 cenários (`ui`, `ui-select-open`, `ui-dialog`, `ui-dropdown-open`) = 24 screenshots por sistema. No dropdown, o check e o radio ficam por cima do texto: é o visual atual do React, e o baseline registra como está.
+- **Um baseline por sistema** (ok do usuário em 2026-10-13): `react/win32/` e `react/linux/`, pelo `{platform}` do Playwright. O do Linux sai da imagem oficial do Playwright (`bun run test:visual:linux`), para o CI.
+- **PNG no Git LFS** (ok do usuário em 2026-10-13): `.gitattributes` cobre `e2e/visual/__screenshots__/**/*.png`. A VM da dev faz `git pull` no deploy; sem `git-lfs` lá, ficam só os ponteiros, o que não afeta o build.
+- **O `/v1` muda o que a tela mostra:**
+  - sem total nem página, que hoje alimentam "Página N de M", "Total de registros" e os contadores da sidebar;
+  - sem `REQUESTED` nos itens de pedido;
+  - sem filtros de cliente, vendedor e valor em `GET /v1/orders`.
+
+  Resolver antes da S4 (API) para o visual não mudar. **Em 2026-10-13 (API `5f6d153`):**
+  - toda lista paginada do `/v1` passou a trazer `total`;
+  - `GET /v1/orders` ganhou `customerName`, `sellerId`, `minTotalCents` e `maxTotalCents`;
+  - o `REQUESTED` continua aparecendo como `IN_PREPARATION` no contrato.
+- **O Bun ignora filtros que o React envia** (cliente, criado por e valor em `/pedidos`). A massa reproduz isso.

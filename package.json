@@ -10,6 +10,9 @@
     "preview": "vite preview",
     "test": "bun test --parallel",
     "test:e2e": "PLAYWRIGHT_BROWSERS_PATH=0 playwright test",
+    "test:visual": "PLAYWRIGHT_BROWSERS_PATH=0 playwright test -c playwright.visual.config.ts",
+    "test:visual:baseline": "PLAYWRIGHT_BROWSERS_PATH=0 playwright test -c playwright.visual.config.ts --update-snapshots=all",
+    "test:visual:linux": "bash scripts/visual-linux.sh",
     "browser:install": "PLAYWRIGHT_BROWSERS_PATH=0 playwright install chromium",
     "browse": "playwright cli",
     "i18n:check": "node scripts/check-i18n.mjs"

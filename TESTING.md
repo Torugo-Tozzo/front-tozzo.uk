@@ -55,14 +55,27 @@ bun run browser:install           # Chromium em node_modules (PLAYWRIGHT_BROWSER
 
 ### Visual
 
-- Baseline do React em `e2e/visual/__screenshots__/react/` (fase S0), gerado com `bun run test:visual:baseline`. Os tamanhos são `1440×900`, `768×1024` e `390×844`, nos temas claro e escuro.
+- Baseline do React em `e2e/visual/__screenshots__/react/<sistema>/` (fase S0), gerado com `bun run test:visual:baseline`. Os tamanhos são `1440×900`, `768×1024` e `390×844`, nos temas claro e escuro.
+- **Onde fica:**
+  - cenários (rota + estado + ação) em `e2e/visual/scenarios.ts`; o nome do cenário é o nome do arquivo;
+  - spec em `e2e/visual/routes.visual.ts`, com config própria em `playwright.visual.config.ts`;
+  - `/__ui` (só em dev, `src/pages/dev/UiShowcasePage.tsx`) mostra todas as variantes das primitivas `ui/`; os cenários `ui*` fotografam a página, o select aberto, o diálogo e o dropdown;
+  - `bun run test:visual` na raiz confere o React contra o próprio baseline, e precisa dar zero pixel de diferença;
+  - os PNG ficam no **Git LFS** (`.gitattributes`): rode `git lfs install` uma vez, senão o checkout traz só os ponteiros.
 - O que torna o baseline determinístico:
-  - massa canônica (`e2e/visual/data/canonical.ts`, com os serializadores `toLegacyApi()` e `toV1()`);
-  - relógio fixo;
+  - massa canônica (`e2e/visual/data/canonical.ts`, com os serializadores `toLegacyApi()` e `toV1()`; o `serializers.test.ts` confere que os dois descrevem os mesmos dados);
+  - relógio fixo (`2026-10-01 15:00`, `America/Sao_Paulo`) e locale `pt-BR`;
+  - hosts falsos para API e GoTrue (`*.visual.test`), imagens externas trocadas por um pixel fixo e SSE parado sem tráfego;
   - `document.fonts.ready`;
   - animações desligadas por CSS;
-  - gráficos mascarados.
-- Tolerância: `maxDiffPixelRatio: 0.002`. Diferença maior que isso corrige-se no Solid.
+  - gráficos mascarados;
+  - selects abertos fotografados só no viewport (no screenshot de página inteira o header fixo varia 1 px).
+- **O render depende do sistema** (fontes e antialiasing), então há um baseline por sistema (`{platform}` do Playwright):
+  - `win32/`: gravado no Windows;
+  - `linux/`: gravado na imagem Docker oficial do Playwright (`mcr.microsoft.com/playwright:v1.63.0-noble`) com `bun run test:visual:linux`, que serve para o CI. Precisa de Docker (no Windows, o do WSL). Para filtro com `$`, chame `bash scripts/visual-linux.sh -g '...'` direto: o `bun run` escapa o `$`.
+  O Solid é comparado com o baseline do sistema em que roda.
+- Depuração: `VISUAL_DEBUG=1 bun run test:visual -g <cenário>` imprime o console e as requisições da página.
+- Tolerância: `maxDiffPixelRatio: 0.002` para o Solid (`VISUAL_TARGET=solid`); zero para o React. Diferença maior que isso corrige-se no Solid.
 - **Nunca atualize o baseline sem o "ok" do usuário**, registrado no plano.
 
 ### Acessibilidade
