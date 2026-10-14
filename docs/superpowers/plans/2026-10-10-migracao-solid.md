@@ -47,6 +47,29 @@ Os componentes de `ui/` usam classes Tailwind ligadas aos atributos do Radix, po
 - Conferir cada atributo na documentação do Kobalte da versão instalada.
 - As keyframes `accordion-*` do `tailwind.config.js` usam `--radix-accordion-content-height`. O equivalente do Kobalte é `--kb-accordion-content-height` (conferir). Ajustar no `tailwind.config.js` **do `web/`**, sem mudar a aparência.
 
+## Onde paramos (atualizado em 2026-10-14)
+
+- **Prontas e publicadas na `dev`** (Worker `tozzo-web` em `app-dev.tozzo.uk`): S0, S1, S2 (`bded0c1`) e S3 (`eafa369`).
+- **Em andamento: S4 (Operação).** Os checkpoints vão para a branch `claude/clever-hopper-7r4vb1`, nunca para a `dev`. O estado da fase está na seção "S4 — em andamento (checkpoint)", no fim do registro de execução.
+- **Depois:** S5 (Serviços e agenda) e S6 (Relatórios); o usuário pediu para ir até a S6.
+
+**Como retomar numa sessão nova:**
+1. Partir da branch `claude/clever-hopper-7r4vb1` (ela contém a `dev` mais os checkpoints).
+2. Ler o checkpoint da S4, terminar o que falta, passar pelo `reviewer` e corrigir o que ele confirmar.
+3. Com tudo verde, fazer o merge na `dev` e o push.
+
+**Combinados com o usuário:**
+- push na `dev` ao fim de cada fase, com testes, visual, i18n e build verdes e o diff revisado;
+- lacuna do `/v1` (aditiva e com testes em Postgres real) é corrigida na API e vai direto para a `dev` da API;
+- referência visual só do Solid (tela que não existe no React) fica em `e2e/visual/__screenshots__/solid/linux/`, **fora do LFS**, porque a sessão na nuvem não envia para o LFS;
+- em sessão na nuvem, não trocar de branch com `git checkout`: o LFS está com smudge `--skip`, e a troca transforma os PNGs em ponteiros. Para publicar, `git push origin HEAD:dev`;
+- comparação visual ajustada (região ou máscara) precisa do ok do usuário.
+
+**Ambiente na nuvem:**
+- subir o Docker com `nohup dockerd &`; puxar imagens pelo `mirror.gcr.io`;
+- visual e E2E rodam na imagem `mcr.microsoft.com/playwright:v1.63.0-noble` com o CA do proxy (`/root/.ccr/ca-bundle.crt`) montado;
+- `*.tozzo.uk` fica bloqueado.
+
 ## Fases
 
 Cada fase termina com:
@@ -432,3 +455,40 @@ _(preencher ao fim de cada fase: data, o que foi feito, como foi verificado, med
 - **Mock `toV1()`:** `/v1/users` passou a trazer `total`, e os limites do plano FREE (3/60/5/30) como a API.
 - **`EmployeeFilterDialog`** é da agenda (S5): portado com o teste, ainda sem tela.
 - **Não rodou:** smoke contra a API da dev (rede bloqueada); upload real no R2 (o CORS do bucket e a CSP só se confirmam no preview); acompanhamento mobile.
+
+### S4 — 2026-10-14
+
+**Feito:**
+- **Páginas:** `/dashboard/orders` (`PedidosTab`), `/dashboard/sales` (`VendasTab`), `/dashboard/kitchen` e `/dashboard/deliveries`, com as classes, as variantes e as chaves do React, nas guardas de sempre. Componentes `FiltersBar` e recibo (`components/receipt`: `ReceiptPrintView` e `printReceipt`, o mesmo `#receipt-print-root`, o `@page` pela largura salva e a limpeza no `afterprint`, só texto).
+- **Dados:** `src/api/{orders,sales}.ts` com `openapi-fetch`; `createQuery`/`createMutation`; dinheiro em centavos por `lib/money.ts`; erros pelo `code` (`useErrorMessage()`; na entrega, o mapa de códigos da tela React: `ORDER_NOT_READY`, `DELIVERY_CONFLICT`, `DRIVER_BUSY`).
+  - **Pedidos:** lista por cursor (10 por página, "Página N de M" pelo `total`); filtros aplicados no "Buscar", como no React (`customerName`, `sellerId`, `minTotalCents`, `maxTotalCents`); edição com `GET /v1/orders/{id}`; criação com `id` do cliente (UUID), mantido numa nova tentativa depois de uma falha; `PUT` com os `id` dos itens; status do item por `PATCH …/items/{itemId}`; fechamento por `POST …/close` com `paymentMethod`; exclusão com confirmação.
+  - **Vendas:** o período (data e hora locais) vira `from`/`to` (fim do minuto incluído, como o `:59` do React); "Total de registros" pelo `total` e "Fechamento do período" pelo `summary.totalCents`; criação com `id` do cliente; cancelamento por `POST …/cancel`.
+  - **Cozinha e entrega:** o quadro segue o cursor até o fim (100 por página), como o React fazia com `page=1..totalPages`; `MOVE` e as ações de entrega mandam o `expectedUpdatedAt` recebido.
+- **Arrastar e soltar** com `@thisbeyond/solid-dnd` (sensor de ponteiro; detector `closestCenter` na cozinha e, na entrega, o entregador só cai num pedido em espera sob ele, como o `pointerWithin` do React). Os botões dentro dos cartões param o `pointerdown` nativo, para não iniciar um arraste.
+- **Teclado na cozinha:** o cartão tem `role="button"`, `tabIndex=0` e `aria-describedby` com as instruções; Espaço/Enter pega o item, as setas escolhem a coluna (destacada como no arraste), Espaço/Enter solta e Esc cancela; os anúncios `dragStart`/`dragOver`/`dragEnd`/`dragCancel` do React vão para uma região `aria-live`. Na entrega, a alternativa ao arraste são os botões de sempre.
+- **Tempo real:** as consultas usam as chaves que o `realtime.ts` invalida (`orders`, `kitchen`, `delivery`, `sales`, `reports`); o poll de reserva do React virou `refetchInterval` (60 s em pedidos e vendas, 15 s nos quadros). Uma escrita invalida também as telas vizinhas (pedido → cozinha, entrega e contadores; fechamento → vendas e relatórios).
+- **Envio duplicado:** botões desabilitados durante a mutação; uma ação de cada vez nos quadros (a versão do pedido muda a cada uma); idempotência por `id` na criação de pedido e venda.
+- **i18n:** 3 chaves novas nos 6 idiomas: `sales.table.payment` ("Pagamento", fixo no React), `printer.receiptPayment` ("Forma de pagamento: {{method}}", fixo no recibo do React) e `kitchen.keyboardInstructions`. A forma de pagamento da venda usa `deliveries.payment.*` (em pt-BR, os mesmos textos do `paymentMethodLabels` do React).
+- **Correções fora das páginas:**
+  - `DashboardLayout`: os contadores leem por `loadedData()`; ler o `data` de um contador pendente suspendia o dashboard inteiro (aparecia em `orders-loading`, em que o `/v1/orders` não responde);
+  - `Pagination`: o `Select` é `modal` (sem trava de rolagem), como o do Radix, que bloqueia o ponteiro fora da lista aberta; sem isso o trigger mantinha o `hover:scale-105` e a lista descia 0,8 px em `orders-page-size-menu`.
+
+**Verificado:**
+- Vitest: RESULT_VITEST; `i18n:check` e `build` passando; React `bun run test`: RESULT_REACT.
+- E2E: RESULT_E2E (6 novos em `operation.e2e.ts`: pedido com itens e o `id` do cliente; status do item e fechamento em venda; filtro de vendas com total e fechamento do `summary`; cozinha com mouse e teclado; entregador terceirizado, saída e finalização com pagamento; recibo de pedido e de venda, com `window.print` trocado por um registro do conteúdo). `auth.e2e.ts` passou a procurar o nome do usuário no `header` (a lista de pedidos agora também mostra "Victor Tozzo" como vendedor).
+- Visual na imagem do Playwright, duas rodadas: RESULT_VISUAL. Em `ported.ts`, 22 cenários do React desta fase (`orders*`, `sales*`, `kitchen*`, `deliveries*`, mais `mobile-menu`, `cook-shell`, `driver-shell`, `employee-shell`) e o `onboarding`, que saiu de `adjusted.visual.ts` (agora a página atrás do diálogo existe); `orders-error` e `sales-error` em `adjusted.visual.ts`. O `shell.visual.ts` não tem mais cenário (todos foram para a comparação inteira).
+- Teste de tempo real (`operation-realtime.test.tsx`): `order.changed` recarrega pedidos, cozinha e entrega; `sale.changed`, vendas; um evento de outro tipo não recarrega.
+
+**Desempenho** (`bun run build`, `bun run size`): inicial 60,8 KB gzip (sem mudança); `OrdersPage` 3,3 KB, `SalesPage` 3,3 KB, `KitchenPage` 3,7 KB, `DeliveriesPage` 6,4 KB gzip; `solid-dnd` num chunk compartilhado de 3,6 KB gzip; `FiltersBar` e recibo no chunk comum `icon-button` (2,4 KB gzip). Lighthouse não rodou.
+
+**Desvios e achados:**
+- **Biblioteca:** `@thisbeyond/solid-dnd` 0.7.5 (MIT, conferido no `package.json` do pacote). `@tanstack/solid-table` e `@tanstack/solid-virtual` não entraram: a tabela de vendas mostra no máximo 35 linhas por página (o cursor do `/v1` pagina no servidor), bem abaixo das 200 que pedem virtualização.
+- **Comparações ajustadas novas (precisam do "ok" do usuário):**
+  - `orders-error` e `sales-error` sem a área do toast: o baseline do React tem dois toasts empilhados (StrictMode no servidor de dev), o mesmo motivo já aceito em `devices-error`;
+  - `support/solid-adjustments.ts`: `orders-loading` e `sales-loading` esperam o esqueleto da página (o do React esperava qualquer `.animate-pulse`, que o overlay da rota também tem), e `orders-page-size-menu` abre o select pelo papel `button` do Kobalte.
+- **Alternativa por teclado na cozinha é nova:** o React só tinha o sensor de ponteiro (as instruções diziam "com o ponteiro"). As instruções do React continuam, seguidas de `kitchen.keyboardInstructions`.
+- **Lacuna do `/v1` (não contornada):** o filtro "Criado por" (texto livre, "Buscar funcionário...") vira `sellerId` exato em `GET /v1/orders` e `GET /v1/sales`, como o Bun fazia nas vendas (nos pedidos ele ignorava). Digitar um nome não encontra nada. Falta um filtro pelo nome do vendedor (ou a tela passa a escolher um funcionário).
+- **Venda que falha ao criar mantém o diálogo** com os itens (o React fechava e perdia a seleção); o toast de erro é o mesmo.
+- **Conflito na cozinha:** como no React, a mensagem fica até a próxima carga (evento ou poll), sem recarregar na hora.
+- **Remover entregador:** `ASSIGN` sem motorista (o React mandava `driverId: ""`; o `/v1` limpa nos dois casos).
+- **Não rodou:** smoke contra a API da dev (rede bloqueada); Lighthouse; acompanhamento mobile.
