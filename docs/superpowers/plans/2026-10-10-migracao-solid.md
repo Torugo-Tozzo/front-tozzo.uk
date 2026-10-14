@@ -51,7 +51,18 @@ Os componentes de `ui/` usam classes Tailwind ligadas aos atributos do Radix, po
 
 - **Prontas e publicadas na `dev`** (Worker `tozzo-web` em `app-dev.tozzo.uk`): S0, S1, S2 (`bded0c1`) e S3 (`eafa369`).
 - **S4 (Operação): implementada, falta fechar** (commits na branch `claude/clever-hopper-7r4vb1`, ainda fora da `dev`; registro "S4 — 2026-10-14" no fim do plano). Falta:
-  1. a revisão do diff (`git diff eafa369..HEAD`) pelo `reviewer` e a correção do que ele confirmar;
+  1. corrigir os achados da revisão do diff (`git diff eafa369..HEAD`, feita em 2026-10-14):
+     - **bloqueiam:**
+       - `KitchenPage.tsx:80,94,141-148`: cada refetch (a cada 15 s, a cada evento ou depois de mover) recria os cartões, porque o `<For>` compara por referência e não há `structuralSharing`. O foco do teclado se perde. Manter a identidade por `id` (cache `Map` no `createMemo`) ou devolver o foco ao `[data-item-id]` do item pego, com teste de refetch com item pego e `toHaveFocus()`;
+       - `PedidosTab.tsx:79,151-155` e `VendasTab.tsx:92,159-163`: o `id` de idempotência só muda no `onSuccess`, então passa para o próximo modal. Se a resposta de um POST gravado se perder, o próximo pedido ou venda devolve o registro antigo. Gerar um id novo ao abrir o modal (`handleOpenCreateModal`, `handleNewSaleClick`), mantendo o mesmo id só na nova tentativa dentro do modal, com teste;
+     - **opcionais:**
+       - `PedidosTab.tsx:174-179`: se o `GET /v1/orders/{id}` falha, o modal de edição abre sem itens e o `PUT` apaga todos (herdado do React). Não abrir o modal, ou usar os itens da lista;
+       - `VendasTab.tsx:124-127` e `PedidosTab.tsx:97`: um refetch de fundo com erro esvazia a tabela e zera o fechamento. Manter o último dado bom (`isError && data === undefined`);
+       - `api/orders.ts:96-100,113-118`: o laço do cursor não tem trava. Parar se o cursor repetir e pôr um teto de páginas;
+       - `KitchenPage.tsx:171,211-212,246`: um movimento ignorado anuncia "Item movido". Anunciar `dragCancel`;
+       - `DeliveriesPage.tsx:98-105`: o detector usa o centro do cartão, não o ponteiro como o `pointerWithin` do React. Usar o ponteiro, ou registrar como desvio;
+       - `operation-realtime.test.tsx:86`: usar `order.changed` como evento negativo de vendas;
+       - `PedidosTab.test.tsx:85-116` e `orders-sales-chrome.test.tsx:149`: provar também que a criação seguinte sai com id novo;
   2. o ok do usuário para os ajustes visuais da S4: `orders-error`/`sales-error` sem a área do toast; esperas de esqueleto e papel `button` em `solid-adjustments.ts`;
   3. o ok para as duas melhorias de comportamento: teclado na cozinha; venda que falha mantém o diálogo;
   4. a lacuna do filtro "Criado por": `sellerName` (parte do nome, sem diferença de maiúsculas) em `GET /v1/orders` e `GET /v1/sales`. Na API, há um checkpoint sem testes na branch `claude/clever-hopper-7r4vb1`. Falta: testes com Postgres real, `go run ./cmd/api openapi`, a nota na fase 4, o push na `dev` da API e, no front, mandar `sellerName` no lugar de `sellerId` no `FiltersBar`;
