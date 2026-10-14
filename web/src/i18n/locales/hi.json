@@ -572,7 +572,8 @@
       "decreaseQuantity": "मात्रा घटाएँ",
       "increaseQuantity": "मात्रा बढ़ाएँ",
       "removeItem": "आइटम हटाएँ",
-      "itemStatus": "आइटम की स्थिति"
+      "itemStatus": "आइटम की स्थिति",
+      "paymentNotInformed": "सूचित नहीं"
     },
     "confirm": {
       "delete": "क्या आप वाकई इस उत्पाद को हटाना चाहते हैं?",
@@ -617,6 +618,12 @@
     "accessibility": {
       "activateType": "प्रकार सक्रिय करें",
       "deactivateType": "प्रकार निष्क्रिय करें"
+    },
+    "image": {
+      "label": "छवि",
+      "uploading": "छवि अपलोड हो रही है...",
+      "uploaded": "छवि अपडेट हो गई।",
+      "preview": "उत्पाद की वर्तमान छवि"
     }
   },
   "employees": {
@@ -855,7 +862,8 @@
       "save": "जानकारी सहेजें",
       "saving": "सहेजा जा रहा है...",
       "saved": "प्रतिष्ठान की जानकारी अपडेट हो गई।",
-      "saveError": "जानकारी सहेजी नहीं जा सकी। पुनः प्रयास करें।"
+      "saveError": "जानकारी सहेजी नहीं जा सकी। पुनः प्रयास करें।",
+      "addressComplementPlaceholder": "अपार्टमेंट, सुइट आदि"
     },
     "businessPreferences": {
       "onboardingTitle": "आपका व्यवसाय किस प्रकार का है?",
@@ -1004,7 +1012,10 @@
       "create": "कर्मचारी बनाने में त्रुटि।",
       "update": "कर्मचारी अपडेट करने में त्रुटि।",
       "delete": "कर्मचारी हटाने में त्रुटि।"
-    }
+    },
+    "uploadImage": "छवि अपलोड नहीं हो सकी।",
+    "uploadUnavailable": "छवि अपलोड अभी उपलब्ध नहीं है।",
+    "uploadInvalid": "5 MB तक की JPEG, PNG या WebP छवि का उपयोग करें।"
   },
   "catalog": {
     "burger": "बर्गर",

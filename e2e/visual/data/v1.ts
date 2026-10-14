@@ -54,7 +54,10 @@ export function toV1(data: CanonicalDataset = defaultDataset, options: V1Options
     subscriptionExpiresAt: '2026-11-01T03:00:00.000Z', category: est.category, cnpj: '12.345.678/0001-90', phone: est.phone, logoUrl: null,
     address: { street: 'Av. Paulista', number: '1000', complement: 'Loja 2', neighborhood: 'Bela Vista', city: 'São Paulo', state: 'SP', zipCode: '01310-100' },
     extraDevices: est.extraDevices, createdAt: est.createdAt,
-    limits: { devices: 1 + est.extraDevices, printsPerDay: null, products: null, reportsPerMonth: null },
+    // The plan limits of the API (internal/plan): FREE counts prints and reports.
+    limits: est.plan === 'FREE'
+      ? { devices: 3, printsPerDay: 30, products: 60, reportsPerMonth: 5 }
+      : { devices: 8, printsPerDay: null, products: null, reportsPerMonth: null },
     usage: { activeProducts: data.products.length, devices: data.devices.length, printsToday: 4, reportsThisMonth: 2 },
   })
   const product = (id: string) => {
@@ -234,7 +237,7 @@ export function toV1(data: CanonicalDataset = defaultDataset, options: V1Options
       const search = query.get('search')
       const list = data.users.filter((user) => matches(user.name, search))
       const page = cursorPage(list, query, 50)
-      return json({ items: page.items.map(({ id, name, email, phone, role: userRole, createdAt }) => ({ id, name, email, phone, photoUrl: null, role: userRole, createdAt })), nextCursor: page.nextCursor })
+      return json({ items: page.items.map(({ id, name, email, phone, role: userRole, createdAt }) => ({ id, name, email, phone, photoUrl: null, role: userRole, createdAt })), nextCursor: page.nextCursor, total: page.total })
     }
     if (path === '/v1/devices') {
       return json([...data.devices].sort((left, right) => right.createdAt.localeCompare(left.createdAt)).map((device) => ({

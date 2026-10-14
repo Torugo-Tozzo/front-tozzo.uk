@@ -1,8 +1,9 @@
 import { expect, test } from '@playwright/test'
 import { scenarios, type Size } from '../../../e2e/visual/scenarios'
 import { prepare, settle, themeOf } from '../../../e2e/visual/support/stabilize'
-import { mockV1Api } from './support/mock-v1'
+import { mockV1Api, v1Overrides } from './support/mock-v1'
 import { SOLID_SCENARIOS } from './ported'
+import { SOLID_ADJUSTMENTS } from './support/solid-adjustments'
 
 // The React scenarios (plan S0) that the Solid app already renders, compared
 // with the React baseline under the plan's tolerance.
@@ -20,13 +21,18 @@ for (const scenario of ported) {
       page.on('request', (request) => console.log(`[${scenario.name}] -> ${request.method()} ${request.url()}`))
     }
     await prepare(page, themeOf(testInfo), { pauseTimers: scenario.pauseTimers })
-    const mock = await mockV1Api(page, { role: scenario.role, dataset: scenario.mock?.dataset })
+    const adjustment = SOLID_ADJUSTMENTS[scenario.name]
+    const overrides = { ...v1Overrides(scenario.mock?.overrides), ...adjustment?.overrides }
+    const mock = await mockV1Api(page, { role: scenario.role, dataset: scenario.mock?.dataset, overrides })
     await page.goto(scenario.path)
     if (scenario.pauseTimers) await page.clock.runFor(1_000)
     if (!scenario.pending) await settle(page)
-    await scenario.act?.(page, size)
+    await (adjustment?.act ?? scenario.act)?.(page, size)
     if (!scenario.pending) await settle(page)
 
+    // What the Solid app adds to a React screen (marked data-solid-only, e.g.
+    // the product image field of the /v1) stays out of the comparison.
+    await page.addStyleTag({ content: '[data-solid-only] { display: none !important; }' })
     expect(mock.unknown, 'API calls the mock does not answer').toEqual([])
     await expect(page).toHaveScreenshot(`${scenario.name}.png`, {
       fullPage: !scenario.viewportOnly,

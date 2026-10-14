@@ -572,7 +572,8 @@
       "decreaseQuantity": "减少数量",
       "increaseQuantity": "增加数量",
       "removeItem": "移除项目",
-      "itemStatus": "项目状态"
+      "itemStatus": "项目状态",
+      "paymentNotInformed": "未提供"
     },
     "confirm": {
       "delete": "确定要删除此产品吗？",
@@ -617,6 +618,12 @@
     "accessibility": {
       "activateType": "启用类型",
       "deactivateType": "停用类型"
+    },
+    "image": {
+      "label": "图片",
+      "uploading": "正在上传图片...",
+      "uploaded": "图片已更新。",
+      "preview": "当前商品图片"
     }
   },
   "employees": {
@@ -855,7 +862,8 @@
       "save": "保存信息",
       "saving": "正在保存...",
       "saved": "商家信息已更新。",
-      "saveError": "无法保存信息。请重试。"
+      "saveError": "无法保存信息。请重试。",
+      "addressComplementPlaceholder": "公寓、房间等"
     },
     "businessPreferences": {
       "onboardingTitle": "您的企业属于哪种类型？",
@@ -1004,7 +1012,10 @@
       "create": "创建员工时出错",
       "update": "更新员工时出错",
       "delete": "删除员工时出错"
-    }
+    },
+    "uploadImage": "上传图片失败。",
+    "uploadUnavailable": "图片上传暂不可用。",
+    "uploadInvalid": "请使用不超过 5 MB 的 JPEG、PNG 或 WebP 图片。"
   },
   "catalog": {
     "burger": "汉堡包",

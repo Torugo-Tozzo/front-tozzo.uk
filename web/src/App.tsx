@@ -19,6 +19,11 @@ const ForgotPasswordPage = lazyPage(() => import('@/pages/ForgotPasswordPage'))
 const ResetPasswordPage = lazyPage(() => import('@/pages/ResetPasswordPage'))
 const VerifyEmailPage = lazyPage(() => import('@/pages/VerifyEmailPage'))
 const ConfirmEmailPage = lazyPage(() => import('@/pages/ConfirmEmailPage'))
+// S3: registration.
+const ProductsPage = lazyPage(() => import('@/pages/dashboard/ProductsPage'))
+const EmployeesPage = lazyPage(() => import('@/pages/dashboard/EmployeesPage'))
+const DevicesPage = lazyPage(() => import('@/pages/dashboard/DevicesPage'))
+const SettingsPage = lazyPage(() => import('@/pages/dashboard/SettingsPage'))
 
 // solid-sonner (with its CSS) stays out of the initial chunk (plan S2). It
 // loads right after boot, long before the first toast a user can trigger.
@@ -58,20 +63,20 @@ function NotPortedYet(): JSX.Element {
 const modulePage = (module: NavigationModule, Page: () => JSX.Element = NotPortedYet) =>
   () => <BusinessModuleRoute module={module}><Page /></BusinessModuleRoute>
 
-const dashboardRoutes: [path: string, module: NavigationModule][] = [
+const dashboardRoutes: [path: string, module: NavigationModule, page?: () => JSX.Element][] = [
   ['/orders', 'ORDERS'],
   ['/sales', 'SALES'],
-  ['/products', 'PRODUCTS'],
+  ['/products', 'PRODUCTS', ProductsPage],
   ['/services', 'SERVICES'],
   ['/estimates', 'ESTIMATES'],
   ['/estimates/:id', 'ESTIMATES'],
   ['/service-orders', 'SERVICE_ORDERS'],
   ['/service-orders/:id', 'SERVICE_ORDERS'],
-  ['/employees', 'EMPLOYEES'],
+  ['/employees', 'EMPLOYEES', EmployeesPage],
   ['/schedule', 'SCHEDULE'],
-  ['/devices', 'DEVICES'],
+  ['/devices', 'DEVICES', DevicesPage],
   ['/charts', 'REPORTS'],
-  ['/settings', 'SETTINGS'],
+  ['/settings', 'SETTINGS', SettingsPage],
   ['/kitchen', 'KITCHEN'],
   ['/deliveries', 'DELIVERIES'],
 ]
@@ -97,7 +102,7 @@ export default function App() {
       <Route component={(props: RouteSectionProps) => <ProtectedRoute>{props.children}</ProtectedRoute>}>
         <Route path="/dashboard" component={DashboardLayout}>
           <Route path="/" component={DashboardHome} />
-          {dashboardRoutes.map(([path, module]) => <Route path={path} component={modulePage(module)} />)}
+          {dashboardRoutes.map(([path, module, page]) => <Route path={path} component={modulePage(module, page)} />)}
         </Route>
       </Route>
       {/* Catalogue of the ui/ primitives (dev only; not in the production build). */}

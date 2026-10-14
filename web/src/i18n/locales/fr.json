@@ -572,7 +572,8 @@
       "decreaseQuantity": "Diminuer la quantité",
       "increaseQuantity": "Augmenter la quantité",
       "removeItem": "Supprimer l’article",
-      "itemStatus": "Statut de l’article"
+      "itemStatus": "Statut de l’article",
+      "paymentNotInformed": "Non renseigné"
     },
     "confirm": {
       "delete": "Voulez-vous vraiment supprimer ce produit ?",
@@ -617,6 +618,12 @@
     "accessibility": {
       "activateType": "Activer le type",
       "deactivateType": "Désactiver le type"
+    },
+    "image": {
+      "label": "Image",
+      "uploading": "Envoi de l'image...",
+      "uploaded": "Image mise à jour.",
+      "preview": "Image actuelle du produit"
     }
   },
   "employees": {
@@ -855,7 +862,8 @@
       "save": "Enregistrer les informations",
       "saving": "Enregistrement...",
       "saved": "Informations de l'établissement mises à jour.",
-      "saveError": "Impossible d'enregistrer les informations. Réessayez."
+      "saveError": "Impossible d'enregistrer les informations. Réessayez.",
+      "addressComplementPlaceholder": "Appt, bureau, etc."
     },
     "businessPreferences": {
       "onboardingTitle": "Quel type d'activité exercez-vous ?",
@@ -1004,7 +1012,10 @@
       "create": "Erreur lors de la création de l'employé",
       "update": "Erreur lors de la mise à jour de l'employé",
       "delete": "Erreur lors de la suppression de l'employé"
-    }
+    },
+    "uploadImage": "Erreur lors de l'envoi de l'image.",
+    "uploadUnavailable": "L'envoi d'images n'est pas encore disponible.",
+    "uploadInvalid": "Utilisez une image JPEG, PNG ou WebP de 5 Mo maximum."
   },
   "catalog": {
     "burger": "Hamburger",

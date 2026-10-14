@@ -55,4 +55,10 @@ describe("email link outcomes (S2)", () => {
     expect(getErrorTranslationKey("passwordReset", "PASSWORD_UNCHANGED")).toEqual({ namespace: "auth", key: "samePassword" })
     expect(getErrorTranslationKey("login", "GOOGLE_TOKEN_INVALID")).toEqual({ namespace: "auth", key: "loginFailure" })
   })
+
+  test("explains an image upload the environment cannot take yet", () => {
+    expect(getErrorTranslationKey("uploadImage", "NOT_READY")).toEqual({ namespace: "errors", key: "uploadUnavailable" })
+    expect(getErrorTranslationKey("uploadImage", "UPLOAD_INVALID")).toEqual({ namespace: "errors", key: "uploadInvalid" })
+    expect(getErrorTranslationKey("uploadImage", "UPLOAD_PUT_FAILED")).toEqual({ namespace: "errors", key: "uploadImage" })
+  })
 })

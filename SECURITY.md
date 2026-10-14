@@ -26,7 +26,7 @@
 
 `web/public/_headers` (texto completo no plano, seção "Cloudflare Workers"):
 - `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin` e HSTS;
-- **CSP** restrita: `default-src 'self'`, scripts só do próprio site e do Google Identity, `connect-src` só para a API (`https://dev-api.tozzo.uk`) e o Google, imagens do host público do R2;
+- **CSP** restrita: `default-src 'self'`, scripts só do próprio site e do Google Identity, `connect-src` só para a API (`https://dev-api.tozzo.uk`), o Google e o `PUT` pré-assinado do R2 (`https://*.r2.cloudflarestorage.com`), imagens do host público do R2 (`https://media-dev.tozzo.uk`);
 - nada de `eval` ou de script inline. Liberar uma origem nova na CSP exige motivo e o "ok" do usuário.
 
 Previews (`*-tozzo-web.<conta>.workers.dev`) só chamam a API se a origem estiver no CORS dela, e essa decisão é do usuário.

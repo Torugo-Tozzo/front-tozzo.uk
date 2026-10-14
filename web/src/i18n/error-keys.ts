@@ -27,6 +27,7 @@ export type ErrorContext =
   | "passwordReset"
   | "emailVerification"
   | "emailChange"
+  | "uploadImage"
 
 type ErrorKey =
   | "generic"
@@ -52,6 +53,9 @@ type ErrorKey =
   | "createEmployee"
   | "updateEmployee"
   | "deleteEmployee"
+  | "uploadImage"
+  | "uploadUnavailable"
+  | "uploadInvalid"
 export type ErrorTranslation =
   | {
       namespace: "auth"
@@ -101,6 +105,7 @@ const fallbackByContext: Record<ErrorContext, ErrorTranslation> = {
   passwordReset: { namespace: "auth", key: "resetPasswordFailed" },
   emailVerification: { namespace: "errors", key: "generic" },
   emailChange: { namespace: "errors", key: "generic" },
+  uploadImage: { namespace: "errors", key: "uploadImage" },
 }
 
 // Keyed by the `code` of the /v1 problem+json (api-tozzo.uk
@@ -182,6 +187,12 @@ const errorKeyByContext: Partial<Record<ErrorContext, Record<string, ErrorTransl
   },
   createProduct: {
     PRODUCT_LIMIT_REACHED: { namespace: "errors", key: "productLimitReached" },
+  },
+  uploadImage: {
+    // 503 while the environment has no R2 bucket configured.
+    NOT_READY: { namespace: "errors", key: "uploadUnavailable" },
+    UPLOAD_INVALID: { namespace: "errors", key: "uploadInvalid" },
+    UPLOAD_NOT_FOUND: { namespace: "errors", key: "uploadImage" },
   },
 }
 

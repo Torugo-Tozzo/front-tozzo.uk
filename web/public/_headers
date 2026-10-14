@@ -5,4 +5,4 @@
   X-Frame-Options: DENY
   Referrer-Policy: strict-origin-when-cross-origin
   Strict-Transport-Security: max-age=31536000; includeSubDomains
-  Content-Security-Policy: default-src 'self'; script-src 'self' https://accounts.google.com/gsi/client; style-src 'self' 'unsafe-inline' https://accounts.google.com/gsi/style; img-src 'self' data:; connect-src 'self' https://dev-api.tozzo.uk https://accounts.google.com/gsi/; frame-src https://accounts.google.com/gsi/; font-src 'self'; base-uri 'self'; form-action 'self'
+  Content-Security-Policy: default-src 'self'; script-src 'self' https://accounts.google.com/gsi/client; style-src 'self' 'unsafe-inline' https://accounts.google.com/gsi/style; img-src 'self' data: https://media-dev.tozzo.uk; connect-src 'self' https://dev-api.tozzo.uk https://accounts.google.com/gsi/ https://*.r2.cloudflarestorage.com; frame-src https://accounts.google.com/gsi/; font-src 'self'; base-uri 'self'; form-action 'self'

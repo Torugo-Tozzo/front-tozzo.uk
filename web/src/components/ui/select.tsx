@@ -34,10 +34,19 @@ function SelectTrigger(props: ComponentProps<typeof SelectPrimitive.Trigger<"but
   )
 }
 
+// A modal Dialog hides everything outside it from assistive technology
+// (aria-hidden), and the select's portal is added outside it: marked as a top
+// layer, it stays visible, so the options of a select inside a dialog are
+// still announced (Radix does the same for its popper).
+const markTopLayer = (container: Element) => {
+  container.setAttribute("data-kb-top-layer", "")
+  container.setAttribute("data-react-aria-top-layer", "true")
+}
+
 function SelectContent(props: ComponentProps<typeof SelectPrimitive.Content<"div">>) {
   const [local, others] = splitProps(props, ["class"])
   return (
-    <SelectPrimitive.Portal>
+    <SelectPrimitive.Portal ref={markTopLayer}>
       <SelectPrimitive.Content
         class={cn(
           "relative z-50 max-h-96 min-w-[8rem] overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md data-[expanded]:animate-in data-[closed]:animate-out data-[closed]:fade-out-0 data-[expanded]:fade-in-0 data-[closed]:zoom-out-95 data-[expanded]:zoom-in-95",

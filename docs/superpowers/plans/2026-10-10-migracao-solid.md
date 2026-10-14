@@ -190,7 +190,7 @@ O usuário cria o Worker no painel (Workers & Pages → Create → importar repo
   X-Frame-Options: DENY
   Referrer-Policy: strict-origin-when-cross-origin
   Strict-Transport-Security: max-age=31536000; includeSubDomains
-  Content-Security-Policy: default-src 'self'; script-src 'self' https://accounts.google.com/gsi/client; style-src 'self' 'unsafe-inline' https://accounts.google.com/gsi/style; img-src 'self' data: https://<R2_PUBLIC_HOST>; connect-src 'self' https://dev-api.tozzo.uk https://accounts.google.com/gsi/; frame-src https://accounts.google.com/gsi/; font-src 'self'; base-uri 'self'; form-action 'self'
+  Content-Security-Policy: default-src 'self'; script-src 'self' https://accounts.google.com/gsi/client; style-src 'self' 'unsafe-inline' https://accounts.google.com/gsi/style; img-src 'self' data: https://media-dev.tozzo.uk; connect-src 'self' https://dev-api.tozzo.uk https://accounts.google.com/gsi/ https://*.r2.cloudflarestorage.com; frame-src https://accounts.google.com/gsi/; font-src 'self'; base-uri 'self'; form-action 'self'
 ```
 
 - **Fallback de SPA:** `not_found_handling = single-page-application` serve o `index.html` em qualquer rota. Conferir no preview com uma URL profunda (`/dashboard/orders`).
@@ -390,3 +390,45 @@ _(preencher ao fim de cada fase: data, o que foi feito, como foi verificado, med
 - **Ambiente de testes:** o `setup.ts` força `animation-name: none`, porque o happy-dom devolve vazio e o Kobalte mantinha a aba fechada no DOM.
 - **Sandbox na nuvem:** o download do Chromium está bloqueado (`cdn.playwright.dev`), então E2E e visual rodaram na imagem Docker com o CA do proxy.
 - **Não rodou:** smoke contra a API da dev e o GSI real (rede bloqueada); acompanhamento mobile (TozzoBurger fora desta sessão).
+
+### S3 — 2026-10-14
+
+**Feito:**
+- **Páginas:** `/dashboard/settings` (`SettingsPage` e `BusinessPreferencesPanel`), `/dashboard/employees`, `/dashboard/products` (produtos, tipos e diálogos) e `/dashboard/devices`, com as classes, as variantes e as chaves do React, nas guardas de sempre (`BusinessModuleRoute`).
+- **Componentes:** `EstablishmentOnboardingModal` (OWNER sem perfis, ou legado sem categoria; chunk próprio), `PaywallBanner`, `Pagination`, `EmployeeFilterDialog` (para a agenda, S5) e `ProductSelectionModal` (S4 e S5), com dinheiro em centavos e catálogo paginado no servidor (20 por página).
+- **Dados:** `src/api/{catalog,users,devices,establishment,uploads}.ts` com `openapi-fetch`; `createQuery`/`createMutation`; páginas por cursor com "Página N de M" pelo `total` (`lib/cursor-pages.ts`); dinheiro por `lib/money.ts` (`formatCents`, entrada de preço em centavos); erros pelo `code` (`useErrorMessage()`).
+- **Invalidação:** produtos → `products` e o uso do plano (`establishment`); tipos → `product-types` (e `products` ao editar ou excluir, porque excluir um tipo exclui os produtos); funcionários → `users`; dispositivos → lista e uso do plano; preferências e estabelecimento → `establishment` e `refreshUserProfile()` (menu e navbar). Os contadores da sidebar não dependem dessas listas.
+- **Upload de imagem do produto** (no diálogo de edição): `POST /v1/uploads` → `PUT` direto no R2 com os headers devolvidos (menos `Content-Length` e `Host`, que o navegador põe) → `PATCH /v1/products/{id}` com `imageKey`. Tipo e tamanho conferidos antes; `503 NOT_READY` (sem bucket) vira "O envio de imagens ainda não está disponível." e o diálogo segue usável.
+- **CSP** (ok do usuário, 2026-10-14): `img-src https://media-dev.tozzo.uk` e `connect-src https://*.r2.cloudflarestorage.com` (curinga: o Account ID do R2 não foi passado). O E2E roda no Vite, sem `_headers`: a CSP só se confere no preview do Worker.
+- **i18n:** 9 chaves novas nos 6 idiomas (upload, `paymentNotInformed`, placeholder do complemento), e o contexto `uploadImage` em `error-keys`.
+- **Primitivas (paridade com o Radix):**
+  - `DialogContent`: foca o primeiro campo e seleciona o texto ao abrir, como o `FocusScope` do Radix; o X tem o nome traduzido (o Kobalte punha "Dismiss");
+  - `SelectContent`: o portal é marcado como camada de topo; dentro de um diálogo modal o Kobalte escondia as opções do leitor de tela (`aria-hidden`).
+- **Paywall:** cenário `employees-paywall` (MANAGER, `403 PLAN_UPGRADE_REQUIRED`) com referência gravada do Solid em `__screenshots__/solid/linux/` (ok do usuário em 2026-10-14), fora do LFS.
+
+**Verificado:**
+- Vitest 259/259 (44 arquivos, depois da revisão), `i18n:check` e `build` passando; React `bun run test` 319/319;
+- E2E 23/23 (9 novos em `registration.e2e.ts`: produto criar/editar/excluir, upload com PUT mockado, upload sem bucket, tipo, funcionário criar/editar/excluir, paywall, dispositivo, preferências + dados do estabelecimento, onboarding);
+- visual na imagem do Playwright: duas rodadas antes da revisão e uma depois, todas com 248 passando e 4 pulados (o `mobile-menu` fora do celular); os PNGs do paywall saíram idênticos; 19 cenários do React em `ported.ts`; `settings`, `settings-free-plan`, `settings-delete-account`, `onboarding` e `devices-error` em `adjusted.visual.ts` (por regiões, limite 0,002); `employees-paywall` nos `solid-*`.
+
+**Correções da revisão (2026-10-14):**
+- **[alta] upload que termina depois de trocar de produto:** o `onSuccess` só atualiza o formulário se ele ainda for do produto enviado; antes, o "Salvar" do produto B podia mandar `PATCH` no produto A. Teste Vitest com o upload pendente e a troca de produto.
+- **Onboarding:** depois de salvar, o botão fica em "Salvando..." até o perfil chegar (`onSaved` devolve a promessa do `refreshUserProfile()`). Se o `/v1/me` falhar, o botão só refaz o refresh, sem repetir o `PUT` e o `PATCH`; um `409 PREFERENCES_CONFLICT` conta como já salvo e só refaz o refresh. Dois testes novos.
+- **Funcionários:** testes de permissão por linha. O MANAGER não edita nem exclui MANAGER e OWNER; EMPLOYEE e COOK não têm a coluna de ações.
+- O comentário do E2E de upload não diz mais que a CSP é exercitada.
+
+**Desempenho:** inicial 60,3 KB gzip (`bun run size`); `ProductsPage` 5,7 KB, `SettingsPage` 4,9 KB, `EmployeesPage` 3,8 KB, onboarding 2,0 KB, `DevicesPage` 1,5 KB gzip. Lighthouse não rodou.
+
+**Desvios e achados:**
+- **2FA fora** (decisão do usuário): a `SettingsPage` não tem o card "Segurança". Por isso os cenários `settings*` comparam por regiões: acima da seção "Dados e privacidade" igual, e dali para baixo a página do React subida a altura do card.
+- **Ordem dos tipos** (aceita pelo usuário em 2026-10-14): o `/v1` ordena por descrição (alfabética); o Bun, por id. Mudam a ordem das linhas da aba Tipos e o "#". No cenário `products-types`, o mock responde na ordem do Bun só para comparar os pixels com o baseline; a tela mostra a ordem da API.
+- **Tipos sem paginação no `/v1`:** a lista vem inteira (são poucos) e a página "N de M" e o total são calculados no front.
+- **Upload só na edição:** precisa do id do produto. O campo leva `data-solid-only` e fica fora da comparação de `products-edit`; ainda não tem referência visual própria.
+- **Comparações ajustadas aceitas pelo usuário (2026-10-14):** `settings*` sem o card de 2FA (por regiões), `onboarding` só o diálogo, `devices-error` sem a área do toast, o campo de upload com `data-solid-only` e os ajustes de `support/solid-adjustments.ts`.
+- **`devices-error`:** o baseline do React foi gravado no servidor de dev, onde o StrictMode roda o efeito duas vezes (dois toasts empilhados). O Solid mostra um; a área do toast fica fora da comparação.
+- **Suspense:** ler `query.data` pendente suspende a página inteira no Solid Query (overlay "Carregando…"). As páginas leem por `loadedData()` e avisam erro por `onQueryError()` (um toast por falha; um efeito que lia o toaster entrava em laço).
+- **Kobalte:** o `Select` da `Pagination` usa o wrapper com `contents` e o `ml-2` no trigger (o do Radix encolhe como item flex no celular).
+- **Achado no React (congelado, não corrigido):** `tErrors("products.selectItems")` cai no namespace `products` (`nsSeparator: "."`) e mostra a chave crua; no Solid, `{ nsSeparator: false }`.
+- **Mock `toV1()`:** `/v1/users` passou a trazer `total`, e os limites do plano FREE (3/60/5/30) como a API.
+- **`EmployeeFilterDialog`** é da agenda (S5): portado com o teste, ainda sem tela.
+- **Não rodou:** smoke contra a API da dev (rede bloqueada); upload real no R2 (o CORS do bucket e a CSP só se confirmam no preview); acompanhamento mobile.

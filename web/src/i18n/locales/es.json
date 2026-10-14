@@ -572,7 +572,8 @@
       "decreaseQuantity": "Disminuir cantidad",
       "increaseQuantity": "Aumentar cantidad",
       "removeItem": "Eliminar elemento",
-      "itemStatus": "Estado del artículo"
+      "itemStatus": "Estado del artículo",
+      "paymentNotInformed": "No informado"
     },
     "confirm": {
       "delete": "¿Seguro que deseas eliminar este producto?",
@@ -617,6 +618,12 @@
     "accessibility": {
       "activateType": "Activar tipo",
       "deactivateType": "Desactivar tipo"
+    },
+    "image": {
+      "label": "Imagen",
+      "uploading": "Subiendo imagen...",
+      "uploaded": "Imagen actualizada.",
+      "preview": "Imagen actual del producto"
     }
   },
   "employees": {
@@ -855,7 +862,8 @@
       "save": "Guardar información",
       "saving": "Guardando...",
       "saved": "Información del establecimiento actualizada.",
-      "saveError": "No se pudo guardar la información. Inténtalo de nuevo."
+      "saveError": "No se pudo guardar la información. Inténtalo de nuevo.",
+      "addressComplementPlaceholder": "Depto., oficina, etc."
     },
     "businessPreferences": {
       "onboardingTitle": "¿Qué tipo de negocio tienes?",
@@ -1004,7 +1012,10 @@
       "create": "Error al crear el empleado",
       "update": "Error al actualizar el empleado",
       "delete": "Error al eliminar el empleado"
-    }
+    },
+    "uploadImage": "Error al subir la imagen.",
+    "uploadUnavailable": "La subida de imágenes aún no está disponible.",
+    "uploadInvalid": "Usa una imagen JPEG, PNG o WebP de hasta 5 MB."
   },
   "catalog": {
     "burger": "Hamburguesa",

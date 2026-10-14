@@ -33,6 +33,11 @@ import { unwrap } from "@/api/errors"
 import { startRealtime } from "@/realtime"
 import { formatNumber } from "@/i18n/format"
 import { resolveNavigationModules, type NavigationModule } from "@/domain/businessPreferences"
+import { lazyPage } from "@/lib/lazy-page"
+
+// Only a new owner ever sees it: kept out of the layout chunk.
+const EstablishmentOnboardingModal = lazyPage(() =>
+  import("@/components/dashboard/EstablishmentOnboardingModal").then((module) => ({ default: module.EstablishmentOnboardingModal })))
 
 const SIDEBAR_COLLAPSED_KEY = "sidebar-collapsed"
 const MOBILE_MENU_ANIMATION_MS = 200
@@ -82,6 +87,14 @@ export default function DashboardLayout(props: { children?: JSX.Element }) {
   const [isCollapsed, setIsCollapsed] = createSignal(window.localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === "true")
   const visibleModules = () => resolveNavigationModules(user()?.role, user()?.establishment)
   const countOf = useSidebarCounts(visibleModules)
+  const needsOnboarding = () => {
+    const current = user()
+    if (current?.role !== "OWNER") return false
+    const establishment = current.establishment
+    return establishment?.businessProfiles === undefined
+      ? establishment?.category == null
+      : establishment.businessProfiles.length === 0
+  }
 
   onMount(() => {
     const refresh = () => { if (!document.hidden) void refreshUserProfile() }
@@ -219,7 +232,16 @@ export default function DashboardLayout(props: { children?: JSX.Element }) {
     <div class="min-h-screen flex flex-col">
       <Navbar onMenuClick={() => setIsMobileMenuOpen(true)} />
 
-      {/* The establishment onboarding modal (owner without business profiles) comes with S3. */}
+      {/* Owner whose establishment has no business profile yet (legacy: no category). */}
+      <Show when={needsOnboarding()}>
+        <Suspense>
+          <EstablishmentOnboardingModal
+            open
+            initialRevision={user()?.establishment?.preferencesRevision ?? 0}
+            onSaved={refreshUserProfile}
+          />
+        </Suspense>
+      </Show>
 
       <div class="flex-1 flex bg-muted/20">
         {/* Desktop Sidebar */}
