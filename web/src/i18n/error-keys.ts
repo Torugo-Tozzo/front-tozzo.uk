@@ -25,6 +25,8 @@ export type ErrorContext =
   | "deleteEmployee"
   | "deleteAccount"
   | "passwordReset"
+  | "emailVerification"
+  | "emailChange"
 
 type ErrorKey =
   | "generic"
@@ -64,6 +66,9 @@ export type ErrorTranslation =
         | "invalidEmail"
         | "samePassword"
         | "resetPasswordFailed"
+        | "confirmationLinkExpired"
+        | "confirmEmailChangeInvalid"
+        | "emailChangeInUse"
     }
   | { namespace: "errors"; key: ErrorKey }
 
@@ -94,6 +99,8 @@ const fallbackByContext: Record<ErrorContext, ErrorTranslation> = {
   deleteEmployee: { namespace: "errors", key: "deleteEmployee" },
   deleteAccount: { namespace: "errors", key: "generic" },
   passwordReset: { namespace: "auth", key: "resetPasswordFailed" },
+  emailVerification: { namespace: "errors", key: "generic" },
+  emailChange: { namespace: "errors", key: "generic" },
 }
 
 // Keyed by the `code` of the /v1 problem+json (api-tozzo.uk
@@ -101,6 +108,7 @@ const fallbackByContext: Record<ErrorContext, ErrorTranslation> = {
 const errorKeyByContext: Partial<Record<ErrorContext, Record<string, ErrorTranslation>>> = {
   login: {
     INVALID_CREDENTIALS: { namespace: "auth", key: "invalidCredentials" },
+    GOOGLE_TOKEN_INVALID: { namespace: "auth", key: "loginFailure" },
     EMAIL_NOT_VERIFIED: { namespace: "auth", key: "emailNotConfirmed" },
     VALIDATION_FAILED: { namespace: "auth", key: "invalidEmail" },
     RATE_LIMITED: { namespace: "auth", key: "authRateLimited" },
@@ -111,13 +119,27 @@ const errorKeyByContext: Partial<Record<ErrorContext, Record<string, ErrorTransl
     PASSWORD_INVALID: { namespace: "auth", key: "weakPassword" },
     TERMS_NOT_ACCEPTED: { namespace: "auth", key: "registerFailure" },
     TOKEN_INVALID: { namespace: "auth", key: "registerFailure" },
-    VALIDATION_FAILED: { namespace: "auth", key: "invalidEmail" },
+    // Any field may be the invalid one (name, trade name, key...), not only the email.
+    VALIDATION_FAILED: { namespace: "auth", key: "registerFailure" },
     RATE_LIMITED: { namespace: "auth", key: "authRateLimited" },
     INTERNAL_ERROR: { namespace: "errors", key: "generic" },
   },
   passwordReset: {
     PASSWORD_INVALID: { namespace: "auth", key: "weakPassword" },
+    // 422 when the new password equals the current one (the React app's same_password).
+    PASSWORD_UNCHANGED: { namespace: "auth", key: "samePassword" },
     VALIDATION_FAILED: { namespace: "auth", key: "invalidEmail" },
+    RATE_LIMITED: { namespace: "auth", key: "authRateLimited" },
+  },
+  emailVerification: {
+    TOKEN_INVALID: { namespace: "auth", key: "confirmationLinkExpired" },
+    VALIDATION_FAILED: { namespace: "auth", key: "confirmationLinkExpired" },
+    RATE_LIMITED: { namespace: "auth", key: "authRateLimited" },
+  },
+  emailChange: {
+    TOKEN_INVALID: { namespace: "auth", key: "confirmEmailChangeInvalid" },
+    VALIDATION_FAILED: { namespace: "auth", key: "confirmEmailChangeInvalid" },
+    EMAIL_IN_USE: { namespace: "auth", key: "emailChangeInUse" },
     RATE_LIMITED: { namespace: "auth", key: "authRateLimited" },
   },
   payment: {

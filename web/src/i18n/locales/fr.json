@@ -1,6 +1,7 @@
 {
   "common": {
     "appName": "Tozzo.uk",
+    "logoutFailed": "Impossible de se déconnecter. Vérifiez votre connexion et réessayez.",
     "loading": "Chargement...",
     "processing": "Traitement...",
     "saving": "Enregistrement...",
@@ -241,7 +242,7 @@
     "confirmationLinkExpired": "Le lien de confirmation a expiré ou a déjà été utilisé. Connectez-vous avec votre e-mail et votre mot de passe ou demandez un nouveau lien.",
     "emailNotConfirmed": "Votre e-mail n'a pas encore été confirmé. Cliquez sur le lien envoyé ou renvoyez-le ci-dessous.",
     "emailAlreadyRegistered": "Cet e-mail est déjà enregistré. Connectez-vous ou réinitialisez votre mot de passe.",
-    "weakPassword": "Mot de passe trop faible. Utilisez au moins 6 caractères.",
+    "weakPassword": "Mot de passe trop faible. Utilisez au moins 8 caractères.",
     "authRateLimited": "Trop de tentatives d'affilée. Attendez une minute et réessayez.",
     "verifyCredentials": "Vérifiez vos identifiants.",
     "verifyData": "Vérifiez vos informations.",
@@ -271,7 +272,13 @@
     "resetPasswordFailed": "Impossible de réinitialiser le mot de passe.",
     "totpCode": "Code d'authentification",
     "confirmTotp": "Confirmer",
-    "invalidTotpCode": "Code invalide."
+    "invalidTotpCode": "Code invalide.",
+    "verifyEmailChecking": "Confirmation de votre e-mail...",
+    "confirmEmailChangeTitle": "Confirmer le nouvel e-mail",
+    "confirmEmailChangeChecking": "Confirmation de votre nouvel e-mail...",
+    "confirmEmailChangeSuccess": "Votre e-mail a été modifié. Utilisez la nouvelle adresse lors de votre prochaine connexion.",
+    "confirmEmailChangeInvalid": "Ce lien de confirmation a expiré ou a déjà été utilisé. Demandez à nouveau le changement d'e-mail.",
+    "emailChangeInUse": "Cet e-mail est déjà utilisé par un autre compte."
   },
   "navigation": {
     "dashboard": "Tableau de bord",

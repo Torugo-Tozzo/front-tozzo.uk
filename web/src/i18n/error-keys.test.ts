@@ -23,7 +23,7 @@ describe("structured API error outcomes", () => {
   })
 
   test("covers invalid email, rate limit and password reset outcomes", () => {
-    expect(getErrorTranslationKey("registration", "VALIDATION_FAILED")).toEqual({ namespace: "auth", key: "invalidEmail" })
+    expect(getErrorTranslationKey("registration", "VALIDATION_FAILED")).toEqual({ namespace: "auth", key: "registerFailure" })
     expect(getErrorTranslationKey("login", "VALIDATION_FAILED")).toEqual({ namespace: "auth", key: "invalidEmail" })
     expect(getErrorTranslationKey("registration", "RATE_LIMITED")).toEqual({ namespace: "auth", key: "authRateLimited" })
     expect(getErrorTranslationKey("login", "RATE_LIMITED")).toEqual({ namespace: "auth", key: "authRateLimited" })
@@ -42,5 +42,17 @@ describe("structured API error outcomes", () => {
 
   test("maps PRODUCT_LIMIT_REACHED to createProduct", () => {
     expect(getErrorTranslationKey("createProduct", "PRODUCT_LIMIT_REACHED")).toEqual({ namespace: "errors", key: "productLimitReached" })
+  })
+})
+
+describe("email link outcomes (S2)", () => {
+  test("an expired confirmation link and an email already taken get their own messages", () => {
+    expect(getErrorTranslationKey("emailVerification", "TOKEN_INVALID")).toEqual({ namespace: "auth", key: "confirmationLinkExpired" })
+    expect(getErrorTranslationKey("emailVerification", "RATE_LIMITED")).toEqual({ namespace: "auth", key: "authRateLimited" })
+    expect(getErrorTranslationKey("emailVerification", "INTERNAL_ERROR")).toEqual({ namespace: "errors", key: "generic" })
+    expect(getErrorTranslationKey("emailChange", "TOKEN_INVALID")).toEqual({ namespace: "auth", key: "confirmEmailChangeInvalid" })
+    expect(getErrorTranslationKey("emailChange", "EMAIL_IN_USE")).toEqual({ namespace: "auth", key: "emailChangeInUse" })
+    expect(getErrorTranslationKey("passwordReset", "PASSWORD_UNCHANGED")).toEqual({ namespace: "auth", key: "samePassword" })
+    expect(getErrorTranslationKey("login", "GOOGLE_TOKEN_INVALID")).toEqual({ namespace: "auth", key: "loginFailure" })
   })
 })

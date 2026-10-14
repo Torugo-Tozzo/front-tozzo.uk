@@ -182,9 +182,9 @@ describe('DashboardLayout', () => {
 
     await user.click(screen.getByRole('button', { name: 'Sign out' }))
 
-    expect(screen.getByRole('heading', { name: 'Log out?' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Log out?' })).toBeInTheDocument()
     expect(screen.getByText('Are you sure you want to log out?')).toBeInTheDocument()
-    await user.click(screen.getByRole('button', { name: i18n.t('logoutConfirmation.confirm', { ns: 'common' }) }))
+    await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: i18n.t('logoutConfirmation.confirm', { ns: 'common' }) }))
     expect(mockLogout).toHaveBeenCalledTimes(1)
   })
 })

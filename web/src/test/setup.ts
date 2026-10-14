@@ -14,6 +14,13 @@ if (!Element.prototype.scrollIntoView) {
   Element.prototype.scrollIntoView = () => {}
 }
 
+// happy-dom computes animation-name as "" (browsers: "none"), so Kobalte's
+// presence takes every unmount for an animation that never ends, and a closed
+// tab panel stayed in the DOM. No CSS animations run here.
+const noAnimations = document.createElement('style')
+noAnimations.textContent = '* { animation-name: none; }'
+document.head.appendChild(noAnimations)
+
 // Tests get every locale up front (the app loads only the active one).
 import { i18n, i18nReady } from '@/i18n/config'
 import { resources } from '@/i18n/resources'

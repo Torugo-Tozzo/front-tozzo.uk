@@ -93,9 +93,9 @@ const requiredUiInventory: InventoryEntry[] = [
   { source: "src/components/ui/dialog.tsx:53", key: "common.accessibility.close" },
   { source: "src/components/ui/status-select.tsx", key: "status.inPreparation" },
   { source: "src/components/ui/status-select.tsx", key: "status.delivered" },
-  { source: "src/contexts/ConfirmContext.tsx:47", key: "common.confirmQuestion" },
-  { source: "src/contexts/ConfirmContext.tsx:51", key: "common.cancel" },
-  { source: "src/contexts/ConfirmContext.tsx:57", key: "common.yes" },
+  { source: "src/contexts/ConfirmDialog.tsx", key: "common.confirmQuestion" },
+  { source: "src/contexts/ConfirmDialog.tsx", key: "common.cancel" },
+  { source: "src/contexts/ConfirmDialog.tsx", key: "common.yes" },
   { source: "src/layouts/DashboardLayout.tsx:61", key: "common.logoutConfirmation.title" },
   { source: "src/layouts/DashboardLayout.tsx:62", key: "common.logoutConfirmation.description" },
   { source: "src/layouts/DashboardLayout.tsx:63", key: "common.logoutConfirmation.confirm" },
@@ -497,7 +497,7 @@ function hasTranslationUsage(sourceText: string, key: string): boolean {
 
 describe("current hardcoded UI inventory", () => {
   test("the S1 shell files are already checked for usage", () => {
-    for (const file of ["src/components/Navbar.tsx", "src/components/Footer.tsx", "src/layouts/DashboardLayout.tsx", "src/contexts/ConfirmContext.tsx", "src/components/ui/dialog.tsx"]) {
+    for (const file of ["src/components/Navbar.tsx", "src/components/Footer.tsx", "src/layouts/DashboardLayout.tsx", "src/contexts/ConfirmDialog.tsx", "src/components/ui/dialog.tsx"]) {
       expect(isPorted(file), file).toBe(true)
     }
   })

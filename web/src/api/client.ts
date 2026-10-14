@@ -16,11 +16,15 @@ export function setSessionExpiredHandler(handler: ExpiredHandler) {
 const pending = new WeakMap<Request, Request>()
 const REFRESH_PATH = '/v1/auth/refresh'
 
+// A 401 worth a refresh: an expired access token, or a session the API revoked
+// (password reset, logout elsewhere). If the refresh fails too, the session ends.
+const REFRESHABLE_CODES = new Set(['INVALID_TOKEN', 'SESSION_REVOKED'])
+
 async function isInvalidToken(response: Response) {
   if (response.status !== 401) return false
   try {
     const body = (await response.clone().json()) as { code?: unknown }
-    return body.code === 'INVALID_TOKEN'
+    return typeof body.code === 'string' && REFRESHABLE_CODES.has(body.code)
   } catch {
     return false
   }

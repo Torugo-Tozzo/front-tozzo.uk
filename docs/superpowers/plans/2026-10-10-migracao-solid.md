@@ -340,3 +340,53 @@ _(preencher ao fim de cada fase: data, o que foi feito, como foi verificado, med
   - conferido com `curl`: `/` e `/dashboard/orders` dão 200 `text/html` com CSP, `X-Frame-Options` e HTML `max-age=0, must-revalidate`; `/assets/*.js` com `max-age=31536000, immutable`;
   - CORS: o preflight de `https://app-dev.tozzo.uk` em `dev-api.tozzo.uk` devolve `Access-Control-Allow-Origin` e `Allow-Credentials: true`, e `https://dev.tozzo.uk` segue liberada. Na VM, o compose do serviço `api` passou a ler `GO_CORS_ORIGINS` do `.env` (registro na fase 1 da API);
   - URLs de preview (`*-tozzo-web.victorhugo-tozzo.workers.dev`) seguem fora do CORS: decisão do usuário.
+
+### S2 — 2026-10-14
+
+**Feito:**
+- **Páginas:** `/login`, `/register` (a mesma página na aba de cadastro), `/forgot-password` e `/reset-password`, com as classes e os textos do React; e as novas `/verify-email` e `/confirm-email`, no padrão do `ForgotPasswordPage`.
+- **Chamadas:** pelo `src/api/auth.ts` (`openapi-fetch`, `createMutation`). Login, Google e `verify-email` vão com `credentials: 'include'`, para gravar o `tozzo_rt`.
+- **Sessão:**
+  - `establishSession()` e `clearSession()` no `AuthProvider`;
+  - o logout vai com o bearer (na S1 era um `fetch` sem token, que o `/v1` recusava) e só conclui com 204 ou 401; em 5xx ou erro de rede, mostra um toast e mantém a sessão;
+  - o reset de senha encerra a sessão local, porque a API revoga todas;
+  - o middleware trata `401 SESSION_REVOKED` como `INVALID_TOKEN`: um refresh e, se falhar, vai para `/login`;
+  - um refresh de boot que falha tarde não derruba um login já feito (contador de geração em `session.ts`).
+- **Google:**
+  - o GSI carrega sob demanda só nessas páginas, e o `idToken` vai para `POST /v1/auth/google` com `client: "web"`;
+  - o Client ID vem de `VITE_GOOGLE_CLIENT_ID`, com o ID público como padrão; vazio esconde o botão;
+  - na aba Cadastro, a chave de registro é validada antes do envio, e o POST não se repete;
+  - o botão desenhado pelo GSI foi aceito pelo usuário.
+- **Desempenho:** `Toaster` e diálogo do `ConfirmProvider` sob demanda, com `lazyPage()`.
+- **i18n:** 7 chaves novas nos 6 idiomas, `<Trans>` mínimo, e em `error-keys`:
+  - contextos novos `emailVerification` e `emailChange`;
+  - `GOOGLE_TOKEN_INVALID` no login;
+  - `PASSWORD_UNCHANGED` → `samePassword` no reset.
+- **Testes:** os de `LoginPage`, `ForgotPasswordPage`, `ResetPasswordPage` e `AuthContext` portados para o `/v1`, mais os das páginas novas, do cliente, do GSI (sempre mockado) e do `<Trans>`.
+- **API:** `PASSWORD_UNCHANGED (422)` no reset e na troca de senha (API `7f1437d`), para a mensagem "a nova senha deve ser diferente da atual" continuar existindo.
+
+**Verificado:**
+- Vitest 156/156, `i18n:check` e `build` passando;
+- E2E 14/14, com 8 de auth contra o mock `/v1` (`signInAs` no `mock-v1.ts`);
+- visual na imagem oficial do Playwright, duas rodadas seguidas: 98 passaram e 4 pulados;
+  - `login`, `login-register`, `forgot-password` e `reset-password` contra o baseline do React, com tolerância 0.002;
+  - os 4 cenários só do Solid contra a referência gravada, com os PNGs idênticos nas duas rodadas;
+- React: `bun run test` 319/319;
+- revisão do diff: 4 achados médios (sessão após reset, chave no Google, logout com falha, chunks sem `lazyPage`) e 3 menores, todos corrigidos.
+
+**Desempenho:**
+- inicial com o pt-BR: 71,8 KB gzip (de 84,6 KB na S1, mesma medida), dentro da meta;
+- tudo o que `/login` baixa: ~99 KB;
+- medição com `bun run size`; Lighthouse não rodou.
+
+**Desvios e decisões:**
+- **2FA/TOTP removido do app novo** (decisão do usuário em 2026-10-14): o formulário de código não foi portado, e a configuração de 2FA não entra na S3.
+- **Referência própria do Solid** (ok do usuário em 2026-10-14): `/verify-email` e `/confirm-email` não existem no React. A referência foi gravada a partir do Solid em `e2e/visual/__screenshots__/solid/linux/`, nos 3 tamanhos e 2 temas; só os projetos `solid-*` a leem. Esses PNGs ficam **fora do LFS** (exceção no `.gitattributes`, ok do usuário em 2026-10-14): a sessão na nuvem não consegue enviar para o LFS do GitHub, e são ~4 KB cada.
+- **Senha mínima de 8:** a API exige (`pwhash.MinLen = 8`); o texto do hint e o do `weakPassword` foram ajustados.
+- **Google na aba Cadastro sem o aceite dos termos:** cria a conta sem o aceite, com paridade com o React.
+- **`register` sempre 202:** sai o alerta "email já tem conta" (a API não revela contas existentes).
+- **`GOOGLE_CLIENT_IDS` da API:** vem do mesmo `GOOGLE_CLIENT_ID` do GoTrue, que aceita um ID só. Um ID para o Android vai exigir uma variável separada no serviço `api`.
+- **Google Cloud:** origens autorizadas `app-dev.tozzo.uk`, `dev.tozzo.uk`, `tozzo.uk`, `www.tozzo.uk` e `localhost:5173`.
+- **Ambiente de testes:** o `setup.ts` força `animation-name: none`, porque o happy-dom devolve vazio e o Kobalte mantinha a aba fechada no DOM.
+- **Sandbox na nuvem:** o download do Chromium está bloqueado (`cdn.playwright.dev`), então E2E e visual rodaram na imagem Docker com o CA do proxy.
+- **Não rodou:** smoke contra a API da dev e o GSI real (rede bloqueada); acompanhamento mobile (TozzoBurger fora desta sessão).

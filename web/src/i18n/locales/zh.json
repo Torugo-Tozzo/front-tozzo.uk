@@ -1,6 +1,7 @@
 {
   "common": {
     "appName": "Tozzo.uk",
+    "logoutFailed": "无法退出登录。请检查网络连接后重试。",
     "loading": "加载中...",
     "processing": "处理中...",
     "saving": "保存中...",
@@ -241,7 +242,7 @@
     "confirmationLinkExpired": "确认链接已过期或已被使用。请使用邮箱和密码登录，或申请新的链接。",
     "emailNotConfirmed": "您的邮箱尚未确认。请点击我们发送的链接，或在下方重新发送。",
     "emailAlreadyRegistered": "该邮箱已注册。请登录或重置密码。",
-    "weakPassword": "密码太弱。请至少使用 6 个字符。",
+    "weakPassword": "密码太弱。请至少使用 8 个字符。",
     "authRateLimited": "尝试次数过多。请等待一分钟后再试。",
     "verifyCredentials": "请检查您的凭据。",
     "verifyData": "请检查您的信息。",
@@ -271,7 +272,13 @@
     "resetPasswordFailed": "无法重置密码。",
     "totpCode": "验证码",
     "confirmTotp": "确认",
-    "invalidTotpCode": "验证码无效。"
+    "invalidTotpCode": "验证码无效。",
+    "verifyEmailChecking": "正在确认您的邮箱...",
+    "confirmEmailChangeTitle": "确认新邮箱",
+    "confirmEmailChangeChecking": "正在确认您的新邮箱...",
+    "confirmEmailChangeSuccess": "您的邮箱已更改。下次登录时请使用新地址。",
+    "confirmEmailChangeInvalid": "此确认链接已过期或已被使用。请重新申请更改邮箱。",
+    "emailChangeInUse": "此邮箱已被其他账户使用。"
   },
   "navigation": {
     "dashboard": "仪表板",

@@ -1,7 +1,6 @@
 import { Show, Suspense, type JSX } from 'solid-js'
 import { Route, Router, useIsRouting, type RouteSectionProps } from '@solidjs/router'
 import { QueryClientProvider } from '@tanstack/solid-query'
-import { Toaster } from 'solid-sonner'
 
 import { createAppQueryClient } from '@/api/query'
 import { BusinessModuleRoute, DashboardHome } from '@/components/BusinessModuleRoute'
@@ -10,10 +9,20 @@ import ProtectedRoute from '@/components/ProtectedRoute'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { ConfirmProvider } from '@/contexts/ConfirmContext'
 import type { NavigationModule } from '@/domain/businessPreferences'
+import MainLayout from '@/layouts/MainLayout'
 import { lazyPage } from '@/lib/lazy-page'
 
 const queryClient = createAppQueryClient()
 const DashboardLayout = lazyPage(() => import('@/layouts/DashboardLayout'))
+const LoginPage = lazyPage(() => import('@/pages/LoginPage'))
+const ForgotPasswordPage = lazyPage(() => import('@/pages/ForgotPasswordPage'))
+const ResetPasswordPage = lazyPage(() => import('@/pages/ResetPasswordPage'))
+const VerifyEmailPage = lazyPage(() => import('@/pages/VerifyEmailPage'))
+const ConfirmEmailPage = lazyPage(() => import('@/pages/ConfirmEmailPage'))
+
+// solid-sonner (with its CSS) stays out of the initial chunk (plan S2). It
+// loads right after boot, long before the first toast a user can trigger.
+const Toaster = lazyPage(() => import('solid-sonner').then((module) => ({ default: module.Toaster })))
 
 // Dev only: the condition is resolved at build time, so production has no chunk for it.
 const UiShowcasePage = import.meta.env.DEV ? lazyPage(() => import('./pages/dev/UiShowcasePage')) : undefined
@@ -25,7 +34,9 @@ function RootLayout(props: RouteSectionProps) {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <ConfirmProvider>
-          <Toaster position="top-right" richColors closeButton />
+          <Suspense>
+            <Toaster position="top-right" richColors closeButton />
+          </Suspense>
           <Show when={isRouting()}>
             <LoadingOverlay />
           </Show>
@@ -68,6 +79,15 @@ const dashboardRoutes: [path: string, module: NavigationModule][] = [
 export default function App() {
   return (
     <Router root={RootLayout}>
+      {/* Public pages (S2: authentication). */}
+      <Route component={MainLayout}>
+        <Route path="/login" component={LoginPage} />
+        <Route path="/register" component={() => <LoginPage initialTab="register" />} />
+        <Route path="/forgot-password" component={ForgotPasswordPage} />
+        <Route path="/reset-password" component={ResetPasswordPage} />
+        <Route path="/verify-email" component={VerifyEmailPage} />
+        <Route path="/confirm-email" component={ConfirmEmailPage} />
+      </Route>
       {/* Authenticated routes that also allow pending payment users (S7). */}
       <Route component={(props: RouteSectionProps) => <ProtectedRoute allowPending>{props.children}</ProtectedRoute>}>
         <Route path="/plan" component={NotPortedYet} />

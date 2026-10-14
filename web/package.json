@@ -14,6 +14,7 @@
     "api:types": "openapi-typescript https://dev-api.tozzo.uk/v1/openapi.yaml -o src/api/schema.d.ts",
     "i18n:check": "node scripts/check-i18n.mjs",
     "analyze": "ANALYZE=1 vite build",
+    "size": "node scripts/measure-initial.mjs",
     "test:e2e": "PLAYWRIGHT_BROWSERS_PATH=0 ../node_modules/.bin/playwright test"
   },
   "dependencies": {

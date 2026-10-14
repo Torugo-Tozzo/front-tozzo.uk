@@ -6,6 +6,9 @@ import { defineConfig, devices } from '@playwright/test'
 // with the React baseline recorded in S0 (../e2e/visual/__screenshots__/react/
 // <platform>/). This config never writes there: updating the baseline needs the
 // user's "ok" and is done from the React app (root `test:visual:baseline`).
+// The exception is the `solid-*` projects (screens React does not have), whose
+// reference lives in ../e2e/visual/__screenshots__/solid/<platform>/ and is
+// recorded only with `--project 'solid-*' --update-snapshots`, with the user's "ok".
 const baseURL = process.env.VISUAL_BASE_URL ?? 'http://localhost:5176'
 const startsLocalVite = !process.env.VISUAL_BASE_URL
 
@@ -44,18 +47,30 @@ export default defineConfig({
     screenshot: 'off',
   },
   projects: sizes.flatMap((size) =>
-    themes.map((theme) => ({
-      name: `${size.name}-${theme}`,
-      use: {
+    themes.flatMap((theme) => {
+      const use = {
         ...devices['Desktop Chrome'],
         viewport: size.viewport,
         isMobile: size.isMobile,
         hasTouch: size.isMobile,
         deviceScaleFactor: 1,
         colorScheme: theme,
-      },
-      metadata: { theme },
-    })),
+      }
+      return [
+        // Compared with the React baseline.
+        { name: `${size.name}-${theme}`, use, metadata: { theme }, testIgnore: '**/solid-only.visual.ts' },
+        // Screens with no React counterpart: their own reference, recorded from
+        // the Solid app with the user's "ok" (plan S2). Same file names as the
+        // React ones, in ../e2e/visual/__screenshots__/solid/<platform>/.
+        {
+          name: `solid-${size.name}-${theme}`,
+          use,
+          metadata: { theme },
+          testMatch: '**/solid-only.visual.ts',
+          snapshotPathTemplate: `../e2e/visual/__screenshots__/solid/{platform}/{arg}--${size.name}-${theme}{ext}`,
+        },
+      ]
+    }),
   ),
   webServer: startsLocalVite
     ? {

@@ -1615,7 +1615,7 @@ export interface components {
         };
         ChangePasswordRequest: {
             currentPassword?: string;
-            /** @description 8 to 128 characters */
+            /** @description 8 to 128 characters; PASSWORD_UNCHANGED if equal to the current one */
             newPassword: string;
         };
         CheckoutSession: {
@@ -2173,7 +2173,7 @@ export interface components {
             email: string;
         };
         ResetPasswordRequest: {
-            /** @description 8 to 128 characters */
+            /** @description 8 to 128 characters; PASSWORD_UNCHANGED if equal to the current one */
             newPassword: string;
             token: string;
         };

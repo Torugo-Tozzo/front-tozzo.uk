@@ -92,4 +92,31 @@ describe('api client', () => {
     await api.GET('/v1/me')
     expect(calls.map(path)).toEqual(['/v1/me'])
   })
+
+  test('a 401 SESSION_REVOKED (password reset, logout elsewhere) refreshes and repeats once', async () => {
+    const calls = stubFetch((request) => {
+      if (path(request) === '/v1/auth/refresh') return json(200, session('new'))
+      return request.headers.get('Authorization') === 'Bearer old'
+        ? json(401, { title: 'Unauthorized', status: 401, code: 'SESSION_REVOKED' })
+        : json(200, me)
+    })
+
+    const result = await api.GET('/v1/me')
+
+    expect(result.response.status).toBe(200)
+    expect(calls.map(path)).toEqual(['/v1/me', '/v1/auth/refresh', '/v1/me'])
+  })
+
+  test('a 401 SESSION_REVOKED whose refresh fails ends the session and goes to the expired handler', async () => {
+    const expired = vi.fn()
+    setSessionExpiredHandler(expired)
+    const revoked = () => json(401, { title: 'Unauthorized', status: 401, code: 'SESSION_REVOKED' })
+    stubFetch(() => revoked())
+
+    const result = await api.GET('/v1/me')
+
+    expect(result.response.status).toBe(401)
+    expect(expired).toHaveBeenCalledTimes(1)
+    expect(accessToken()).toBeNull()
+  })
 })

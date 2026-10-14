@@ -9,7 +9,23 @@ const NEUTRAL_PIXEL = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeA
 export interface V1MockOptions extends Omit<MockOptions, 'overrides'> {
   /** Keyed by the /v1 path, e.g. `/v1/orders`. */
   overrides?: Record<string, Override>
+  /**
+   * The role that login, Google and the email confirmation sign in (the page
+   * starts signed out with `role: null`). Without it those calls answer 401.
+   */
+  signInAs?: Role
 }
+
+// The public /v1/auth calls that never open a session (S2 pages).
+const acceptedAuthCalls: Record<string, MockResponse> = {
+  '/v1/auth/register': { status: 202, body: {} },
+  '/v1/auth/resend-verification': { status: 202, body: {} },
+  '/v1/auth/password/forgot': { status: 202, body: {} },
+  '/v1/auth/password/reset': { status: 204 },
+  '/v1/auth/email/confirm': { status: 204 },
+  '/v1/auth/registration-key/validate': { status: 200, body: { valid: true } },
+}
+const signInCalls = new Set(['/v1/auth/login', '/v1/auth/google', '/v1/auth/verify-email'])
 
 /** The /v1 session the refresh cookie would give back for `role`. */
 function sessionBody(role: Role, me: unknown) {
@@ -23,8 +39,8 @@ function sessionBody(role: Role, me: unknown) {
  * through toV1(). Same fake host, pixel and SSE handling as the React mock.
  */
 export async function mockV1Api(page: Page, options: V1MockOptions = {}): Promise<MockHandle> {
-  const role = options.role === undefined ? 'OWNER' : options.role
-  const api = toV1(options.dataset ?? canonical, { role: role ?? 'OWNER' })
+  let role = options.role === undefined ? 'OWNER' : options.role
+  const api = toV1(options.dataset ?? canonical, { role: role ?? options.signInAs ?? 'OWNER' })
   const overrides = options.overrides ?? {}
   const handle: MockHandle = { unknown: [] }
 
@@ -103,6 +119,13 @@ export async function mockV1Api(page: Page, options: V1MockOptions = {}): Promis
     if (override === 'loading') return
     if (override === 'error') return fulfill(route, problem(500, 'INTERNAL_ERROR'))
     if (override) return fulfill(route, override)
+    if (request.method() === 'POST' && acceptedAuthCalls[path]) return fulfill(route, acceptedAuthCalls[path])
+    if (request.method() === 'POST' && signInCalls.has(path)) {
+      if (!options.signInAs) return fulfill(route, problem(401, 'INVALID_CREDENTIALS'))
+      role = options.signInAs
+      const me = api({ method: 'GET', path: '/v1/me', query: new URLSearchParams() })!.body
+      return fulfill(route, { status: 200, body: sessionBody(role, me) })
+    }
     if (path === '/v1/auth/refresh') {
       if (!role) return fulfill(route, problem(401, 'UNAUTHENTICATED'))
       const me = api({ method: 'GET', path: '/v1/me', query: new URLSearchParams() })!.body

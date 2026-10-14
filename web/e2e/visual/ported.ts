@@ -6,4 +6,9 @@ export const SOLID_SCENARIOS: readonly string[] = [
   'ui-select-open',
   'ui-dialog',
   'ui-dropdown-open',
+  // S2: authentication
+  'login',
+  'login-register',
+  'forgot-password',
+  'reset-password',
 ]

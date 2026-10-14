@@ -1,6 +1,7 @@
 {
   "common": {
     "appName": "Tozzo.uk",
+    "logoutFailed": "No se pudo cerrar la sesión. Revisa tu conexión e inténtalo de nuevo.",
     "loading": "Cargando...",
     "processing": "Procesando...",
     "saving": "Guardando...",
@@ -241,7 +242,7 @@
     "confirmationLinkExpired": "El enlace de confirmación expiró o ya fue usado. Inicia sesión con tu correo y contraseña o solicita un nuevo enlace.",
     "emailNotConfirmed": "Tu correo aún no ha sido confirmado. Haz clic en el enlace que enviamos o reenvíalo abajo.",
     "emailAlreadyRegistered": "Este correo ya está registrado. Inicia sesión o recupera tu contraseña.",
-    "weakPassword": "Contraseña débil. Usa al menos 6 caracteres.",
+    "weakPassword": "Contraseña débil. Usa al menos 8 caracteres.",
     "authRateLimited": "Demasiados intentos seguidos. Espera un minuto e inténtalo de nuevo.",
     "verifyCredentials": "Comprueba tus credenciales.",
     "verifyData": "Comprueba tus datos.",
@@ -271,7 +272,13 @@
     "resetPasswordFailed": "No se pudo restablecer la contraseña.",
     "totpCode": "Código de autenticación",
     "confirmTotp": "Confirmar",
-    "invalidTotpCode": "Código inválido."
+    "invalidTotpCode": "Código inválido.",
+    "verifyEmailChecking": "Confirmando tu correo...",
+    "confirmEmailChangeTitle": "Confirmar nuevo correo",
+    "confirmEmailChangeChecking": "Confirmando tu nuevo correo...",
+    "confirmEmailChangeSuccess": "Tu correo fue cambiado. Usa la nueva dirección la próxima vez que inicies sesión.",
+    "confirmEmailChangeInvalid": "Este enlace de confirmación expiró o ya fue usado. Solicita el cambio de correo de nuevo.",
+    "emailChangeInUse": "Este correo ya está en uso por otra cuenta."
   },
   "navigation": {
     "dashboard": "Panel",

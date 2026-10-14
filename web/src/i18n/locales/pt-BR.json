@@ -1,6 +1,7 @@
 {
   "common": {
     "appName": "Tozzo.uk",
+    "logoutFailed": "Não foi possível sair. Verifique sua conexão e tente novamente.",
     "loading": "Carregando...",
     "processing": "Processando...",
     "saving": "Salvando...",
@@ -241,7 +242,7 @@
     "confirmationLinkExpired": "O link de confirmação expirou ou já foi usado. Entre com seu email e senha ou peça um novo link.",
     "emailNotConfirmed": "Seu email ainda não foi confirmado. Clique no link que enviamos ou reenvie abaixo.",
     "emailAlreadyRegistered": "Este email já está cadastrado. Faça login ou recupere sua senha.",
-    "weakPassword": "Senha fraca. Use pelo menos 6 caracteres.",
+    "weakPassword": "Senha fraca. Use pelo menos 8 caracteres.",
     "authRateLimited": "Muitas tentativas seguidas. Aguarde um minuto e tente novamente.",
     "verifyCredentials": "Verifique suas credenciais.",
     "verifyData": "Verifique os dados.",
@@ -271,7 +272,13 @@
     "resetPasswordFailed": "Não foi possível redefinir a senha.",
     "totpCode": "Código de autenticação",
     "confirmTotp": "Confirmar",
-    "invalidTotpCode": "Código inválido."
+    "invalidTotpCode": "Código inválido.",
+    "verifyEmailChecking": "Confirmando seu email...",
+    "confirmEmailChangeTitle": "Confirmar novo email",
+    "confirmEmailChangeChecking": "Confirmando seu novo email...",
+    "confirmEmailChangeSuccess": "Seu email foi alterado. Use o novo endereço na próxima vez que entrar.",
+    "confirmEmailChangeInvalid": "Este link de confirmação expirou ou já foi usado. Peça a troca de email novamente.",
+    "emailChangeInUse": "Este email já está em uso por outra conta."
   },
   "navigation": {
     "dashboard": "Dashboard",

@@ -1,6 +1,7 @@
 {
   "common": {
     "appName": "Tozzo.uk",
+    "logoutFailed": "Could not sign out. Check your connection and try again.",
     "loading": "Loading...",
     "processing": "Processing...",
     "saving": "Saving...",
@@ -241,7 +242,7 @@
     "confirmationLinkExpired": "The confirmation link has expired or was already used. Sign in with your email and password or request a new link.",
     "emailNotConfirmed": "Your email hasn't been confirmed yet. Click the link we sent or resend it below.",
     "emailAlreadyRegistered": "This email is already registered. Sign in or reset your password.",
-    "weakPassword": "Weak password. Use at least 6 characters.",
+    "weakPassword": "Weak password. Use at least 8 characters.",
     "authRateLimited": "Too many attempts in a row. Wait a minute and try again.",
     "verifyCredentials": "Check your credentials.",
     "verifyData": "Check your details.",
@@ -271,7 +272,13 @@
     "resetPasswordFailed": "Could not reset password.",
     "totpCode": "Authentication code",
     "confirmTotp": "Confirm",
-    "invalidTotpCode": "Invalid code."
+    "invalidTotpCode": "Invalid code.",
+    "verifyEmailChecking": "Confirming your email...",
+    "confirmEmailChangeTitle": "Confirm new email",
+    "confirmEmailChangeChecking": "Confirming your new email...",
+    "confirmEmailChangeSuccess": "Your email was changed. Use the new address the next time you sign in.",
+    "confirmEmailChangeInvalid": "This confirmation link has expired or was already used. Request the email change again.",
+    "emailChangeInUse": "This email is already in use by another account."
   },
   "navigation": {
     "dashboard": "Dashboard",
