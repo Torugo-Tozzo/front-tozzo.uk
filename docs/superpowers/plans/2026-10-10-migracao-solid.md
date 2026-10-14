@@ -1,4 +1,4 @@
-# Plano: front em SolidJS no Cloudflare Pages (mesmo visual)
+# Plano: front em SolidJS no Cloudflare Workers (mesmo visual)
 
 Data: 2026-10-10. Branch: `dev`. Regras de código: [`CONVENTIONS.md`](../../../CONVENTIONS.md) (índice em [`AGENTS.md`](../../../AGENTS.md)).
 Plano da API (contrato `/v1` em Go): `api-tozzo.uk/docs/superpowers/plans/2026-10-10-migracao-go.md` e `api-tozzo.uk/docs/superpowers/plans/migracao-go/`.
@@ -17,7 +17,7 @@ Para garantir isso há uma verificação objetiva: **testes de regressão visual
 |---|---|
 | Onde | Pasta nova **`web/`** neste repo, com `package.json` próprio. O React continua na raiz, intocado, até o corte (S8). React e Solid não se misturam no mesmo app. |
 | API | O Solid fala **só com o `/v1` da API Go**. O React continua falando com o Bun. |
-| Hospedagem | **Cloudflare Pages**, projeto `tozzo-web` com raiz `web/`. A VM deixa de servir o front no corte. |
+| Hospedagem | **Cloudflare Workers** (só assets estáticos), projeto `tozzo-web` com raiz `web/`. A VM deixa de servir o front no corte. Era Pages; trocado pelo usuário em 2026-10-14, porque a Cloudflare marcou o Pages como legado. |
 | SSR | Não. SPA estática. |
 | Tailwind | **Manter a versão 3.4 e o mesmo `tailwind.config.js` e `index.css`.** Não migrar para Tailwind 4 nesta etapa, para o visual não mudar. |
 
@@ -52,7 +52,7 @@ Os componentes de `ui/` usam classes Tailwind ligadas aos atributos do Radix, po
 Cada fase termina com:
 - testes unitários e visuais passando;
 - `bun run build` sem erro;
-- deploy de preview no Pages;
+- deploy de preview no Worker;
 - registro no fim deste arquivo.
 
 ### S0 — Base de regressão visual (no React, antes de tudo)
@@ -161,22 +161,24 @@ Conferir em `src/App.tsx` a lista completa na hora de fazer.
 
 Junto com a fase 10 da API.
 
-1. O projeto Pages passa a responder em `dev.tozzo.uk`.
+1. O Worker `tozzo-web` passa a responder em `dev.tozzo.uk`.
 2. O workflow `deploy.yml` (VM) para de publicar o front da `dev`. Na `main`, **nada muda**: a produção continua no React com o Bun.
 3. Num commit só na `dev`:
    - apagar o React da raiz (`src/`, `index.html`, `vite.config.ts`, `Dockerfile`, `nginx.conf` e os configs da raiz);
    - mover `web/*` para a raiz;
    - atualizar o README, o `AGENTS.md`, o `ARCHITECTURE.md` e o `CONVENTIONS.md` (tirar o React).
 
-## Cloudflare Pages
+## Cloudflare Workers
 
-O usuário cria o projeto no painel, porque precisa de acesso à conta:
+O usuário cria o Worker no painel (Workers & Pages → Create → importar repositório), porque precisa de acesso à conta:
 - **projeto** `tozzo-web`, ligado ao GitHub `Torugo-Tozzo/front-tozzo.uk`;
-- **branch de produção do Pages**: `dev`. A `dev` é o ambiente da nova leva de clientes; a `main` (React na VM) não entra no Pages;
-- **raiz** `web`, build `bun install --frozen-lockfile && bun run build`, saída `dist`;
-- **variáveis**: `BUN_VERSION` (a do `bun.lock`) e `VITE_API_URL=https://dev-api.tozzo.uk`;
+- **caminho** `web`; build `bun install --frozen-lockfile && bun run build`; deploy `npx wrangler deploy`; preview `npx wrangler versions upload`;
+- **variáveis de build** (não de runtime): `BUN_VERSION` (a usada localmente) e `VITE_API_URL=https://dev-api.tozzo.uk`;
+- **branch de produção**: `dev`, em Settings → Builds → Branch control (o painel não pergunta na criação). A `dev` é o ambiente da nova leva de clientes; a `main` (React na VM) não entra no Worker;
 - **domínio**: `app-dev.tozzo.uk` durante a construção; `dev.tozzo.uk` no corte;
 - adicionar `https://app-dev.tozzo.uk` em `CORS_ORIGINS` da API Go.
+
+`web/wrangler.jsonc` só tem assets, sem script: `assets.directory = ./dist` e `not_found_handling = single-page-application`. Requisição a asset estático não conta como invocação de Worker.
 
 `web/public/_headers`:
 
@@ -184,7 +186,6 @@ O usuário cria o projeto no painel, porque precisa de acesso à conta:
 /assets/*
   Cache-Control: public, max-age=31536000, immutable
 /*
-  Cache-Control: no-cache
   X-Content-Type-Options: nosniff
   X-Frame-Options: DENY
   Referrer-Policy: strict-origin-when-cross-origin
@@ -192,11 +193,12 @@ O usuário cria o projeto no painel, porque precisa de acesso à conta:
   Content-Security-Policy: default-src 'self'; script-src 'self' https://accounts.google.com/gsi/client; style-src 'self' 'unsafe-inline' https://accounts.google.com/gsi/style; img-src 'self' data: https://<R2_PUBLIC_HOST>; connect-src 'self' https://dev-api.tozzo.uk https://accounts.google.com/gsi/; frame-src https://accounts.google.com/gsi/; font-src 'self'; base-uri 'self'; form-action 'self'
 ```
 
-- **Fallback de SPA:** sem `404.html` no `dist`, o Pages já serve o `index.html` em qualquer rota. Conferir no preview com uma URL profunda (`/dashboard/orders`).
+- **Fallback de SPA:** `not_found_handling = single-page-application` serve o `index.html` em qualquer rota. Conferir no preview com uma URL profunda (`/dashboard/orders`).
+- **Cache do HTML:** sem `Cache-Control` no `/*`. O Workers já serve o HTML com `public, max-age=0, must-revalidate` e ETag; um `no-cache` no `/*` se juntaria ao do `/assets/*` e anularia o `immutable`. Conferir com `curl -I` depois do primeiro deploy.
 - **Atualização sem quebrar abas abertas:** os assets têm hash e o `index.html` não é cacheado. Quando um chunk lazy der 404 (deploy novo com aba antiga), o router recarrega a página uma vez. Implementar com um handler em `lazy()` e uma flag em `sessionStorage` para não entrar em loop.
-- **Previews** (`*.tozzo-web.pages.dev`):
+- **Previews** (URLs `*-tozzo-web.<conta>.workers.dev`):
   - o cookie de refresh não é enviado (outro site), então quem usa o preview loga a cada abertura;
-  - para o preview conseguir chamar a API, a origem precisa estar no CORS. Opcional: aceitar o padrão `https://*.tozzo-web.pages.dev` na API, como regex. **Decidir com o usuário.**
+  - para o preview conseguir chamar a API, a origem precisa estar no CORS. Opcional: aceitar o padrão das URLs de preview na API, como regex. **Decidir com o usuário.**
 
 ## Metas de desempenho
 
@@ -334,7 +336,7 @@ _(preencher ao fim de cada fase: data, o que foi feito, como foi verificado, med
   - `/login` ainda não existe: sessão expirada cai numa rota vazia até a S2.
 - **CSP sem o host do R2:** `img-src 'self' data:`. O host público do R2 entra com as imagens de produto (S3), com o "ok" do usuário.
 - **Pendências do usuário:**
-  - criar o projeto `tozzo-web` no Pages (seção "Cloudflare Pages");
+  - criar o Worker `tozzo-web` (seção "Cloudflare Workers"; trocado de Pages em 2026-10-14);
   - incluir `https://app-dev.tozzo.uk` em `CORS_ORIGINS` da API: hoje o preflight não devolve `Access-Control-Allow-Origin`.
 
   Sem isso não há deploy de preview nem smoke pelo navegador.

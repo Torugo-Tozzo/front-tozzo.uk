@@ -22,14 +22,14 @@
 - Os testes padrão em `https://dev.tozzo.uk` **só leem**. Teste que cria ou altera dados usa estabelecimento exclusivo de teste e limpa o que criou.
 - Nunca use dados reais de clientes em fixture, screenshot ou baseline visual: só a massa canônica fictícia.
 
-## Headers e CSP (Solid no Cloudflare Pages)
+## Headers e CSP (Solid no Cloudflare Workers)
 
-`web/public/_headers` (texto completo no plano, seção "Cloudflare Pages"):
+`web/public/_headers` (texto completo no plano, seção "Cloudflare Workers"):
 - `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin` e HSTS;
 - **CSP** restrita: `default-src 'self'`, scripts só do próprio site e do Google Identity, `connect-src` só para a API (`https://dev-api.tozzo.uk`) e o Google, imagens do host público do R2;
 - nada de `eval` ou de script inline. Liberar uma origem nova na CSP exige motivo e o "ok" do usuário.
 
-Previews (`*.tozzo-web.pages.dev`) só chamam a API se a origem estiver no CORS dela, e essa decisão é do usuário.
+Previews (`*-tozzo-web.<conta>.workers.dev`) só chamam a API se a origem estiver no CORS dela, e essa decisão é do usuário.
 
 ## Entradas e saída
 
@@ -44,4 +44,4 @@ Previews (`*.tozzo-web.pages.dev`) só chamam a API se a origem estiver no CORS 
 
 ## Publicação
 
-Push na `dev` publica (React na VM; `web/` no Pages): só com pedido do usuário. Nunca force push nem merge de `dev` para `main`.
+Push na `dev` publica (React na VM; `web/` no Worker `tozzo-web`): só com pedido do usuário. Nunca force push nem merge de `dev` para `main`.

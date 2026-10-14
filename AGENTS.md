@@ -1,12 +1,12 @@
 # front-tozzo.uk — instruções para agentes
 
-Front web do Tozzo, **em migração de React para SolidJS** com o mesmo visual. O React (raiz) está em produção e congelado. O Solid (`web/`) fala só com o `/v1` da API Go e vai para o Cloudflare Pages. API: `../api-tozzo.uk`. Mobile: `../TozzoBurger`.
+Front web do Tozzo, **em migração de React para SolidJS** com o mesmo visual. O React (raiz) está em produção e congelado. O Solid (`web/`) fala só com o `/v1` da API Go e vai para o Cloudflare Workers (só assets). API: `../api-tozzo.uk`. Mobile: `../TozzoBurger`.
 
 ## Leia conforme a tarefa
 
 | Documento | Quando |
 |---|---|
-| [ARCHITECTURE.md](ARCHITECTURE.md) | para se situar: React × Solid, mapa, dados, sessão, tempo real, Pages, metas de desempenho |
+| [ARCHITECTURE.md](ARCHITECTURE.md) | para se situar: React × Solid, mapa, dados, sessão, tempo real, Workers, metas de desempenho |
 | [CONVENTIONS.md](CONVENTIONS.md) | **antes de escrever código**: a regra do visual, i18n, UI, regras do `web/` e do React |
 | [TESTING.md](TESTING.md) | antes de dizer que terminou: critérios, comandos, **Playwright** (E2E, visual, acessibilidade, automação) |
 | [SECURITY.md](SECURITY.md) | ao mexer em sessão, tokens, credenciais de E2E, CSP/headers, HTML dinâmico ou dependências |
