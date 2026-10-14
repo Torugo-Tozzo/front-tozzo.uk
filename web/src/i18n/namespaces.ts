@@ -1,0 +1,23 @@
+// Kept apart from resources.ts so importing it does not bundle every locale.
+export const NAMESPACES = [
+  'common',
+  'auth',
+  'navigation',
+  'orders',
+  'kitchen',
+  'deliveries',
+  'calendar',
+  'sales',
+  'products',
+  'services',
+  'estimates',
+  'employees',
+  'charts',
+  'settings',
+  'sync',
+  'printer',
+  'status',
+  'errors',
+  'catalog',
+  'legal',
+] as const

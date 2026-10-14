@@ -25,7 +25,8 @@ function cursorPage<T>(items: T[], query: URLSearchParams, defaultLimit: number)
   const limit = Math.min(Number(query.get('limit') ?? defaultLimit), 100)
   const offset = decodeCursor(query.get('cursor'))
   const slice = items.slice(offset, offset + limit)
-  return { items: slice, nextCursor: offset + limit < items.length ? encodeCursor(offset + limit) : null }
+  // `total` counts the whole filtered list, as the /v1 pages do (API 5f6d153).
+  return { items: slice, nextCursor: offset + limit < items.length ? encodeCursor(offset + limit) : null, total: items.length }
 }
 const matches = (text: string | null | undefined, search: string | null) =>
   !search || (text ?? '').toLocaleLowerCase('pt-BR').includes(search.toLocaleLowerCase('pt-BR'))
@@ -163,7 +164,7 @@ export function toV1(data: CanonicalDataset = defaultDataset, options: V1Options
         .filter((item) => (item.status === 'CLOSED') === closed)
         .sort((left, right) => right.openedAt.localeCompare(left.openedAt))
       const page = cursorPage(list, query, 50)
-      return json({ items: page.items.map(order), nextCursor: page.nextCursor })
+      return json({ items: page.items.map(order), nextCursor: page.nextCursor, total: page.total })
     }
     const orderMatch = /^\/v1\/orders\/([^/]+)$/.exec(path)
     if (orderMatch) {
@@ -191,7 +192,7 @@ export function toV1(data: CanonicalDataset = defaultDataset, options: V1Options
       const drivers = data.users.filter((user) => user.role === 'DRIVER').map((user) => ({
         id: user.id, name: user.name, phone: user.phone, available: !data.orders.some((item) => item.driverId === user.id && item.status === 'DELIVERING'),
       }))
-      return json({ items: page.items.map(order), drivers, nextCursor: page.nextCursor })
+      return json({ items: page.items.map(order), drivers, nextCursor: page.nextCursor, total: page.total })
     }
 
     if (path === '/v1/sales') {
@@ -206,6 +207,7 @@ export function toV1(data: CanonicalDataset = defaultDataset, options: V1Options
       return json({
         items: page.items.map(sale),
         nextCursor: page.nextCursor,
+        total: page.total,
         summary: { count: list.length, totalCents: list.reduce((sum, item) => sum + saleTotalCents(item), 0) },
       })
     }
@@ -218,7 +220,7 @@ export function toV1(data: CanonicalDataset = defaultDataset, options: V1Options
         .filter((item) => matches(`${item.name} ${item.ingredients ?? ''}`, search))
         .sort((left, right) => left.name.localeCompare(right.name, 'pt-BR') || left.id.localeCompare(right.id))
       const page = cursorPage(list, query, 50)
-      return json({ items: page.items.map((item) => product(item.id)), nextCursor: page.nextCursor })
+      return json({ items: page.items.map((item) => product(item.id)), nextCursor: page.nextCursor, total: page.total })
     }
     if (path === '/v1/product-types') {
       const includeInactive = query.get('includeInactive') === 'true'
@@ -263,6 +265,7 @@ export function toV1(data: CanonicalDataset = defaultDataset, options: V1Options
           return { ...row, productType: { id: type.id, description: type.description }, unitPriceCents: item.priceCents }
         }),
         nextCursor: page.nextCursor,
+        total: page.total,
       })
     }
     if (path === '/v1/reports/sales-by-hour') {
@@ -287,7 +290,7 @@ export function toV1(data: CanonicalDataset = defaultDataset, options: V1Options
         .filter((service) => service.isActive && matches(`${service.name} ${service.description ?? ''}`, search))
         .sort((left, right) => left.name.localeCompare(right.name, 'pt-BR'))
       const page = cursorPage(list, query, 20)
-      return json({ items: page.items.map(({ id, name, description, referencePriceCents, createdAt, updatedAt }) => ({ id, name, description, referencePriceCents, createdAt, updatedAt })), nextCursor: page.nextCursor })
+      return json({ items: page.items.map(({ id, name, description, referencePriceCents, createdAt, updatedAt }) => ({ id, name, description, referencePriceCents, createdAt, updatedAt })), nextCursor: page.nextCursor, total: page.total })
     }
     if (path === '/v1/service-orders') {
       const stage = query.get('stage')
@@ -302,7 +305,7 @@ export function toV1(data: CanonicalDataset = defaultDataset, options: V1Options
         .filter((item) => matches(`${item.customerName} ${item.description}`, search))
         .sort((left, right) => right.updatedAt.localeCompare(left.updatedAt))
       const page = cursorPage(list, query, 20)
-      return json({ items: page.items.map((item) => serviceOrder(item, false)), nextCursor: page.nextCursor })
+      return json({ items: page.items.map((item) => serviceOrder(item, false)), nextCursor: page.nextCursor, total: page.total })
     }
     const serviceOrderMatch = /^\/v1\/service-orders\/([^/]+)$/.exec(path)
     if (serviceOrderMatch) {

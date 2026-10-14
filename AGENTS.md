@@ -33,7 +33,8 @@ O contrato da API está em `https://dev-api.tozzo.uk/v1/docs` (Scalar). O planej
 bun install --frozen-lockfile
 bun run test && bun run i18n:check && bun run build    # React
 bun run test:e2e                                       # Playwright
-cd web && bun run test && bun run test:visual && bun run build   # Solid
+cd web && bun run test && bun run i18n:check && bun run build   # Solid
+cd web && bun run test:visual:linux && bun run test:e2e          # Solid: visual (Docker) e E2E
 ```
 
 Detalhes no [TESTING.md](TESTING.md).

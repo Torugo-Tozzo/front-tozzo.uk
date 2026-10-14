@@ -10,7 +10,7 @@ O repo está **no meio de uma migração** de React para **SolidJS**, com o mesm
 
 | | React (raiz) | Solid (`web/`) |
 |---|---|---|
-| Estado | **em produção e congelado**: só correção, e só se o usuário pedir | **alvo da migração** (a pasta nasce na fase S1) |
+| Estado | **em produção e congelado**: só correção, e só se o usuário pedir | **alvo da migração**: shell, primitivas, cliente da API e tempo real prontos (S1); páginas por fase |
 | API | Bun (rotas antigas, `legacyWire`) + GoTrue | **só o `/v1` da API Go**, com auth própria |
 | Hospedagem | nginx na VM (`dev.tozzo.uk`, `tozzo.uk`) | **Cloudflare Pages** (`tozzo-web`, `app-dev.tozzo.uk`; `dev.tozzo.uk` no corte) |
 | Testes | `bun test` + Testing Library + happy-dom; Playwright | Vitest + `@solidjs/testing-library` + happy-dom; Playwright |
@@ -55,7 +55,7 @@ Detalhes e bibliotecas no plano (seções "Mapa de bibliotecas" e "S1").
 - **Sessão:** access token só em memória; refresh por cookie (`POST /v1/auth/refresh`, `credentials: 'include'`).
 - **Tempo real:** só `web/src/realtime.ts`. Ele pede um ticket, abre o `EventSource`, reconecta com backoff e um ticket novo, e o evento vira `invalidateQueries`.
 - **UI:** primitivas em `web/src/components/ui/` com as mesmas classes e variantes CVA do React, sobre o `@kobalte/core`. Os seletores de estado do Radix viram os do Kobalte, com o mesmo efeito visual.
-- **i18n:** o mesmo i18next e as mesmas chaves, com um binding Solid (`web/src/i18n/solid.ts`). O `code` dos erros do `/v1` vira mensagem pelo `error-keys.ts`.
+- **i18n:** o mesmo i18next e as mesmas chaves, com um binding Solid (`web/src/i18n/solid.ts`). Cada idioma é um chunk carregado quando fica ativo; o app renderiza depois disso. O `code` dos erros do `/v1` vira mensagem pelo `error-keys.ts`.
 - **Gráficos:** ECharts modular, só no chunk de relatórios. Tabelas com `@tanstack/solid-table` e virtualização acima de 200 linhas.
 - **Pages:** `web/public/_headers` com cache imutável de assets e headers de segurança e CSP (ver [SECURITY.md](SECURITY.md)).
 

@@ -33,6 +33,13 @@
 7. **Primitivas `ui/`** com as mesmas classes e variantes CVA do React. Os atributos de estado do Radix viram os do Kobalte (`data-[state=open]` → `data-[expanded]`), mantendo o efeito. Confira cada um na documentação da versão instalada.
 8. `web/src/api/schema.d.ts` é gerado (`bun run api:types`): nunca edite à mão.
 9. Testes no `web/` são em **Vitest**: é a exceção à regra "não migre para Vitest", que vale só para o React.
+10. **Kobalte no lugar do Radix**, ao portar uma tela:
+    - `class` em vez de `className`;
+    - um trigger vira `as={Button}` em vez de `asChild`;
+    - o `Select` recebe `options` e `itemComponent` (com `<SelectItem item={...}>`), e o trigger dele tem papel `button`, não `combobox`.
+
+    O `/__ui` (`web/src/pages/dev/UiShowcasePage.tsx`) tem um exemplo de cada.
+11. **Rotas** com `lazyPage()` (`web/src/lib/lazy-page.ts`), que recarrega uma vez quando o chunk sumiu depois de um deploy.
 
 ## React (raiz, congelado)
 

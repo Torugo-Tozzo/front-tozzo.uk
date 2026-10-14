@@ -23,11 +23,13 @@ bun run test:e2e                  # Playwright (inicia o Vite em localhost:5173)
 # Solid (web/)
 cd web
 bun run test                      # Vitest
-bun run test:visual               # Playwright: comparação com o baseline do React
+bun run test:visual:linux         # Playwright na imagem Docker: comparação com o baseline do React
 bun run test:e2e                  # fluxos contra a massa toV1()
 bun run i18n:check
 bun run build
 ```
+
+No `web/`, o Playwright é o da raiz (`../node_modules`) até a S8: os cenários e a massa ficam em `../e2e/visual`, e duas cópias de `@playwright/test` não convivem. Rode `bun install` na raiz e no `web/`.
 
 Rode pelo menos os testes do que mudou, o visual das rotas afetadas, o `i18n:check` e o `build`.
 
@@ -73,7 +75,10 @@ bun run browser:install           # Chromium em node_modules (PLAYWRIGHT_BROWSER
 - **O render depende do sistema** (fontes e antialiasing), então há um baseline por sistema (`{platform}` do Playwright):
   - `win32/`: gravado no Windows;
   - `linux/`: gravado na imagem Docker oficial do Playwright (`mcr.microsoft.com/playwright:v1.63.0-noble`) com `bun run test:visual:linux`, que serve para o CI. Precisa de Docker (no Windows, o do WSL). Para filtro com `$`, chame `bash scripts/visual-linux.sh -g '...'` direto: o `bun run` escapa o `$`.
-  O Solid é comparado com o baseline do sistema em que roda.
+  O Solid é comparado com o baseline do sistema em que roda. No Linux, use `bun run test:visual:linux` dentro do `web/` (mesma imagem e o mesmo Docker; o `test:visual` direto no host compara com fontes diferentes).
+- **Solid** (`web/playwright.visual.config.ts`, `updateSnapshots: 'none'`: nunca grava no baseline):
+  - `web/e2e/visual/ported.ts` lista os cenários do React que o Solid já renderiza; eles rodam com `toHaveScreenshot` e o mock `/v1` (`web/e2e/visual/support/mock-v1.ts`, sobre o `toV1()`);
+  - enquanto uma página não foi portada, `shell.visual.ts` compara só o que fica fora do `<main>` (navbar, sidebar, drawer, footer) com o PNG do React, pela mesma distância do `pixelmatch` e o limite de `0.002`. A página sai dessa lista quando entra em `ported.ts`.
 - Depuração: `VISUAL_DEBUG=1 bun run test:visual -g <cenário>` imprime o console e as requisições da página.
 - Tolerância: `maxDiffPixelRatio: 0.002` para o Solid (`VISUAL_TARGET=solid`); zero para o React. Diferença maior que isso corrige-se no Solid.
 - **Nunca atualize o baseline sem o "ok" do usuário**, registrado no plano.
