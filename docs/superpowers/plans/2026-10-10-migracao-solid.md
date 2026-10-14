@@ -456,7 +456,9 @@ _(preencher ao fim de cada fase: data, o que foi feito, como foi verificado, med
 - **`EmployeeFilterDialog`** é da agenda (S5): portado com o teste, ainda sem tela.
 - **Não rodou:** smoke contra a API da dev (rede bloqueada); upload real no R2 (o CORS do bucket e a CSP só se confirmam no preview); acompanhamento mobile.
 
-### S4 — 2026-10-14
+### S4 — em andamento (checkpoint)
+
+**Estado:** portado e testado; falta só a segunda rodada visual e a última E2E completa. Como rodar: `cd web && bun run test && bun run i18n:check && bun run build`; E2E e visual na imagem do Playwright (`bun run test:e2e`, `bun run test:visual:linux`).
 
 **Feito:**
 - **Páginas:** `/dashboard/orders` (`PedidosTab`), `/dashboard/sales` (`VendasTab`), `/dashboard/kitchen` e `/dashboard/deliveries`, com as classes, as variantes e as chaves do React, nas guardas de sempre. Componentes `FiltersBar` e recibo (`components/receipt`: `ReceiptPrintView` e `printReceipt`, o mesmo `#receipt-print-root`, o `@page` pela largura salva e a limpeza no `afterprint`, só texto).
@@ -474,9 +476,9 @@ _(preencher ao fim de cada fase: data, o que foi feito, como foi verificado, med
   - `Pagination`: o `Select` é `modal` (sem trava de rolagem), como o do Radix, que bloqueia o ponteiro fora da lista aberta; sem isso o trigger mantinha o `hover:scale-105` e a lista descia 0,8 px em `orders-page-size-menu`.
 
 **Verificado:**
-- Vitest: RESULT_VITEST; `i18n:check` e `build` passando; React `bun run test`: RESULT_REACT.
-- E2E: RESULT_E2E (6 novos em `operation.e2e.ts`: pedido com itens e o `id` do cliente; status do item e fechamento em venda; filtro de vendas com total e fechamento do `summary`; cozinha com mouse e teclado; entregador terceirizado, saída e finalização com pagamento; recibo de pedido e de venda, com `window.print` trocado por um registro do conteúdo). `auth.e2e.ts` passou a procurar o nome do usuário no `header` (a lista de pedidos agora também mostra "Victor Tozzo" como vendedor).
-- Visual na imagem do Playwright, duas rodadas: RESULT_VISUAL. Em `ported.ts`, 22 cenários do React desta fase (`orders*`, `sales*`, `kitchen*`, `deliveries*`, mais `mobile-menu`, `cook-shell`, `driver-shell`, `employee-shell`) e o `onboarding`, que saiu de `adjusted.visual.ts` (agora a página atrás do diálogo existe); `orders-error` e `sales-error` em `adjusted.visual.ts`. O `shell.visual.ts` não tem mais cenário (todos foram para a comparação inteira).
+- Vitest: 306/306 (51 arquivos); `i18n:check` e `build` passando; React `bun run test`: 319/319.
+- E2E: 29 specs (28 na rodada completa, mais a de login corrigida e rodada à parte) (6 novos em `operation.e2e.ts`: pedido com itens e o `id` do cliente; status do item e fechamento em venda; filtro de vendas com total e fechamento do `summary`; cozinha com mouse e teclado; entregador terceirizado, saída e finalização com pagamento; recibo de pedido e de venda, com `window.print` trocado por um registro do conteúdo). `auth.e2e.ts` passou a procurar o nome do usuário no `header` (a lista de pedidos agora também mostra "Victor Tozzo" como vendedor).
+- Visual na imagem do Playwright, duas rodadas: 1ª rodada 362 passaram e 4 pulados (o `mobile-menu` fora do celular), nenhuma falha; 2ª rodada em andamento. Em `ported.ts`, 22 cenários do React desta fase (`orders*`, `sales*`, `kitchen*`, `deliveries*`, mais `mobile-menu`, `cook-shell`, `driver-shell`, `employee-shell`) e o `onboarding`, que saiu de `adjusted.visual.ts` (agora a página atrás do diálogo existe); `orders-error` e `sales-error` em `adjusted.visual.ts`. O `shell.visual.ts` não tem mais cenário (todos foram para a comparação inteira).
 - Teste de tempo real (`operation-realtime.test.tsx`): `order.changed` recarrega pedidos, cozinha e entrega; `sale.changed`, vendas; um evento de outro tipo não recarrega.
 
 **Desempenho** (`bun run build`, `bun run size`): inicial 60,8 KB gzip (sem mudança); `OrdersPage` 3,3 KB, `SalesPage` 3,3 KB, `KitchenPage` 3,7 KB, `DeliveriesPage` 6,4 KB gzip; `solid-dnd` num chunk compartilhado de 3,6 KB gzip; `FiltersBar` e recibo no chunk comum `icon-button` (2,4 KB gzip). Lighthouse não rodou.
