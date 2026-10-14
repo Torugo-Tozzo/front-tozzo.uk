@@ -65,7 +65,7 @@ Os componentes de `ui/` usam classes Tailwind ligadas aos atributos do Radix, po
        - `PedidosTab.test.tsx:85-116` e `orders-sales-chrome.test.tsx:149`: provar também que a criação seguinte sai com id novo;
   2. o ok do usuário para os ajustes visuais da S4: `orders-error`/`sales-error` sem a área do toast; esperas de esqueleto e papel `button` em `solid-adjustments.ts`;
   3. o ok para as duas melhorias de comportamento: teclado na cozinha; venda que falha mantém o diálogo;
-  4. a lacuna do filtro "Criado por": `sellerName` (parte do nome, sem diferença de maiúsculas) em `GET /v1/orders` e `GET /v1/sales`. Na API, há um checkpoint sem testes na branch `claude/clever-hopper-7r4vb1`. Falta: testes com Postgres real, `go run ./cmd/api openapi`, a nota na fase 4, o push na `dev` da API e, no front, mandar `sellerName` no lugar de `sellerId` no `FiltersBar`;
+  4. usar o filtro novo da API no front: `sellerName` (parte do nome, sem diferença de maiúsculas) em `GET /v1/orders` e `GET /v1/sales`, publicado na `dev` da API (`135ae46`). No `FiltersBar`, mandar o texto de "Criado por" como `sellerName`, não como `sellerId`; regenerar o schema e acrescentar teste;
   5. o merge na `dev` (`git push origin HEAD:dev`).
 - **Depois:** S5 (Serviços e agenda) e S6 (Relatórios); o usuário pediu para ir até a S6.
 
