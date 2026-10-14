@@ -335,8 +335,8 @@ _(preencher ao fim de cada fase: data, o que foi feito, como foi verificado, med
   - o modal de onboarding do estabelecimento (OWNER sem perfis) entra na S3, com as preferências;
   - `/login` ainda não existe: sessão expirada cai numa rota vazia até a S2.
 - **CSP sem o host do R2:** `img-src 'self' data:`. O host público do R2 entra com as imagens de produto (S3), com o "ok" do usuário.
-- **Pendências do usuário:**
-  - ~~criar o Worker `tozzo-web`~~ feito em 2026-10-14 (seção "Cloudflare Workers"; trocado de Pages): caminho `web`, branch de produção `dev`, builds de preview ligados, variáveis de build `BUN_VERSION` e `VITE_API_URL`. Falta o domínio `app-dev.tozzo.uk`;
-  - incluir `https://app-dev.tozzo.uk` em `CORS_ORIGINS` da API: hoje o preflight não devolve `Access-Control-Allow-Origin`.
-
-  Sem isso não há deploy de preview nem smoke pelo navegador.
+- **Publicação (fechada em 2026-10-14):**
+  - Worker `tozzo-web` criado no lugar do Pages (seção "Cloudflare Workers"): caminho `web`, branch de produção `dev`, builds de preview ligados, variáveis de build `BUN_VERSION` e `VITE_API_URL`; `workers.dev` e `app-dev.tozzo.uk` ativos;
+  - conferido com `curl`: `/` e `/dashboard/orders` dão 200 `text/html` com CSP, `X-Frame-Options` e HTML `max-age=0, must-revalidate`; `/assets/*.js` com `max-age=31536000, immutable`;
+  - CORS: o preflight de `https://app-dev.tozzo.uk` em `dev-api.tozzo.uk` devolve `Access-Control-Allow-Origin` e `Allow-Credentials: true`, e `https://dev.tozzo.uk` segue liberada. Na VM, o compose do serviço `api` passou a ler `GO_CORS_ORIGINS` do `.env` (registro na fase 1 da API);
+  - URLs de preview (`*-tozzo-web.victorhugo-tozzo.workers.dev`) seguem fora do CORS: decisão do usuário.
