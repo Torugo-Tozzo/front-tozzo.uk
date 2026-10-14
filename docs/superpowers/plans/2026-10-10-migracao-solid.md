@@ -50,7 +50,12 @@ Os componentes de `ui/` usam classes Tailwind ligadas aos atributos do Radix, po
 ## Onde paramos (atualizado em 2026-10-14)
 
 - **Prontas e publicadas na `dev`** (Worker `tozzo-web` em `app-dev.tozzo.uk`): S0, S1, S2 (`bded0c1`) e S3 (`eafa369`).
-- **Em andamento: S4 (Operação).** Os checkpoints vão para a branch `claude/clever-hopper-7r4vb1`, nunca para a `dev`. O estado da fase está na seção "S4 — em andamento (checkpoint)", no fim do registro de execução.
+- **S4 (Operação): implementada, falta fechar** (commits na branch `claude/clever-hopper-7r4vb1`, ainda fora da `dev`; registro "S4 — 2026-10-14" no fim do plano). Falta:
+  1. a revisão do diff (`git diff eafa369..HEAD`) pelo `reviewer` e a correção do que ele confirmar;
+  2. o ok do usuário para os ajustes visuais da S4: `orders-error`/`sales-error` sem a área do toast; esperas de esqueleto e papel `button` em `solid-adjustments.ts`;
+  3. o ok para as duas melhorias de comportamento: teclado na cozinha; venda que falha mantém o diálogo;
+  4. a lacuna do filtro "Criado por": `sellerName` (parte do nome, sem diferença de maiúsculas) em `GET /v1/orders` e `GET /v1/sales`. Na API, há um checkpoint sem testes na branch `claude/clever-hopper-7r4vb1`. Falta: testes com Postgres real, `go run ./cmd/api openapi`, a nota na fase 4, o push na `dev` da API e, no front, mandar `sellerName` no lugar de `sellerId` no `FiltersBar`;
+  5. o merge na `dev` (`git push origin HEAD:dev`).
 - **Depois:** S5 (Serviços e agenda) e S6 (Relatórios); o usuário pediu para ir até a S6.
 
 **Como retomar numa sessão nova:**
