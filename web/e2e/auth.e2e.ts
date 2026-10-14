@@ -26,7 +26,8 @@ test('login with email and password opens the session and lands on the dashboard
 
   expect(body(await login)).toEqual({ email: 'victor@example.com', password: 'senha1234', client: 'web' })
   await expect(page).toHaveURL(/\/dashboard\/orders$/)
-  await expect(page.getByText('Victor Tozzo')).toBeVisible()
+  // The signed-in user in the header (S4: the orders list also shows him as a seller).
+  await expect(page.locator('header').getByText('Victor Tozzo')).toBeVisible()
   expect(mock.unknown).toEqual([])
 })
 

@@ -79,7 +79,7 @@ bun run browser:install           # Chromium em node_modules (PLAYWRIGHT_BROWSER
 - **Solid** (`web/playwright.visual.config.ts`, `updateSnapshots: 'none'`: nunca grava no baseline):
   - `web/e2e/visual/ported.ts` lista os cenários do React que o Solid já renderiza; eles rodam com `toHaveScreenshot` e o mock `/v1` (`web/e2e/visual/support/mock-v1.ts`, sobre o `toV1()`);
   - enquanto uma página não foi portada, `shell.visual.ts` compara só o que fica fora do `<main>` (navbar, sidebar, drawer, footer) com o PNG do React, pela mesma distância do `pixelmatch` e o limite de `0.002`. A página sai dessa lista quando entra em `ported.ts`.
-  - `adjusted.visual.ts` compara por regiões os cenários em que o Solid difere de propósito numa parte conhecida (S3: o card de 2FA que saiu de `settings*`, só o diálogo em `onboarding`, o toast duplicado do React em `devices-error`), com o mesmo limite;
+  - `adjusted.visual.ts` compara por regiões os cenários em que o Solid difere de propósito numa parte conhecida (S3: o card de 2FA que saiu de `settings*` e o toast duplicado do React em `devices-error`; S4: o mesmo toast duplicado em `orders-error` e `sales-error`), com o mesmo limite;
   - `support/solid-adjustments.ts` troca o `act` ou a resposta do mock de um cenário quando o React não consegue dirigir a tela do Solid como está escrito (papel `button` do Kobalte, ordem dos tipos), sempre com o motivo;
   - o que o Solid acrescenta a uma tela do React leva `data-solid-only` e fica escondido na comparação (ex.: o campo de imagem do produto).
 - Depuração: `VISUAL_DEBUG=1 bun run test:visual -g <cenário>` imprime o console e as requisições da página.

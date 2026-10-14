@@ -38,6 +38,12 @@ export function Pagination(props: PaginationProps) {
           // screens): Kobalte's wrapper stays out of the layout, and the
           // trigger takes the space-x-2 margin the wrapper would get.
           class="contents"
+          // Radix's select blocks the pointer outside the open list, so the
+          // trigger loses its hover:scale-105 while the list is open (the
+          // React screenshot). Kobalte does the same when modal; the scroll
+          // lock stays off, as in the other selects of the app.
+          modal
+          preventScroll={false}
           itemComponent={(item) => <SelectItem item={item.item}>{formatNumber(Number(item.item.rawValue), language())}</SelectItem>}
         >
           <SelectTrigger

@@ -47,38 +47,39 @@ const withoutSecurityCard = async (page: Page, actualHeight: number, expectedHei
   ]
 }
 
+/**
+ * The React baselines of the load errors were recorded on the dev server,
+ * where StrictMode runs the loading effect twice: two identical error toasts,
+ * stacked. The Solid page shows one. The rest of the screen is compared; the
+ * toast area is not. `emptyText` is the page's empty state behind the toast.
+ */
+const withoutStackedToast = (emptyText: string): Adjusted => ({
+  ready: async (page) => {
+    // The /v1 client retries a 5xx (1 + 2 + 4 s) before the page reports it.
+    await expect(page.locator('main').getByText(emptyText)).toBeVisible({ timeout: 20_000 })
+    await expect(page.locator('[data-sonner-toast]')).toHaveCount(1, { timeout: 20_000 })
+  },
+  regions: async (page, actualHeight) => {
+    const width = page.viewportSize()!.width
+    const toast = await box(page, '[data-sonner-toast]')
+    // The second React toast peeks out under the first one.
+    const bottom = toast.y + toast.height + 24
+    // On a phone the toast spans the width: only what is below it counts.
+    return [
+      { name: 'left-of-toast', actual: same({ x: 0, y: 0, width: toast.x - 16, height: actualHeight }), expected: same({ x: 0, y: 0, width: toast.x - 16, height: actualHeight }) },
+      { name: 'below-toast', actual: same({ x: 0, y: bottom, width, height: actualHeight - bottom }), expected: same({ x: 0, y: bottom, width, height: actualHeight - bottom }) },
+    ].filter((pair) => pair.actual.width > 0)
+  },
+})
+
 const ADJUSTED: Record<string, Adjusted> = {
   settings: { regions: withoutSecurityCard },
   'settings-free-plan': { regions: withoutSecurityCard },
   'settings-delete-account': { regions: withoutSecurityCard },
-  // Only the dialog: the orders page behind it is ported in S4.
-  onboarding: {
-    viewportOnly: true,
-    regions: async (page) => {
-      const dialog = await box(page, '[role="dialog"]')
-      return [{ name: 'dialog', actual: same(dialog), expected: same(dialog) }]
-    },
-  },
-  // The React baseline was recorded on the dev server, where StrictMode runs
-  // the devices effect twice: two identical error toasts, stacked. The Solid
-  // page shows one. The rest of the screen is compared; the toast area is not.
-  'devices-error': {
-    ready: async (page) => {
-      await expect(page.locator('main').getByText('Nenhum dispositivo registrado ainda.')).toBeVisible({ timeout: 20_000 })
-      await expect(page.locator('[data-sonner-toast]')).toHaveCount(1)
-    },
-    regions: async (page, actualHeight) => {
-      const width = page.viewportSize()!.width
-      const toast = await box(page, '[data-sonner-toast]')
-      // The second React toast peeks out under the first one.
-      const bottom = toast.y + toast.height + 24
-      // On a phone the toast spans the width: only what is below it counts.
-      return [
-        { name: 'left-of-toast', actual: same({ x: 0, y: 0, width: toast.x - 16, height: actualHeight }), expected: same({ x: 0, y: 0, width: toast.x - 16, height: actualHeight }) },
-        { name: 'below-toast', actual: same({ x: 0, y: bottom, width, height: actualHeight - bottom }), expected: same({ x: 0, y: bottom, width, height: actualHeight - bottom }) },
-      ].filter((pair) => pair.actual.width > 0)
-    },
-  },
+  'devices-error': withoutStackedToast('Nenhum dispositivo registrado ainda.'),
+  // Same StrictMode double toast in the React baseline (S4).
+  'orders-error': withoutStackedToast('Nenhum pedido encontrado.'),
+  'sales-error': withoutStackedToast('Nenhuma venda encontrada no período.'),
 }
 
 test.use({ trace: 'off' })

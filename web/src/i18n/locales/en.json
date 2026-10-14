@@ -499,7 +499,8 @@
     "openedAt": "Placed at",
     "item": "Item",
     "stage": "Status",
-    "notInformed": "Not informed"
+    "notInformed": "Not informed",
+    "keyboardInstructions": "With the keyboard: Space or Enter picks the item up, the arrow keys choose the column, Space or Enter drops it and Esc cancels."
   },
   "sales": {
     "title": "Sales",
@@ -522,7 +523,8 @@
       "product": "Product"
     },
     "table": {
-      "totalRecords": "Total records: {{count}}"
+      "totalRecords": "Total records: {{count}}",
+      "payment": "Payment"
     },
     "closingPeriod": "Period closing",
     "empty": "No sales found for this period.",
@@ -950,7 +952,8 @@
     "printSoon": "Printing (coming soon)",
     "receiptTitleOrder": "Order #{{id}}",
     "receiptTitleSale": "Sale #{{id}}",
-    "receiptTotal": "Total"
+    "receiptTotal": "Total",
+    "receiptPayment": "Payment method: {{method}}"
   },
   "status": {
     "inPreparation": "In preparation",

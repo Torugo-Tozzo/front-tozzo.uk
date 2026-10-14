@@ -499,7 +499,8 @@
     "openedAt": "下单时间",
     "item": "商品",
     "stage": "状态",
-    "notInformed": "未提供"
+    "notInformed": "未提供",
+    "keyboardInstructions": "使用键盘：按空格或回车拿起项目，用方向键选择列，按空格或回车放下，按 Esc 取消。"
   },
   "sales": {
     "title": "销售",
@@ -522,7 +523,8 @@
       "product": "产品"
     },
     "table": {
-      "totalRecords": "记录总数：{{count}}"
+      "totalRecords": "记录总数：{{count}}",
+      "payment": "付款"
     },
     "closingPeriod": "期间结算",
     "empty": "该期间未找到销售记录。",
@@ -950,7 +952,8 @@
     "printSoon": "打印（即将推出）",
     "receiptTitleOrder": "订单 #{{id}}",
     "receiptTitleSale": "销售 #{{id}}",
-    "receiptTotal": "总计"
+    "receiptTotal": "总计",
+    "receiptPayment": "付款方式：{{method}}"
   },
   "status": {
     "inPreparation": "准备中",

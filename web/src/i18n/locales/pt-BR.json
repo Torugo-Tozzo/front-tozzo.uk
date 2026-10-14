@@ -499,7 +499,8 @@
     "openedAt": "Feito em",
     "item": "Item",
     "stage": "Estado",
-    "notInformed": "Não informado"
+    "notInformed": "Não informado",
+    "keyboardInstructions": "Pelo teclado: Espaço ou Enter pega o item, as setas escolhem a coluna, Espaço ou Enter solta e Esc cancela."
   },
   "sales": {
     "title": "Vendas",
@@ -522,7 +523,8 @@
       "product": "Produto"
     },
     "table": {
-      "totalRecords": "Total de registros: {{count}}"
+      "totalRecords": "Total de registros: {{count}}",
+      "payment": "Pagamento"
     },
     "closingPeriod": "Fechamento do período",
     "empty": "Nenhuma venda encontrada no período.",
@@ -950,7 +952,8 @@
     "printSoon": "Impressão (em breve)",
     "receiptTitleOrder": "Pedido #{{id}}",
     "receiptTitleSale": "Venda #{{id}}",
-    "receiptTotal": "Total"
+    "receiptTotal": "Total",
+    "receiptPayment": "Forma de pagamento: {{method}}"
   },
   "status": {
     "inPreparation": "Em preparo",

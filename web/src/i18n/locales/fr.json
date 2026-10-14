@@ -499,7 +499,8 @@
     "openedAt": "Passée le",
     "item": "Article",
     "stage": "Statut",
-    "notInformed": "Non renseigné"
+    "notInformed": "Non renseigné",
+    "keyboardInstructions": "Au clavier : Espace ou Entrée prend l'article, les flèches choisissent la colonne, Espace ou Entrée le dépose et Échap annule."
   },
   "sales": {
     "title": "Ventes",
@@ -522,7 +523,8 @@
       "product": "Produit"
     },
     "table": {
-      "totalRecords": "Total des enregistrements : {{count}}"
+      "totalRecords": "Total des enregistrements : {{count}}",
+      "payment": "Paiement"
     },
     "closingPeriod": "Clôture de la période",
     "empty": "Aucune vente trouvée pour cette période.",
@@ -950,7 +952,8 @@
     "printSoon": "Impression (bientôt disponible)",
     "receiptTitleOrder": "Commande #{{id}}",
     "receiptTitleSale": "Vente #{{id}}",
-    "receiptTotal": "Total"
+    "receiptTotal": "Total",
+    "receiptPayment": "Mode de paiement : {{method}}"
   },
   "status": {
     "inPreparation": "En préparation",

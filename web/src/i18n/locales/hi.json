@@ -499,7 +499,8 @@
     "openedAt": "ऑर्डर का समय",
     "item": "आइटम",
     "stage": "स्थिति",
-    "notInformed": "जानकारी नहीं"
+    "notInformed": "जानकारी नहीं",
+    "keyboardInstructions": "कीबोर्ड से: स्पेस या एंटर आइटम उठाता है, तीर कुंजियाँ कॉलम चुनती हैं, स्पेस या एंटर उसे छोड़ता है और Esc रद्द करता है।"
   },
   "sales": {
     "title": "बिक्री",
@@ -522,7 +523,8 @@
       "product": "उत्पाद"
     },
     "table": {
-      "totalRecords": "कुल रिकॉर्ड: {{count}}"
+      "totalRecords": "कुल रिकॉर्ड: {{count}}",
+      "payment": "भुगतान"
     },
     "closingPeriod": "अवधि का समापन",
     "empty": "इस अवधि में कोई बिक्री नहीं मिली।",
@@ -950,7 +952,8 @@
     "printSoon": "प्रिंट (जल्द उपलब्ध)",
     "receiptTitleOrder": "ऑर्डर #{{id}}",
     "receiptTitleSale": "बिक्री #{{id}}",
-    "receiptTotal": "कुल"
+    "receiptTotal": "कुल",
+    "receiptPayment": "भुगतान का तरीका: {{method}}"
   },
   "status": {
     "inPreparation": "तैयारी में",

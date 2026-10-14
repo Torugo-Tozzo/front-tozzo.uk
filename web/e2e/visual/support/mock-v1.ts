@@ -148,6 +148,8 @@ const V1_PATHS: Record<string, string[]> = {
   '/tipos': ['/v1/product-types'],
   '/usuarios': ['/v1/users'],
   '/dispositivos': ['/v1/devices'],
+  '/pedidos': ['/v1/orders'],
+  '/vendas': ['/v1/sales'],
 }
 const LIST_PAGES = new Set(['/v1/products', '/v1/users'])
 
