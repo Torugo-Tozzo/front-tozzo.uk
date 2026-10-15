@@ -199,7 +199,8 @@
     "actions": {
       "label": "Actions"
     },
-    "saveChanges": "Enregistrer les modifications"
+    "saveChanges": "Enregistrer les modifications",
+    "payment": "Paiement"
   },
   "auth": {
     "login": "Connexion",
@@ -527,7 +528,8 @@
     "closingPeriod": "Clôture de la période",
     "empty": "Aucune vente trouvée pour cette période.",
     "viewDetails": "Voir les détails",
-    "serviceLine": "service"
+    "serviceLine": "service",
+    "alreadyRegistered": "Cette vente avait déjà été enregistrée ; la modification n’a pas été enregistrée."
   },
   "products": {
     "title": "Produits",
@@ -950,7 +952,8 @@
     "printSoon": "Impression (bientôt disponible)",
     "receiptTitleOrder": "Commande #{{id}}",
     "receiptTitleSale": "Vente #{{id}}",
-    "receiptTotal": "Total"
+    "receiptTotal": "Total",
+    "receiptPaymentMethod": "Moyen de paiement : {{method}}"
   },
   "status": {
     "inPreparation": "En préparation",
@@ -1015,7 +1018,11 @@
     },
     "uploadImage": "Erreur lors de l'envoi de l'image.",
     "uploadUnavailable": "L'envoi d'images n'est pas encore disponible.",
-    "uploadInvalid": "Utilisez une image JPEG, PNG ou WebP de 5 Mo maximum."
+    "uploadInvalid": "Utilisez une image JPEG, PNG ou WebP de 5 Mo maximum.",
+    "orderNotOpen": "Cette commande a déjà été clôturée.",
+    "orderDelivering": "Cette commande est en cours de livraison et ne peut pas être modifiée.",
+    "deliveryNotStarted": "Démarrez la livraison avant de clôturer la commande.",
+    "orderChanged": "Cette commande a été modifiée ailleurs. Vérifiez les articles à jour et enregistrez à nouveau."
   },
   "catalog": {
     "burger": "Hamburger",

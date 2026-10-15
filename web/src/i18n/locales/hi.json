@@ -199,7 +199,8 @@
     "actions": {
       "label": "कार्रवाइयाँ"
     },
-    "saveChanges": "परिवर्तन सहेजें"
+    "saveChanges": "परिवर्तन सहेजें",
+    "payment": "भुगतान"
   },
   "auth": {
     "login": "लॉग इन",
@@ -527,7 +528,8 @@
     "closingPeriod": "अवधि का समापन",
     "empty": "इस अवधि में कोई बिक्री नहीं मिली।",
     "viewDetails": "विवरण देखें",
-    "serviceLine": "सेवा"
+    "serviceLine": "सेवा",
+    "alreadyRegistered": "यह बिक्री पहले ही दर्ज हो चुकी थी; बदलाव सहेजा नहीं गया।"
   },
   "products": {
     "title": "उत्पाद",
@@ -950,7 +952,8 @@
     "printSoon": "प्रिंट (जल्द उपलब्ध)",
     "receiptTitleOrder": "ऑर्डर #{{id}}",
     "receiptTitleSale": "बिक्री #{{id}}",
-    "receiptTotal": "कुल"
+    "receiptTotal": "कुल",
+    "receiptPaymentMethod": "भुगतान का तरीका: {{method}}"
   },
   "status": {
     "inPreparation": "तैयारी में",
@@ -1015,7 +1018,11 @@
     },
     "uploadImage": "छवि अपलोड नहीं हो सकी।",
     "uploadUnavailable": "छवि अपलोड अभी उपलब्ध नहीं है।",
-    "uploadInvalid": "5 MB तक की JPEG, PNG या WebP छवि का उपयोग करें।"
+    "uploadInvalid": "5 MB तक की JPEG, PNG या WebP छवि का उपयोग करें।",
+    "orderNotOpen": "यह ऑर्डर पहले ही बंद हो चुका है।",
+    "orderDelivering": "यह ऑर्डर डिलीवरी के लिए निकल चुका है और बदला नहीं जा सकता।",
+    "deliveryNotStarted": "ऑर्डर बंद करने से पहले डिलीवरी शुरू करें।",
+    "orderChanged": "यह ऑर्डर कहीं और बदला गया है। अपडेट किए गए आइटम देखें और फिर से सहेजें।"
   },
   "catalog": {
     "burger": "बर्गर",

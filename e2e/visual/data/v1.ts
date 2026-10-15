@@ -150,10 +150,20 @@ export function toV1(data: CanonicalDataset = defaultDataset, options: V1Options
     return { sorted, salesCount: sales.length }
   }
 
-  return ({ method, path, query }) => {
+  return ({ method, path, query, body }) => {
     if (!path.startsWith('/v1/')) return undefined
     if (method !== 'GET') {
       if (path === '/v1/events/ticket') return json({ ticket: 'visual-fixture', expiresAt: '2026-10-01T18:05:00.000Z' })
+      // PUT /v1/orders/{id} needs the version the client saw (API 57568ec).
+      const edited = method === 'PUT' ? /^\/v1\/orders\/([^/]+)$/.exec(path) : null
+      if (edited) {
+        const found = data.orders.find((item) => item.id === edited[1])
+        if (!found) return problem(404, 'ORDER_NOT_FOUND')
+        const expected = (body as { expectedUpdatedAt?: unknown } | undefined)?.expectedUpdatedAt
+        if (typeof expected !== 'string' || Number.isNaN(Date.parse(expected))) return problem(422, 'ORDER_VERSION_INVALID')
+        if (expected !== found.updatedAt) return problem(409, 'ORDER_CONFLICT')
+        return json(order(found))
+      }
       return json({})
     }
 
@@ -163,8 +173,13 @@ export function toV1(data: CanonicalDataset = defaultDataset, options: V1Options
 
     if (path === '/v1/orders') {
       const closed = query.get('status') === 'closed'
+      const min = query.get('minTotalCents')
+      const max = query.get('maxTotalCents')
       const list = data.orders
         .filter((item) => (item.status === 'CLOSED') === closed)
+        // The list filters of the /v1 (S4): substrings, totals in cents.
+        .filter((item) => matches(item.customerName, query.get('customerName')) && matches(userById(item.createdById)?.name, query.get('sellerName')))
+        .filter((item) => (!min || orderTotalCents(item) >= Number(min)) && (!max || orderTotalCents(item) <= Number(max)))
         .sort((left, right) => right.openedAt.localeCompare(left.openedAt))
       const page = cursorPage(list, query, 50)
       return json({ items: page.items.map(order), nextCursor: page.nextCursor, total: page.total })
@@ -205,6 +220,7 @@ export function toV1(data: CanonicalDataset = defaultDataset, options: V1Options
       const max = query.get('maxTotalCents')
       const list = activeSales()
         .filter((item) => inRange(item.soldAt, query) && matches(item.customerName, customer) && (!seller || item.sellerId === seller))
+        .filter((item) => matches(userById(item.sellerId)?.name, query.get('sellerName')))
         .filter((item) => (!min || saleTotalCents(item) >= Number(min)) && (!max || saleTotalCents(item) <= Number(max)))
       const page = cursorPage(list, query, 50)
       return json({

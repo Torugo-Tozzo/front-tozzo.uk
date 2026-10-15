@@ -40,8 +40,11 @@ export function Pagination(props: PaginationProps) {
           class="contents"
           itemComponent={(item) => <SelectItem item={item.item}>{formatNumber(Number(item.item.rawValue), language())}</SelectItem>}
         >
+          {/* Radix blocks pointer events outside an open select, so its
+              trigger loses the hover scale while the list is open; Kobalte
+              does not, hence data-[expanded]:hover:scale-100. */}
           <SelectTrigger
-            class="ml-2 h-8 w-[70px] border-0 bg-primary text-primary-foreground shadow-[inset_0_0_0_2px_hsl(var(--foreground)),inset_0_0_0_3px_hsl(var(--background))] transition-transform hover:scale-105"
+            class="ml-2 h-8 w-[70px] border-0 bg-primary text-primary-foreground shadow-[inset_0_0_0_2px_hsl(var(--foreground)),inset_0_0_0_3px_hsl(var(--background))] transition-transform hover:scale-105 data-[expanded]:hover:scale-100"
             aria-label={t("pagination.rowsPerPage")}
           >
             <SelectValue<string>>{() => formatNumber(props.pageSize, language())}</SelectValue>

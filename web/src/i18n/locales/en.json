@@ -199,7 +199,8 @@
     "actions": {
       "label": "Actions"
     },
-    "saveChanges": "Save changes"
+    "saveChanges": "Save changes",
+    "payment": "Payment"
   },
   "auth": {
     "login": "Login",
@@ -527,7 +528,8 @@
     "closingPeriod": "Period closing",
     "empty": "No sales found for this period.",
     "viewDetails": "View details",
-    "serviceLine": "service"
+    "serviceLine": "service",
+    "alreadyRegistered": "This sale had already been registered; the change was not saved."
   },
   "products": {
     "title": "Products",
@@ -950,7 +952,8 @@
     "printSoon": "Printing (coming soon)",
     "receiptTitleOrder": "Order #{{id}}",
     "receiptTitleSale": "Sale #{{id}}",
-    "receiptTotal": "Total"
+    "receiptTotal": "Total",
+    "receiptPaymentMethod": "Payment method: {{method}}"
   },
   "status": {
     "inPreparation": "In preparation",
@@ -1015,7 +1018,11 @@
     },
     "uploadImage": "Could not upload the image.",
     "uploadUnavailable": "Image upload is not available yet.",
-    "uploadInvalid": "Use a JPEG, PNG or WebP image up to 5 MB."
+    "uploadInvalid": "Use a JPEG, PNG or WebP image up to 5 MB.",
+    "orderNotOpen": "This order has already been closed.",
+    "orderDelivering": "This order is out for delivery and cannot be changed.",
+    "deliveryNotStarted": "Start the delivery before closing the order.",
+    "orderChanged": "This order was changed elsewhere. Check the updated items and save again."
   },
   "catalog": {
     "burger": "Burger",

@@ -805,7 +805,7 @@ export interface paths {
         };
         /**
          * List the orders
-         * @description Newest first. A CUSTOMER sees only their own orders. customerName is a case-insensitive substring; minTotalCents and maxTotalCents bound the order total. An invalid filter answers VALIDATION_FAILED.
+         * @description Newest first. A CUSTOMER sees only their own orders. customerName and sellerName are case-insensitive substrings; minTotalCents and maxTotalCents bound the order total. An invalid filter answers VALIDATION_FAILED.
          */
         get: operations["listOrders"];
         put?: never;
@@ -831,7 +831,7 @@ export interface paths {
         get: operations["getOrder"];
         /**
          * Edit an order
-         * @description Omitted fields stay as they are. items, when sent, is the whole list: items without id are added, items left out are removed, and a changed quantity sends the item back to IN_PREPARATION.
+         * @description Omitted fields stay as they are. items, when sent, is the whole list: items without id are added, items left out are removed, and a changed quantity sends the item back to IN_PREPARATION. expectedUpdatedAt is required (ORDER_VERSION_INVALID when missing or invalid); when the order changed since, the edit answers ORDER_CONFLICT and nothing is written.
          */
         put: operations["updateOrder"];
         post?: never;
@@ -2489,6 +2489,8 @@ export interface components {
             /** @description "" clears it */
             customerName?: string;
             deliveryAddress?: string;
+            /** @description Required: the updatedAt of the order the client saw, exactly as received (ORDER_VERSION_INVALID when missing) */
+            expectedUpdatedAt?: string;
             isDelivery?: boolean;
             items?: components["schemas"]["ItemBody"][];
         };
@@ -5821,6 +5823,7 @@ export interface operations {
                 status?: "open" | "closed";
                 customerName?: string;
                 sellerId?: string;
+                sellerName?: string;
                 /** @description Cents, inclusive */
                 minTotalCents?: string;
                 /** @description Cents, inclusive */
@@ -7626,6 +7629,8 @@ export interface operations {
                 minTotalCents?: string;
                 maxTotalCents?: string;
                 sellerId?: string;
+                /** @description Case-insensitive substring of the seller name */
+                sellerName?: string;
                 cursor?: string;
                 /** @description 1 to 100, default 50 */
                 limit?: string;

@@ -56,6 +56,10 @@ type ErrorKey =
   | "uploadImage"
   | "uploadUnavailable"
   | "uploadInvalid"
+  | "orderNotOpen"
+  | "orderDelivering"
+  | "deliveryNotStarted"
+  | "orderChanged"
 export type ErrorTranslation =
   | {
       namespace: "auth"
@@ -154,25 +158,35 @@ const errorKeyByContext: Partial<Record<ErrorContext, Record<string, ErrorTransl
     BILLING_CUSTOMER_MISSING: { namespace: "errors", key: "payment" },
     INTERNAL_ERROR: { namespace: "errors", key: "generic" },
   },
+  // The order changed under the screen (closed, or out for delivery): the
+  // /v1 says so by code, and the message says it too (S4, not in the React app).
   saveOrder: {
     ORDER_LIMIT_REACHED: { namespace: "errors", key: "saveOrder" },
     ORDER_NOT_FOUND: { namespace: "errors", key: "saveOrder" },
     PRODUCT_NOT_FOUND: { namespace: "errors", key: "saveOrder" },
+    ORDER_NOT_OPEN: { namespace: "errors", key: "orderNotOpen" },
+    ORDER_DELIVERING: { namespace: "errors", key: "orderDelivering" },
+    // The PUT carries expectedUpdatedAt: the order changed since the editor read it.
+    ORDER_CONFLICT: { namespace: "errors", key: "orderChanged" },
+    ORDER_VERSION_INVALID: { namespace: "errors", key: "saveOrder" },
   },
   deleteOrder: {
     ORDER_NOT_FOUND: { namespace: "errors", key: "deleteOrder" },
-    ORDER_NOT_OPEN: { namespace: "errors", key: "deleteOrder" },
+    ORDER_NOT_OPEN: { namespace: "errors", key: "orderNotOpen" },
+    ORDER_DELIVERING: { namespace: "errors", key: "orderDelivering" },
   },
   closeOrder: {
     ORDER_NOT_FOUND: { namespace: "errors", key: "closeOrder" },
-    ORDER_ALREADY_CLOSED: { namespace: "errors", key: "closeOrder" },
-    ORDER_CONFLICT: { namespace: "errors", key: "closeOrder" },
+    ORDER_ALREADY_CLOSED: { namespace: "errors", key: "orderNotOpen" },
+    ORDER_CONFLICT: { namespace: "errors", key: "orderNotOpen" },
+    DELIVERY_NOT_STARTED: { namespace: "errors", key: "deliveryNotStarted" },
   },
   changeOrderItemStatus: {
     ORDER_ITEM_STATUS_INVALID: { namespace: "errors", key: "changeOrderItemStatus" },
     ORDER_ITEM_STATUS_REQUIRED: { namespace: "errors", key: "changeOrderItemStatus" },
     ORDER_ITEM_NOT_FOUND: { namespace: "errors", key: "changeOrderItemStatus" },
     ORDER_NOT_FOUND: { namespace: "errors", key: "changeOrderItemStatus" },
+    ORDER_DELIVERING: { namespace: "errors", key: "orderDelivering" },
     ROLE_FORBIDDEN: { namespace: "errors", key: "changeOrderItemStatus" },
   },
   createSale: {

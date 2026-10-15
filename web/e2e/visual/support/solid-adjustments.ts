@@ -33,8 +33,17 @@ export const SOLID_ADJUSTMENTS: Record<string, SolidAdjustment> = {
   'products-loading': { act: pageSkeleton },
   'employees-loading': { act: pageSkeleton },
   'devices-loading': { act: pageSkeleton },
+  'orders-loading': { act: pageSkeleton },
+  'sales-loading': { act: pageSkeleton },
   // The Kobalte Select trigger has the role `button` (Radix: `combobox`), plan S1.
   'settings-language-menu': { act: async (page) => openSelect(page, /^Idioma atual/) },
+  'orders-page-size-menu': {
+    act: async (page) => {
+      await expect(page.locator('main tbody tr').first()).toBeVisible()
+      await expect(page.locator('.animate-pulse')).toHaveCount(0)
+      await openSelect(page, /^Linhas por página/)
+    },
+  },
   // Same list, in the order the Bun sent it (by id). The /v1 sorts types by
   // description; the plan allows ordering differences in tables, and the app
   // shows the order the API sends.

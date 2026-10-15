@@ -27,7 +27,7 @@ test('opening the site root restores the session and opens the dashboard', async
   await mockV1Api(page, { role: 'OWNER' })
   await page.goto('/')
   await expect(page).toHaveURL(/\/dashboard\/orders$/)
-  await expect(page.getByText('Victor Tozzo')).toBeVisible()
+  await expect(page.getByRole('banner').getByText('Victor Tozzo')).toBeVisible()
 })
 
 test('login with email and password opens the session and lands on the dashboard', async ({ page }) => {
@@ -41,7 +41,7 @@ test('login with email and password opens the session and lands on the dashboard
 
   expect(body(await login)).toEqual({ email: 'victor@example.com', password: 'senha1234', client: 'web' })
   await expect(page).toHaveURL(/\/dashboard\/orders$/)
-  await expect(page.getByText('Victor Tozzo')).toBeVisible()
+  await expect(page.getByRole('banner').getByText('Victor Tozzo')).toBeVisible()
   expect(mock.unknown).toEqual([])
 })
 

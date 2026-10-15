@@ -148,8 +148,10 @@ const V1_PATHS: Record<string, string[]> = {
   '/tipos': ['/v1/product-types'],
   '/usuarios': ['/v1/users'],
   '/dispositivos': ['/v1/devices'],
+  '/pedidos': ['/v1/orders'],
+  '/vendas': ['/v1/sales'],
 }
-const LIST_PAGES = new Set(['/v1/products', '/v1/users'])
+const LIST_PAGES = new Set(['/v1/products', '/v1/users', '/v1/orders', '/v1/sales'])
 
 /**
  * The overrides of a React scenario (Bun paths) for the /v1 mock. An answer
@@ -163,7 +165,8 @@ export function v1Overrides(legacy: Record<string, Override> | undefined): Recor
     for (const target of targets) {
       if (typeof override === 'string') result[target] = override
       else if (Array.isArray(override.body) && override.body.length === 0) {
-        result[target] = { status: 200, body: LIST_PAGES.has(target) ? { items: [], nextCursor: null, total: 0 } : [] }
+        const emptyPage = { items: [], nextCursor: null, total: 0, ...(target === '/v1/sales' ? { summary: { count: 0, totalCents: 0 } } : {}) }
+        result[target] = { status: 200, body: LIST_PAGES.has(target) ? emptyPage : [] }
       } else throw new Error(`Cannot translate the override of ${path} to /v1`)
     }
   }

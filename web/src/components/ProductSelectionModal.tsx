@@ -56,6 +56,8 @@ export interface ProductSelectionModalProps {
   onCancelSale?: () => Promise<void>
   readOnly?: boolean
   additionalReadOnlyItems?: { description: string; quantity: number; unitPriceCents: number }[]
+  /** Changing it while open reloads the form from the initial* props (an order read again after a conflict). */
+  resetKey?: unknown
 }
 
 const PRODUCTS_PAGE_SIZE = 20
@@ -99,18 +101,23 @@ export function ProductSelectionModal(props: ProductSelectionModalProps) {
   const pages = createCursorPages(PRODUCTS_PAGE_SIZE)
   let draftCounter = 0
 
-  // Reset the form and take the caller's items each time the modal opens. The
-  // names and prices come from the caller (order or sale), not from the
-  // catalog page, so an item outside the current page still shows.
-  createEffect(on(() => props.isOpen, (open) => {
+  // Reset the form and take the caller's items each time the modal opens (or
+  // resetKey changes while open). The names and prices come from the caller
+  // (order or sale), not from the catalog page, so an item outside the
+  // current page still shows.
+  createEffect(on(() => [props.isOpen, props.resetKey] as const, ([open], previous) => {
     if (!open) return
+    const reloaded = previous?.[0] === true
     untrack(() => {
       setClientName(props.initialClientName ?? "")
       setIsDelivery(props.initialDelivery?.isDelivery ?? false)
       setDeliveryAddress(props.initialDelivery?.deliveryAddress ?? "")
-      setSearchTerm("")
-      setProductTypeFilter("")
-      pages.reset()
+      // A reload keeps the catalog where the user left it.
+      if (!reloaded) {
+        setSearchTerm("")
+        setProductTypeFilter("")
+        pages.reset()
+      }
       setSelectedItems((props.initialItems ?? [])
         .filter((item) => item.productId != null)
         .map((item) => ({

@@ -30,6 +30,7 @@ import { useConfirm } from "@/contexts/ConfirmContext"
 import { useTranslation } from "@/i18n/solid"
 import { api } from "@/api/client"
 import { unwrap } from "@/api/errors"
+import { loadedData } from "@/api/query"
 import { startRealtime } from "@/realtime"
 import { formatNumber } from "@/i18n/format"
 import { resolveNavigationModules, type NavigationModule } from "@/domain/businessPreferences"
@@ -70,7 +71,9 @@ function useSidebarCounts(visible: () => NavigationModule[]) {
 
   return (href: CountedHref) => {
     const query = { "/dashboard/orders": orders, "/dashboard/kitchen": kitchen, "/dashboard/deliveries": delivery, "/dashboard/service-orders": services }[href]
-    return query.data ?? 0
+    // loadedData: reading a pending query's data would suspend the whole
+    // layout (the page behind it shows its own skeleton meanwhile).
+    return loadedData(query) ?? 0
   }
 }
 

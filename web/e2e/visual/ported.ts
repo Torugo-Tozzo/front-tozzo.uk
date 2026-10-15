@@ -11,7 +11,7 @@ export const SOLID_SCENARIOS: readonly string[] = [
   'login-register',
   'forgot-password',
   'reset-password',
-  // S3: registration (settings full-page, onboarding and devices-error: adjusted.visual.ts)
+  // S3: registration (settings full-page and devices-error: adjusted.visual.ts)
   'products',
   'products-empty',
   'products-loading',
@@ -31,4 +31,22 @@ export const SOLID_SCENARIOS: readonly string[] = [
   'devices-loading',
   'devices-delete-confirm',
   'settings-language-menu',
+  // S4: operation (orders; orders-error: adjusted.visual.ts). The onboarding
+  // dialog is now compared with the orders page behind it.
+  'onboarding',
+  'orders',
+  'orders-empty',
+  'orders-loading',
+  'orders-new',
+  'orders-edit',
+  'orders-delete-confirm',
+  'orders-page-size-menu',
+  'mobile-menu',
+  'employee-shell',
+  // S4: operation (sales; sales-error: adjusted.visual.ts)
+  'sales',
+  'sales-empty',
+  'sales-loading',
+  'sales-new',
+  'sales-details',
 ]

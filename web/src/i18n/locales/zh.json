@@ -199,7 +199,8 @@
     "actions": {
       "label": "操作"
     },
-    "saveChanges": "保存更改"
+    "saveChanges": "保存更改",
+    "payment": "付款"
   },
   "auth": {
     "login": "登录",
@@ -527,7 +528,8 @@
     "closingPeriod": "期间结算",
     "empty": "该期间未找到销售记录。",
     "viewDetails": "查看详情",
-    "serviceLine": "服务"
+    "serviceLine": "服务",
+    "alreadyRegistered": "这笔销售已经登记过，修改未保存。"
   },
   "products": {
     "title": "产品",
@@ -950,7 +952,8 @@
     "printSoon": "打印（即将推出）",
     "receiptTitleOrder": "订单 #{{id}}",
     "receiptTitleSale": "销售 #{{id}}",
-    "receiptTotal": "总计"
+    "receiptTotal": "总计",
+    "receiptPaymentMethod": "付款方式：{{method}}"
   },
   "status": {
     "inPreparation": "准备中",
@@ -1015,7 +1018,11 @@
     },
     "uploadImage": "上传图片失败。",
     "uploadUnavailable": "图片上传暂不可用。",
-    "uploadInvalid": "请使用不超过 5 MB 的 JPEG、PNG 或 WebP 图片。"
+    "uploadInvalid": "请使用不超过 5 MB 的 JPEG、PNG 或 WebP 图片。",
+    "orderNotOpen": "此订单已关闭。",
+    "orderDelivering": "此订单正在配送中，无法修改。",
+    "deliveryNotStarted": "请先开始配送，再关闭订单。",
+    "orderChanged": "此订单已在别处被修改。请检查更新后的项目并重新保存。"
   },
   "catalog": {
     "burger": "汉堡包",

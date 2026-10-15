@@ -30,7 +30,8 @@ test('an owner lands on orders, with the sidebar counters from the /v1 totals', 
   await page.goto('/dashboard')
 
   await expect(page).toHaveURL(/\/dashboard\/orders$/)
-  await expect(page.getByText('Victor Tozzo')).toBeVisible()
+  // The navbar's name (the orders table may show it too, as a seller).
+  await expect(page.getByRole('banner').getByText('Victor Tozzo')).toBeVisible()
   await expect(sidebar(page).getByRole('link', { name: /Pedidos/ })).toContainText('6')
   await expect(sidebar(page).getByRole('link', { name: /Cozinha/ })).toContainText('5')
   await expect(sidebar(page).getByRole('link', { name: /Entregas/ })).toContainText('2')

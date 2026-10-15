@@ -62,3 +62,19 @@ describe("email link outcomes (S2)", () => {
     expect(getErrorTranslationKey("uploadImage", "UPLOAD_PUT_FAILED")).toEqual({ namespace: "errors", key: "uploadImage" })
   })
 })
+
+describe("order conflicts (S4)", () => {
+  test("a closed order, an order out for delivery and a delivery not started get their own messages", () => {
+    expect(getErrorTranslationKey("deleteOrder", "ORDER_NOT_OPEN")).toEqual({ namespace: "errors", key: "orderNotOpen" })
+    expect(getErrorTranslationKey("deleteOrder", "ORDER_DELIVERING")).toEqual({ namespace: "errors", key: "orderDelivering" })
+    expect(getErrorTranslationKey("saveOrder", "ORDER_NOT_OPEN")).toEqual({ namespace: "errors", key: "orderNotOpen" })
+    expect(getErrorTranslationKey("saveOrder", "ORDER_DELIVERING")).toEqual({ namespace: "errors", key: "orderDelivering" })
+    expect(getErrorTranslationKey("closeOrder", "ORDER_ALREADY_CLOSED")).toEqual({ namespace: "errors", key: "orderNotOpen" })
+    expect(getErrorTranslationKey("closeOrder", "ORDER_CONFLICT")).toEqual({ namespace: "errors", key: "orderNotOpen" })
+    expect(getErrorTranslationKey("closeOrder", "DELIVERY_NOT_STARTED")).toEqual({ namespace: "errors", key: "deliveryNotStarted" })
+    expect(getErrorTranslationKey("changeOrderItemStatus", "ORDER_DELIVERING")).toEqual({ namespace: "errors", key: "orderDelivering" })
+    expect(getErrorTranslationKey("closeOrder", "INTERNAL_ERROR")).toEqual({ namespace: "errors", key: "closeOrder" })
+    expect(getErrorTranslationKey("saveOrder", "ORDER_CONFLICT")).toEqual({ namespace: "errors", key: "orderChanged" })
+    expect(getErrorTranslationKey("saveOrder", "ORDER_VERSION_INVALID")).toEqual({ namespace: "errors", key: "saveOrder" })
+  })
+})

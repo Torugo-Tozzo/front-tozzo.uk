@@ -199,7 +199,8 @@
     "actions": {
       "label": "Acciones"
     },
-    "saveChanges": "Guardar cambios"
+    "saveChanges": "Guardar cambios",
+    "payment": "Pago"
   },
   "auth": {
     "login": "Iniciar sesión",
@@ -527,7 +528,8 @@
     "closingPeriod": "Cierre del período",
     "empty": "No se encontraron ventas en el período.",
     "viewDetails": "Ver detalles",
-    "serviceLine": "servicio"
+    "serviceLine": "servicio",
+    "alreadyRegistered": "Esta venta ya había sido registrada; el cambio no se guardó."
   },
   "products": {
     "title": "Productos",
@@ -950,7 +952,8 @@
     "printSoon": "Impresión (próximamente)",
     "receiptTitleOrder": "Pedido #{{id}}",
     "receiptTitleSale": "Venta #{{id}}",
-    "receiptTotal": "Total"
+    "receiptTotal": "Total",
+    "receiptPaymentMethod": "Forma de pago: {{method}}"
   },
   "status": {
     "inPreparation": "En preparación",
@@ -1015,7 +1018,11 @@
     },
     "uploadImage": "Error al subir la imagen.",
     "uploadUnavailable": "La subida de imágenes aún no está disponible.",
-    "uploadInvalid": "Usa una imagen JPEG, PNG o WebP de hasta 5 MB."
+    "uploadInvalid": "Usa una imagen JPEG, PNG o WebP de hasta 5 MB.",
+    "orderNotOpen": "Este pedido ya fue cerrado.",
+    "orderDelivering": "Este pedido salió para entrega y no se puede modificar.",
+    "deliveryNotStarted": "Inicia la entrega antes de cerrar el pedido.",
+    "orderChanged": "Este pedido fue modificado en otro lugar. Revisa los ítems actualizados y guarda de nuevo."
   },
   "catalog": {
     "burger": "Hamburguesa",
