@@ -1,5 +1,5 @@
 import { Show, Suspense, type JSX } from 'solid-js'
-import { Route, Router, useIsRouting, type RouteSectionProps } from '@solidjs/router'
+import { Navigate, Route, Router, useIsRouting, type RouteSectionProps } from '@solidjs/router'
 import { QueryClientProvider } from '@tanstack/solid-query'
 
 import { createAppQueryClient } from '@/api/query'
@@ -84,6 +84,7 @@ const dashboardRoutes: [path: string, module: NavigationModule, page?: () => JSX
 export default function App() {
   return (
     <Router root={RootLayout}>
+      <Route path="/" component={() => <Navigate href="/login" />} />
       {/* Public pages (S2: authentication). */}
       <Route component={MainLayout}>
         <Route path="/login" component={LoginPage} />

@@ -432,3 +432,14 @@ _(preencher ao fim de cada fase: data, o que foi feito, como foi verificado, med
 - **Mock `toV1()`:** `/v1/users` passou a trazer `total`, e os limites do plano FREE (3/60/5/30) como a API.
 - **`EmployeeFilterDialog`** é da agenda (S5): portado com o teste, ainda sem tela.
 - **Não rodou:** smoke contra a API da dev (rede bloqueada); upload real no R2 (o CORS do bucket e a CSP só se confirmam no preview); acompanhamento mobile.
+
+### Entrada do Solid e corte antecipado da homologação — 2026-10-15
+
+Decisão do usuário: usar o Solid ainda incompleto em `dev.tozzo.uk` e desligar apenas o front React da VM dev. A API Bun e o GoTrue permanecem para os clientes legados; a produção não muda.
+
+- Corrigida a entrada `/`, que não tinha rota e mostrava uma tela vazia: agora abre `/login`, cuja guarda de sessão encaminha usuários autenticados ao dashboard.
+- Dois testes Playwright cobrem a entrada sem sessão e com sessão restaurada; ambos falharam antes da correção e passaram depois. A suíte de autenticação passou 10/10.
+- O job SSH `deploy` do front passa a executar apenas na `main`. O Solid continua sendo publicado pelo Workers Builds do `tozzo-web` a cada push da `dev`.
+- O vínculo de `dev.tozzo.uk` ao Worker e a parada do container React devem ser confirmados na conclusão operacional. `FRONTEND_URL` da API Go já aponta para `https://dev.tozzo.uk`.
+- Não equivale à conclusão da S8: as telas das fases S4 em diante continuam pendentes.
+- Validação da correção: 259/259 testes Vitest no Docker Linux, 10/10 E2E de autenticação, 6/6 visuais de login (três tamanhos, dois temas), i18n e build aprovados. No Windows, o Vitest falhou ao carregar o módulo virtual `file:///@solid-refresh`; os testes passaram no ambiente Linux padrão sem alteração de dependências. Revisão independente do diff sem achados.

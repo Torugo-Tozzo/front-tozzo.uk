@@ -15,6 +15,21 @@ test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => localStorage.setItem('tozzo.locale', 'pt-BR'))
 })
 
+test('opening the site root shows the login form when signed out', async ({ page }) => {
+  await mockV1Api(page, { role: null })
+  await page.goto('/')
+  await expect(page).toHaveURL(/\/login$/)
+  await expect(page.getByLabel('Email')).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Entrar', exact: true })).toBeVisible()
+})
+
+test('opening the site root restores the session and opens the dashboard', async ({ page }) => {
+  await mockV1Api(page, { role: 'OWNER' })
+  await page.goto('/')
+  await expect(page).toHaveURL(/\/dashboard\/orders$/)
+  await expect(page.getByText('Victor Tozzo')).toBeVisible()
+})
+
 test('login with email and password opens the session and lands on the dashboard', async ({ page }) => {
   const mock = await mockV1Api(page, { role: null, signInAs: 'OWNER' })
   await page.goto('/login')

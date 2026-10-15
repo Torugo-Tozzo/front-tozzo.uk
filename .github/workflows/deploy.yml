@@ -15,7 +15,9 @@ jobs:
       - run: bun install
       - run: bun run --if-present test
 
+  # The dev frontend is published by Cloudflare Workers Builds (web/).
   deploy:
+    if: github.ref == 'refs/heads/main'
     needs: test
     runs-on: ubuntu-latest
 
