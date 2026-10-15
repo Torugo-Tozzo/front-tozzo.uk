@@ -161,9 +161,9 @@ Conferir em `src/App.tsx` a lista completa na hora de fazer.
 
 Junto com a fase 10 da API.
 
-1. O Worker `tozzo-web` passa a responder em `dev.tozzo.uk`.
-2. O workflow `deploy.yml` (VM) para de publicar o front da `dev`. Na `main`, **nada muda**: a produção continua no React com o Bun.
-3. Num commit só na `dev`:
+1. ✅ (2026-10-15) O Worker `tozzo-web` passa a responder em `dev.tozzo.uk`.
+2. ✅ (2026-10-15, `b8da753`) O workflow `deploy.yml` (VM) para de publicar o front da `dev`. Na `main`, **nada muda**: a produção continua no React com o Bun.
+3. **Pendente, depois da S7** (o React da raiz é a referência das S4 a S7): num commit só na `dev`:
    - apagar o React da raiz (`src/`, `index.html`, `vite.config.ts`, `Dockerfile`, `nginx.conf` e os configs da raiz);
    - mover `web/*` para a raiz;
    - atualizar o README, o `AGENTS.md`, o `ARCHITECTURE.md` e o `CONVENTIONS.md` (tirar o React).
@@ -443,3 +443,12 @@ Decisão do usuário: usar o Solid ainda incompleto em `dev.tozzo.uk` e desligar
 - Corte confirmado: o usuário vinculou `dev.tozzo.uk` ao Worker; o build Cloudflare de `b8da753` passou. No navegador real, `/` abriu `/login` e `/verify-email` exibiu a página Solid (sem consumir token). O container `dev-app-frontend-1` foi parado e ficou `exited`; API Go, Bun, banco, GoTrue e PowerSync permaneceram ativos. `FRONTEND_URL` da API Go já aponta para `https://dev.tozzo.uk`, sem necessidade de alteração. A criação real de conta e o login Google autenticado ainda precisam de smoke.
 - Não equivale à conclusão da S8: as telas das fases S4 em diante continuam pendentes.
 - Validação da correção: 259/259 testes Vitest no Docker Linux, 10/10 E2E de autenticação, 6/6 visuais de login (três tamanhos, dois temas), i18n e build aprovados. No Windows, o Vitest falhou ao carregar o módulo virtual `file:///@solid-refresh`; os testes passaram no ambiente Linux padrão sem alteração de dependências. Revisão independente do diff sem achados.
+
+### Dev só com o Go — 2026-10-15
+
+Revê a nota acima de que a API Bun e o GoTrue permaneciam: a pedido do usuário, saíram da VM dev o GoTrue, o Bun (`backend`) e o container do React (`frontend`); a dev roda só `api` (Go), `db` e `powersync`. Registro completo na API (plano da migração Go, 2026-10-15).
+
+- **Causa do login que falhava na homologação:** o navegador seguia com o `index.html` do React em cache heurístico (o nginx dele não mandava `Cache-Control`), e o React usa o GoTrue. Resolve com Ctrl+Shift+R ou "Clear site data" no `dev.tozzo.uk`. O Worker manda `max-age=0, must-revalidate`, então não se repete.
+- **Smoke:** o usuário entrou pelo Solid na dev. O `app-dev.tozzo.uk` foi aposentado.
+- **S8:** passos 1 e 2 feitos; o 3 (apagar o React da raiz e mover o `web/`) fica para depois da S7.
+- **Mobile:** o app RN apontado para a dev parou, porque dependia do Bun e do GoTrue.
