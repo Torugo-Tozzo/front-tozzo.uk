@@ -200,7 +200,14 @@
       "label": "Actions"
     },
     "saveChanges": "Save changes",
-    "payment": "Payment"
+    "payment": "Payment",
+    "dnd": {
+      "keyboardInstructions": "With the keyboard: Space picks up the card, the arrow keys choose the column, Space drops it and Esc cancels.",
+      "picked": "Card picked up.",
+      "over": "Column: {{column}}.",
+      "dropped": "Card moved.",
+      "cancelled": "Move canceled."
+    }
   },
   "auth": {
     "login": "Login",

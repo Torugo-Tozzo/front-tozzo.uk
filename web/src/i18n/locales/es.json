@@ -200,7 +200,14 @@
       "label": "Acciones"
     },
     "saveChanges": "Guardar cambios",
-    "payment": "Pago"
+    "payment": "Pago",
+    "dnd": {
+      "keyboardInstructions": "Con el teclado: Espacio toma la tarjeta, las flechas eligen la columna, Espacio la suelta y Esc cancela.",
+      "picked": "Tarjeta seleccionada.",
+      "over": "Columna: {{column}}.",
+      "dropped": "Tarjeta movida.",
+      "cancelled": "Movimiento cancelado."
+    }
   },
   "auth": {
     "login": "Iniciar sesión",

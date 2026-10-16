@@ -21,6 +21,7 @@
     "@kobalte/core": "^0.13.14",
     "@solidjs/router": "^1.0.0",
     "@tanstack/solid-query": "^5.104.2",
+    "@thisbeyond/solid-dnd": "0.7.5",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "i18next": "26.4.1",

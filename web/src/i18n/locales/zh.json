@@ -200,7 +200,14 @@
       "label": "操作"
     },
     "saveChanges": "保存更改",
-    "payment": "付款"
+    "payment": "付款",
+    "dnd": {
+      "keyboardInstructions": "使用键盘：按空格键拿起卡片，用方向键选择列，再按空格键放下，按 Esc 取消。",
+      "picked": "已选中卡片。",
+      "over": "列：{{column}}。",
+      "dropped": "卡片已移动。",
+      "cancelled": "已取消移动。"
+    }
   },
   "auth": {
     "login": "登录",

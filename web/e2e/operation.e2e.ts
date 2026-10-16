@@ -118,6 +118,8 @@ test.beforeEach(async ({ page }) => {
 })
 
 test('orders: create, edit items and close with a payment method', async ({ page }) => {
+  // Three dialogs in a row: more than the default 30 s on a loaded runner.
+  test.setTimeout(60_000)
   const calls = await ordersBackend(page)
   await openOrders(page)
 

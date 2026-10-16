@@ -27,6 +27,8 @@ const SettingsPage = lazyPage(() => import('@/pages/dashboard/SettingsPage'))
 // S4: operation.
 const OrdersPage = lazyPage(() => import('@/pages/dashboard/OrdersPage'))
 const SalesPage = lazyPage(() => import('@/pages/dashboard/SalesPage'))
+const KitchenPage = lazyPage(() => import('@/pages/dashboard/KitchenPage'))
+const DeliveriesPage = lazyPage(() => import('@/pages/dashboard/DeliveriesPage'))
 
 // solid-sonner (with its CSS) stays out of the initial chunk (plan S2). It
 // loads right after boot, long before the first toast a user can trigger.
@@ -80,8 +82,8 @@ const dashboardRoutes: [path: string, module: NavigationModule, page?: () => JSX
   ['/devices', 'DEVICES', DevicesPage],
   ['/charts', 'REPORTS'],
   ['/settings', 'SETTINGS', SettingsPage],
-  ['/kitchen', 'KITCHEN'],
-  ['/deliveries', 'DELIVERIES'],
+  ['/kitchen', 'KITCHEN', KitchenPage],
+  ['/deliveries', 'DELIVERIES', DeliveriesPage],
 ]
 
 export default function App() {

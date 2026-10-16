@@ -562,8 +562,8 @@ export interface paths {
         options?: never;
         head?: never;
         /**
-         * Assign a driver, start or hold a delivery
-         * @description ASSIGN sets driverId or an external driver (nothing clears it); START sends the order out (confirmReady marks pending items ready); WAIT brings it back. A DRIVER may only START their own orders. expectedUpdatedAt is the updatedAt the client saw: DELIVERY_CONFLICT when the order changed since.
+         * Assign or remove a driver, start or hold a delivery
+         * @description ASSIGN sets driverId or an external driver (nothing clears it); UNASSIGN removes the driver before the delivery starts (DELIVERY_ALREADY_STARTED after) and takes no driver fields nor confirmReady (DELIVERY_ACTION_INVALID); START sends the order out (confirmReady marks pending items ready); WAIT brings it back. A DRIVER may only START their own orders. expectedUpdatedAt is the updatedAt the client saw: DELIVERY_CONFLICT when the order changed since.
          */
         patch: operations["deliveryAction"];
         trace?: never;
@@ -1762,7 +1762,7 @@ export interface components {
             startedAt: string | null;
         };
         DeliveryActionRequest: {
-            /** @description ASSIGN, START or WAIT */
+            /** @description ASSIGN, UNASSIGN, START or WAIT */
             action: string;
             confirmReady?: boolean;
             driverId?: string;

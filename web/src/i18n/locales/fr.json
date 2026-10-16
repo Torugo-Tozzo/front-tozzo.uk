@@ -200,7 +200,14 @@
       "label": "Actions"
     },
     "saveChanges": "Enregistrer les modifications",
-    "payment": "Paiement"
+    "payment": "Paiement",
+    "dnd": {
+      "keyboardInstructions": "Au clavier : Espace prend la carte, les flèches choisissent la colonne, Espace la dépose et Échap annule.",
+      "picked": "Carte sélectionnée.",
+      "over": "Colonne : {{column}}.",
+      "dropped": "Carte déplacée.",
+      "cancelled": "Déplacement annulé."
+    }
   },
   "auth": {
     "login": "Connexion",

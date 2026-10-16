@@ -49,4 +49,13 @@ export const SOLID_SCENARIOS: readonly string[] = [
   'sales-loading',
   'sales-new',
   'sales-details',
+  // S4: operation (kitchen and deliveries)
+  'kitchen',
+  'kitchen-empty',
+  'kitchen-info',
+  'deliveries',
+  'deliveries-empty',
+  'deliveries-assign',
+  'cook-shell',
+  'driver-shell',
 ]

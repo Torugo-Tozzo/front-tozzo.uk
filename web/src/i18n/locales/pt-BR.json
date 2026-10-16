@@ -200,7 +200,14 @@
       "label": "Ações"
     },
     "saveChanges": "Salvar alterações",
-    "payment": "Pagamento"
+    "payment": "Pagamento",
+    "dnd": {
+      "keyboardInstructions": "Pelo teclado: Espaço pega o cartão, as setas escolhem a coluna, Espaço solta e Esc cancela.",
+      "picked": "Cartão selecionado.",
+      "over": "Coluna: {{column}}.",
+      "dropped": "Cartão movido.",
+      "cancelled": "Movimento cancelado."
+    }
   },
   "auth": {
     "login": "Login",

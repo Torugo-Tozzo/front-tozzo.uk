@@ -452,3 +452,31 @@ Revê a nota acima de que a API Bun e o GoTrue permaneciam: a pedido do usuário
 - **Smoke:** o usuário entrou pelo Solid na dev. O `app-dev.tozzo.uk` foi aposentado.
 - **S8:** passos 1 e 2 feitos; o 3 (apagar o React da raiz e mover o `web/`) fica para depois da S7.
 - **Mobile:** o app RN apontado para a dev parou, porque dependia do Bun e do GoTrue.
+
+### S4 — 2026-10-15 e 2026-10-16
+
+**Feito:**
+- **Partes A e B (commit `d04fc4e`):** `PedidosTab`, `VendasTab`, `FiltersBar` e o recibo impresso pelo navegador, no `/v1`. Têm páginas por cursor com a mesma paginação visual, o total do período pelo `summary`, dinheiro em centavos, criação idempotente com id do cliente e `expectedUpdatedAt` na edição do pedido (no conflito, os itens são recarregados).
+- **Parte C:** `/dashboard/kitchen` e `/dashboard/deliveries`, com `src/api/{kitchen,delivery}.ts` e arrastar e soltar por `@thisbeyond/solid-dnd` 0.7.5 (MIT, do mapa de bibliotecas), em `lib/board-dnd.ts`:
+  - **Detecção de alvo:** a mesma do dnd-kit, `closestCenter` filtrado na cozinha e `pointerWithin` para soltar um entregador num pedido aguardando.
+  - **Esc e `pointercancel`** cancelam o arrasto com o ponteiro, o que o sensor do solid-dnd não faz.
+  - **A posição das áreas de soltar é recalculada no `scroll`** durante o arrasto (o solid-dnd só mede no início e no fim).
+  - **Alternativa por teclado:** Espaço pega, as setas escolhem a coluna, Espaço solta e Esc cancela. Há região live e as instruções vêm traduzidas. Os textos `common.dnd.*` nos 6 idiomas têm o ok do usuário (2026-10-16).
+  - **Escritas:** todas mandam `expectedUpdatedAt`. `KITCHEN_CONFLICT` e `DELIVERY_CONFLICT` avisam e recarregam. As entregas usam `ASSIGN`, `UNASSIGN`, `START` (com `confirmReady`) e `WAIT`.
+- **Tempo real:** `order.changed` invalida `orders`, `kitchen` e `delivery`, e o poll de 15 s do React fica como reserva. As colunas percorrem a lista fixa de etapas, então um refetch não remonta os cards nem tira o foco de um card pego pelo teclado.
+
+**Verificado (2026-10-16):**
+- Vitest 352/352 (50 arquivos) no Docker Linux; `i18n:check` e `build` passando.
+- E2E 49/49; `kitchen-delivery.e2e.ts` 11 casos, também com `--repeat-each=3` (33/33).
+- Visual na imagem do Playwright: 362 passando e 4 pulados (o `mobile-menu` fora do celular). Depois das correções, os 48 dos cenários `kitchen*`, `deliveries*`, `cook-shell` e `driver-shell`. Nenhum baseline mudou.
+
+**Correções da revisão (2026-10-16):**
+- Colunas remontando a cada refetch (o foco do card pego pelo teclado se perdia). Ganhou teste Vitest.
+- Scroll durante o arrasto do entregador podia atribuir a um pedido errado.
+- `waitForTimeout` saiu do E2E. As provas de "nada enviado" agora fazem um movimento real depois e conferem que só ele foi enviado; a espera de ativação de 250 ms espera o card levantado.
+
+**Desvios e achados:**
+- Sem autoscroll durante o arrasto (o dnd-kit tinha). O E2E de entregadores usa viewport de 1440×1800.
+- Paridade com o React, não alterado: qualquer erro do `MOVE` da cozinha mostra "a comanda mudou", e o erro ao finalizar uma entrega aparece no alerta da página, atrás do diálogo.
+- No Windows: o Vitest não carrega `@solid-refresh` (roda no Docker), e o shim `node_modules/.bin/playwright` está quebrado (o E2E rodou pelo `cli.js` do `@playwright/test`).
+- **Não rodou:** smoke contra a API da dev e Lighthouse.
