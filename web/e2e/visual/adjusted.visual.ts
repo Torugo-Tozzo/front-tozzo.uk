@@ -67,6 +67,15 @@ const stackedToast = (emptyText: string): Adjusted => ({
 })
 
 const ADJUSTED: Record<string, Adjusted> = {
+  // S6: React StrictMode stacks more duplicate errors; Solid emits one per
+  // failed query (ranking + detail). Compare the rest, like other error pages.
+  'charts-error': {
+    ...stackedToast('Nenhum dado encontrado para os filtros selecionados.'),
+    ready: async (page) => {
+      await expect(page.locator('main').getByText('Nenhum dado encontrado para os filtros selecionados.').first()).toBeVisible({ timeout: 20_000 })
+      await expect(page.locator('[data-sonner-toast]')).toHaveCount(2)
+    },
+  },
   settings: { regions: withoutSecurityCard },
   'settings-free-plan': { regions: withoutSecurityCard },
   'settings-delete-account': { regions: withoutSecurityCard },

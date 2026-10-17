@@ -677,6 +677,7 @@
     "roleLabel": "Cargo"
   },
   "charts": {
+    "others": "Outros",
     "title": "Relatórios",
     "pageTitle": "Relatórios — {{establishment}}",
     "productsSold": "Produtos vendidos",
@@ -724,6 +725,7 @@
     "sales": "Vendas",
     "moreSales": "+{{count}} mais...",
     "report": {
+      "unavailable": "A exportação de relatórios ainda não está disponível.",
       "generateExcel": "Gerar Excel",
       "generatePdf": "Gerar PDF",
       "filename": "relatorio",

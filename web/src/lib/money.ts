@@ -4,9 +4,14 @@ import { formatCurrencyBRL, type LocaleInput } from '@/i18n/format'
 // the only place that turns cents into reais, for display and for the price
 // inputs, so a component never divides by 100.
 
+/** Numeric display units for renderers that plot money and counts on one scale. */
+export function amountFromCents(cents: number): number {
+  return cents / 100
+}
+
 /** Formats integer cents as BRL in the given locale. */
 export function formatCents(cents: number, locale?: LocaleInput): string {
-  return formatCurrencyBRL(cents / 100, locale)
+  return formatCurrencyBRL(amountFromCents(cents), locale)
 }
 
 /**

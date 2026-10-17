@@ -144,6 +144,8 @@ export async function mockV1Api(page: Page, options: V1MockOptions = {}): Promis
 // The React scenarios key their overrides by the Bun path; the same state of
 // the same screen comes from these /v1 paths.
 const V1_PATHS: Record<string, string[]> = {
+  '/graficos': ['/v1/reports/top-products'],
+  '/graficos/lista': ['/v1/reports/products'],
   '/produtos': ['/v1/products'],
   '/tipos': ['/v1/product-types'],
   '/usuarios': ['/v1/users'],

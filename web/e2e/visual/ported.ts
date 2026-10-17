@@ -58,6 +58,10 @@ export const SOLID_SCENARIOS: readonly string[] = [
   'deliveries-assign',
   'cook-shell',
   'driver-shell',
+  // S6: reports (chart areas masked; individual charts reviewed separately).
+  'charts',
+  'charts-hours',
+  'charts-type-menu',
   // S5: services, estimates, execution and schedule.
   'services',
   'services-empty',

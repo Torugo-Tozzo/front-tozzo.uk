@@ -677,6 +677,7 @@
     "roleLabel": "Rôle"
   },
   "charts": {
+    "others": "Autres",
     "title": "Rapports",
     "pageTitle": "Rapports — {{establishment}}",
     "productsSold": "Produits vendus",
@@ -724,6 +725,7 @@
     "sales": "Ventes",
     "moreSales": "+{{count}} de plus...",
     "report": {
+      "unavailable": "L’exportation des rapports n’est pas encore disponible.",
       "generateExcel": "Générer un fichier Excel",
       "generatePdf": "Générer un PDF",
       "filename": "rapport",

@@ -677,6 +677,7 @@
     "roleLabel": "角色"
   },
   "charts": {
+    "others": "其他",
     "title": "报告",
     "pageTitle": "报告 — {{establishment}}",
     "productsSold": "已售产品",
@@ -724,6 +725,7 @@
     "sales": "销售",
     "moreSales": "还有 {{count}} 项...",
     "report": {
+      "unavailable": "报表导出尚不可用。",
       "generateExcel": "生成 Excel",
       "generatePdf": "生成 PDF",
       "filename": "报告",

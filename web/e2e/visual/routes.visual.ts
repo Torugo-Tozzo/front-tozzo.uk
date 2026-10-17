@@ -36,7 +36,7 @@ for (const scenario of ported) {
     expect(mock.unknown, 'API calls the mock does not answer').toEqual([])
     await expect(page).toHaveScreenshot(`${scenario.name}.png`, {
       fullPage: !scenario.viewportOnly,
-      mask: scenario.mask?.(page),
+      mask: scenario.name.startsWith('charts') && scenario.mask ? [page.locator('main [data-report-chart]')] : scenario.mask?.(page),
     })
   })
 }

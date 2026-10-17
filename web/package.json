@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit && vite build",
+    "build": "tsc --noEmit && vite build && node scripts/check-report-chunks.mjs",
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -29,6 +29,7 @@
     "@thisbeyond/solid-dnd": "0.7.5",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "echarts": "6.1.0",
     "i18next": "26.4.1",
     "lucide-solid": "0.344.0",
     "openapi-fetch": "^0.17.0",
@@ -38,6 +39,7 @@
     "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.14.0",
     "@solidjs/testing-library": "^0.8.10",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/user-event": "^14.6.8",

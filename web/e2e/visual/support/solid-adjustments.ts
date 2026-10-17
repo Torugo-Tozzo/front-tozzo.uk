@@ -43,6 +43,17 @@ export const SOLID_ADJUSTMENTS: Record<string, SolidAdjustment> = {
       await expect(page.locator('.fixed.inset-0.backdrop-blur-sm')).toHaveCount(0)
     },
   }])),
+  // The React scenario opens the first combobox (food type); Kobalte exposes a button.
+  'charts-type-menu': {
+    // As in products-types: API order is alphabetical, legacy was id order.
+    overrides: { '/v1/product-types': { status: 200, body: [...canonical.productTypes]
+      .sort((left, right) => left.id.localeCompare(right.id))
+      .map(type => ({ ...type, updatedAt: canonical.establishment.createdAt })) } },
+    act: async (page) => {
+    await expect(page.locator('main tbody tr').first()).toBeVisible()
+    await expect(page.locator('.animate-pulse')).toHaveCount(0)
+    await openSelect(page, /^Tipo de alimento/)
+  } },
   'products-loading': { act: pageSkeleton },
   'employees-loading': { act: pageSkeleton },
   'devices-loading': { act: pageSkeleton },

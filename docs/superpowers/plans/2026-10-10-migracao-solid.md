@@ -512,3 +512,37 @@ Revê a nota acima de que a API Bun e o GoTrue permaneciam: a pedido do usuário
 - Acompanhamento mobile atualizado apenas na documentação: nenhum contrato ou sync mudou por causa da migração do framework; M05/M12 continuam pendentes no app.
 - **Smoke autenticado na API dev não aprovado:** a conta de `.env.e2e.local` respondeu 401 `INVALID_CREDENTIALS`. Nenhum dado comercial foi alterado. A validação funcional acima usa HTTP controlado com a massa canônica.
 - **Sem commit, push ou deploy**, conforme instruções. A publicação/preview, o smoke autenticado e a meta Lighthouse do dashboard continuam pendentes; este registro não declara o fechamento da fase em homologação.
+
+
+### S6 — 2026-10-17 (implementação local verificada)
+
+**Feito:**
+- `/dashboard/charts` lazy, sob a guarda `REPORTS`, com filtros de período/tipo, ranking e totais completos, lista detalhada por cursor/`total`, quatro visualizações e a aba de vendas por hora com navegação diária e detalhes de até cinco vendas no tooltip.
+- Cliente tipado `src/api/reports.ts` sobre `openapi-fetch`, TanStack Query e os contratos Go já existentes. Valores ficam em centavos no domínio; `amountFromCents` converte apenas as unidades plotadas, para receita e quantidade manterem a escala do React. O ranking traz os dez produtos e agrega `others`; os totais vêm da API, nunca só dos itens visíveis.
+- ECharts **6.1.0**, Apache-2.0, com imports modulares de barras, linhas, pizza, grid, legenda, tooltip e SVG. Tema lê `--foreground`, `--muted-foreground`, `--border`, `--card` e a fonte computada; observer acompanha troca de tema. Resize, descarte e resolução tardia do import cobertos por testes. Mesmos hex das séries do React; tooltips `richText`, sem HTML dinâmico da API.
+- Export Excel/PDF: `POST /v1/reports/exports` (`xlsx`/`pdf`, locale, filtros e offset), GET a cada 2 s, sem sobreposição, com prazo absoluto de **120 s**, inclusive POST/GET travados. Bloqueio de duplo envio; cancelamento ao sair; respostas tardias não baixam arquivo. Download direto pelo endereço HTTP(S) da API, sem usar o cliente autenticado; erro, cota, bucket indisponível e URL ausente/inválida recebem mensagens traduzidas.
+- Duas chaves novas nos seis idiomas: `charts.others` e `charts.report.unavailable`. Inventário de traduções aponta os tooltips para o novo construtor de opções. React, tokens, CSS global e baselines permanecem intactos.
+- Acompanhamento mobile atualizado com `sem impacto mobile` adicional: a troca de framework não alterou contratos, banco ou sync. A integração do app com o Go continua separada; nenhum código mobile alterado.
+
+**Revisão e regressões:**
+- Revisão independente encontrou dois P2: escala de receita 100 vezes maior na linha e reapresentação de cache antigo depois de refetch falhado. Ambos corrigidos com testes que falharam antes e passaram depois. Gráfico/totais/tabela/horas deixam de apresentar os dados em cache como atuais após erro.
+- A inspeção das imagens encontrou rótulos da pizza sobrepostos à legenda. O centro vertical reserva espaço para a legenda; Playwright reproduziu a sobreposição e passou após a correção.
+- A análise do build encontrou o helper compartilhado do Rolldown dentro do chunk ECharts, puxado pelo toaster em outras páginas. Um grupo explícito para `echarts`/`zrender` faz o bundler emitir seu runtime separado. `scripts/check-report-chunks.mjs` falhou no build anterior e passa no corrigido; agora faz parte de `bun run build`. A verificação inspeciona os imports estáticos transitivos da entrada, login, toaster e dashboard/pedidos.
+
+**Verificado:**
+- Solid: **463/463 testes Vitest**, 68 arquivos; `i18n:check` e build TypeScript/Vite, incluindo o gate de chunks, aprovados. Nenhum teste pulado nessas rodadas.
+- Chromium: suíte completa **68/68 E2E**; após o ajuste final da pizza e a asserção de ausência de credenciais no download, os **9/9 casos S6** passaram novamente.
+- Visual Linux na imagem oficial do Playwright: **24/24** comparações S6, quatro estados × três tamanhos × dois temas, tolerância 0,002. Nenhum baseline gravado ou atualizado. As áreas de gráfico recebem máscara específica do Solid.
+- `charts-error` segue o padrão de comparação por regiões das outras páginas de erro: exclui a área dos toasts, pois StrictMode no baseline React empilha mais notificações do que as duas consultas Solid. O restante da tela passa nos seis projetos. `charts-type-menu` usa o papel `button` do Kobalte e tipos em ordem de id no mock visual, pela mesma exceção de ordenação documentada em S3; a tela real respeita a ordem da API.
+- axe-core/Playwright **4.14.0**, MPL-2.0, nas duas abas: **zero violações serious/critical**.
+- Build de produção servido localmente com a massa canônica: login e pedidos não solicitam ECharts; as cinco visualizações funcionam nos dois temas, sem erro de página. Dez PNGs isolados em `web/test-results/reports-review/`, ignorados pelo Git, para revisão manual do usuário. As capturas escondem somente o header fixo para ele não cobrir o gráfico durante o scroll.
+
+**Desempenho:**
+- `bun run analyze`, `size` e inspeção do grafo emitido: entrada/imports estáticos **61,9 KB gzip**, com pt-BR **75,5 KB**, dentro da meta inicial de 80 KB. Chunks dos gráficos permanecem fora das rotas anteriores.
+- Dashboard/pedidos com todos os imports compartilhados e pt-BR: **144,6 KB gzip**, aproximadamente 69,1 KB além da entrada/idioma; a meta global de 120 KB permanece pendente, como na S5. Biblioteca ECharts: aproximadamente **190,9 kB gzip** pelo relatório Vite, somente sob demanda em Relatórios; aviso de chunk maior que 500 kB bruto registrado, sem desabilitar o aviso.
+- Lighthouse mobile **13.5.0**, build local com gzip e HTTP controlado: login **96**, dashboard/pedidos **89**. A meta de 90 no dashboard continua não atingida. Relatórios JSON em `web/test-results/performance/s6-lighthouse-*.json`; não substituem medição com CDN/API reais.
+
+**Pendências de homologação:**
+- Smoke autenticado somente de leitura tentou a conta dedicada de `.env.e2e.local`: **401 `INVALID_CREDENTIALS`**. Nenhuma leitura autenticada de relatório ou exportação real foi declarada aprovada; nenhum dado comercial alterado.
+- Revisão manual das imagens dos gráficos pelo usuário ainda pendente; esses PNGs não são baselines aprovados.
+- Commit e push na `dev` autorizados pelo usuário em 2026-10-17, após a implementação local. O push aciona Workers Builds; a publicação deve ser conferida pelo SHA enviado. A autorização de publicação não equivale ao fechamento do smoke autenticado, do aceite manual dos gráficos ou das metas de desempenho.

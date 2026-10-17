@@ -37,6 +37,9 @@ const ServiceExecutionPage = lazyPage(() => import('@/pages/dashboard/ServiceExe
 const ServiceExecutionDetailPage = lazyPage(() => import('@/pages/dashboard/ServiceOrderPage').then((module) => ({ default: () => <module.default mode="execution" /> })))
 const SchedulePage = lazyPage(() => import('@/pages/dashboard/SchedulePage'))
 
+// S6: reports (ECharts loads inside this route).
+const ChartsPage = lazyPage(() => import('@/pages/dashboard/ChartsPage'))
+
 // solid-sonner (with its CSS) stays out of the initial chunk (plan S2). It
 // loads right after boot, long before the first toast a user can trigger.
 const Toaster = lazyPage(() => import('solid-sonner').then((module) => ({ default: module.Toaster })))
@@ -87,7 +90,7 @@ const dashboardRoutes: [path: string, module: NavigationModule, page?: () => JSX
   ['/employees', 'EMPLOYEES', EmployeesPage],
   ['/schedule', 'SCHEDULE', SchedulePage],
   ['/devices', 'DEVICES', DevicesPage],
-  ['/charts', 'REPORTS'],
+  ['/charts', 'REPORTS', ChartsPage],
   ['/settings', 'SETTINGS', SettingsPage],
   ['/kitchen', 'KITCHEN', KitchenPage],
   ['/deliveries', 'DELIVERIES', DeliveriesPage],

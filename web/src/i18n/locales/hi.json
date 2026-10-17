@@ -677,6 +677,7 @@
     "roleLabel": "भूमिका"
   },
   "charts": {
+    "others": "अन्य",
     "title": "रिपोर्ट",
     "pageTitle": "रिपोर्ट — {{establishment}}",
     "productsSold": "बेचे गए उत्पाद",
@@ -724,6 +725,7 @@
     "sales": "बिक्री",
     "moreSales": "+{{count}} और...",
     "report": {
+      "unavailable": "रिपोर्ट निर्यात अभी उपलब्ध नहीं है।",
       "generateExcel": "Excel बनाएँ",
       "generatePdf": "PDF बनाएँ",
       "filename": "रिपोर्ट",
