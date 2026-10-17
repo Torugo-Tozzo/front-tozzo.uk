@@ -480,3 +480,35 @@ Revê a nota acima de que a API Bun e o GoTrue permaneciam: a pedido do usuário
 - Paridade com o React, não alterado: qualquer erro do `MOVE` da cozinha mostra "a comanda mudou", e o erro ao finalizar uma entrega aparece no alerta da página, atrás do diálogo.
 - No Windows: o Vitest não carrega `@solid-refresh` (roda no Docker), e o shim `node_modules/.bin/playwright` está quebrado (o E2E rodou pelo `cli.js` do `@playwright/test`).
 - **Não rodou:** smoke contra a API da dev e Lighthouse.
+
+### S5 — 2026-10-17 (implementação local verificada)
+
+**Feito:**
+- `/dashboard/services`: catálogo com busca, cursor e total; criar, editar e excluir restritos ao OWNER; preço e descrição opcionais; `SERVICE_IN_USE` mostra as referências reais sem perder os dados do formulário.
+- `/dashboard/estimates`, `/dashboard/estimates/:id`, `/dashboard/service-orders` e `/dashboard/service-orders/:id`: criação, detalhes, orçamento de produtos/serviços/avulsos, aceite, início, adicionais e aceite dos adicionais, conclusão em venda, cancelamento, reabertura e exclusão. Valores em centavos, preços históricos e `acceptedQuote` preservados; edição envia `expectedUpdatedAt`.
+- Consultas e mutações em `src/api/{services,service-orders,calendar}.ts`, usando os tipos gerados, openapi-fetch e TanStack Query. Prefixos `services` e `service-orders` continuam compatíveis com o tempo real central. Ações invalidam listas, detalhe e vendas; respostas antigas de GET são canceladas antes e depois da mutação para não sobrescrever uma revisão recém-salva.
+- Agenda, turnos, recorrência semanal, virada de dia, exceções por funcionário, filtro de funcionário, horários especiais e funcionamento portados. FullCalendar **6.1.21**, os mesmos plugins do React, agora pelo núcleo imperativo (sem wrapper React). Licença MIT conferida na origem; instância preservada nos refetches e destruída ao sair.
+- Foco dos campos personalizados preservado com `Index`. Setas decorativas do calendário saem da árvore de acessibilidade, mantendo o nome dos botões e o mesmo visual.
+- Rotas lazy com as guardas existentes. Nenhum token, cor, CSS global ou baseline alterado. O histórico passa pelo i18next nos seis idiomas e mantém os rótulos exatos do React (`CREATE`, `QUOTE` etc.).
+
+**Verificado:**
+- Solid: **435/435 testes Vitest**, 62 arquivos; `i18n:check`, build TypeScript/Vite e `git diff --check` aprovados.
+- React: **321/321 testes**, incluindo os dois novos testes do serializer compartilhado (prazo e enum de ações do Go). Nenhum código React alterado.
+- Chromium: **59/59 E2E** na rodada final, com os 10 novos casos da S5 (catálogo, ciclo completo de orçamento/execução, conflitos, agenda e acessibilidade das setas).
+- Visual Linux na imagem oficial: **150/150** casos S5 aprovados (25 estados × 3 tamanhos × 2 temas), contra o baseline React, tolerância 0,002. Ajuste de 8 px na paginação ficou restrito ao seletor do orçamento; nenhuma referência gravada ou atualizada.
+- axe-core 4.14.0 nas seis rotas principais da S5: **zero violações serious/critical**, em build de produção local com a massa canônica. A auditoria encontrou o `role="img"` sem nome das setas do FullCalendar; teste Playwright falhou antes e passou depois da correção.
+- API dev: `/v1/health` 200. OpenAPI publicado regenerado em arquivo temporário, idêntico ao `web/src/api/schema.d.ts` existente.
+- Revisão independente: corrigidos perda de foco na agenda e conflito entre GET/SSE e mutação de ordens; revisão das correções sem achados concretos restantes. Regressões incluem navegação entre ids durante mutação, resposta antiga antes/durante salvar e recarga com objeto idêntico no cache.
+
+**Desempenho:**
+- `bun run analyze` e `bun run size`: entrada e imports estáticos **61,7 KB gzip**; mais pt-BR **13,6 KB**, aproximadamente **75,4 KB** no total inicial (meta 80 KB).
+- Chunks próprios: catálogo 3,36 kB, lista de ordens 3,49 kB, detalhe/editor 7,31 kB e agenda/FullCalendar **85,61 kB gzip**, somente na rota da agenda.
+- Dashboard + pedidos: **68,7 KB gzip adicionais** à entrada e ao idioma; **144,0 KB** somando todos os imports compartilhados e pt-BR.
+- Lighthouse mobile 13.5.0 em build de produção local, assets gzip e massa canônica: login **97**, dashboard/pedidos **89** em duas medições. **A meta de 90 no dashboard ainda não foi atingida**; a medição local não substitui homologação na CDN/API reais. Relatórios e auditoria axe em `web/test-results/performance/` (artefatos locais, ignorados pelo Git).
+
+**Limites e decisões:**
+- O contrato da agenda não expõe versão otimista; não foram inventados `updatedAt` ou `expectedUpdatedAt`. A criação de ordem também não aceita idempotency key; envio duplicado é bloqueado localmente e a conclusão é idempotente no servidor.
+- `toV1()` agora aplica `dueBefore` e serializa ações do histórico com os enums reais em maiúsculas; o serializer legado e o baseline permanecem intactos.
+- Acompanhamento mobile atualizado apenas na documentação: nenhum contrato ou sync mudou por causa da migração do framework; M05/M12 continuam pendentes no app.
+- **Smoke autenticado na API dev não aprovado:** a conta de `.env.e2e.local` respondeu 401 `INVALID_CREDENTIALS`. Nenhum dado comercial foi alterado. A validação funcional acima usa HTTP controlado com a massa canônica.
+- **Sem commit, push ou deploy**, conforme instruções. A publicação/preview, o smoke autenticado e a meta Lighthouse do dashboard continuam pendentes; este registro não declara o fechamento da fase em homologação.

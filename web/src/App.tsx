@@ -29,6 +29,13 @@ const OrdersPage = lazyPage(() => import('@/pages/dashboard/OrdersPage'))
 const SalesPage = lazyPage(() => import('@/pages/dashboard/SalesPage'))
 const KitchenPage = lazyPage(() => import('@/pages/dashboard/KitchenPage'))
 const DeliveriesPage = lazyPage(() => import('@/pages/dashboard/DeliveriesPage'))
+// S5: services, quotes, execution and schedule.
+const ServicesPage = lazyPage(() => import('@/pages/dashboard/ServicesPage'))
+const EstimatesPage = lazyPage(() => import('@/pages/dashboard/ServiceOrdersList').then((module) => ({ default: () => <module.default stage="estimates" /> })))
+const ServiceOrderPage = lazyPage(() => import('@/pages/dashboard/ServiceOrderPage'))
+const ServiceExecutionPage = lazyPage(() => import('@/pages/dashboard/ServiceExecutionPage'))
+const ServiceExecutionDetailPage = lazyPage(() => import('@/pages/dashboard/ServiceOrderPage').then((module) => ({ default: () => <module.default mode="execution" /> })))
+const SchedulePage = lazyPage(() => import('@/pages/dashboard/SchedulePage'))
 
 // solid-sonner (with its CSS) stays out of the initial chunk (plan S2). It
 // loads right after boot, long before the first toast a user can trigger.
@@ -72,13 +79,13 @@ const dashboardRoutes: [path: string, module: NavigationModule, page?: () => JSX
   ['/orders', 'ORDERS', OrdersPage],
   ['/sales', 'SALES', SalesPage],
   ['/products', 'PRODUCTS', ProductsPage],
-  ['/services', 'SERVICES'],
-  ['/estimates', 'ESTIMATES'],
-  ['/estimates/:id', 'ESTIMATES'],
-  ['/service-orders', 'SERVICE_ORDERS'],
-  ['/service-orders/:id', 'SERVICE_ORDERS'],
+  ['/services', 'SERVICES', ServicesPage],
+  ['/estimates', 'ESTIMATES', EstimatesPage],
+  ['/estimates/:id', 'ESTIMATES', ServiceOrderPage],
+  ['/service-orders', 'SERVICE_ORDERS', ServiceExecutionPage],
+  ['/service-orders/:id', 'SERVICE_ORDERS', ServiceExecutionDetailPage],
   ['/employees', 'EMPLOYEES', EmployeesPage],
-  ['/schedule', 'SCHEDULE'],
+  ['/schedule', 'SCHEDULE', SchedulePage],
   ['/devices', 'DEVICES', DevicesPage],
   ['/charts', 'REPORTS'],
   ['/settings', 'SETTINGS', SettingsPage],

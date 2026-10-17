@@ -214,3 +214,8 @@ export function getErrorTranslationKey(context: ErrorContext, code?: string): Er
   const translation = code ? errorKeyByContext[context]?.[code] : undefined
   return translation ?? fallbackByContext[context]
 }
+
+/** Catalog errors retain the existing services namespace and messages. */
+export function getServiceErrorTranslationKey(context: 'loadServices' | 'saveService' | 'deleteService', code?: string): { namespace: 'services'; key: 'loadError' | 'saveError' | 'inUse' } {
+  return { namespace: 'services', key: context === 'loadServices' ? 'loadError' : context === 'deleteService' && code === 'SERVICE_IN_USE' ? 'inUse' : 'saveError' }
+}

@@ -1140,6 +1140,17 @@
     "cancelOrder": "Annuler l’ordre",
     "reopen": "Rouvrir l’ordre",
     "history": "Historique",
+    "historyActions": {
+      "CREATE": "CREATE",
+      "QUOTE": "QUOTE",
+      "APPROVE": "APPROVE",
+      "START": "START",
+      "COMPLETE": "COMPLETE",
+      "CANCEL": "CANCEL",
+      "REOPEN": "REOPEN",
+      "SUPPLEMENTS": "SUPPLEMENTS",
+      "APPROVE_SUPPLEMENTS": "APPROVE_SUPPLEMENTS"
+    },
     "empty": "Aucun devis pour le moment.",
     "emptyItems": "Ajoutez au moins un produit ou un service.",
     "loadError": "Impossible de charger les ordres de service.",

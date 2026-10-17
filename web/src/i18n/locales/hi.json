@@ -1140,6 +1140,17 @@
     "cancelOrder": "आदेश रद्द करें",
     "reopen": "आदेश फिर खोलें",
     "history": "इतिहास",
+    "historyActions": {
+      "CREATE": "CREATE",
+      "QUOTE": "QUOTE",
+      "APPROVE": "APPROVE",
+      "START": "START",
+      "COMPLETE": "COMPLETE",
+      "CANCEL": "CANCEL",
+      "REOPEN": "REOPEN",
+      "SUPPLEMENTS": "SUPPLEMENTS",
+      "APPROVE_SUPPLEMENTS": "APPROVE_SUPPLEMENTS"
+    },
     "empty": "अभी कोई अनुमान नहीं है।",
     "emptyItems": "कम से कम एक उत्पाद या सेवा जोड़ें।",
     "loadError": "सेवा आदेश लोड नहीं हो सके।",

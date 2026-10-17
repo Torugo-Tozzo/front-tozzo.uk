@@ -1140,6 +1140,17 @@
     "cancelOrder": "取消工单",
     "reopen": "重新打开工单",
     "history": "历史记录",
+    "historyActions": {
+      "CREATE": "CREATE",
+      "QUOTE": "QUOTE",
+      "APPROVE": "APPROVE",
+      "START": "START",
+      "COMPLETE": "COMPLETE",
+      "CANCEL": "CANCEL",
+      "REOPEN": "REOPEN",
+      "SUPPLEMENTS": "SUPPLEMENTS",
+      "APPROVE_SUPPLEMENTS": "APPROVE_SUPPLEMENTS"
+    },
     "empty": "暂无报价。",
     "emptyItems": "请至少添加一个产品或服务。",
     "loadError": "无法加载服务工单。",

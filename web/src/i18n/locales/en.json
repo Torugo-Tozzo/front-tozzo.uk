@@ -1140,6 +1140,17 @@
     "cancelOrder": "Cancel order",
     "reopen": "Reopen order",
     "history": "History",
+    "historyActions": {
+      "CREATE": "CREATE",
+      "QUOTE": "QUOTE",
+      "APPROVE": "APPROVE",
+      "START": "START",
+      "COMPLETE": "COMPLETE",
+      "CANCEL": "CANCEL",
+      "REOPEN": "REOPEN",
+      "SUPPLEMENTS": "SUPPLEMENTS",
+      "APPROVE_SUPPLEMENTS": "APPROVE_SUPPLEMENTS"
+    },
     "empty": "No estimates yet.",
     "emptyItems": "Add at least one product or service.",
     "loadError": "Could not load service orders.",

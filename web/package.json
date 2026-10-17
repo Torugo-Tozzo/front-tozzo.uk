@@ -18,6 +18,11 @@
     "test:e2e": "PLAYWRIGHT_BROWSERS_PATH=0 ../node_modules/.bin/playwright test"
   },
   "dependencies": {
+    "@fullcalendar/core": "6.1.21",
+    "@fullcalendar/daygrid": "6.1.21",
+    "@fullcalendar/interaction": "6.1.21",
+    "@fullcalendar/list": "6.1.21",
+    "@fullcalendar/timegrid": "6.1.21",
     "@kobalte/core": "^0.13.14",
     "@solidjs/router": "^1.0.0",
     "@tanstack/solid-query": "^5.104.2",

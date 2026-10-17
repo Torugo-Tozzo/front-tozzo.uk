@@ -124,7 +124,7 @@ export function toV1(data: CanonicalDataset = defaultDataset, options: V1Options
       acceptedQuote: value.acceptedQuote?.map((item) => line(item, false)) ?? null,
       pendingItems: value.pendingItems.map((item) => line(item, false)),
       sale: linked ? { id: linked.id, totalCents: saleTotalCents(linked), isCancelled: linked.isCancelled } : null,
-      ...(withEvents ? { events: value.events.map(({ action, fromStatus, toStatus, userId, createdAt }) => ({ action, fromStatus, toStatus, userId, createdAt })) } : {}),
+      ...(withEvents ? { events: value.events.map(({ action, fromStatus, toStatus, userId, createdAt }) => ({ action: action.toUpperCase(), fromStatus, toStatus, userId, createdAt })) } : {}),
     }
   }
 
@@ -316,11 +316,13 @@ export function toV1(data: CanonicalDataset = defaultDataset, options: V1Options
       const open = query.get('open')
       const status = query.get('status')
       const search = query.get('search')
+      const dueBefore = query.get('dueBefore')
       const openStatuses = stage === 'estimates' ? ['OPEN', 'QUOTED'] : stage === 'services' ? ['APPROVED', 'IN_PROGRESS'] : ['OPEN', 'QUOTED', 'APPROVED', 'IN_PROGRESS']
       const list = data.serviceOrders
         .filter((item) => stage !== 'services' || item.acceptedQuote)
         .filter((item) => open === null || openStatuses.includes(item.status) === (open === 'true'))
         .filter((item) => !status || item.status === status)
+        .filter((item) => !dueBefore || (!!item.dueAt && Date.parse(item.dueAt) <= Date.parse(dueBefore)))
         .filter((item) => matches(`${item.customerName} ${item.description}`, search))
         .sort((left, right) => right.updatedAt.localeCompare(left.updatedAt))
       const page = cursorPage(list, query, 20)

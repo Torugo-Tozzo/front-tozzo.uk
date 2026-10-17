@@ -30,6 +30,19 @@ const pageSkeleton = async (page: Page) => {
 }
 
 export const SOLID_ADJUSTMENTS: Record<string, SolidAdjustment> = {
+  // The /v1 client retries 5xx. Wait for the final error rather than taking
+  // the screenshot during the quiet interval between attempts.
+  ...Object.fromEntries(['services-error', 'estimates-error', 'service-orders-error'].map((name) => [name, {
+    act: async (page: Page) => { await expect(page.locator('main').getByRole('alert')).toBeVisible() },
+  }])),
+  // S5 lists use their inline loading text; the React scenario's generic
+  // pulse could catch the route overlay before the list itself was mounted.
+  ...Object.fromEntries(['services-loading', 'estimates-loading', 'service-orders-loading'].map((name) => [name, {
+    act: async (page: Page) => {
+      await expect(page.locator('main').getByRole('status')).toBeVisible()
+      await expect(page.locator('.fixed.inset-0.backdrop-blur-sm')).toHaveCount(0)
+    },
+  }])),
   'products-loading': { act: pageSkeleton },
   'employees-loading': { act: pageSkeleton },
   'devices-loading': { act: pageSkeleton },

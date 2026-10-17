@@ -148,6 +148,19 @@ describe('toLegacyApi() and toV1() describe the same data', () => {
     expect(legacyDetail.events).toHaveLength(v1Detail.events.length)
   })
 
+  test('service order mock respects the RFC 3339 deadline filter used by Solid', () => {
+    const deadline = '2026-10-02T23:59:59.999Z'
+    const expected = canonical.serviceOrders
+      .filter((order) => order.dueAt && Date.parse(order.dueAt) <= Date.parse(deadline))
+      .map((order) => order.id).sort()
+    expect(all(v1, '/v1/service-orders', { dueBefore: deadline }).map((order) => order.id).sort()).toEqual(expected)
+  })
+
+  test('service order history uses the Go action enum on the wire', () => {
+    const events = get(v1, '/v1/service-orders/so-005').body.events
+    expect(events.map((event: { action: string }) => event.action)).toEqual(['CREATE', 'QUOTE', 'APPROVE', 'START', 'COMPLETE'])
+  })
+
   test('reports: period totals and top products', () => {
     const range = { from: '2026-09-01T03:00:00.000Z', to: FIXED_NOW }
     const legacyCharts = get(legacy, '/graficos', { dataInicial: range.from, dataFinal: range.to }).body

@@ -150,8 +150,10 @@ const V1_PATHS: Record<string, string[]> = {
   '/dispositivos': ['/v1/devices'],
   '/pedidos': ['/v1/orders'],
   '/vendas': ['/v1/sales'],
+  '/servicos': ['/v1/services'],
+  '/ordens-servico': ['/v1/service-orders'],
 }
-const LIST_PAGES = new Set(['/v1/products', '/v1/users', '/v1/orders', '/v1/sales'])
+const LIST_PAGES = new Set(['/v1/products', '/v1/users', '/v1/orders', '/v1/sales', '/v1/services', '/v1/service-orders'])
 
 /**
  * The overrides of a React scenario (Bun paths) for the /v1 mock. An answer
