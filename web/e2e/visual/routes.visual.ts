@@ -26,6 +26,7 @@ for (const scenario of ported) {
     const mock = await mockV1Api(page, { role: scenario.role, dataset: scenario.mock?.dataset, overrides })
     await page.goto(scenario.path)
     if (scenario.pauseTimers) await page.clock.runFor(1_000)
+    await adjustment?.beforeSettle?.(page)
     if (!scenario.pending) await settle(page)
     await (adjustment?.act ?? scenario.act)?.(page, size)
     if (!scenario.pending) await settle(page)

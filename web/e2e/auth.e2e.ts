@@ -15,18 +15,21 @@ test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => localStorage.setItem('tozzo.locale', 'pt-BR'))
 })
 
-test('opening the site root shows the login form when signed out', async ({ page }) => {
+test('opening the site root shows the public landing when signed out', async ({ page }) => {
   await mockV1Api(page, { role: null })
   await page.goto('/')
+  await expect(page).toHaveURL('/')
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('Gestão inteligente para')
+  await page.getByRole('link', { name: 'Comece a usar' }).click()
   await expect(page).toHaveURL(/\/login$/)
   await expect(page.getByLabel('Email')).toBeVisible()
-  await expect(page.getByRole('button', { name: 'Entrar', exact: true })).toBeVisible()
 })
 
-test('opening the site root restores the session and opens the dashboard', async ({ page }) => {
+test('opening the site root restores the session on the public landing', async ({ page }) => {
   await mockV1Api(page, { role: 'OWNER' })
   await page.goto('/')
-  await expect(page).toHaveURL(/\/dashboard\/orders$/)
+  await expect(page).toHaveURL('/')
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('Gestão inteligente para')
   await expect(page.getByRole('banner').getByText('Victor Tozzo')).toBeVisible()
 })
 

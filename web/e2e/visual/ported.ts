@@ -58,6 +58,14 @@ export const SOLID_SCENARIOS: readonly string[] = [
   'deliveries-assign',
   'cook-shell',
   'driver-shell',
+  // S7: pricing, payment and public pages.
+  'landing',
+  'privacy',
+  'terms',
+  'not-found',
+  'plan',
+  'plan-annual',
+  'payment-success',
   // S6: reports (chart areas masked; individual charts reviewed separately).
   'charts',
   'charts-hours',

@@ -1,11 +1,14 @@
 import { expect, type Page } from '@playwright/test'
-import { canonical } from '../../../../e2e/visual/data/canonical'
+import { canonical, FIXED_NOW } from '../../../../e2e/visual/data/canonical'
+import { toV1 } from '../../../../e2e/visual/data/v1'
 import type { Size } from '../../../../e2e/visual/scenarios'
 import type { V1MockOptions } from './mock-v1'
 
 // Where a React scenario cannot drive the Solid screen as written, for a
 // reason that is not a visual difference. Each entry says why.
 export interface SolidAdjustment {
+  /** Prepares lazy content before settle() waits for every image. */
+  beforeSettle?: (page: Page) => Promise<void>
   /** Replaces the scenario's act. */
   act?: (page: Page, size: Size) => Promise<void>
   /** More /v1 answers on top of the scenario's. */
@@ -29,7 +32,36 @@ const pageSkeleton = async (page: Page) => {
   await page.evaluate(() => document.fonts.ready)
 }
 
+// React's pending profile came from a 402 fallback: it had neither tradeName
+// nor plan (src/contexts/AuthContext.tsx). Go returns both. Compare the same
+// incomplete profile here; functional E2E separately exercises Go's full data.
+const pendingFixture = toV1({ ...canonical, establishment: { ...canonical.establishment, status: 'PENDING_PAYMENT', plan: 'FREE' } })
+const pendingMe = pendingFixture({ method: 'GET', path: '/v1/me', query: new URLSearchParams() })!.body as { establishment: Record<string, unknown> }
+const { plan: _plan, ...pendingEstablishment } = pendingMe.establishment
+const legacyPendingMe = { ...pendingMe, establishment: { ...pendingEstablishment, tradeName: '' } }
+const pendingProfile: SolidAdjustment = { overrides: {
+  '/v1/me': { status: 200, body: legacyPendingMe },
+  '/v1/auth/refresh': { status: 200, body: {
+    accessToken: 'visual-pending-profile',
+    accessTokenExpiresAt: new Date(new Date(FIXED_NOW).getTime() + 15 * 60_000).toISOString(),
+    user: legacyPendingMe,
+  } },
+} }
+
 export const SOLID_ADJUSTMENTS: Record<string, SolidAdjustment> = {
+  // S7 keeps the original photos and layout, but loads offscreen images lazily.
+  // Visit them before the full-page capture, then restore the initial viewport.
+  'landing': { beforeSettle: async (page) => {
+    const photos = page.locator('img[src^="/images/landing/"]')
+    await expect(photos).toHaveCount(9)
+    for (const photo of await photos.all()) {
+      await photo.scrollIntoViewIfNeeded()
+      await expect.poll(() => photo.evaluate(image => (image as HTMLImageElement).complete && (image as HTMLImageElement).naturalWidth > 0)).toBe(true)
+    }
+    await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }))
+  } },
+  'plan': pendingProfile,
+  'plan-annual': pendingProfile,
   // The /v1 client retries 5xx. Wait for the final error rather than taking
   // the screenshot during the quiet interval between attempts.
   ...Object.fromEntries(['services-error', 'estimates-error', 'service-orders-error'].map((name) => [name, {

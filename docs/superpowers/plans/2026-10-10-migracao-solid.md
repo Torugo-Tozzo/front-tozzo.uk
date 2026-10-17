@@ -546,3 +546,38 @@ Revê a nota acima de que a API Bun e o GoTrue permaneciam: a pedido do usuário
 - Smoke autenticado somente de leitura tentou a conta dedicada de `.env.e2e.local`: **401 `INVALID_CREDENTIALS`**. Nenhuma leitura autenticada de relatório ou exportação real foi declarada aprovada; nenhum dado comercial alterado.
 - Revisão manual das imagens dos gráficos pelo usuário ainda pendente; esses PNGs não são baselines aprovados.
 - Commit e push na `dev` autorizados pelo usuário em 2026-10-17, após a implementação local. O push aciona Workers Builds; a publicação deve ser conferida pelo SHA enviado. A autorização de publicação não equivale ao fechamento do smoke autenticado, do aceite manual dos gráficos ou das metas de desempenho.
+
+
+### Registro S7 — 2026-10-17 (implementação local)
+
+**Implementado:** `/plan` e `PricingCards`, `/payment/success`, landing `/`, `/privacidade`, `/termos` e 404 em Solid, com rotas lazy e Navbar/Footer existentes. React preservado; corte S8 não realizado.
+
+- Checkout usa `POST /v1/billing/checkout` tipado pelo schema existente, com `PAID` mensal/anual e `ENTERPRISE` mensal, via TanStack Query/openapi-fetch. Valores de exibição em centavos. Somente OWNER inicia checkout; autorização efetiva continua na API.
+- Sem retry automático de cobrança; bloqueio síncrono de duplo clique, estado de processamento, preservação do intervalo após erro e abort ao sair. Navegação aceita somente HTTPS em `checkout.stripe.com`, sem credenciais na URL; tokens/cookies da API não são enviados ao Stripe.
+- `/payment/cancel` retorna a `/plan`, conforme a URL produzida pela API Go. O retorno de sucesso mantém a saída após três segundos para atualizar o plano no próximo login. `session_id` nunca altera plano localmente. Logout falhado mantém a sessão e oferece tentativa manual com textos existentes dos seis idiomas.
+- As nove fotos originais da landing estão em `web/public/images/landing/`, com proveniência em `SOURCES.md`; mesmos bytes/URLs de origem, sem ampliar CSP. A massa visual continua substituindo as fotos pelo mesmo pixel neutro do baseline React.
+- O baseline de planos representa o fallback React de HTTP 402: perfil sem nome nem plano. A comparação visual injeta esse mesmo perfil incompleto em `solid-adjustments.ts`; a aplicação e os E2E funcionais preservam o perfil completo da API Go. Não se remove informação da tela real para imitar o fallback legado.
+- A revisão identificou ausência de recuperação após falha no logout. Teste de regressão falhou antes da correção e passou depois; há também Playwright com AuthProvider real, primeira resposta 503 e segunda tentativa bem-sucedida.
+- Acompanhamento mobile atualizado por acréscimo: nenhuma mudança de contrato, banco, sync ou implementação Android.
+
+**Verificado:**
+- Solid: **500/500 testes Vitest**, 76 arquivos; `i18n:check` (seis idiomas, 16 namespaces), TypeScript/build e gate de isolamento ECharts aprovados. `bun run analyze` gerou o relatório de chunks. Aviso ECharts >500 kB bruto segue registrado, sem desabilitá-lo.
+- Chromium: os **68 E2E anteriores passaram na rodada completa**. Dois casos novos que acumulavam várias navegações excederam 30 s com seis workers; o trace mostrou carregamentos de 7–11 s por navegação, sem falha de asserção. Esses casos foram separados por fluxo/rota, mantendo as verificações e o timeout. A spec S7 separada passou **19/19**, incluindo três combinações de checkout, ausência de credenciais no destino Stripe, duplo clique, erro/retry, URL insegura, OWNER/MANAGER, plano ativo, cancelamento e saída após pagamento. Essa rodada cobriu 87 casos entre as duas execuções; não houve nova rodada integral depois da separação, que alterou somente a spec S7.
+- axe-core: zero violações serious/critical na landing, privacidade, termos, 404, seleção de plano e retorno de pagamento.
+- Visual Linux na imagem oficial Playwright: **42/42**, sete estados × três tamanhos × dois temas, tolerância 0,002. Baselines preservados.
+- Build local entrega os JPEG originais em `/images/landing/` como `image/jpeg`; imagens 01 e 09 verificadas por HTTP e igualdade de bytes.
+
+**Desempenho:**
+- Entrada/imports estáticos: **62,3 KB gzip**, com pt-BR **75,9 KB**. Landing com suas dependências e pt-BR: **82,3 KB gzip** de JS; ultrapassa 80 KB ao incluir a rota. Dashboard/pedidos com idioma: **145,5 KB gzip**, acima da meta de 120 KB já pendente. Valores excluem CSS e fotos; as nove fotos originais somam aproximadamente 3,7 MiB. Qualidade e dimensões das fotos preservadas; hero prioritário e fotos fora da tela com carregamento sob demanda.
+
+- A primeira medição mobile da landing marcou 69, LCP 13,3 s: as nove fotos eram carregadas juntas, como no React. Hero recebeu prioridade alta e decodificação assíncrona; outras fotos usam lazy loading, preservando bytes, dimensões e layout. Playwright verifica no viewport mobile que nem todas são requisitadas no primeiro carregamento e que as nove carregam ao entrar em vista. Os 19 cenários S7 anteriores passaram novamente; o caso das fotos passou isolado após ajustar o viewport para a condição mobile (a margem de pré-carregamento nativa em desktop inclui todas as fotos).
+- Após essa alteração, os quatro testes de componente da landing, TypeScript/build, gate de chunks e i18n passaram novamente. Visual da landing repetido: **6/6**, sem mudar baseline. O helper visual espera a montagem e percorre as fotos antes de `settle()`, que aguarda todas as imagens; depois restaura o topo para a captura. Os outros 36 casos S7 não foram alterados.
+
+- Lighthouse mobile 13.5.0, build de produção local com gzip, dados canônicos e sem execução simultânea dos testes: landing **69**, LCP **9,8 s** (antes do lazy loading: 13,3 s); login **98**, LCP 2,2 s; pedidos **88**, LCP 3,5 s. Na landing, TBT 30 ms, CLS 0,132 e 2.402 KiB transferidos: hero e quatro fotos próximas ainda entram na margem nativa de pré-carregamento. A meta 90 permanece pendente na landing e em pedidos. Relatórios em `web/test-results/performance/s7-lighthouse-*.json`, ignorados pelo Git; não substituem medição com CDN/API reais.
+
+**Limites e estado da entrega:**
+- Checkout/retorno validados com API e Stripe controlados no Playwright; não foi criada sessão Stripe real nem feita cobrança. Smoke autenticado real não foi aprovado nesta entrega; a conta dedicada já retornava 401 `INVALID_CREDENTIALS` na S6.
+- Validação funcional final S7: **20 casos aprovados**, sendo os 19 fluxos anteriores aprovados após a alteração de carregamento e o novo caso mobile das fotos aprovado isoladamente. Os 68 E2E anteriores passaram antes dessa alteração restrita à landing. Suíte unitária completa 500/500; os quatro casos da landing foram repetidos após a última mudança de produção.
+- Commit e push da S7 para `dev` autorizados pelo usuário em 2026-10-17. Publicação pelo Workers Builds deve ser conferida pelo SHA enviado. Essa autorização não fecha o checkout real nem as metas de desempenho. S8 continua separada.
+
+**Verificação para publicação (2026-10-17):** 500/500 unitários, **88/88 E2E na suíte completa**, TypeScript/build, gate de chunks e i18n aprovados novamente antes do commit/push solicitado. As limitações de cobrança real e desempenho acima permanecem registradas.

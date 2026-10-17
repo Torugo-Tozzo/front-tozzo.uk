@@ -84,6 +84,11 @@ export async function mockV1Api(page: Page, options: V1MockOptions = {}): Promis
     Object.defineProperty(window, 'EventSource', { value: StillEventSource, configurable: true, writable: true })
   })
 
+  // S7 hosts the same landing photos locally; the visual dataset keeps the
+  // neutral image used for the original Unsplash URLs in the React baseline.
+  await page.route(url => url.hostname === 'localhost' && url.pathname.startsWith('/images/landing/'), route =>
+    route.fulfill({ status: 200, contentType: 'image/png', body: NEUTRAL_PIXEL }))
+
   // CORS for the app's own origin (any local port), with the refresh cookie.
   const cors = (route: Route) => ({
     'Access-Control-Allow-Origin': route.request().headers().origin ?? '*',

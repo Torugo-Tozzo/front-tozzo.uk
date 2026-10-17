@@ -40,6 +40,14 @@ const SchedulePage = lazyPage(() => import('@/pages/dashboard/SchedulePage'))
 // S6: reports (ECharts loads inside this route).
 const ChartsPage = lazyPage(() => import('@/pages/dashboard/ChartsPage'))
 
+// S7: public pages and the payment return flow.
+const LandingPage = lazyPage(() => import('@/pages/LandingPage'))
+const PlanSelectionPage = lazyPage(() => import('@/pages/PlanSelectionPage'))
+const PaymentSuccessPage = lazyPage(() => import('@/pages/PaymentSuccessPage'))
+const PrivacyPolicyPage = lazyPage(() => import('@/pages/PrivacyPolicyPage'))
+const TermsOfUsePage = lazyPage(() => import('@/pages/TermsOfUsePage'))
+const NotFoundPage = lazyPage(() => import('@/pages/NotFoundPage'))
+
 // solid-sonner (with its CSS) stays out of the initial chunk (plan S2). It
 // loads right after boot, long before the first toast a user can trigger.
 const Toaster = lazyPage(() => import('solid-sonner').then((module) => ({ default: module.Toaster })))
@@ -69,16 +77,10 @@ function RootLayout(props: RouteSectionProps) {
   )
 }
 
-// The pages arrive phase by phase (plan S2-S7); until then a route renders the
-// shell only. Each one stays behind the same guards as in the React app.
-function NotPortedYet(): JSX.Element {
-  return null
-}
-
-const modulePage = (module: NavigationModule, Page: () => JSX.Element = NotPortedYet) =>
+const modulePage = (module: NavigationModule, Page: () => JSX.Element) =>
   () => <BusinessModuleRoute module={module}><Page /></BusinessModuleRoute>
 
-const dashboardRoutes: [path: string, module: NavigationModule, page?: () => JSX.Element][] = [
+const dashboardRoutes: [path: string, module: NavigationModule, page: () => JSX.Element][] = [
   ['/orders', 'ORDERS', OrdersPage],
   ['/sales', 'SALES', SalesPage],
   ['/products', 'PRODUCTS', ProductsPage],
@@ -99,9 +101,11 @@ const dashboardRoutes: [path: string, module: NavigationModule, page?: () => JSX
 export default function App() {
   return (
     <Router root={RootLayout}>
-      <Route path="/" component={() => <Navigate href="/login" />} />
       {/* Public pages (S2: authentication). */}
       <Route component={MainLayout}>
+        <Route path="/" component={LandingPage} />
+        <Route path="/privacidade" component={PrivacyPolicyPage} />
+        <Route path="/termos" component={TermsOfUsePage} />
         <Route path="/login" component={LoginPage} />
         <Route path="/register" component={() => <LoginPage initialTab="register" />} />
         <Route path="/forgot-password" component={ForgotPasswordPage} />
@@ -111,8 +115,10 @@ export default function App() {
       </Route>
       {/* Authenticated routes that also allow pending payment users (S7). */}
       <Route component={(props: RouteSectionProps) => <ProtectedRoute allowPending>{props.children}</ProtectedRoute>}>
-        <Route path="/plan" component={NotPortedYet} />
-        <Route path="/payment/success" component={NotPortedYet} />
+        <Route path="/plan" component={PlanSelectionPage} />
+        <Route path="/payment/success" component={PaymentSuccessPage} />
+        {/* The Go API returns cancelled Stripe checkouts here. */}
+        <Route path="/payment/cancel" component={() => <Navigate href="/plan" />} />
       </Route>
       {/* Dashboard routes require an active establishment. */}
       <Route component={(props: RouteSectionProps) => <ProtectedRoute>{props.children}</ProtectedRoute>}>
@@ -123,6 +129,7 @@ export default function App() {
       </Route>
       {/* Catalogue of the ui/ primitives (dev only; not in the production build). */}
       {UiShowcasePage && <Route path="/__ui" component={UiShowcasePage} />}
+      <Route path="*404" component={NotFoundPage} />
     </Router>
   )
 }
