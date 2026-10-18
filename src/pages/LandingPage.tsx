@@ -3,6 +3,7 @@ import { A, useNavigate } from "@solidjs/router"
 import { UtensilsCrossed, ChefHat, Beer, Wifi, BarChart3, History, Rocket, Smartphone } from "lucide-solid"
 import { useAuth } from "@/contexts/AuthContext"
 import { useTranslation } from "@/i18n/solid"
+import { LandingImage } from "@/components/LandingImage"
 import { PricingCards } from "@/components/PricingCards"
 
 export default function LandingPage() {
@@ -34,11 +35,14 @@ export default function LandingPage() {
       {/* Hero Section */}
       <section class="relative py-20 md:py-32 overflow-hidden">
           <div class="absolute inset-0 z-0">
-            <img fetchpriority="high" decoding="async"
-              src="/images/landing/01.jpg"
-              alt={t("landing.heroImageAlt")}
-              class="w-full h-full object-cover"
-            />
+            <picture class="contents">
+              <source type="image/webp" media="(max-width: 1440px)" srcset="/images/landing/01-960.webp 960w, /images/landing/01-1440.webp 1440w" sizes="100vw" />
+              <img fetchpriority="high" decoding="async"
+                src="/images/landing/01.jpg"
+                alt={t("landing.heroImageAlt")}
+                class="w-full h-full object-cover"
+              />
+            </picture>
             <div class="absolute inset-0 bg-white/75 dark:bg-background/75 backdrop-blur-[2px]"></div>
           </div>
 
@@ -81,7 +85,7 @@ export default function LandingPage() {
                 </p>
               </div>
               <div class="flex-1">
-                <img loading="lazy" decoding="async"
+                <LandingImage
                   src="/images/landing/02.jpg"
                   alt={t("landing.features.kitchen.imageAlt")}
                   class="rounded-2xl shadow-2xl w-full object-cover h-[400px] hover:scale-105 transition-transform duration-500"
@@ -101,7 +105,7 @@ export default function LandingPage() {
                 </p>
               </div>
               <div class="flex-1">
-                <img loading="lazy" decoding="async"
+                <LandingImage
                   src="/images/landing/03.jpg"
                   alt={t("landing.features.bar.imageAlt")}
                   class="rounded-2xl shadow-2xl w-full object-cover h-[400px] hover:scale-105 transition-transform duration-500"
@@ -121,7 +125,7 @@ export default function LandingPage() {
                 </p>
               </div>
               <div class="flex-1">
-                <img loading="lazy" decoding="async"
+                <LandingImage
                   src="/images/landing/04.jpg"
                   alt={t("landing.features.menu.imageAlt")}
                   class="rounded-2xl shadow-2xl w-full object-cover h-[400px] hover:scale-105 transition-transform duration-500"
@@ -141,7 +145,7 @@ export default function LandingPage() {
                 </p>
               </div>
               <div class="flex-1">
-                <img loading="lazy" decoding="async"
+                <LandingImage
                   src="/images/landing/05.jpg"
                   alt={t("landing.features.orders.imageAlt")}
                   class="rounded-2xl shadow-2xl w-full object-cover h-[400px] hover:scale-105 transition-transform duration-500"
@@ -161,7 +165,7 @@ export default function LandingPage() {
                 </p>
               </div>
               <div class="flex-1">
-                <img loading="lazy" decoding="async"
+                <LandingImage
                   src="/images/landing/06.jpg"
                   alt={t("landing.features.dashboard.imageAlt")}
                   class="rounded-2xl shadow-2xl w-full object-cover h-[400px] hover:scale-105 transition-transform duration-500"
@@ -181,7 +185,7 @@ export default function LandingPage() {
                 </p>
               </div>
               <div class="flex-1">
-                <img loading="lazy" decoding="async"
+                <LandingImage
                   src="/images/landing/07.jpg"
                   alt={t("landing.features.history.imageAlt")}
                   class="rounded-2xl shadow-2xl w-full object-cover h-[400px] hover:scale-105 transition-transform duration-500"
@@ -201,7 +205,7 @@ export default function LandingPage() {
                 </p>
               </div>
               <div class="flex-1">
-                <img loading="lazy" decoding="async"
+                <LandingImage
                   src="/images/landing/08.jpg"
                   alt={t("landing.features.innovation.imageAlt")}
                   class="rounded-2xl shadow-2xl w-full object-cover h-[400px] hover:scale-105 transition-transform duration-500"
@@ -221,7 +225,7 @@ export default function LandingPage() {
                 </p>
               </div>
               <div class="flex-1">
-                <img loading="lazy" decoding="async"
+                <LandingImage
                   src="/images/landing/09.jpg"
                   alt={t("landing.features.apps.imageAlt")}
                   class="rounded-2xl shadow-2xl w-full object-cover h-[400px] hover:scale-105 transition-transform duration-500"

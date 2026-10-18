@@ -12,7 +12,7 @@ it('shows the existing landing, same nine images hosted locally and plan pricing
   renderPage()
   expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Smart management for')
   expect(screen.getAllByRole('img')).toHaveLength(9)
-  expect(screen.getAllByRole('img').every(image => image.getAttribute('src')?.startsWith('/images/landing/'))).toBe(true)
+  expect(screen.getAllByRole('img').every(image => (image.getAttribute('data-landing-src') ?? image.getAttribute('src'))?.startsWith('/images/landing/'))).toBe(true)
   expect(screen.getByText(/14.90/)).toBeVisible()
 })
 it('starts signup from a plan CTA while signed out', async () => {

@@ -291,13 +291,13 @@ export default function DashboardLayout(props: { children?: JSX.Element }) {
         {/* min-h keeps the footer level with the end of the sidebar on short
             pages; on long pages it grows with the content. */}
         <div class="flex-1 flex flex-col w-full min-w-0 min-h-[calc(100vh-4rem)]">
-          <main class="flex-1 p-4 md:p-6">
-            <Suspense fallback={<LoadingOverlay />}>
+          <Suspense fallback={<LoadingOverlay />}>
+            <main class="flex-1 p-4 md:p-6">
               {props.children}
-            </Suspense>
-          </main>
+            </main>
 
-          <Footer />
+            <Footer />
+          </Suspense>
         </div>
       </div>
     </div>

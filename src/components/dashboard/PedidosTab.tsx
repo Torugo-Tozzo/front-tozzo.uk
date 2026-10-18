@@ -1,4 +1,4 @@
-import { batch, createMemo, createSignal, For, Show } from "solid-js"
+import { batch, createMemo, createSignal, For, Show, Suspense } from "solid-js"
 import { createMutation, createQuery, keepPreviousData, useQueryClient } from "@tanstack/solid-query"
 import { Loader2, Pencil, Printer, Trash2 } from "lucide-solid"
 import { toast } from "solid-sonner"
@@ -22,7 +22,7 @@ import {
 import { loadedData, onQueryError } from "@/api/query"
 import { FiltersBar } from "@/components/dashboard/FiltersBar"
 import { Pagination } from "@/components/Pagination"
-import { ProductSelectionModal, type ConfirmedItem, type ProductSelectionModalProps } from "@/components/ProductSelectionModal"
+import type { ConfirmedItem, ProductSelectionModalProps } from "@/components/ProductSelectionModal"
 import { printReceipt } from "@/components/receipt/printReceipt"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { IconButton } from "@/components/ui/icon-button"
@@ -37,6 +37,9 @@ import { useTranslation } from "@/i18n/solid"
 import { createCursorPages, totalPagesOf } from "@/lib/cursor-pages"
 import { createMinLoading } from "@/lib/min-loading"
 import { centsFromInput, formatCents } from "@/lib/money"
+import { lazyPage } from "@/lib/lazy-page"
+
+const ProductSelectionModal = lazyPage(() => import("@/components/ProductSelectionModal").then(module => ({ default: module.ProductSelectionModal })))
 
 type OrderFilters = {
   customerName: string
@@ -79,6 +82,7 @@ export function PedidosTab() {
   const [isSearching, setIsSearching] = createSignal(false)
 
   const [isModalOpen, setIsModalOpen] = createSignal(false)
+  const [editorUsed, setEditorUsed] = createSignal(false)
   const [currentOrder, setCurrentOrder] = createSignal<Order | null>(null)
   const [currentOrderItems, setCurrentOrderItems] = createSignal<InitialItems>([])
   const [openingOrderId, setOpeningOrderId] = createSignal<string | null>(null)
@@ -216,6 +220,7 @@ export function PedidosTab() {
   }))
 
   const handleOpenCreateModal = () => {
+    setEditorUsed(true)
     draftOrderId = crypto.randomUUID()
     draftFirstBody = null
     setCurrentOrder(null)
@@ -291,6 +296,7 @@ export function PedidosTab() {
     setOpeningOrderId(order.id)
     try {
       loadEditor(await readOrder(order.id))
+      setEditorUsed(true)
       setIsModalOpen(true)
     } catch (error) {
       console.error("Error fetching order details", error)
@@ -358,20 +364,24 @@ export function PedidosTab() {
         isLoading={isLoading()}
       />
 
-      <ProductSelectionModal
-        allowDelivery
-        isOpen={isModalOpen()}
-        onClose={() => setIsModalOpen(false)}
-        onConfirm={handleModalConfirm}
-        title={currentOrder() ? tOrders("edit") : tOrders("new")}
-        initialClientName={currentOrder()?.customerName || ""}
-        initialDelivery={{ isDelivery: currentOrder()?.isDelivery ?? false, deliveryAddress: currentOrder()?.deliveryAddress ?? null }}
-        initialItems={currentOrderItems()}
-        isEditing={!!currentOrder()}
-        resetKey={editorReload()}
-        onCloseOrder={closeOrderHandler()}
-        onChangeItemStatus={itemStatusHandler()}
-      />
+      <Show when={editorUsed()}>
+        <Suspense>
+          <ProductSelectionModal
+            allowDelivery
+            isOpen={isModalOpen()}
+            onClose={() => setIsModalOpen(false)}
+            onConfirm={handleModalConfirm}
+            title={currentOrder() ? tOrders("edit") : tOrders("new")}
+            initialClientName={currentOrder()?.customerName || ""}
+            initialDelivery={{ isDelivery: currentOrder()?.isDelivery ?? false, deliveryAddress: currentOrder()?.deliveryAddress ?? null }}
+            initialItems={currentOrderItems()}
+            isEditing={!!currentOrder()}
+            resetKey={editorReload()}
+            onCloseOrder={closeOrderHandler()}
+            onChangeItemStatus={itemStatusHandler()}
+          />
+        </Suspense>
+      </Show>
 
       <Card>
         <CardHeader>

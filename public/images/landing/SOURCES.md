@@ -1,5 +1,7 @@
 # Fotos da landing
 
+Variantes responsivas `01-960.webp` (960×640) e `01-1440.webp` (1440×960), derivadas exclusivamente do `01.jpg` original, em 2026-10-18. Geradas com `node scripts/generate-landing-hero.mjs`, usando o Chromium do Playwright fixado no projeto, canvas com interpolação de alta qualidade e WebP 0,95. Os JPEGs originais não são sobrescritos; `01.jpg` continua como fallback. O script é opcional e não roda no build.
+
 Mesmas imagens e parâmetros das URLs da landing React, copiadas em 2026-10-17 para manter a CSP com `img-src self`, sem liberar outro host.
 
 - `01.jpg`: https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=2070&auto=format&fit=crop

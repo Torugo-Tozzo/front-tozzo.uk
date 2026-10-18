@@ -17,7 +17,7 @@ describe('FiltersBar', () => {
     await i18n.changeLanguage('en')
   })
 
-  it('renders translated filter chrome and placeholders', () => {
+  it('renders translated filter chrome and placeholders', async () => {
     renderBar({
       dateRange: dateRange(),
       status: { value: 'REQUESTED', onChange: vi.fn(), options: [{ value: 'REQUESTED', label: 'Requested' }] },
@@ -33,7 +33,7 @@ describe('FiltersBar', () => {
     expect(screen.getByLabelText('End date')).toBeInTheDocument()
     expect(screen.getByLabelText('End time')).toBeInTheDocument()
     // Kobalte names the trigger by its label and its value.
-    expect(screen.getByRole('button', { name: /^Status/ })).toHaveTextContent('Requested')
+    expect(await screen.findByRole('button', { name: /^Status/ })).toHaveTextContent('Requested')
     expect(screen.getByLabelText('Customer / Table')).toHaveAttribute('placeholder', 'Search customer/table...')
     expect(screen.getByLabelText('Created by')).toHaveAttribute('placeholder', 'Search employee...')
     expect(screen.getByLabelText('Minimum total')).toBeInTheDocument()
@@ -87,12 +87,13 @@ describe('FiltersBar', () => {
     expect(screen.getByRole('button', { name: /search/i })).toBeDisabled()
   })
 
-  it('renders the date range before the status field', () => {
+  it('renders the date range before the status field', async () => {
     renderBar({
       status: { value: 'REQUESTED', onChange: vi.fn(), options: [{ value: 'REQUESTED', label: 'Requested' }] },
       dateRange: dateRange(),
       onFilter: vi.fn(),
     })
+    await screen.findByRole('button', { name: /^Status/ })
     const labels = screen.getAllByText(/^(Start date|Start time|End date|End time|Status)$/)
     expect(labels.map((label) => label.textContent)).toEqual(['Start date', 'Start time', 'End date', 'End time', 'Status'])
   })
@@ -124,7 +125,7 @@ describe('FiltersBar', () => {
       status: { value: 'OPEN', onChange, options: [{ value: 'OPEN', label: 'Open' }, { value: 'CLOSED', label: 'Closed' }] },
       onFilter: vi.fn(),
     })
-    await user.click(screen.getByRole('button', { name: /^Status/ }))
+    await user.click(await screen.findByRole('button', { name: /^Status/ }))
     await user.click(await screen.findByRole('option', { name: 'Closed' }))
     expect(onChange).toHaveBeenCalledWith('CLOSED')
   })

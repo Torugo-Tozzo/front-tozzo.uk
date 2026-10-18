@@ -33,6 +33,7 @@ O código React foi retirado da árvore da S8. O [plano da migração](docs/supe
 - Vite, `vite-plugin-solid`, TypeScript estrito, alias `@/`, Tailwind 3.4. Tokens e layout preservam a referência visual aprovada.
 - `@solidjs/router` e `lazyPage()`: um chunk que dá 404 após deploy recarrega a página uma vez.
 - TanStack Solid Query e openapi-fetch; tipos gerados por `bun run api:types` do `/v1/openapi.yaml`.
+- `QueryLayout` carrega um único cache compartilhado nas rotas de autenticação e dados; landing e páginas legais não baixam TanStack Query. Editor de pedidos e seletor de tamanho da página carregam no primeiro uso, mantendo as primitivas e o tratamento de chunk obsoleto.
 - Access token só em memória. Refresh por cookie em `POST /v1/auth/refresh`, com `credentials: 'include'`; um refresh single-flight após `401 INVALID_TOKEN`.
 - `src/realtime.ts` obtém ticket, abre EventSource, reconecta com backoff e ticket novo e invalida queries. Componentes não abrem conexões próprias.
 - Kobalte com classes e variantes preservadas; i18next com seis idiomas, cada idioma em chunk próprio. Erros traduzidos pelo `code` em `error-keys.ts`.
@@ -43,7 +44,7 @@ O código React foi retirado da árvore da S8. O [plano da migração](docs/supe
 
 Workers serve somente `dist/`, sem SSR, com `not_found_handling: single-page-application`. Configuração de build na raiz; variáveis públicas entram no bundle. HTML revalidado, assets com hash e cache imutável. CSP e headers em [SECURITY.md](SECURITY.md).
 
-A publicação da S8 precisa da mudança do diretório de build de `web/` para a raiz no painel, coordenada com o push; até sua conferência, o corte publicado não está concluído.
+A S8 foi publicada na `dev` pelo commit `301f251`, com diretório de build vazio (raiz) no painel e CI/Worker/HTTP conferidos. Mudanças posteriores continuam exigindo publicação autorizada e conferência pelo SHA.
 
 ## Metas de desempenho
 

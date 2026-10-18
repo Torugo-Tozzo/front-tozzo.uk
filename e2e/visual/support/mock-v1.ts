@@ -5,6 +5,9 @@ import { problem, toV1 } from '../data/v1'
 import type { MockHandle, MockOptions, Override } from '../support/mock-api'
 
 const NEUTRAL_PIXEL = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4nGNYsGABAAPEAeGUtBWxAAAAAElFTkSuQmCC', 'base64')
+// Same RGB(160,160,160), expanded to 4×4: a 1px source rounds to zero
+// naturalWidth after the responsive hero's width-descriptor density correction.
+const NEUTRAL_RESPONSIVE_PIXEL = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAIAAAAmkwkpAAAAD0lEQVR4nGNYgAQYiOMAAAxhHgHKQL3NAAAAAElFTkSuQmCC', 'base64')
 
 export interface V1MockOptions extends Omit<MockOptions, 'overrides'> {
   /** Keyed by the /v1 path, e.g. `/v1/orders`. */
@@ -87,7 +90,7 @@ export async function mockV1Api(page: Page, options: V1MockOptions = {}): Promis
   // S7 hosts the same landing photos locally; the visual dataset keeps the
   // neutral image used for the original Unsplash URLs in the React baseline.
   await page.route(url => url.hostname === 'localhost' && url.pathname.startsWith('/images/landing/'), route =>
-    route.fulfill({ status: 200, contentType: 'image/png', body: NEUTRAL_PIXEL }))
+    route.fulfill({ status: 200, contentType: 'image/png', body: route.request().url().endsWith('.webp') ? NEUTRAL_RESPONSIVE_PIXEL : NEUTRAL_PIXEL }))
 
   // CORS for the app's own origin (any local port), with the refresh cookie.
   const cors = (route: Route) => ({

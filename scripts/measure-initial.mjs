@@ -1,7 +1,7 @@
 // Gzip size of the JS a route needs before it renders: the entry chunk plus
 // every chunk it imports statically (what index.html modulepreloads), and,
 // optionally, the lazy chunks named on the command line with their own static
-// imports (e.g. `node scripts/measure-initial.mjs LoginPage MainLayout pt-BR`).
+// imports (e.g. `node scripts/measure-initial.mjs LoginPage QueryLayout pt-BR`).
 // Run after `bun run build`.
 import { readdirSync, readFileSync } from 'node:fs'
 import path from 'node:path'

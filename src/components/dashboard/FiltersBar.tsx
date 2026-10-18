@@ -5,9 +5,12 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { lazyPage } from "@/lib/lazy-page"
+
 import { useTranslation } from "@/i18n/solid"
 import { centsFromInput, inputFromCents } from "@/lib/money"
+
+const StatusFilter = lazyPage(() => import("./StatusFilter"))
 
 export interface DateRangeFilterProps {
   startDate: string
@@ -62,7 +65,6 @@ export interface FiltersBarProps {
 // new line. On mobile they stack (w-full) up to the sm breakpoint.
 const WIDTH_DATE = "w-full sm:w-[170px]"
 const WIDTH_TIME = "w-full sm:w-[130px]"
-const WIDTH_SELECT = "w-full sm:w-[190px]"
 const WIDTH_TEXT = "w-full sm:w-[220px]"
 const WIDTH_MONEY = "w-full sm:w-[140px]"
 
@@ -81,8 +83,6 @@ export function FiltersBar(props: FiltersBarProps) {
   // Collapsed by default only matters on mobile (below sm): the toggle shows
   // only there (sm:hidden), and larger screens always show the panel (sm:block).
   const [isExpanded, setIsExpanded] = createSignal(false)
-
-  const statusLabel = (value: string) => props.status?.options.find((option) => option.value === value)?.label ?? ""
 
   return (
     <Card>
@@ -128,23 +128,7 @@ export function FiltersBar(props: FiltersBarProps) {
           </Show>
 
           <Show when={props.status}>
-            {(status) => (
-              <div class={`space-y-2 ${WIDTH_SELECT}`}>
-                <Label for="filter-status">{tCommon("status")}</Label>
-                <Select<string>
-                  options={status().options.map((option) => option.value)}
-                  value={status().value}
-                  onChange={(value) => { if (value) status().onChange(value) }}
-                  placeholder={status().placeholder ?? tCommon("status")}
-                  itemComponent={(item) => <SelectItem item={item.item}>{statusLabel(item.item.rawValue)}</SelectItem>}
-                >
-                  <SelectTrigger id="filter-status" aria-label={tCommon("status")}>
-                    <SelectValue<string>>{(state) => statusLabel(state.selectedOption())}</SelectValue>
-                  </SelectTrigger>
-                  <SelectContent />
-                </Select>
-              </div>
-            )}
+            {status => <StatusFilter status={status()} />}
           </Show>
 
           <Show when={props.customerName}>

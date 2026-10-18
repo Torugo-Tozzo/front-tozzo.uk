@@ -3,6 +3,7 @@ import { Select as SelectPrimitive } from "@kobalte/core/select"
 import { Check, ChevronDown } from "lucide-solid"
 
 import { cn } from "@/lib/utils"
+import { SELECT_TRIGGER_CLASS } from './select-trigger-class'
 
 // Kobalte's Select takes the options up front and renders each one through
 // `itemComponent` (usually a <SelectItem item={props.item}>), instead of
@@ -23,7 +24,7 @@ function SelectTrigger(props: ComponentProps<typeof SelectPrimitive.Trigger<"but
   return (
     <SelectPrimitive.Trigger
       class={cn(
-        "flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",
+        SELECT_TRIGGER_CLASS,
         local.class
       )}
       {...others}

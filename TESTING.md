@@ -93,5 +93,7 @@ O render varia por sistema: o aceite visual usa Linux na imagem oficial. `bun ru
 
 - axe-core/Playwright nas rotas principais: zero violações serious/critical.
 - `bun run analyze` gera `dist/stats.html`; `bun run size` mede JS inicial. Metas em [ARCHITECTURE.md](ARCHITECTURE.md#metas-de-desempenho), resultados/pendências no plano da migração. Mudança de pasta não comprova melhoria de Lighthouse.
+- Após o build, conte também os layouts lazy e o idioma: `bun scripts/measure-initial.mjs LandingPage pt-BR`, `bun scripts/measure-initial.mjs LoginPage QueryLayout pt-BR` e `bun scripts/measure-initial.mjs OrdersPage DashboardLayout QueryLayout pt-BR`. Sem `QueryLayout`, a contagem das rotas de dados fica incompleta.
+- `e2e/performance.e2e.ts` verifica rede inicial, chunks sob demanda, foco/teclado em download lento e rodapé durante o carregamento. Usa caminhos de módulos do Vite, portanto rode com o servidor dev padrão. Lighthouse usa build de produção com gzip, massa/idioma/ambiente equivalentes e sem testes concorrentes; não confundir os dois tipos de medição.
 - `bun run browse open http://localhost:5175 --headed`, `bun run browse snapshot`, `bun run browse screenshot`, `bun run browse close`: exploração com Playwright CLI. Artefatos em pastas ignoradas; exploração não substitui testes.
 - CI instala com lockfile congelado e roda unitários, i18n, build e E2E na raiz. O visual Linux é uma verificação separada; não declarar que rodou no CI sem evidência.

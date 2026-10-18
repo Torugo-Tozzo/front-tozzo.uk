@@ -1,8 +1,5 @@
 import { Show, Suspense, type JSX } from 'solid-js'
 import { Navigate, Route, Router, useIsRouting, type RouteSectionProps } from '@solidjs/router'
-import { QueryClientProvider } from '@tanstack/solid-query'
-
-import { createAppQueryClient } from '@/api/query'
 import { BusinessModuleRoute, DashboardHome } from '@/components/BusinessModuleRoute'
 import { LoadingOverlay } from '@/components/LoadingOverlay'
 import ProtectedRoute from '@/components/ProtectedRoute'
@@ -12,7 +9,7 @@ import type { NavigationModule } from '@/domain/businessPreferences'
 import MainLayout from '@/layouts/MainLayout'
 import { lazyPage } from '@/lib/lazy-page'
 
-const queryClient = createAppQueryClient()
+const QueryLayout = lazyPage(() => import('@/layouts/QueryLayout'))
 const DashboardLayout = lazyPage(() => import('@/layouts/DashboardLayout'))
 const LoginPage = lazyPage(() => import('@/pages/LoginPage'))
 const ForgotPasswordPage = lazyPage(() => import('@/pages/ForgotPasswordPage'))
@@ -59,21 +56,19 @@ function RootLayout(props: RouteSectionProps) {
   const isRouting = useIsRouting()
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <ConfirmProvider>
-          <Suspense>
-            <Toaster position="top-right" richColors closeButton />
-          </Suspense>
-          <Show when={isRouting()}>
-            <LoadingOverlay />
-          </Show>
-          <Suspense fallback={<LoadingOverlay />}>
-            {props.children}
-          </Suspense>
-        </ConfirmProvider>
-      </AuthProvider>
-    </QueryClientProvider>
+    <AuthProvider>
+      <ConfirmProvider>
+        <Suspense>
+          <Toaster position="top-right" richColors closeButton />
+        </Suspense>
+        <Show when={isRouting()}>
+          <LoadingOverlay />
+        </Show>
+        <Suspense fallback={<LoadingOverlay />}>
+          {props.children}
+        </Suspense>
+      </ConfirmProvider>
+    </AuthProvider>
   )
 }
 
@@ -106,25 +101,29 @@ export default function App() {
         <Route path="/" component={LandingPage} />
         <Route path="/privacidade" component={PrivacyPolicyPage} />
         <Route path="/termos" component={TermsOfUsePage} />
-        <Route path="/login" component={LoginPage} />
-        <Route path="/register" component={() => <LoginPage initialTab="register" />} />
-        <Route path="/forgot-password" component={ForgotPasswordPage} />
-        <Route path="/reset-password" component={ResetPasswordPage} />
-        <Route path="/verify-email" component={VerifyEmailPage} />
-        <Route path="/confirm-email" component={ConfirmEmailPage} />
+        <Route component={QueryLayout}>
+          <Route path="/login" component={LoginPage} />
+          <Route path="/register" component={() => <LoginPage initialTab="register" />} />
+          <Route path="/forgot-password" component={ForgotPasswordPage} />
+          <Route path="/reset-password" component={ResetPasswordPage} />
+          <Route path="/verify-email" component={VerifyEmailPage} />
+          <Route path="/confirm-email" component={ConfirmEmailPage} />
+        </Route>
       </Route>
-      {/* Authenticated routes that also allow pending payment users (S7). */}
-      <Route component={(props: RouteSectionProps) => <ProtectedRoute allowPending>{props.children}</ProtectedRoute>}>
-        <Route path="/plan" component={PlanSelectionPage} />
-        <Route path="/payment/success" component={PaymentSuccessPage} />
-        {/* The Go API returns cancelled Stripe checkouts here. */}
-        <Route path="/payment/cancel" component={() => <Navigate href="/plan" />} />
-      </Route>
-      {/* Dashboard routes require an active establishment. */}
-      <Route component={(props: RouteSectionProps) => <ProtectedRoute>{props.children}</ProtectedRoute>}>
-        <Route path="/dashboard" component={DashboardLayout}>
-          <Route path="/" component={DashboardHome} />
-          {dashboardRoutes.map(([path, module, page]) => <Route path={path} component={modulePage(module, page)} />)}
+      <Route component={QueryLayout}>
+        {/* Authenticated routes that also allow pending payment users (S7). */}
+        <Route component={(props: RouteSectionProps) => <ProtectedRoute allowPending>{props.children}</ProtectedRoute>}>
+          <Route path="/plan" component={PlanSelectionPage} />
+          <Route path="/payment/success" component={PaymentSuccessPage} />
+          {/* The Go API returns cancelled Stripe checkouts here. */}
+          <Route path="/payment/cancel" component={() => <Navigate href="/plan" />} />
+        </Route>
+        {/* Dashboard routes require an active establishment. */}
+        <Route component={(props: RouteSectionProps) => <ProtectedRoute>{props.children}</ProtectedRoute>}>
+          <Route path="/dashboard" component={DashboardLayout}>
+            <Route path="/" component={DashboardHome} />
+            {dashboardRoutes.map(([path, module, page]) => <Route path={path} component={modulePage(module, page)} />)}
+          </Route>
         </Route>
       </Route>
       {/* Catalogue of the ui/ primitives (dev only; not in the production build). */}

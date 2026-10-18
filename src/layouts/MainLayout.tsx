@@ -8,12 +8,12 @@ export default function MainLayout(props: { children?: JSX.Element }) {
   return (
     <div class="min-h-screen flex flex-col">
       <Navbar />
-      <main class="flex-1">
-        <Suspense fallback={<LoadingOverlay />}>
+      <Suspense fallback={<LoadingOverlay />}>
+        <main class="flex-1">
           {props.children}
-        </Suspense>
-      </main>
-      <Footer />
+        </main>
+        <Footer />
+      </Suspense>
     </div>
   )
 }

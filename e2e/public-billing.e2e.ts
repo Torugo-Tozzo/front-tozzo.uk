@@ -142,13 +142,13 @@ test('public: landing loads its first photo immediately and the remaining photos
   const requested = new Set<string>()
   page.on('request', request => { if (request.url().includes('/images/landing/')) requested.add(request.url()) })
   await page.goto('/')
-  const photos = page.locator('img[src^="/images/landing/"]')
+  const photos = page.locator('img[src^="/images/landing/"], img[data-landing-src]')
   await expect(photos).toHaveCount(9)
-  await expect.poll(() => photos.first().evaluate(image => (image as HTMLImageElement).complete && (image as HTMLImageElement).naturalWidth > 0)).toBe(true)
+  await expect.poll(() => photos.first().evaluate(image => (!image.hasAttribute("data-landing-src") || image.getAttribute("src") === image.getAttribute("data-landing-src")) && (image as HTMLImageElement).complete && (image as HTMLImageElement).naturalWidth > 0)).toBe(true)
   expect(requested.size).toBeLessThan(9)
   for (const photo of await photos.all()) {
     await photo.scrollIntoViewIfNeeded()
-    await expect.poll(() => photo.evaluate(image => (image as HTMLImageElement).complete && (image as HTMLImageElement).naturalWidth > 0)).toBe(true)
+    await expect.poll(() => photo.evaluate(image => (!image.hasAttribute("data-landing-src") || image.getAttribute("src") === image.getAttribute("data-landing-src")) && (image as HTMLImageElement).complete && (image as HTMLImageElement).naturalWidth > 0)).toBe(true)
   }
   expect(requested.size).toBe(9)
 })

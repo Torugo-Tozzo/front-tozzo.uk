@@ -52,11 +52,11 @@ export const SOLID_ADJUSTMENTS: Record<string, SolidAdjustment> = {
   // S7 keeps the original photos and layout, but loads offscreen images lazily.
   // Visit them before the full-page capture, then restore the initial viewport.
   'landing': { beforeSettle: async (page) => {
-    const photos = page.locator('img[src^="/images/landing/"]')
+    const photos = page.locator('img[src^="/images/landing/"], img[data-landing-src]')
     await expect(photos).toHaveCount(9)
     for (const photo of await photos.all()) {
       await photo.scrollIntoViewIfNeeded()
-      await expect.poll(() => photo.evaluate(image => (image as HTMLImageElement).complete && (image as HTMLImageElement).naturalWidth > 0)).toBe(true)
+      await expect.poll(() => photo.evaluate(image => (!image.hasAttribute("data-landing-src") || image.getAttribute("src") === image.getAttribute("data-landing-src")) && (image as HTMLImageElement).complete && (image as HTMLImageElement).naturalWidth > 0)).toBe(true)
     }
     await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }))
   } },
