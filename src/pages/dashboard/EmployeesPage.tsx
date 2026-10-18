@@ -1,232 +1,95 @@
-import { useState, useEffect } from "react"
-import { useNavigate } from "react-router-dom"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { createSignal, For, Show } from "solid-js"
+import { useNavigate } from "@solidjs/router"
+import { createMutation, createQuery, keepPreviousData, useQueryClient } from "@tanstack/solid-query"
+import { loadedData, onQueryError } from "@/api/query"
+import { Loader2, Pencil, Plus, Search, Trash2, Users } from "lucide-solid"
+import { toast } from "solid-sonner"
+
+import { isPlanUpgradeRequired } from "@/api/errors"
+import { createUser, deleteUser, listUsers, updateUser, userKeys, type Member, type UpdateUserRequest } from "@/api/users"
+import { PaywallBanner } from "@/components/dashboard/PaywallBanner"
+import { Pagination } from "@/components/Pagination"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Plus, Pencil, Trash2, Users, Loader2, Search } from "lucide-react"
-import api, { getErrorCode } from "@/services/api"
-import { parseListResponse } from "@/services/parseResponse"
-import { toast } from "sonner"
-import { Pagination } from "@/components/Pagination"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useAuth } from "@/contexts/AuthContext"
 import { useConfirm } from "@/contexts/ConfirmContext"
-import { useMinLoadingDuration } from "@/hooks/useMinLoadingDuration"
-import { useTranslation } from "react-i18next"
-import { getErrorTranslationKey, type ErrorContext } from "@/i18n/error-keys"
+import type { Role } from "@/domain/user"
+import { useErrorMessage } from "@/i18n/error-message"
 import { formatNumber, formatPageIndex } from "@/i18n/format"
-import type { UserRole } from "@/domain/models"
-import { PaywallBanner, type PaywallCode } from "@/components/dashboard/PaywallBanner"
+import { useTranslation } from "@/i18n/solid"
+import { createCursorPages, totalPagesOf } from "@/lib/cursor-pages"
+import { createDebounced, createMinLoading } from "@/lib/min-loading"
 
-type Employee = {
-  id: number | string
-  name: string
-  email: string
-  role: UserRole
-}
+const MANAGED_BY_MANAGER: readonly Role[] = ["EMPLOYEE", "COOK", "DRIVER", "CUSTOMER"]
 
 export default function EmployeesPage() {
   const navigate = useNavigate()
   const { user } = useAuth()
   const confirm = useConfirm()
-  const { i18n } = useTranslation()
-  const { t: tAuth } = useTranslation("auth")
-  const { t } = useTranslation("employees")
+  const queryClient = useQueryClient()
+  const { t, language } = useTranslation("employees")
   const { t: tCommon } = useTranslation("common")
-  const { t: tErrors } = useTranslation("errors")
-  const localizedError = (context: ErrorContext, error: unknown) => {
-    const translation = getErrorTranslationKey(context, getErrorCode(error))
-    return translation.namespace === "auth"
-      ? tAuth(translation.key)
-      : tErrors(translation.key)
-  }
-  const [employees, setEmployees] = useState<Employee[]>([])
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
-  const [currentEmployee, setCurrentEmployee] = useState<Employee | null>(null)
+  const localizedError = useErrorMessage()
 
-  // isFetching = so a listagem (efeito de page/limit/search). isSaving = so
-  // os dialogs de criar/editar. deletingId = so a linha sendo excluida.
-  // Mesmo padrao usado em ProductsPage - antes um unico isLoading cobria
-  // tudo e excluir 1 funcionario reskeletonava a tabela inteira.
-  const [isFetching, setIsFetching] = useState(false)
-  const showSkeleton = useMinLoadingDuration(isFetching)
-  const [isSaving, setIsSaving] = useState(false)
-  const [deletingId, setDeletingId] = useState<number | string | null>(null)
-  const [page, setPage] = useState(1)
-  const [limit, setLimit] = useState(10)
-  const [totalPages, setTotalPages] = useState(0)
-  const [totalItems, setTotalItems] = useState(0)
-  const [hasMore, setHasMore] = useState(false)
-  const [search, setSearch] = useState("")
-  const [paywallCode, setPaywallCode] = useState<PaywallCode | null>(null)
+  const [isAddDialogOpen, setIsAddDialogOpen] = createSignal(false)
+  const [isEditDialogOpen, setIsEditDialogOpen] = createSignal(false)
+  const [currentEmployee, setCurrentEmployee] = createSignal<Member | null>(null)
+  const [deletingId, setDeletingId] = createSignal<string | null>(null)
+  const [search, setSearch] = createSignal("")
+  const debouncedSearch = createDebounced(search)
+  const pages = createCursorPages(10)
 
-  // Form states
-  const [name, setName] = useState("")
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [role, setRole] = useState<UserRole>("EMPLOYEE")
+  const [name, setName] = createSignal("")
+  const [email, setEmail] = createSignal("")
+  const [password, setPassword] = createSignal("")
+  const [role, setRole] = createSignal<Role>("EMPLOYEE")
 
-  const isOwner = user?.role === "OWNER"
-  const isManager = user?.role === "MANAGER"
-  const canManageUsers = isOwner || isManager
+  const isOwner = () => user()?.role === "OWNER"
+  const isManager = () => user()?.role === "MANAGER"
+  const canManageUsers = () => isOwner() || isManager()
 
-  // Roles disponíveis para criação/edição baseado no cargo do usuário logado
-  const getAvailableRoles = () => {
-    if (isOwner) return ["MANAGER", "EMPLOYEE", "COOK", "DRIVER", "CUSTOMER"]
-    if (isManager) return ["EMPLOYEE", "COOK", "DRIVER", "CUSTOMER"]
+  // Roles the signed-in user can give (the API refuses others: ROLE_NOT_ASSIGNABLE).
+  const availableRoles = (): Role[] => {
+    if (isOwner()) return ["MANAGER", "EMPLOYEE", "COOK", "DRIVER", "CUSTOMER"]
+    if (isManager()) return [...MANAGED_BY_MANAGER]
     return []
   }
-
-  // Verifica se o usuário logado pode editar o funcionário alvo
-  const canEditEmployee = (employee: Employee) => {
+  const editAvailableRoles = (): Role[] => {
+    if (currentEmployee()?.role === "MANAGER" && isOwner()) return ["MANAGER", "EMPLOYEE", "CUSTOMER"]
+    return availableRoles()
+  }
+  const canManage = (employee: Member) => {
     if (employee.role === "OWNER") return false
-    if (isOwner) return true
-    if (isManager && (employee.role === "EMPLOYEE" || employee.role === "COOK" || employee.role === "DRIVER" || employee.role === "CUSTOMER")) return true
-    return false
+    if (isOwner()) return true
+    return isManager() && MANAGED_BY_MANAGER.includes(employee.role)
   }
 
-  // Verifica se o usuário logado pode excluir o funcionário alvo
-  const canDeleteEmployee = (employee: Employee) => {
-    if (employee.role === "OWNER") return false
-    if (isOwner) return true
-    if (isManager && (employee.role === "EMPLOYEE" || employee.role === "COOK" || employee.role === "DRIVER" || employee.role === "CUSTOMER")) return true
-    return false
-  }
+  const employees = createQuery(() => ({
+    queryKey: [...userKeys.all, { search: debouncedSearch(), cursor: pages.cursor(), limit: pages.limit() }],
+    queryFn: ({ signal }) => listUsers({ search: debouncedSearch(), cursor: pages.cursor(), limit: pages.limit() }, signal),
+    placeholderData: keepPreviousData,
+  }))
+  const paywall = () => isPlanUpgradeRequired(employees.error)
+  const showSkeleton = createMinLoading(() => employees.isPending || employees.isPlaceholderData)
+  const page = () => (employees.isError ? undefined : loadedData(employees))
+  const rows = () => page()?.items ?? []
+  const total = () => page()?.total ?? 0
+  const totalPages = () => totalPagesOf(total(), pages.limit())
 
-  useEffect(() => {
-    const delay = setTimeout(() => {
-      setIsFetching(true)
-      fetchEmployees().finally(() => setIsFetching(false))
-    }, 300)
-    return () => clearTimeout(delay)
-  }, [page, limit, search])
+  onQueryError(employees, (error) => {
+    // A plan without the module shows the PaywallBanner instead.
+    if (isPlanUpgradeRequired(error)) return
+    console.error("Error fetching employees", error)
+    toast.error(localizedError("loadEmployees", error))
+  })
 
-  const fetchEmployees = async () => {
-    try {
-      const response = await api.get(`/usuarios?page=${page}&limit=${limit}&search=${encodeURIComponent(search)}`)
-      setPaywallCode(null)
-
-      const { data, total } = parseListResponse<Employee>(response)
-
-      setEmployees(data)
-      setTotalItems(total)
-
-      if (total > 0) {
-        setTotalPages(Math.ceil(total / limit))
-        setHasMore(page < Math.ceil(total / limit))
-      } else {
-        setTotalPages(0)
-        setHasMore(data.length === limit)
-      }
-    } catch (error) {
-      const code = getErrorCode(error)
-      if (code === "PLAN_UPGRADE_REQUIRED") {
-        setPaywallCode(code)
-      } else {
-        setPaywallCode(null)
-        console.error("Error fetching employees", error)
-        toast.error(localizedError("loadEmployees", error))
-      }
-    }
-  }
-
-  const handleAddEmployee = async (e: React.FormEvent) => {
-    setIsSaving(true)
-    e.preventDefault()
-    try {
-      await api.post("/usuarios", {
-        name,
-        email,
-        password,
-        role,
-      })
-      await fetchEmployees()
-      setIsAddDialogOpen(false)
-      resetForm()
-    } catch (error) {
-      console.error("Error creating employee", error)
-      toast.error(localizedError("createEmployee", error))
-    } finally {
-      setIsSaving(false)
-    }
-  }
-
-  const handleEditClick = (employee: Employee) => {
-    setCurrentEmployee(employee)
-    setName(employee.name)
-    setEmail(employee.email)
-    setRole(employee.role || "EMPLOYEE")
-    setPassword("") // Reset password field
-    setIsEditDialogOpen(true)
-  }
-
-  const handleUpdateEmployee = async (e: React.FormEvent) => {
-    setIsSaving(true)
-    e.preventDefault()
-    if (!currentEmployee) return
-
-    try {
-      const payload: any = {
-        name,
-        email,
-        role,
-      }
-      if (password) {
-        payload.password = password
-      }
-
-      await api.put(`/usuarios/${currentEmployee.id}`, payload)
-      await fetchEmployees()
-      setIsEditDialogOpen(false)
-      resetForm()
-    } catch (error) {
-      console.error("Error updating employee", error)
-      toast.error(localizedError("updateEmployee", error))
-    } finally {
-      setIsSaving(false)
-    }
-  }
-
-  const handleDeleteEmployee = async (id: number | string) => {
-    if (await confirm({ description: t("confirm.delete"), confirmLabel: tCommon("delete"), destructive: true })) {
-        setDeletingId(id)
-        try {
-          await api.delete(`/usuarios/${id}`)
-          await fetchEmployees()
-        } catch (error) {
-          console.error("Error deleting employee", error)
-          toast.error(localizedError("deleteEmployee", error))
-        } finally {
-          setDeletingId(null)
-        }
-    }
-  }
+  const invalidate = () => queryClient.invalidateQueries({ queryKey: userKeys.all })
 
   const resetForm = () => {
     setName("")
@@ -236,309 +99,337 @@ export default function EmployeesPage() {
     setCurrentEmployee(null)
   }
 
-  const roleLabel = (r: string) => {
-    switch (r) {
-      case 'OWNER': return t("role.owner")
-      case 'MANAGER': return t("role.manager")
-    case 'EMPLOYEE': return t("role.employee")
-    case 'COOK': return t("role.cook")
-    case 'DRIVER': return t("role.driver")
-      case 'CUSTOMER': return t("role.customer")
+  const create = createMutation(() => ({
+    mutationFn: createUser,
+    onSuccess: async () => {
+      await invalidate()
+      setIsAddDialogOpen(false)
+      resetForm()
+    },
+    onError: (error) => {
+      console.error("Error creating employee", error)
+      toast.error(localizedError("createEmployee", error))
+    },
+  }))
+
+  const update = createMutation(() => ({
+    mutationFn: (input: { id: string; body: UpdateUserRequest }) => updateUser(input.id, input.body),
+    onSuccess: async () => {
+      await invalidate()
+      setIsEditDialogOpen(false)
+      resetForm()
+    },
+    onError: (error) => {
+      console.error("Error updating employee", error)
+      toast.error(localizedError("updateEmployee", error))
+    },
+  }))
+
+  const remove = createMutation(() => ({
+    mutationFn: deleteUser,
+    onMutate: (id: string) => setDeletingId(id),
+    onSuccess: () => invalidate(),
+    onError: (error) => {
+      console.error("Error deleting employee", error)
+      toast.error(localizedError("deleteEmployee", error))
+    },
+    onSettled: () => setDeletingId(null),
+  }))
+
+  const isSaving = () => create.isPending || update.isPending
+
+  const handleAddEmployee = (event: SubmitEvent) => {
+    event.preventDefault()
+    if (isSaving()) return
+    create.mutate({ name: name(), email: email(), password: password(), role: role() })
+  }
+
+  const handleEditClick = (employee: Member) => {
+    setCurrentEmployee(employee)
+    setName(employee.name)
+    setEmail(employee.email)
+    setRole(employee.role || "EMPLOYEE")
+    setPassword("")
+    setIsEditDialogOpen(true)
+  }
+
+  const handleUpdateEmployee = (event: SubmitEvent) => {
+    event.preventDefault()
+    const target = currentEmployee()
+    if (!target || isSaving()) return
+    const body: UpdateUserRequest = { name: name(), email: email(), role: role() }
+    if (password()) body.password = password()
+    update.mutate({ id: target.id, body })
+  }
+
+  const handleDeleteEmployee = async (id: string) => {
+    if (await confirm({ description: t("confirm.delete"), confirmLabel: tCommon("delete"), destructive: true })) {
+      remove.mutate(id)
+    }
+  }
+
+  const roleLabel = (value: string) => {
+    switch (value) {
+      case "OWNER": return t("role.owner")
+      case "MANAGER": return t("role.manager")
+      case "EMPLOYEE": return t("role.employee")
+      case "COOK": return t("role.cook")
+      case "DRIVER": return t("role.driver")
+      case "CUSTOMER": return t("role.customer")
       default: return tCommon("notInformed")
     }
   }
 
-  const availableRoles = getAvailableRoles()
+  const RoleSelect = (selectProps: { roles: Role[] }) => (
+    <Select<string>
+      options={selectProps.roles}
+      value={role()}
+      onChange={(value) => { if (value) setRole(value as Role) }}
+      placeholder={t("selectRole")}
+      disabled={isSaving()}
+      itemComponent={(item) => <SelectItem item={item.item}>{roleLabel(item.item.rawValue)}</SelectItem>}
+    >
+      <SelectTrigger aria-label={t("roleLabel")}>
+        <SelectValue<string>>{() => roleLabel(role())}</SelectValue>
+      </SelectTrigger>
+      <SelectContent />
+    </Select>
+  )
 
-  // Roles disponíveis para edição (pode ser diferente dependendo do alvo)
-  const getEditAvailableRoles = () => {
-    if (!currentEmployee) return availableRoles
-    if (currentEmployee.role === "MANAGER" && isOwner) return ["MANAGER", "EMPLOYEE", "CUSTOMER"]
-    return availableRoles
-  }
+  const SaveLabel = (labelProps: { label: string }) => (
+    <Show when={isSaving()} fallback={labelProps.label}>
+      <Loader2 class="mr-2 h-4 w-4 animate-spin" />
+      {labelProps.label}
+    </Show>
+  )
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-          <Users className="h-8 w-8" />
-          {user?.establishment?.tradeName
-            ? t("pageTitle", { establishment: user.establishment.tradeName })
+    <div class="space-y-6">
+      <div class="flex items-center justify-between">
+        <h1 class="text-3xl font-bold tracking-tight flex items-center gap-2">
+          <Users class="h-8 w-8" />
+          {user()?.establishment?.tradeName
+            ? t("pageTitle", { establishment: user()!.establishment!.tradeName })
             : t("title")}
         </h1>
-        {canManageUsers && (
-          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-            <DialogTrigger asChild>
-              <Button onClick={resetForm} disabled={isSaving}>
-                <Plus className="mr-2 h-4 w-4" /> {t("addButton")}
-              </Button>
+        <Show when={canManageUsers()}>
+          <Dialog open={isAddDialogOpen()} onOpenChange={setIsAddDialogOpen}>
+            <DialogTrigger as={Button} onClick={resetForm} disabled={isSaving()}>
+              <Plus class="mr-2 h-4 w-4" /> {t("addButton")}
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>{t("dialog.addTitle")}</DialogTitle>
                 <DialogDescription>{t("dialog.addDescription")}</DialogDescription>
               </DialogHeader>
-              <form onSubmit={handleAddEmployee} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">{t("name")}</Label>
-                  <Input
-                    id="name"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    required
-                    disabled={isSaving}
-                  />
+              <form onSubmit={handleAddEmployee} class="space-y-4">
+                <div class="space-y-2">
+                  <Label for="name">{t("name")}</Label>
+                  <Input id="name" value={name()} onInput={(e) => setName(e.currentTarget.value)} required disabled={isSaving()} />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="email">{t("email")}</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    disabled={isSaving}
-                  />
+                <div class="space-y-2">
+                  <Label for="email">{t("email")}</Label>
+                  <Input id="email" type="email" value={email()} onInput={(e) => setEmail(e.currentTarget.value)} required disabled={isSaving()} />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="role">{t("roleLabel")}</Label>
-                  <Select value={role} onValueChange={(value) => setRole(value as UserRole)}>
-                    <SelectTrigger aria-label={t("roleLabel")} disabled={isSaving}>
-                      <SelectValue placeholder={t("selectRole")} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {availableRoles.map((r) => (
-                        <SelectItem key={r} value={r}>{roleLabel(r)}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                <div class="space-y-2">
+                  <Label for="role">{t("roleLabel")}</Label>
+                  <RoleSelect roles={availableRoles()} />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="password">{t("password")}</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    disabled={isSaving}
-                  />
+                <div class="space-y-2">
+                  <Label for="password">{t("password")}</Label>
+                  <Input id="password" type="password" value={password()} onInput={(e) => setPassword(e.currentTarget.value)} required disabled={isSaving()} />
                 </div>
                 <DialogFooter>
-                  <Button type="submit" disabled={isSaving}>
-                    {isSaving ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        {tCommon("save")}
-                      </>
-                    ) : (
-                      tCommon("save")
-                    )}
+                  <Button type="submit" disabled={isSaving()}>
+                    <SaveLabel label={tCommon("save")} />
                   </Button>
                 </DialogFooter>
               </form>
             </DialogContent>
           </Dialog>
-        )}
+        </Show>
       </div>
 
-      {paywallCode && <PaywallBanner code={paywallCode} role={user?.role} />}
+      <Show when={paywall()}>
+        <PaywallBanner code="PLAN_UPGRADE_REQUIRED" role={user()?.role} />
+      </Show>
 
-      {!paywallCode && <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between w-full">
-            <CardTitle>{t("team")}</CardTitle>
-            <div className="relative w-[250px]">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder={t("table.searchPlaceholder")}
-                value={search}
-                onChange={(e) => {
-                  setSearch(e.target.value)
-                  setPage(1)
-                }}
-                className="pl-8"
-              />
+      <Show when={!paywall()}>
+        <Card>
+          <CardHeader>
+            <div class="flex items-center justify-between w-full">
+              <CardTitle>{t("team")}</CardTitle>
+              <div class="relative w-[250px]">
+                <Search class="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder={t("table.searchPlaceholder")}
+                  value={search()}
+                  onInput={(e) => {
+                    setSearch(e.currentTarget.value)
+                    pages.reset()
+                  }}
+                  class="pl-8"
+                />
+              </div>
             </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <span className="sr-only" role="status">{showSkeleton ? tCommon("loading") : ""}</span>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[50px]">{tCommon("index")}</TableHead>
-                <TableHead>{t("name")}</TableHead>
-                <TableHead>{t("email")}</TableHead>
-                <TableHead>{t("roleLabel")}</TableHead>
-                {canManageUsers && (
-                  <TableHead className="text-right">{tCommon("actions.label")}</TableHead>
-                )}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {showSkeleton ? (
-                  Array.from({ length: 5 }).map((_, i) => (
-                    <TableRow key={i} className="animate-in fade-in-0 duration-300">
-                      <TableCell><Skeleton className="h-4 w-8" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-[200px]" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-[250px]" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-[100px]" /></TableCell>
-                      {canManageUsers && (
-                        <TableCell className="text-right justify-end flex gap-2">
-                          <Skeleton className="h-8 w-8" />
-                          <Skeleton className="h-8 w-8" />
-                        </TableCell>
-                      )}
-                    </TableRow>
-                  ))
-              ) : employees.length === 0 ? (
+          </CardHeader>
+          <CardContent>
+            <span class="sr-only" role="status">{showSkeleton() ? tCommon("loading") : ""}</span>
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={canManageUsers ? 5 : 4} className="py-8 text-center text-muted-foreground">
-                    {t("noResults")}
-                  </TableCell>
+                  <TableHead class="w-[50px]">{tCommon("index")}</TableHead>
+                  <TableHead>{t("name")}</TableHead>
+                  <TableHead>{t("email")}</TableHead>
+                  <TableHead>{t("roleLabel")}</TableHead>
+                  <Show when={canManageUsers()}>
+                    <TableHead class="text-right">{tCommon("actions.label")}</TableHead>
+                  </Show>
                 </TableRow>
-              ) : (
-                employees.map((employee, index) => (
-                <TableRow key={employee.id} className="animate-in fade-in-0 duration-300">
-                    <TableCell className="font-medium">
-                      {formatPageIndex(page, limit, index, i18n.language)}
-                    </TableCell>
-                    <TableCell>{employee.name}</TableCell>
-                    <TableCell>{employee.email}</TableCell>
-                    <TableCell>
-                      <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-primary/10 text-primary">
-                        {roleLabel(employee.role)}
-                      </span>
-                    </TableCell>
-                  {canManageUsers && (
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        {canEditEmployee(employee) && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleEditClick(employee)}
-                            disabled={deletingId === employee.id}
-                            aria-label={tCommon("edit")}
-                            title={tCommon("edit")}
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                        )}
-                        {canDeleteEmployee(employee) && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="text-destructive hover:text-destructive"
-                            onClick={() => handleDeleteEmployee(employee.id)}
-                            disabled={deletingId === employee.id}
-                            aria-label={tCommon("delete")}
-                            title={tCommon("delete")}
-                          >
-                            {deletingId === employee.id ? (
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                              <Trash2 className="h-4 w-4" />
-                            )}
-                          </Button>
-                        )}
-                      </div>
-                    </TableCell>
-                  )}
-                </TableRow>
-              )))}
-            </TableBody>
-          </Table>
-          <div className="mt-4 flex items-center justify-between">
-            <div className="text-sm text-muted-foreground">
-              {t("table.totalRecords", { count: formatNumber(totalItems, i18n.language) })}
+              </TableHeader>
+              <TableBody>
+                <Show
+                  when={!showSkeleton()}
+                  fallback={
+                    <For each={[0, 1, 2, 3, 4]}>
+                      {() => (
+                        <TableRow class="animate-in fade-in-0 duration-300">
+                          <TableCell><Skeleton class="h-4 w-8" /></TableCell>
+                          <TableCell><Skeleton class="h-4 w-[200px]" /></TableCell>
+                          <TableCell><Skeleton class="h-4 w-[250px]" /></TableCell>
+                          <TableCell><Skeleton class="h-4 w-[100px]" /></TableCell>
+                          <Show when={canManageUsers()}>
+                            <TableCell class="text-right justify-end flex gap-2">
+                              <Skeleton class="h-8 w-8" />
+                              <Skeleton class="h-8 w-8" />
+                            </TableCell>
+                          </Show>
+                        </TableRow>
+                      )}
+                    </For>
+                  }
+                >
+                  <Show
+                    when={rows().length > 0}
+                    fallback={
+                      <TableRow>
+                        <TableCell colSpan={canManageUsers() ? 5 : 4} class="py-8 text-center text-muted-foreground">
+                          {t("noResults")}
+                        </TableCell>
+                      </TableRow>
+                    }
+                  >
+                    <For each={rows()}>
+                      {(employee, index) => (
+                        <TableRow class="animate-in fade-in-0 duration-300">
+                          <TableCell class="font-medium">
+                            {formatPageIndex(pages.page(), pages.limit(), index(), language())}
+                          </TableCell>
+                          <TableCell>{employee.name}</TableCell>
+                          <TableCell>{employee.email}</TableCell>
+                          <TableCell>
+                            <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-primary/10 text-primary">
+                              {roleLabel(employee.role)}
+                            </span>
+                          </TableCell>
+                          <Show when={canManageUsers()}>
+                            <TableCell class="text-right">
+                              <div class="flex justify-end gap-2">
+                                <Show when={canManage(employee)}>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => handleEditClick(employee)}
+                                    disabled={deletingId() === employee.id}
+                                    aria-label={tCommon("edit")}
+                                    title={tCommon("edit")}
+                                  >
+                                    <Pencil class="h-4 w-4" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    class="text-destructive hover:text-destructive"
+                                    onClick={() => void handleDeleteEmployee(employee.id)}
+                                    disabled={deletingId() === employee.id}
+                                    aria-label={tCommon("delete")}
+                                    title={tCommon("delete")}
+                                  >
+                                    <Show when={deletingId() === employee.id} fallback={<Trash2 class="h-4 w-4" />}>
+                                      <Loader2 class="h-4 w-4 animate-spin" />
+                                    </Show>
+                                  </Button>
+                                </Show>
+                              </div>
+                            </TableCell>
+                          </Show>
+                        </TableRow>
+                      )}
+                    </For>
+                  </Show>
+                </Show>
+              </TableBody>
+            </Table>
+            <div class="mt-4 flex items-center justify-between">
+              <div class="text-sm text-muted-foreground">
+                {t("table.totalRecords", { count: formatNumber(total(), language()) })}
+              </div>
+              <Pagination
+                currentPage={pages.page()}
+                totalPages={totalPages()}
+                hasMore={!!page()?.nextCursor}
+                onPageChange={(target) => pages.goTo(target, page()?.nextCursor)}
+                pageSize={pages.limit()}
+                onPageSizeChange={pages.setLimit}
+                isLoading={employees.isFetching || deletingId() !== null}
+              />
             </div>
-            <Pagination
-              currentPage={page}
-              totalPages={totalPages}
-              hasMore={hasMore}
-              onPageChange={setPage}
-              pageSize={limit}
-              onPageSizeChange={(newLimit) => {
-                setLimit(newLimit)
-                setPage(1)
-              }}
-              isLoading={isFetching || deletingId !== null}
-            />
-          </div>
-        </CardContent>
-      </Card>}
+          </CardContent>
+        </Card>
 
-      {/* Edit Dialog */}
-      {!paywallCode && <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t("dialog.editTitle")}</DialogTitle>
-            <DialogDescription>{t("dialog.editDescription")}</DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleUpdateEmployee} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="edit-name">{t("name")}</Label>
-              <Input
-                id="edit-name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-                disabled={isSaving}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="edit-email">{t("email")}</Label>
-              <Input
-                id="edit-email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                disabled={isSaving}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="edit-role">{t("roleLabel")}</Label>
-              <Select value={role} onValueChange={(value) => setRole(value as UserRole)}>
-                <SelectTrigger aria-label={t("roleLabel")} disabled={isSaving}>
-                <SelectValue placeholder={t("selectRole")} />
-                </SelectTrigger>
-                <SelectContent>
-                  {getEditAvailableRoles().map((r) => (
-                    <SelectItem key={r} value={r}>{roleLabel(r)}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="edit-password">{t("newPassword")}</Label>
-              <Input
-                id="edit-password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder={t("leaveBlank")}
-                disabled={isSaving}
-              />
-            </div>
-            <DialogFooter>
-              <Button type="button" variant="outline" disabled={isSaving || !currentEmployee} onClick={() => { if (currentEmployee) navigate(`/dashboard/schedule?employeeId=${encodeURIComponent(String(currentEmployee.id))}`) }}>{t("viewSchedule")}</Button>
-              <Button type="submit" disabled={isSaving}>
-                {isSaving ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    {tCommon("saveChanges")}
-                  </>
-                ) : (
-                  tCommon("saveChanges")
-                )}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>}
+        <Dialog open={isEditDialogOpen()} onOpenChange={setIsEditDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>{t("dialog.editTitle")}</DialogTitle>
+              <DialogDescription>{t("dialog.editDescription")}</DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleUpdateEmployee} class="space-y-4">
+              <div class="space-y-2">
+                <Label for="edit-name">{t("name")}</Label>
+                <Input id="edit-name" value={name()} onInput={(e) => setName(e.currentTarget.value)} required disabled={isSaving()} />
+              </div>
+              <div class="space-y-2">
+                <Label for="edit-email">{t("email")}</Label>
+                <Input id="edit-email" type="email" value={email()} onInput={(e) => setEmail(e.currentTarget.value)} required disabled={isSaving()} />
+              </div>
+              <div class="space-y-2">
+                <Label for="edit-role">{t("roleLabel")}</Label>
+                <RoleSelect roles={editAvailableRoles()} />
+              </div>
+              <div class="space-y-2">
+                <Label for="edit-password">{t("newPassword")}</Label>
+                <Input id="edit-password" type="password" value={password()} onInput={(e) => setPassword(e.currentTarget.value)} placeholder={t("leaveBlank")} disabled={isSaving()} />
+              </div>
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={isSaving() || !currentEmployee()}
+                  onClick={() => {
+                    const target = currentEmployee()
+                    if (target) navigate(`/dashboard/schedule?employeeId=${encodeURIComponent(target.id)}`)
+                  }}
+                >
+                  {t("viewSchedule")}
+                </Button>
+                <Button type="submit" disabled={isSaving()}>
+                  <SaveLabel label={tCommon("saveChanges")} />
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+      </Show>
     </div>
   )
 }

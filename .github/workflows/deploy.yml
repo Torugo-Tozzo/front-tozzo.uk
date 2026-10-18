@@ -12,10 +12,16 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - uses: oven-sh/setup-bun@v2
-      - run: bun install
-      - run: bun run --if-present test
+        with:
+          bun-version: 1.4.2
+      - run: bun install --frozen-lockfile
+      - run: bun run test
+      - run: bun run i18n:check
+      - run: bun run build
+      - run: bun run browser:install --with-deps
+      - run: bun run test:e2e --workers=2
 
-  # The dev frontend is published by Cloudflare Workers Builds (web/).
+  # The dev frontend is published by Cloudflare Workers Builds from the root.
   deploy:
     if: github.ref == 'refs/heads/main'
     needs: test
@@ -25,18 +31,11 @@ jobs:
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ github.ref == 'refs/heads/main' && secrets.SERVER_IP || secrets.ORACLE_SERVER_IP }}
+          host: ${{ secrets.SERVER_IP }}
           username: ${{ secrets.SERVER_USER }}
-          key: ${{ github.ref == 'refs/heads/main' && secrets.SSH_PRIVATE_KEY || secrets.ORACLE_SSH_PRIVATE_KEY }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            if [ "${{ github.ref }}" = "refs/heads/main" ]; then
-              cd /home/victor/app/frontend
-              git pull origin main
-              cd ..
-              docker compose up -d --build --force-recreate frontend
-            else
-              cd /home/victor/dev-app/frontend
-              git pull origin dev
-              cd ..
-              docker compose up -d --build --force-recreate frontend
-            fi
+            cd /home/victor/app/frontend
+            git pull origin main
+            cd ..
+            docker compose up -d --build --force-recreate frontend

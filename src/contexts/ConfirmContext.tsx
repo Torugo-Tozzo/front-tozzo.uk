@@ -1,14 +1,6 @@
-import { createContext, useCallback, useContext, useState, type ReactNode } from "react"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { useTranslation } from "react-i18next"
+import { createContext, createSignal, Show, Suspense, useContext, type JSX } from "solid-js"
+
+import { lazyPage } from "@/lib/lazy-page"
 
 export interface ConfirmOptions {
   title?: string
@@ -20,52 +12,44 @@ export interface ConfirmOptions {
 
 type ConfirmFn = (options: ConfirmOptions | string) => Promise<boolean>
 
-const ConfirmContext = createContext<ConfirmFn | null>(null)
+const ConfirmContext = createContext<ConfirmFn>()
+
+// The dialog (Kobalte) is fetched on the first confirm(), not with the app.
+// lazyPage(): a chunk gone after a deploy reloads the page instead of hanging.
+const ConfirmDialog = lazyPage(() => import("./ConfirmDialog"))
 
 export function useConfirm(): ConfirmFn {
   const ctx = useContext(ConfirmContext)
-  if (!ctx) throw new Error("useConfirm precisa estar dentro de ConfirmProvider")
+  if (!ctx) throw new Error("useConfirm must be used within a ConfirmProvider")
   return ctx
 }
 
-export function ConfirmProvider({ children }: { children: ReactNode }) {
-  const [pending, setPending] = useState<{ options: ConfirmOptions; resolve: (v: boolean) => void } | null>(null)
-  const { t } = useTranslation("common")
+export function ConfirmProvider(props: { children?: JSX.Element }) {
+  const [pending, setPending] = createSignal<{ options: ConfirmOptions; resolve: (v: boolean) => void } | null>(null)
+  const [used, setUsed] = createSignal(false)
 
-  const confirm = useCallback<ConfirmFn>((options) => {
+  const confirm: ConfirmFn = (options) => {
     const normalized: ConfirmOptions = typeof options === "string" ? { description: options } : options
+    setUsed(true)
     return new Promise<boolean>((resolve) => {
       setPending({ options: normalized, resolve })
     })
-  }, [])
+  }
 
   const settle = (result: boolean) => {
-    pending?.resolve(result)
+    pending()?.resolve(result)
     setPending(null)
   }
 
   return (
     <ConfirmContext.Provider value={confirm}>
-      {children}
-      <Dialog open={!!pending} onOpenChange={(open) => { if (!open) settle(false) }}>
-        <DialogContent>
-          <DialogHeader>
-          <DialogTitle>{pending?.options.title ?? t("confirmQuestion")}</DialogTitle>
-            <DialogDescription>{pending?.options.description}</DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => settle(false)}>
-              {pending?.options.cancelLabel ?? t("cancel")}
-            </Button>
-            <Button
-              variant={pending?.options.destructive ? "destructive" : "default"}
-              onClick={() => settle(true)}
-            >
-              {pending?.options.confirmLabel ?? t("yes")}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {props.children}
+      <Show when={used()}>
+        {/* Its own boundary: loading the dialog must not suspend the page. */}
+        <Suspense>
+          <ConfirmDialog options={() => pending()?.options} settle={settle} />
+        </Suspense>
+      </Show>
     </ConfirmContext.Provider>
   )
 }

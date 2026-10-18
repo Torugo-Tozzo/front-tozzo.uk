@@ -1,67 +1,76 @@
-import { act, render, screen, waitFor, within } from '@testing-library/react'
+import { screen, waitFor, within } from '@solidjs/testing-library'
 import userEvent from '@testing-library/user-event'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'bun:test'
-import { MemoryRouter } from 'react-router-dom'
+import { Route } from '@solidjs/router'
+import { QueryClient, QueryClientProvider } from '@tanstack/solid-query'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { ConfirmProvider } from '@/contexts/ConfirmContext'
 import { ThemeProvider } from '@/components/theme-provider'
-import { I18nProvider } from '@/i18n/provider'
+import { I18nProvider } from '@/i18n/solid'
 import { i18n } from '@/i18n/config'
-import api from '@/services/api'
-import { replaceProperty } from '@/test/replace-property'
-import DashboardLayout from './DashboardLayout'
+import { EVENT_QUERY_KEYS, startRealtime } from '@/realtime'
+import { renderAt } from '@/test/router'
 import type { BusinessModule, BusinessProfile } from '@/domain/businessPreferences'
-import { useRealtimeEvents } from '@/hooks/useRealtimeEvents'
+import DashboardLayout from './DashboardLayout'
 
 const mockLogout = vi.fn()
 const mockRefreshUserProfile = vi.fn().mockResolvedValue(undefined)
-let mockUser: { name: string; role: string; establishment: { tradeName: string; category?: string; businessProfiles?: BusinessProfile[]; visibleModules?: BusinessModule[] } } = { name: 'Test user', role: 'MANAGER', establishment: { tradeName: 'Test establishment' } }
+let mockUser: { name: string; role: string; establishment: { tradeName: string; category?: string; businessProfiles?: BusinessProfile[]; visibleModules?: BusinessModule[] } }
 
 vi.mock('@/contexts/AuthContext', () => ({
   useAuth: () => ({
-    isAuthenticated: true,
-    user: mockUser,
+    isAuthenticated: () => true,
+    user: () => mockUser,
     logout: mockLogout,
     refreshUserProfile: mockRefreshUserProfile,
   }),
 }))
 
-vi.mock('@/hooks/useRealtimeEvents', () => ({
-  useRealtimeEvents: vi.fn(),
+vi.mock('@/realtime', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/realtime')>()),
+  startRealtime: vi.fn(() => () => {}),
 }))
 
+let totals: Record<string, number>
+const requests: string[] = []
+
+function stubApi() {
+  vi.stubGlobal('fetch', vi.fn(async (input: RequestInfo | URL) => {
+    const url = new URL(input instanceof Request ? input.url : String(input))
+    requests.push(`${url.pathname}${url.search}`)
+    return new Response(JSON.stringify({ items: [], nextCursor: null, total: totals[url.pathname] ?? 0 }), { headers: { 'Content-Type': 'application/json' } })
+  }))
+}
+
 function renderLayout() {
-  return render(
+  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+  const result = renderAt('/dashboard/orders', () => <Route path="/dashboard/orders" component={DashboardLayout} />, (router) => (
     <I18nProvider>
       <ThemeProvider>
-        <ConfirmProvider>
-          <MemoryRouter initialEntries={['/dashboard/orders']}>
-            <DashboardLayout />
-          </MemoryRouter>
-        </ConfirmProvider>
+        <QueryClientProvider client={queryClient}>
+          <ConfirmProvider>{router()}</ConfirmProvider>
+        </QueryClientProvider>
       </ThemeProvider>
-    </I18nProvider>,
-  )
+    </I18nProvider>
+  ))
+  return { ...result, queryClient }
 }
 
 describe('DashboardLayout', () => {
-  let restoreGet: (() => void) | undefined
-
   beforeEach(async () => {
     localStorage.clear()
+    requests.length = 0
+    totals = {}
     mockLogout.mockReset()
     mockRefreshUserProfile.mockClear()
-    ;(useRealtimeEvents as ReturnType<typeof vi.fn>).mockClear()
+    vi.mocked(startRealtime).mockClear()
     mockUser = { name: 'Test user', role: 'MANAGER', establishment: { tradeName: 'Test establishment' } }
-    restoreGet = replaceProperty(api, 'get', vi.fn().mockResolvedValue({ headers: {}, data: [] }) as typeof api.get)
-    await act(async () => {
-      await i18n.changeLanguage('en')
-    })
+    stubApi()
+    await i18n.changeLanguage('en')
   })
 
   afterEach(() => {
-    restoreGet?.()
-    restoreGet = undefined
+    vi.unstubAllGlobals()
   })
 
   it('renders translated navigation and accessible collapse controls', async () => {
@@ -76,9 +85,9 @@ describe('DashboardLayout', () => {
     expect(screen.getByRole('link', { name: /Reports/ })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /Settings/ })).toBeInTheDocument()
     const toggle = screen.getByRole('button', { name: 'Collapse menu' })
-    expect(toggle).toBeInTheDocument()
     await user.click(toggle)
     expect(screen.getByRole('button', { name: 'Expand menu' })).toBeInTheDocument()
+    expect(localStorage.getItem('sidebar-collapsed')).toBe('true')
     expect(screen.getAllByRole('button', { name: 'Log out' }).length).toBeGreaterThanOrEqual(1)
   })
 
@@ -104,7 +113,7 @@ describe('DashboardLayout', () => {
   })
 
   it('keeps the Reports link visible to owners', () => {
-    mockUser = { name: 'Owner user', role: 'OWNER', establishment: { tradeName: 'Test establishment', category: 'HAMBURGUERIA' } }
+    mockUser = { name: 'Owner user', role: 'OWNER', establishment: { tradeName: 'Test establishment', category: 'BURGER_SHOP' } }
     renderLayout()
 
     expect(screen.getByRole('link', { name: /Reports/ })).toBeInTheDocument()
@@ -114,7 +123,7 @@ describe('DashboardLayout', () => {
     mockUser = {
       name: 'Store owner', role: 'OWNER',
       establishment: {
-        tradeName: 'Store', category: 'HAMBURGUERIA', businessProfiles: ['STORE'],
+        tradeName: 'Store', category: 'BURGER_SHOP', businessProfiles: ['STORE'],
         visibleModules: ['SALES', 'SETTINGS'],
       },
     }
@@ -133,8 +142,19 @@ describe('DashboardLayout', () => {
 
   it('refreshes business preferences when the dashboard tab regains focus', () => {
     renderLayout()
-    act(() => { window.dispatchEvent(new Event('focus')) })
+    window.dispatchEvent(new Event('focus'))
     expect(mockRefreshUserProfile).toHaveBeenCalledTimes(1)
+  })
+
+  it('counts open orders, kitchen and deliveries from the /v1 totals', async () => {
+    mockUser = { name: 'Owner', role: 'OWNER', establishment: { tradeName: 'Burger', businessProfiles: ['FOOD'], visibleModules: [] } }
+    totals = { '/v1/orders': 6, '/v1/kitchen/orders': 5, '/v1/delivery/orders': 2 }
+    renderLayout()
+
+    await waitFor(() => expect(within(screen.getByRole('link', { name: /Orders/ })).getByText('6')).toBeInTheDocument())
+    expect(within(screen.getByRole('link', { name: /Kitchen/ })).getByText('5')).toBeInTheDocument()
+    expect(within(screen.getByRole('link', { name: /Deliveries/ })).getByText('2')).toBeInTheDocument()
+    expect(requests).toContain('/v1/orders?limit=1')
   })
 
   it('shows a service execution count and refreshes it after a service event', async () => {
@@ -142,32 +162,29 @@ describe('DashboardLayout', () => {
       tradeName: 'Workshop', businessProfiles: ['SERVICES'],
       visibleModules: ['SERVICES', 'ESTIMATES', 'SERVICE_ORDERS'],
     } }
-    let count = 7
-    const get = vi.fn().mockImplementation(async (url: string) => ({
-      data: [], headers: url === '/ordens-servico' ? { 'x-total-count': String(count) } : {},
-    }))
-    restoreGet?.()
-    restoreGet = replaceProperty(api, 'get', get as typeof api.get)
-    renderLayout()
-    expect(get).toHaveBeenCalledWith('/ordens-servico', { params: { page: 1, limit: 1, stage: 'services', open: true } })
+    totals = { '/v1/service-orders': 7 }
+    const { queryClient } = renderLayout()
+
     const serviceLink = () => screen.getByRole('link', { name: /^Services/ })
     await waitFor(() => expect(within(serviceLink()).getByText('7')).toBeInTheDocument())
-    expect(get).toHaveBeenCalledWith('/ordens-servico', { params: { page: 1, limit: 1, stage: 'services', open: true } })
+    expect(requests).toContain('/v1/service-orders?limit=1&stage=services&open=true')
     expect(screen.getByRole('link', { name: 'Service catalog' })).toHaveAttribute('href', '/dashboard/services')
-    const serviceListener = (useRealtimeEvents as ReturnType<typeof vi.fn>).mock.calls.find((call) => (call[0] as string[]).includes('service-orders'))
-    expect(serviceListener).toBeDefined()
-    count = 3
-    act(() => serviceListener![1]('service-orders'))
+    expect(startRealtime).toHaveBeenCalledWith(queryClient)
+
+    totals['/v1/service-orders'] = 3
+    for (const key of EVENT_QUERY_KEYS['service-order.changed']) void queryClient.invalidateQueries({ queryKey: [key] })
     await waitFor(() => expect(within(serviceLink()).getByText('3')).toBeInTheDocument())
   })
 
-  it('localizes the sidebar logout confirmation', async () => {
+  it('localizes the sidebar logout confirmation and logs out on confirm', async () => {
     const user = userEvent.setup()
     renderLayout()
 
     await user.click(screen.getByRole('button', { name: 'Sign out' }))
 
-    expect(screen.getByRole('heading', { name: 'Log out?' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Log out?' })).toBeInTheDocument()
     expect(screen.getByText('Are you sure you want to log out?')).toBeInTheDocument()
+    await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: i18n.t('logoutConfirmation.confirm', { ns: 'common' }) }))
+    expect(mockLogout).toHaveBeenCalledTimes(1)
   })
 })

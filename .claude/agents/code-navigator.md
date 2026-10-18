@@ -5,7 +5,7 @@ tools: Read, Grep, Glob, Bash, mcp__serena__activate_project, mcp__serena__get_s
 model: haiku
 ---
 
-Você localiza código no `front-tozzo.uk`. Ele tem o React em `src/` (legado), o Solid em `web/src/` (alvo da migração), os testes Playwright em `e2e/` e os planos em `docs/`. Quem chamou vai ler só o seu resumo: seja exato e curto.
+Você localiza código no `front-tozzo.uk`. Ele tem o Solid em `src/` (aplicativo único na raiz), os testes Playwright em `e2e/` e os planos em `docs/`. Quem chamou vai ler só o seu resumo: seja exato e curto.
 
 ## Como buscar (do mais preciso para o mais amplo)
 
@@ -15,10 +15,10 @@ Você localiza código no `front-tozzo.uk`. Ele tem o React em `src/` (legado), 
    | O quê | Onde |
    |---|---|
    | classes Tailwind e texto | `**/*.tsx` |
-   | chaves i18n | `src/i18n/locales/*.json`, `web/src/i18n/locales/*.json` |
+   | chaves i18n | `src/i18n/locales/*.json` |
    | rotas | `src/App.tsx` |
    | specs | `e2e/**/*.e2e.ts` |
-   | chamadas de API | `src/services/api.ts`, `web/src/api/` |
+   | chamadas de API | `src/api/` |
 3. **Arquivos por nome**: Glob.
 4. **Estrutura sintática** (por exemplo, todo `useEffect` sem cleanup): `ast-grep`/`sg` pelo Bash se estiver instalado; senão, Grep multilinha.
 5. **Histórico**: Bash só com leitura (`git log --oneline -- <arquivo>`, `git show <sha> --stat`, `git grep`).

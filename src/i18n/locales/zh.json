@@ -1,6 +1,7 @@
 {
   "common": {
     "appName": "Tozzo.uk",
+    "logoutFailed": "无法退出登录。请检查网络连接后重试。",
     "loading": "加载中...",
     "processing": "处理中...",
     "saving": "保存中...",
@@ -198,7 +199,15 @@
     "actions": {
       "label": "操作"
     },
-    "saveChanges": "保存更改"
+    "saveChanges": "保存更改",
+    "payment": "付款",
+    "dnd": {
+      "keyboardInstructions": "使用键盘：按空格键拿起卡片，用方向键选择列，再按空格键放下，按 Esc 取消。",
+      "picked": "已选中卡片。",
+      "over": "列：{{column}}。",
+      "dropped": "卡片已移动。",
+      "cancelled": "已取消移动。"
+    }
   },
   "auth": {
     "login": "登录",
@@ -241,7 +250,7 @@
     "confirmationLinkExpired": "确认链接已过期或已被使用。请使用邮箱和密码登录，或申请新的链接。",
     "emailNotConfirmed": "您的邮箱尚未确认。请点击我们发送的链接，或在下方重新发送。",
     "emailAlreadyRegistered": "该邮箱已注册。请登录或重置密码。",
-    "weakPassword": "密码太弱。请至少使用 6 个字符。",
+    "weakPassword": "密码太弱。请至少使用 8 个字符。",
     "authRateLimited": "尝试次数过多。请等待一分钟后再试。",
     "verifyCredentials": "请检查您的凭据。",
     "verifyData": "请检查您的信息。",
@@ -271,7 +280,13 @@
     "resetPasswordFailed": "无法重置密码。",
     "totpCode": "验证码",
     "confirmTotp": "确认",
-    "invalidTotpCode": "验证码无效。"
+    "invalidTotpCode": "验证码无效。",
+    "verifyEmailChecking": "正在确认您的邮箱...",
+    "confirmEmailChangeTitle": "确认新邮箱",
+    "confirmEmailChangeChecking": "正在确认您的新邮箱...",
+    "confirmEmailChangeSuccess": "您的邮箱已更改。下次登录时请使用新地址。",
+    "confirmEmailChangeInvalid": "此确认链接已过期或已被使用。请重新申请更改邮箱。",
+    "emailChangeInUse": "此邮箱已被其他账户使用。"
   },
   "navigation": {
     "dashboard": "仪表板",
@@ -520,7 +535,8 @@
     "closingPeriod": "期间结算",
     "empty": "该期间未找到销售记录。",
     "viewDetails": "查看详情",
-    "serviceLine": "服务"
+    "serviceLine": "服务",
+    "alreadyRegistered": "这笔销售已经登记过，修改未保存。"
   },
   "products": {
     "title": "产品",
@@ -565,7 +581,8 @@
       "decreaseQuantity": "减少数量",
       "increaseQuantity": "增加数量",
       "removeItem": "移除项目",
-      "itemStatus": "项目状态"
+      "itemStatus": "项目状态",
+      "paymentNotInformed": "未提供"
     },
     "confirm": {
       "delete": "确定要删除此产品吗？",
@@ -610,6 +627,12 @@
     "accessibility": {
       "activateType": "启用类型",
       "deactivateType": "停用类型"
+    },
+    "image": {
+      "label": "图片",
+      "uploading": "正在上传图片...",
+      "uploaded": "图片已更新。",
+      "preview": "当前商品图片"
     }
   },
   "employees": {
@@ -654,6 +677,7 @@
     "roleLabel": "角色"
   },
   "charts": {
+    "others": "其他",
     "title": "报告",
     "pageTitle": "报告 — {{establishment}}",
     "productsSold": "已售产品",
@@ -701,6 +725,7 @@
     "sales": "销售",
     "moreSales": "还有 {{count}} 项...",
     "report": {
+      "unavailable": "报表导出尚不可用。",
       "generateExcel": "生成 Excel",
       "generatePdf": "生成 PDF",
       "filename": "报告",
@@ -848,7 +873,8 @@
       "save": "保存信息",
       "saving": "正在保存...",
       "saved": "商家信息已更新。",
-      "saveError": "无法保存信息。请重试。"
+      "saveError": "无法保存信息。请重试。",
+      "addressComplementPlaceholder": "公寓、房间等"
     },
     "businessPreferences": {
       "onboardingTitle": "您的企业属于哪种类型？",
@@ -935,7 +961,8 @@
     "printSoon": "打印（即将推出）",
     "receiptTitleOrder": "订单 #{{id}}",
     "receiptTitleSale": "销售 #{{id}}",
-    "receiptTotal": "总计"
+    "receiptTotal": "总计",
+    "receiptPaymentMethod": "付款方式：{{method}}"
   },
   "status": {
     "inPreparation": "准备中",
@@ -997,7 +1024,14 @@
       "create": "创建员工时出错",
       "update": "更新员工时出错",
       "delete": "删除员工时出错"
-    }
+    },
+    "uploadImage": "上传图片失败。",
+    "uploadUnavailable": "图片上传暂不可用。",
+    "uploadInvalid": "请使用不超过 5 MB 的 JPEG、PNG 或 WebP 图片。",
+    "orderNotOpen": "此订单已关闭。",
+    "orderDelivering": "此订单正在配送中，无法修改。",
+    "deliveryNotStarted": "请先开始配送，再关闭订单。",
+    "orderChanged": "此订单已在别处被修改。请检查更新后的项目并重新保存。"
   },
   "catalog": {
     "burger": "汉堡包",
@@ -1108,6 +1142,17 @@
     "cancelOrder": "取消工单",
     "reopen": "重新打开工单",
     "history": "历史记录",
+    "historyActions": {
+      "CREATE": "CREATE",
+      "QUOTE": "QUOTE",
+      "APPROVE": "APPROVE",
+      "START": "START",
+      "COMPLETE": "COMPLETE",
+      "CANCEL": "CANCEL",
+      "REOPEN": "REOPEN",
+      "SUPPLEMENTS": "SUPPLEMENTS",
+      "APPROVE_SUPPLEMENTS": "APPROVE_SUPPLEMENTS"
+    },
     "empty": "暂无报价。",
     "emptyItems": "请至少添加一个产品或服务。",
     "loadError": "无法加载服务工单。",

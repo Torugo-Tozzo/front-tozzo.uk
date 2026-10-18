@@ -1,6 +1,6 @@
 export { default, i18n } from './config'
 export * from './locale'
-export * from './resources'
+export * from './namespaces'
 export * from './format'
 export * from './labels'
-export { I18nProvider } from './provider'
+export { I18nProvider, useTranslation, language } from './solid'

@@ -1,4 +1,4 @@
-import { describe, expect, test } from 'bun:test'
+import { describe, expect, test } from 'vitest'
 import { canonical, FIXED_NOW, saleTotalCents } from './canonical'
 import { toLegacyApi, type MockApi } from './legacy'
 import { toV1 } from './v1'

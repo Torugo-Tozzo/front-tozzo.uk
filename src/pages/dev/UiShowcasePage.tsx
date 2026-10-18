@@ -1,10 +1,9 @@
-// Dev-only catalogue of the ui/ primitives (route /__ui, plan S0/S1). The
-// visual suite photographs it so the Solid port of each primitive can be
-// compared with the React one. Sample text reuses existing i18n keys; the
+// Dev-only catalogue of the ui/ primitives (route /__ui, plan S1). The visual
+// suite compares it with the React /__ui (scenarios ui, ui-select-open,
+// ui-dialog, ui-dropdown-open). Sample text reuses existing i18n keys; the
 // variant names are code identifiers, not copy.
-import { useState, type ReactNode } from 'react'
-import { useTranslation } from 'react-i18next'
-import { Pencil, Plus, Trash2 } from 'lucide-react'
+import { createSignal, For, type JSX } from 'solid-js'
+import { Pencil, Plus, Trash2 } from 'lucide-solid'
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
@@ -48,6 +47,7 @@ import {
 } from '@/components/ui/table'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { formatCurrencyBRL } from '@/i18n/format'
+import { useTranslation } from '@/i18n/solid'
 import type { OrderItemStatus } from '@/lib/status'
 
 const buttonVariants = ['default', 'destructive', 'outline', 'secondary', 'ghost', 'link'] as const
@@ -55,94 +55,103 @@ const buttonSizes = ['default', 'sm', 'lg'] as const
 const alertVariants = ['default', 'warning', 'destructive'] as const
 const itemStatuses: OrderItemStatus[] = ['REQUESTED', 'IN_PREPARATION', 'READY', 'DELIVERED']
 
-function Section({ id, title, children }: { id: string; title: string; children: ReactNode }) {
+function Section(props: { id: string; title: string; children: JSX.Element }) {
   return (
-    <section data-testid={`ui-${id}`} className="space-y-3">
-      <h2 className="font-mono text-sm font-semibold">{title}</h2>
-      {children}
+    <section data-testid={`ui-${props.id}`} class="space-y-3">
+      <h2 class="font-mono text-sm font-semibold">{props.title}</h2>
+      {props.children}
     </section>
   )
 }
 
-function Variant({ name, children }: { name: string; children: ReactNode }) {
+function Variant(props: { name: string; children: JSX.Element }) {
   return (
-    <div className="flex flex-col items-start gap-1">
-      <code className="text-xs text-muted-foreground">{name}</code>
-      {children}
+    <div class="flex flex-col items-start gap-1">
+      <code class="text-xs text-muted-foreground">{props.name}</code>
+      {props.children}
     </div>
   )
 }
 
 export default function UiShowcasePage() {
-  const { t, i18n } = useTranslation('common')
+  const { t, language } = useTranslation('common')
   const { t: status } = useTranslation('status')
-  const money = (value: number) => formatCurrencyBRL(value, i18n.language)
-  const [checked, setChecked] = useState(true)
-  const [radio, setRadio] = useState('all')
-  const [itemStatus, setItemStatus] = useState<OrderItemStatus>('IN_PREPARATION')
+  const money = (value: number) => formatCurrencyBRL(value, language())
+  const [checked, setChecked] = createSignal(true)
+  const [radio, setRadio] = createSignal('all')
+  const [itemStatus, setItemStatus] = createSignal<OrderItemStatus>('IN_PREPARATION')
+  const filterLabel = (value: string) => (value === 'all' ? t('all') : status(value as 'active' | 'inactive'))
 
   return (
-    <main className="mx-auto max-w-5xl space-y-10 bg-background p-6 text-foreground">
+    <main class="mx-auto max-w-5xl space-y-10 bg-background p-6 text-foreground">
       <Section id="button" title="Button">
-        {buttonSizes.map((size) => (
-          <div key={size} className="flex flex-wrap items-end gap-4">
-            {buttonVariants.map((variant) => (
-              <Variant key={variant} name={`${variant} / ${size}`}>
-                <Button variant={variant} size={size}>{t('save')}</Button>
+        <For each={buttonSizes}>
+          {(size) => (
+            <div class="flex flex-wrap items-end gap-4">
+              <For each={buttonVariants}>
+                {(variant) => (
+                  <Variant name={`${variant} / ${size}`}>
+                    <Button variant={variant} size={size}>{t('save')}</Button>
+                  </Variant>
+                )}
+              </For>
+            </div>
+          )}
+        </For>
+        <div class="flex flex-wrap items-end gap-4">
+          <For each={buttonVariants}>
+            {(variant) => (
+              <Variant name={`${variant} / disabled`}>
+                <Button variant={variant} disabled>{t('save')}</Button>
               </Variant>
-            ))}
-          </div>
-        ))}
-        <div className="flex flex-wrap items-end gap-4">
-          {buttonVariants.map((variant) => (
-            <Variant key={variant} name={`${variant} / disabled`}>
-              <Button variant={variant} disabled>{t('save')}</Button>
-            </Variant>
-          ))}
+            )}
+          </For>
           <Variant name="default / icon">
-            <Button size="icon" aria-label={t('add')}><Plus className="h-4 w-4" /></Button>
+            <Button size="icon" aria-label={t('add')}><Plus class="h-4 w-4" /></Button>
           </Variant>
         </div>
       </Section>
 
       <Section id="icon-button" title="IconButton">
-        <div className="flex flex-wrap items-end gap-4">
+        <div class="flex flex-wrap items-end gap-4">
           <Variant name="ghost">
-            <IconButton icon={<Pencil className="h-4 w-4" />} label={t('edit')} />
+            <IconButton icon={<Pencil class="h-4 w-4" />} label={t('edit')} />
           </Variant>
           <Variant name="outline">
-            <IconButton variant="outline" icon={<Plus className="h-4 w-4" />} label={t('add')} />
+            <IconButton variant="outline" icon={<Plus class="h-4 w-4" />} label={t('add')} />
           </Variant>
           <Variant name="destructive">
-            <IconButton variant="destructive" icon={<Trash2 className="h-4 w-4" />} label={t('delete')} />
+            <IconButton variant="destructive" icon={<Trash2 class="h-4 w-4" />} label={t('delete')} />
           </Variant>
           <Variant name="disabled">
-            <IconButton disabled icon={<Pencil className="h-4 w-4" />} label={t('edit')} />
+            <IconButton disabled icon={<Pencil class="h-4 w-4" />} label={t('edit')} />
           </Variant>
         </div>
       </Section>
 
       <Section id="alert" title="Alert">
-        <div className="grid gap-3">
-          {alertVariants.map((variant) => (
-            <Variant key={variant} name={variant}>
-              <Alert variant={variant}>
-                <AlertTitle>{t('status')}</AlertTitle>
-                <AlertDescription>{t('noResults')}</AlertDescription>
-              </Alert>
-            </Variant>
-          ))}
+        <div class="grid gap-3">
+          <For each={alertVariants}>
+            {(variant) => (
+              <Variant name={variant}>
+                <Alert variant={variant}>
+                  <AlertTitle>{t('status')}</AlertTitle>
+                  <AlertDescription>{t('noResults')}</AlertDescription>
+                </Alert>
+              </Variant>
+            )}
+          </For>
         </div>
       </Section>
 
       <Section id="card" title="Card">
-        <Card className="max-w-md">
+        <Card class="max-w-md">
           <CardHeader>
             <CardTitle>{t('filters')}</CardTitle>
             <CardDescription>{t('noResults')}</CardDescription>
           </CardHeader>
           <CardContent>{t('loading')}</CardContent>
-          <CardFooter className="gap-2">
+          <CardFooter class="gap-2">
             <Button variant="outline">{t('clear')}</Button>
             <Button>{t('apply')}</Button>
           </CardFooter>
@@ -150,53 +159,58 @@ export default function UiShowcasePage() {
       </Section>
 
       <Section id="input" title="Input / Label">
-        <div className="grid max-w-md gap-4">
-          <div className="grid gap-2">
-            <Label htmlFor="ui-input-empty">{t('customer')}</Label>
+        <div class="grid max-w-md gap-4">
+          <div class="grid gap-2">
+            <Label for="ui-input-empty">{t('customer')}</Label>
             <Input id="ui-input-empty" placeholder={t('placeholders.customer')} />
           </div>
-          <div className="grid gap-2">
-            <Label htmlFor="ui-input-filled">{t('name')}</Label>
-            <Input id="ui-input-filled" defaultValue={t('appName')} />
+          <div class="grid gap-2">
+            <Label for="ui-input-filled">{t('name')}</Label>
+            <Input id="ui-input-filled" value={t('appName')} />
           </div>
-          <div className="grid gap-2">
-            <Input id="ui-input-disabled" className="peer" disabled defaultValue={t('appName')} />
-            <Label htmlFor="ui-input-disabled">{t('status')}</Label>
+          <div class="grid gap-2">
+            <Input id="ui-input-disabled" class="peer" disabled value={t('appName')} />
+            <Label for="ui-input-disabled">{t('status')}</Label>
           </div>
         </div>
       </Section>
 
       <Section id="select" title="Select / StatusSelect">
-        <div className="flex flex-wrap items-end gap-4">
+        <div class="flex flex-wrap items-end gap-4">
           <Variant name="Select">
-            <Select defaultValue="all">
-              <SelectTrigger data-testid="ui-select-trigger" aria-label={t('status')} className="w-[180px]">
-                <SelectValue />
+            <Select<string>
+              options={['all', 'active', 'inactive']}
+              defaultValue="all"
+              itemComponent={(item) => <SelectItem item={item.item}>{filterLabel(item.item.rawValue)}</SelectItem>}
+            >
+              <SelectTrigger data-testid="ui-select-trigger" aria-label={t('status')} class="w-[180px]">
+                <SelectValue<string>>{(state) => filterLabel(state.selectedOption())}</SelectValue>
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{t('all')}</SelectItem>
-                <SelectItem value="active">{status('active')}</SelectItem>
-                <SelectItem value="inactive">{status('inactive')}</SelectItem>
-              </SelectContent>
+              <SelectContent />
             </Select>
           </Variant>
           <Variant name="Select / disabled">
-            <Select defaultValue="all" disabled>
-              <SelectTrigger aria-label={t('status')} className="w-[180px]">
-                <SelectValue />
+            <Select<string>
+              options={['all']}
+              defaultValue="all"
+              disabled
+              itemComponent={(item) => <SelectItem item={item.item}>{filterLabel(item.item.rawValue)}</SelectItem>}
+            >
+              <SelectTrigger aria-label={t('status')} class="w-[180px]">
+                <SelectValue<string>>{(state) => filterLabel(state.selectedOption())}</SelectValue>
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{t('all')}</SelectItem>
-              </SelectContent>
+              <SelectContent />
             </Select>
           </Variant>
-          {itemStatuses.map((value) => (
-            <Variant key={value} name={`StatusSelect / ${value}`}>
-              <StatusSelect value={value} onValueChange={() => {}} ariaLabel={t('status')} />
-            </Variant>
-          ))}
+          <For each={itemStatuses}>
+            {(value) => (
+              <Variant name={`StatusSelect / ${value}`}>
+                <StatusSelect value={value} onValueChange={() => {}} ariaLabel={t('status')} />
+              </Variant>
+            )}
+          </For>
           <Variant name="StatusSelect / interactive">
-            <StatusSelect value={itemStatus} onValueChange={setItemStatus} ariaLabel={t('status')} />
+            <StatusSelect value={itemStatus()} onValueChange={setItemStatus} ariaLabel={t('status')} />
           </Variant>
           <Variant name="StatusSelect / disabled">
             <StatusSelect value="READY" onValueChange={() => {}} disabled ariaLabel={t('status')} />
@@ -223,56 +237,54 @@ export default function UiShowcasePage() {
             <TableRow>
               <TableHead>{t('name')}</TableHead>
               <TableHead>{t('status')}</TableHead>
-              <TableHead className="text-right">{t('price')}</TableHead>
+              <TableHead class="text-right">{t('price')}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             <TableRow>
               <TableCell>{t('appName')}</TableCell>
               <TableCell>{status('active')}</TableCell>
-              <TableCell className="text-right">{money(10)}</TableCell>
+              <TableCell class="text-right">{money(10)}</TableCell>
             </TableRow>
             <TableRow accentColor="#22c55e">
               <TableCell>{t('appName')}</TableCell>
               <TableCell>{status('active')}</TableCell>
-              <TableCell className="text-right">{money(20)}</TableCell>
+              <TableCell class="text-right">{money(20)}</TableCell>
             </TableRow>
             <TableRow data-state="selected">
               <TableCell>{t('appName')}</TableCell>
               <TableCell>{status('inactive')}</TableCell>
-              <TableCell className="text-right">{money(30)}</TableCell>
+              <TableCell class="text-right">{money(30)}</TableCell>
             </TableRow>
           </TableBody>
           <TableFooter>
             <TableRow>
               <TableCell colSpan={2}>{t('total')}</TableCell>
-              <TableCell className="text-right">{money(60)}</TableCell>
+              <TableCell class="text-right">{money(60)}</TableCell>
             </TableRow>
           </TableFooter>
         </Table>
       </Section>
 
       <Section id="skeleton" title="Skeleton">
-        <div className="space-y-2">
-          <Skeleton className="h-4 w-64" />
-          <Skeleton className="h-4 w-48" />
-          <Skeleton className="h-10 w-full" />
+        <div class="space-y-2">
+          <Skeleton class="h-4 w-64" />
+          <Skeleton class="h-4 w-48" />
+          <Skeleton class="h-10 w-full" />
         </div>
       </Section>
 
       <Section id="overlays" title="Dialog / DropdownMenu">
-        <div className="flex flex-wrap gap-4">
+        <div class="flex flex-wrap gap-4">
           <Dialog>
-            <DialogTrigger asChild>
-              <Button data-testid="ui-dialog-trigger" variant="outline">{t('edit')}</Button>
-            </DialogTrigger>
+            <DialogTrigger as={Button} data-testid="ui-dialog-trigger" variant="outline">{t('edit')}</DialogTrigger>
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>{t('filters')}</DialogTitle>
                 <DialogDescription>{t('noResults')}</DialogDescription>
               </DialogHeader>
-              <div className="grid gap-2">
-                <Label htmlFor="ui-dialog-input">{t('customer')}</Label>
+              <div class="grid gap-2">
+                <Label for="ui-dialog-input">{t('customer')}</Label>
                 <Input id="ui-dialog-input" placeholder={t('placeholders.customer')} />
               </div>
               <DialogFooter>
@@ -282,11 +294,9 @@ export default function UiShowcasePage() {
             </DialogContent>
           </Dialog>
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button data-testid="ui-dropdown-trigger" variant="outline">{t('accessibility.openMenu')}</Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-56">
+          <DropdownMenu placement="bottom-start">
+            <DropdownMenuTrigger as={Button} data-testid="ui-dropdown-trigger" variant="outline">{t('accessibility.openMenu')}</DropdownMenuTrigger>
+            <DropdownMenuContent class="w-56">
               <DropdownMenuLabel>{t('filters')}</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem>
@@ -295,11 +305,11 @@ export default function UiShowcasePage() {
               </DropdownMenuItem>
               <DropdownMenuItem disabled>{t('delete')}</DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuCheckboxItem checked={checked} onCheckedChange={setChecked}>
+              <DropdownMenuCheckboxItem checked={checked()} onChange={setChecked}>
                 {status('active')}
               </DropdownMenuCheckboxItem>
               <DropdownMenuSeparator />
-              <DropdownMenuRadioGroup value={radio} onValueChange={setRadio}>
+              <DropdownMenuRadioGroup value={radio()} onChange={setRadio}>
                 <DropdownMenuRadioItem value="all">{t('all')}</DropdownMenuRadioItem>
                 <DropdownMenuRadioItem value="inactive">{status('inactive')}</DropdownMenuRadioItem>
               </DropdownMenuRadioGroup>

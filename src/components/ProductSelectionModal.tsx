@@ -1,606 +1,528 @@
-import { useState, useEffect } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Plus, Minus, Trash2, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
-import api, { getErrorCode } from "@/services/api";
-import { toast } from "sonner";
-import { Skeleton } from "@/components/ui/skeleton";
-import { StatusSelect } from "@/components/ui/status-select";
-import { useConfirm } from "@/contexts/ConfirmContext";
-import { useTranslation } from "react-i18next";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import type { OrderItemStatus, PaymentMethod, Product, ProductType } from "@/domain/models";
-import { formatCount, formatCurrencyBRL, formatNumber } from "@/i18n/format";
-import { getCatalogLabel } from "@/i18n/labels";
-import { normalizeLocale } from "@/i18n/locale";
-import { getErrorTranslationKey, type ErrorContext } from "@/i18n/error-keys";
+import { createEffect, createSignal, For, on, Show, untrack } from "solid-js"
+import { createQuery, keepPreviousData } from "@tanstack/solid-query"
+import { loadedData, onQueryError } from "@/api/query"
+import { ChevronLeft, ChevronRight, Loader2, Minus, Plus, Trash2 } from "lucide-solid"
+import { toast } from "solid-sonner"
 
+import { catalogKeys, listProducts, listProductTypes, type Product } from "@/api/catalog"
+import { Button } from "@/components/ui/button"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Skeleton } from "@/components/ui/skeleton"
+import { StatusSelect } from "@/components/ui/status-select"
+import { useConfirm } from "@/contexts/ConfirmContext"
+import type { OrderItemStatus } from "@/domain/models"
+import { useErrorMessage } from "@/i18n/error-message"
+import { formatCount, formatNumber } from "@/i18n/format"
+import { getCatalogLabel } from "@/i18n/labels"
+import { normalizeLocale } from "@/i18n/locale"
+import { useTranslation } from "@/i18n/solid"
+import { createCursorPages, totalPagesOf } from "@/lib/cursor-pages"
+import { createDebounced } from "@/lib/min-loading"
+import { formatCents } from "@/lib/money"
+
+export type PaymentMethod = "CASH" | "PIX" | "CREDIT_CARD" | "DEBIT_CARD" | "ON_ACCOUNT"
+const PAYMENT_METHODS: readonly PaymentMethod[] = ["CASH", "PIX", "CREDIT_CARD", "DEBIT_CARD", "ON_ACCOUNT"]
+
+/** An item of the order or sale being edited. Money in integer cents. */
 export type SelectedItem = {
-  id?: number | string;
-  productId: number | string;
-  quantity: number;
-  name: string;
-  price: number;
-  unitPrice: number;
-  status?: OrderItemStatus;
-  localKey?: string;
-};
-
-interface ProductSelectionModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onConfirm: (customerName: string, items: { id?: number | string; productId: number | string; quantity: number; unitPrice?: number }[], delivery?: { isDelivery: boolean; deliveryAddress: string | null }) => Promise<void>;
-  title: string;
-  description?: string;
-  initialClientName?: string;
-  initialDelivery?: { isDelivery: boolean; deliveryAddress: string | null };
-  allowDelivery?: boolean;
-  initialItems?: {
-    id?: number | string;
-    productId: number | string;
-    quantity: number;
-    unitPrice?: number;
-    name?: string;
-    price?: number;
-    status?: OrderItemStatus;
-  }[];
-  isEditing?: boolean; // If editing, we might handle things differently
-  mergeSameProducts?: boolean;
-  onCloseOrder?: (paymentMethod: PaymentMethod | null) => Promise<void>;
-  onChangeItemStatus?: (itemId: number | string, newStatus: OrderItemStatus) => Promise<void> | void;
-  onCancelSale?: () => Promise<void>;
-  readOnly?: boolean;
-  additionalReadOnlyItems?: { description: string; quantity: number; unitPrice: number }[];
+  id?: string
+  productId: string
+  quantity: number
+  name: string
+  unitPriceCents: number
+  status?: OrderItemStatus
+  localKey: string
 }
 
-const DEFAULT_ITEMS: { productId: number; quantity: number }[] = [];
-const PRODUCTS_PAGE_SIZE = 20;
+export type ConfirmedItem = { id?: string; productId: string; quantity: number; unitPriceCents: number }
 
-export function ProductSelectionModal({
-  isOpen,
-  onClose,
-  onConfirm,
-  title,
-  description,
-  initialClientName = "",
-  initialDelivery,
-  allowDelivery = false,
-  initialItems = DEFAULT_ITEMS,
-  isEditing = false,
-  mergeSameProducts = false,
-  onCloseOrder,
-  onChangeItemStatus,
-  onCancelSale,
-  readOnly = false,
-  additionalReadOnlyItems = [],
-}: ProductSelectionModalProps) {
-  const confirm = useConfirm();
-  const { i18n } = useTranslation();
-  const { t: tAuth } = useTranslation("auth");
-  const { t: tCommon } = useTranslation("common");
-  const { t: tErrors } = useTranslation("errors");
-  const { t: tOrders } = useTranslation("orders");
-  const { t: tProducts } = useTranslation("products");
-  const { t: tSales } = useTranslation("sales");
-  const activeLocale = normalizeLocale(i18n.language);
-  const localizedError = (context: ErrorContext, error: unknown) => {
-    const translation = getErrorTranslationKey(context, getErrorCode(error));
-    return translation.namespace === "auth"
-      ? tAuth(translation.key)
-      : tErrors(translation.key);
-  };
-  const unitCountMessages = {
+export interface ProductSelectionModalProps {
+  isOpen: boolean
+  onClose: () => void
+  onConfirm: (customerName: string, items: ConfirmedItem[], delivery?: { isDelivery: boolean; deliveryAddress: string | null }) => Promise<void>
+  title: string
+  description?: string
+  initialClientName?: string
+  initialDelivery?: { isDelivery: boolean; deliveryAddress: string | null }
+  allowDelivery?: boolean
+  initialItems?: { id?: string; productId: string; quantity: number; unitPriceCents?: number; name?: string; status?: OrderItemStatus }[]
+  isEditing?: boolean
+  mergeSameProducts?: boolean
+  onCloseOrder?: (paymentMethod: PaymentMethod | null) => Promise<void>
+  onChangeItemStatus?: (itemId: string, newStatus: OrderItemStatus) => Promise<void> | void
+  onCancelSale?: () => Promise<void>
+  readOnly?: boolean
+  additionalReadOnlyItems?: { description: string; quantity: number; unitPriceCents: number }[]
+  /** Changing it while open reloads the form from the initial* props (an order read again after a conflict). */
+  resetKey?: unknown
+}
+
+const PRODUCTS_PAGE_SIZE = 20
+
+/**
+ * Picks products for an order, a sale or a quote (orders S4, services S5). It
+ * pages the catalog on the server (20 at a time, by name and type), never the
+ * whole list. Nothing is saved here: onConfirm gets the items.
+ */
+export function ProductSelectionModal(props: ProductSelectionModalProps) {
+  const confirm = useConfirm()
+  const { t: tCommon, language } = useTranslation("common")
+  const { t: tErrors } = useTranslation("errors")
+  const { t: tOrders } = useTranslation("orders")
+  const { t: tDeliveries } = useTranslation("deliveries")
+  const { t: tProducts } = useTranslation("products")
+  const { t: tSales } = useTranslation("sales")
+  const localizedError = useErrorMessage()
+  const activeLocale = () => normalizeLocale(language())
+  const unitCountMessages = () => ({
     zero: tCommon("unitCount.zero"),
     one: tCommon("unitCount.one"),
     two: tCommon("unitCount.two"),
     few: tCommon("unitCount.few"),
     many: tCommon("unitCount.many"),
     other: tCommon("unitCount.other"),
-  };
-  const [products, setProducts] = useState<Product[]>([]);
-  const [productsTotal, setProductsTotal] = useState(0);
-  const [productsPage, setProductsPage] = useState(1);
-  const [productTypes, setProductTypes] = useState<ProductType[]>([]);
-  const [selectedItems, setSelectedItems] = useState<SelectedItem[]>([]);
-  const [clientName, setClientName] = useState(initialClientName);
-  const [isDelivery, setIsDelivery] = useState(false);
-  const [deliveryAddress, setDeliveryAddress] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isClosingOrder, setIsClosingOrder] = useState(false);
-  const [isCancellingSale, setIsCancellingSale] = useState(false);
-  const [updatingItemStatusId, setUpdatingItemStatusId] = useState<number | string | null>(null);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [productTypeFilter, setProductTypeFilter] = useState("");
-  const [isProductsLoading, setIsProductsLoading] = useState(false);
+  })
 
-  // Reset local state and hydrate selected items on open.
-  // Nomes/precos dos itens ja selecionados vem do caller (pedido/venda), nao
-  // depende mais do catalogo carregado - assim funciona mesmo se o produto
-  // do item nao estiver na pagina atual de busca.
-  useEffect(() => {
-    if (!isOpen) return;
+  const [selectedItems, setSelectedItems] = createSignal<SelectedItem[]>([])
+  const [clientName, setClientName] = createSignal("")
+  const [isDelivery, setIsDelivery] = createSignal(false)
+  const [deliveryAddress, setDeliveryAddress] = createSignal("")
+  const [paymentMethod, setPaymentMethod] = createSignal<PaymentMethod | null>(null)
+  const [isLoading, setIsLoading] = createSignal(false)
+  const [isClosingOrder, setIsClosingOrder] = createSignal(false)
+  const [isCancellingSale, setIsCancellingSale] = createSignal(false)
+  const [updatingItemStatusId, setUpdatingItemStatusId] = createSignal<string | null>(null)
+  const [searchTerm, setSearchTerm] = createSignal("")
+  const [productTypeFilter, setProductTypeFilter] = createSignal("")
+  const debouncedSearch = createDebounced(searchTerm)
+  const pages = createCursorPages(PRODUCTS_PAGE_SIZE)
+  let draftCounter = 0
 
-    setClientName(initialClientName);
-    setIsDelivery(initialDelivery?.isDelivery ?? false);
-    setDeliveryAddress(initialDelivery?.deliveryAddress ?? '');
-    setSearchTerm("");
-    setProductTypeFilter("");
-
-    if (initialItems && initialItems.length > 0) {
-      const hydratedItems = initialItems
+  // Reset the form and take the caller's items each time the modal opens (or
+  // resetKey changes while open). The names and prices come from the caller
+  // (order or sale), not from the catalog page, so an item outside the
+  // current page still shows.
+  createEffect(on(() => [props.isOpen, props.resetKey] as const, ([open], previous) => {
+    if (!open) return
+    const reloaded = previous?.[0] === true
+    untrack(() => {
+      setClientName(props.initialClientName ?? "")
+      setIsDelivery(props.initialDelivery?.isDelivery ?? false)
+      setDeliveryAddress(props.initialDelivery?.deliveryAddress ?? "")
+      // A reload keeps the catalog where the user left it.
+      if (!reloaded) {
+        setSearchTerm("")
+        setProductTypeFilter("")
+        pages.reset()
+      }
+      setSelectedItems((props.initialItems ?? [])
         .filter((item) => item.productId != null)
-        .map((item) => {
-          const price = item.price != null ? Number(item.price) : Number(item.unitPrice ?? 0);
-          return {
-            id: item.id,
-            localKey: item.id != null ? String(item.id) : `draft-${item.productId}`,
-            productId: item.productId,
-            quantity: item.quantity,
-            name: item.name ?? tProducts("selection.fallbackProduct"),
-            price,
-            unitPrice: item.unitPrice != null ? Number(item.unitPrice) : price,
-            status: item.status,
-          };
-        });
-      setSelectedItems(hydratedItems);
-    } else {
-      setSelectedItems([]);
-    }
-  }, [isOpen, initialClientName, initialItems, initialDelivery?.isDelivery, initialDelivery?.deliveryAddress]);
+        .map((item) => ({
+          id: item.id,
+          localKey: item.id != null ? String(item.id) : `draft-${item.productId}`,
+          productId: item.productId,
+          quantity: item.quantity,
+          name: item.name ?? tProducts("selection.fallbackProduct"),
+          unitPriceCents: item.unitPriceCents ?? 0,
+          status: item.status,
+        })))
+    })
+  }))
 
-  // Tipos de produto para o filtro de categoria (poucos registros, carrega tudo de uma vez).
-  useEffect(() => {
-    if (!isOpen || readOnly) return;
-    api.get("/tipos")
-      .then((response) => {
-        const payload = response.data;
-        const types = Array.isArray(payload) ? payload : payload?.types ?? payload?.data ?? [];
-        setProductTypes(types);
-      })
-      .catch((error) => {
-        console.error("Error fetching product types", error);
-        toast.error(localizedError("loadProductTypes", error));
-      });
-  }, [isOpen, readOnly]);
+  const browsing = () => props.isOpen && !props.readOnly
 
-  // Busca produtos no servidor - nunca carrega o catalogo inteiro, so a
-  // pagina atual (20 itens) filtrada por nome/categoria.
-  const fetchProductsPage = async (page: number) => {
-    setIsProductsLoading(true);
-    try {
-      const params: any = { limit: PRODUCTS_PAGE_SIZE, page };
-      if (searchTerm) params.search = searchTerm;
-      if (productTypeFilter) params.productTypeId = productTypeFilter;
+  // Product types for the category filter (few: the whole list at once).
+  const types = createQuery(() => ({
+    queryKey: [...catalogKeys.productTypes, { includeInactive: false, search: "" }],
+    queryFn: ({ signal }) => listProductTypes({}, signal),
+    enabled: browsing(),
+  }))
+  const products = createQuery(() => ({
+    queryKey: [...catalogKeys.products, { search: debouncedSearch(), productTypeId: productTypeFilter(), cursor: pages.cursor(), limit: PRODUCTS_PAGE_SIZE }],
+    queryFn: ({ signal }) => listProducts({ search: debouncedSearch(), productTypeId: productTypeFilter(), cursor: pages.cursor(), limit: PRODUCTS_PAGE_SIZE }, signal),
+    enabled: browsing(),
+    placeholderData: keepPreviousData,
+  }))
 
-      const response = await api.get("/produtos", { params });
-      const payload = response.data;
-      const products = Array.isArray(payload) ? payload : payload?.products ?? payload?.data ?? [];
-      const data = products.map((p: Product) => ({
-        ...p,
-        price: p.price ? Number(p.price) : 0,
-      }));
-      setProducts(data);
-      setProductsPage(page);
-      const totalHeader = response.headers["x-total-count"];
-      setProductsTotal(payload?.total ?? payload?.count ?? (totalHeader ? parseInt(totalHeader, 10) : data.length));
-    } catch (error) {
-      console.error("Error fetching products", error);
-      toast.error(localizedError("loadProducts", error));
-    } finally {
-      setIsProductsLoading(false);
-    }
-  };
+  onQueryError(types, (error) => {
+    console.error("Error fetching product types", error)
+    toast.error(localizedError("loadProductTypes", error))
+  })
+  onQueryError(products, (error) => {
+    console.error("Error fetching products", error)
+    toast.error(localizedError("loadProducts", error))
+  })
 
-  // Busca (nome/categoria) tem debounce e sempre volta pra pagina 1.
-  // Skeleton liga na hora (nao so quando o fetch comeca) - sem isso ficava
-  // um instante mostrando "Nenhum produto encontrado" antes do debounce disparar.
-  useEffect(() => {
-    if (!isOpen || readOnly) return;
-    setIsProductsLoading(true);
-    const timer = setTimeout(() => {
-      fetchProductsPage(1);
-    }, 300);
-    return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen, readOnly, searchTerm, productTypeFilter]);
-
-  const productsTotalPages = Math.ceil(productsTotal / PRODUCTS_PAGE_SIZE);
+  // The skeleton shows while the search waits for its debounce too, so the
+  // empty message does not flash before the request.
+  const isProductsLoading = () => products.isPending || products.isPlaceholderData || searchTerm() !== debouncedSearch()
+  const productPage = () => (products.isError ? undefined : loadedData(products))
+  const productRows = () => productPage()?.items ?? []
+  const productsTotalPages = () => totalPagesOf(productPage()?.total ?? 0, PRODUCTS_PAGE_SIZE)
+  const typeList = () => loadedData(types) ?? []
 
   const handleAddItem = (product: Product) => {
-    setSelectedItems((prev) => {
-      if (mergeSameProducts) {
-        const existingItem = prev.find((item) => item.productId === product.id);
-        if (existingItem) {
-          return prev.map((item) => item.localKey === existingItem.localKey
-            ? { ...item, quantity: item.quantity + 1 }
-            : item);
-        }
+    setSelectedItems((previous) => {
+      if (props.mergeSameProducts) {
+        const existing = previous.find((item) => item.productId === product.id)
+        if (existing) return previous.map((item) => item.localKey === existing.localKey ? { ...item, quantity: item.quantity + 1 } : item)
       }
+      draftCounter += 1
+      return [...previous, { productId: product.id, quantity: 1, name: product.name, unitPriceCents: product.priceCents, localKey: `draft-${draftCounter}-${previous.length}` }]
+    })
+  }
 
-      return [
-        ...prev,
-        { productId: product.id, quantity: 1, name: product.name, price: product.price, unitPrice: Number(product.price || 0), localKey: `draft-${Date.now()}-${prev.length}` },
-      ];
-    });
-  };
+  const handleRemoveItem = (localKey: string) => {
+    setSelectedItems((previous) => previous.filter((item) => item.localKey !== localKey))
+  }
 
-  const handleRemoveItem = (localKey: string | undefined, productId: number | string) => {
-    setSelectedItems((prev) => prev.filter((item) => localKey ? item.localKey !== localKey : item.productId !== productId));
-  };
+  const handleUpdateQuantity = (localKey: string, delta: number) => {
+    setSelectedItems((previous) => previous.map((item) => item.localKey === localKey ? { ...item, quantity: Math.max(1, item.quantity + delta) } : item))
+  }
 
-  const handleUpdateQuantity = (localKey: string | undefined, productId: number | string, delta: number) => {
-    setSelectedItems((prev) =>
-      prev.map((item) => {
-        if (localKey ? item.localKey === localKey : item.productId === productId) {
-          const newQuantity = Math.max(1, item.quantity + delta);
-          return { ...item, quantity: newQuantity };
-        }
-        return item;
-      })
-    );
-  };
-
-  const handleChangeItemStatus = async (itemId: number | string, newStatus: OrderItemStatus) => {
-    if (!onChangeItemStatus) return;
-
-    setUpdatingItemStatusId(itemId);
+  const handleChangeItemStatus = async (itemId: string, newStatus: OrderItemStatus) => {
+    if (!props.onChangeItemStatus) return
+    setUpdatingItemStatusId(itemId)
     try {
-      await onChangeItemStatus(itemId, newStatus);
-      setSelectedItems((prev) => prev.map((item) => (
-        item.id === itemId ? { ...item, status: newStatus } : item
-      )));
+      await props.onChangeItemStatus(itemId, newStatus)
+      setSelectedItems((previous) => previous.map((item) => item.id === itemId ? { ...item, status: newStatus } : item))
     } catch (error) {
-      console.error("Error changing order item status", error);
-      toast.error(localizedError("changeOrderItemStatus", error));
+      console.error("Error changing order item status", error)
+      toast.error(localizedError("changeOrderItemStatus", error))
     } finally {
-      setUpdatingItemStatusId(null);
+      setUpdatingItemStatusId(null)
     }
-  };
+  }
 
   const handleConfirm = async () => {
-    if (selectedItems.length === 0 && !isEditing) {
-      toast.warning(tErrors("products.selectItems"));
-      return;
+    if (isLoading()) return
+    if (selectedItems().length === 0 && !props.isEditing) {
+      // "products" is also a namespace (nsSeparator "."), so the key is read as-is.
+      toast.warning(tErrors("products.selectItems", { nsSeparator: false }))
+      return
     }
-    if (isDelivery && !deliveryAddress.trim()) {
-      toast.warning(tOrders('deliveryAddressRequired'));
-      return;
+    if (isDelivery() && !deliveryAddress().trim()) {
+      toast.warning(tOrders("deliveryAddressRequired"))
+      return
     }
 
-    setIsLoading(true);
+    setIsLoading(true)
     try {
-      const finalCustomerName = clientName.trim();
-      const itemsPayload = selectedItems.map(({ id, productId, quantity, unitPrice, price }) => ({
-        ...(id != null ? { id } : {}),
-        productId,
-        quantity,
-        unitPrice: unitPrice != null ? Number(unitPrice) : Number(price || 0),
-      }));
-      
-      if (allowDelivery) {
-        await onConfirm(finalCustomerName, itemsPayload, { isDelivery, deliveryAddress: isDelivery ? deliveryAddress.trim() : null });
+      const items = selectedItems().map(({ id, productId, quantity, unitPriceCents }) => ({ ...(id != null ? { id } : {}), productId, quantity, unitPriceCents }))
+      if (props.allowDelivery) {
+        await props.onConfirm(clientName().trim(), items, { isDelivery: isDelivery(), deliveryAddress: isDelivery() ? deliveryAddress().trim() : null })
       } else {
-        await onConfirm(finalCustomerName, itemsPayload);
+        await props.onConfirm(clientName().trim(), items)
       }
-      onClose();
+      props.onClose()
     } catch (error) {
-      console.error("Error confirming", error);
+      // The caller reports the failure; the form keeps what was typed.
+      console.error("Error confirming", error)
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
-  const total = selectedItems.reduce((acc, item) => acc + ((item.unitPrice != null ? item.unitPrice : item.price) * item.quantity), 0) + additionalReadOnlyItems.reduce((acc, item) => acc + item.unitPrice * item.quantity, 0);
+  const handleCloseOrder = async () => {
+    const closeOrder = props.onCloseOrder
+    if (!closeOrder || !(await confirm(tOrders("confirm.close")))) return
+    setIsClosingOrder(true)
+    try {
+      await closeOrder(paymentMethod())
+      props.onClose()
+    } catch (error) {
+      console.error("Error closing order", error)
+      toast.error(localizedError("closeOrder", error))
+    } finally {
+      setIsClosingOrder(false)
+    }
+  }
+
+  const handleCancelSale = async () => {
+    const cancelSale = props.onCancelSale
+    if (!cancelSale) return
+    if (!(await confirm({ description: tSales("confirm.cancel"), confirmLabel: tSales("cancel"), destructive: true }))) return
+    setIsCancellingSale(true)
+    try {
+      await cancelSale()
+      props.onClose()
+    } catch (error) {
+      console.error("Error cancelling sale", error)
+      toast.error(localizedError("cancelSale", error))
+    } finally {
+      setIsCancellingSale(false)
+    }
+  }
+
+  const totalCents = () => selectedItems().reduce((sum, item) => sum + item.unitPriceCents * item.quantity, 0)
+    + (props.additionalReadOnlyItems ?? []).reduce((sum, item) => sum + item.unitPriceCents * item.quantity, 0)
+
+  const typeOptions = () => ["all", ...typeList().map((type) => type.id)]
+  const typeLabel = (value: string) => {
+    if (value === "all") return tProducts("selection.allCategories")
+    const type = typeList().find((item) => item.id === value)
+    return type ? getCatalogLabel(type.id, type.description, activeLocale()) : ""
+  }
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-[80vw] max-w-[80vw] max-h-[90vh] flex flex-col">
+    <Dialog open={props.isOpen} onOpenChange={(open) => { if (!open) props.onClose() }}>
+      <DialogContent class="w-[80vw] max-w-[80vw] max-h-[90vh] flex flex-col">
         <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>
-            {description ?? tProducts("selection.description")}
-          </DialogDescription>
+          <DialogTitle>{props.title}</DialogTitle>
+          <DialogDescription>{props.description ?? tProducts("selection.description")}</DialogDescription>
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto py-4 space-y-6">
-          <div className="space-y-2">
-            <Label htmlFor="client">{tCommon("customer")}</Label>
-            <Input
-              id="client"
-              placeholder={tProducts("selection.clientPlaceholder")}
-              value={clientName}
-              onChange={(e) => setClientName(e.target.value)}
-              disabled={readOnly}
-            />
+        <div class="flex-1 overflow-y-auto py-4 space-y-6">
+          <div class="space-y-2">
+            <Label for="client">{tCommon("customer")}</Label>
+            <Input id="client" placeholder={tProducts("selection.clientPlaceholder")} value={clientName()} onInput={(e) => setClientName(e.currentTarget.value)} disabled={props.readOnly} />
           </div>
-          {allowDelivery && !readOnly ? <div className="space-y-2">
-            <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={isDelivery} onChange={event => setIsDelivery(event.target.checked)} />{tOrders('isDelivery')}</label>
-            {isDelivery && <div className="space-y-1"><Label htmlFor="delivery-address">{tOrders('deliveryAddress')}</Label><Input id="delivery-address" value={deliveryAddress} onChange={event => setDeliveryAddress(event.target.value)} maxLength={500} /></div>}
-          </div> : null}
-          {allowDelivery && readOnly && isDelivery && <div className="space-y-1"><Label>{tOrders('deliveryAddress')}</Label><p className="break-words text-sm">{deliveryAddress}</p></div>}
+          <Show when={props.allowDelivery && !props.readOnly}>
+            <div class="space-y-2">
+              <label class="flex items-center gap-2 text-sm"><input type="checkbox" checked={isDelivery()} onChange={(event) => setIsDelivery(event.currentTarget.checked)} />{tOrders("isDelivery")}</label>
+              <Show when={isDelivery()}>
+                <div class="space-y-1"><Label for="delivery-address">{tOrders("deliveryAddress")}</Label><Input id="delivery-address" value={deliveryAddress()} onInput={(event) => setDeliveryAddress(event.currentTarget.value)} maxLength={500} /></div>
+              </Show>
+            </div>
+          </Show>
+          <Show when={props.allowDelivery && props.readOnly && isDelivery()}>
+            <div class="space-y-1"><Label>{tOrders("deliveryAddress")}</Label><p class="break-words text-sm">{deliveryAddress()}</p></div>
+          </Show>
 
-          <div className={`grid ${readOnly ? 'grid-cols-1' : 'md:grid-cols-2'} gap-6`}>
-            {/* Product List */}
-            {!readOnly && (
-              <div className="space-y-4 border rounded-lg p-4">
-                <h3 className="font-semibold">{tProducts("selection.available")}</h3>
-                <div className="flex gap-2">
+          <div class={`grid ${props.readOnly ? "grid-cols-1" : "md:grid-cols-2"} gap-6`}>
+            <Show when={!props.readOnly}>
+              <div class="space-y-4 border rounded-lg p-4">
+                <h3 class="font-semibold">{tProducts("selection.available")}</h3>
+                <div class="flex gap-2">
                   <Input
                     placeholder={tProducts("selection.searchPlaceholder")}
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="flex-1"
+                    value={searchTerm()}
+                    onInput={(e) => { setSearchTerm(e.currentTarget.value); pages.reset() }}
+                    class="flex-1"
                   />
-                  <Select value={productTypeFilter || "all"} onValueChange={(val) => setProductTypeFilter(val === "all" ? "" : val)}>
-                    <SelectTrigger className="w-[150px]" aria-label={tProducts("selection.categoryPlaceholder")}>
-                      <SelectValue placeholder={tProducts("selection.categoryPlaceholder")} />
+                  <Select<string>
+                    options={typeOptions()}
+                    value={productTypeFilter() || "all"}
+                    onChange={(value) => { setProductTypeFilter(!value || value === "all" ? "" : value); pages.reset() }}
+                    placeholder={tProducts("selection.categoryPlaceholder")}
+                    itemComponent={(item) => <SelectItem item={item.item}>{typeLabel(item.item.rawValue)}</SelectItem>}
+                  >
+                    <SelectTrigger class="w-[150px]" aria-label={tProducts("selection.categoryPlaceholder")}>
+                      <SelectValue<string>>{(state) => typeLabel(state.selectedOption())}</SelectValue>
                     </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">{tProducts("selection.allCategories")}</SelectItem>
-                      {productTypes.map((productType) => (
-                        <SelectItem key={productType.id} value={String(productType.id)}>
-                          {getCatalogLabel(productType.id, productType.description, activeLocale)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
+                    <SelectContent />
                   </Select>
                 </div>
-                <div className="h-[300px] overflow-y-auto space-y-2">
-                  {isProductsLoading ? (
-                    Array.from({ length: 6 }).map((_, i) => (
-                      <div key={i} className="flex items-center justify-between p-2 border rounded">
-                        <div className="space-y-2">
-                          <Skeleton className="h-4 w-[150px] bg-gray-200 dark:bg-gray-700" />
-                          <Skeleton className="h-3 w-[80px] bg-gray-200 dark:bg-gray-700" />
-                        </div>
-                        <Skeleton className="h-8 w-8 rounded-md bg-gray-200 dark:bg-gray-700" />
-                      </div>
-                    ))
-                  ) : products.length === 0 ? (
-                    <p className="text-gray-500 dark:text-gray-400 text-center py-8">{tProducts("selection.noProducts")}</p>
-                  ) : (
-                    <div
-                      key={`${productsPage}-${searchTerm}-${productTypeFilter}`}
-                      className="space-y-2 animate-in fade-in-0 duration-200"
-                    >
-                      {products.map((product) => (
-                        <div
-                          key={product.id}
-                          className="flex items-center justify-between p-2 border rounded hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer"
-                          onClick={() => handleAddItem(product)}
-                        >
-                          <div>
-                            <p className="font-medium">{product.name}</p>
-                            <p className="text-sm text-gray-500">{formatCurrencyBRL(Number(product.price || 0), activeLocale)}</p>
+                <div class="h-[300px] overflow-y-auto space-y-2">
+                  <Show
+                    when={!isProductsLoading()}
+                    fallback={
+                      <For each={[0, 1, 2, 3, 4, 5]}>
+                        {() => (
+                          <div class="flex items-center justify-between p-2 border rounded">
+                            <div class="space-y-2">
+                              <Skeleton class="h-4 w-[150px] bg-gray-200 dark:bg-gray-700" />
+                              <Skeleton class="h-3 w-[80px] bg-gray-200 dark:bg-gray-700" />
+                            </div>
+                            <Skeleton class="h-8 w-8 rounded-md bg-gray-200 dark:bg-gray-700" />
                           </div>
-                          <Button size="sm" variant="ghost" aria-label={tProducts("selection.addProduct")}>
-                            <Plus className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                        )}
+                      </For>
+                    }
+                  >
+                    <Show when={productRows().length > 0} fallback={<p class="text-gray-500 dark:text-gray-400 text-center py-8">{tProducts("selection.noProducts")}</p>}>
+                      <div class="space-y-2 animate-in fade-in-0 duration-200">
+                        <For each={productRows()}>
+                          {(product) => (
+                            <div
+                              class="flex items-center justify-between p-2 border rounded hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer"
+                              onClick={() => handleAddItem(product)}
+                            >
+                              <div>
+                                <p class="font-medium">{product.name}</p>
+                                <p class="text-sm text-gray-500">{formatCents(product.priceCents, activeLocale())}</p>
+                              </div>
+                              <Button size="sm" variant="ghost" aria-label={tProducts("selection.addProduct")}>
+                                <Plus class="h-4 w-4" />
+                              </Button>
+                            </div>
+                          )}
+                        </For>
+                      </div>
+                    </Show>
+                  </Show>
                 </div>
-                {/* Sempre renderiza (mesmo com 1 pagina, so desabilita) - senao
-                    o painel muda de altura ao trocar categoria e o modal "pula". */}
-                <div className="flex items-center justify-between pt-1 h-7">
-                  <span className="text-xs text-muted-foreground">
-                    {productsTotalPages > 0 && tCommon("pageOf", {
-                      page: formatNumber(productsPage, activeLocale),
-                      total: formatNumber(productsTotalPages, activeLocale),
+                {/* Always rendered (disabled on one page): otherwise the panel
+                    changes height with the filter and the modal jumps. */}
+                <div class="flex items-center justify-between pt-1 h-7">
+                  <span class="text-xs text-muted-foreground">
+                    {productsTotalPages() > 0 && tCommon("pageOf", {
+                      page: formatNumber(pages.page(), activeLocale()),
+                      total: formatNumber(productsTotalPages(), activeLocale()),
                     })}
                   </span>
-                  <div className="flex gap-1">
+                  <div class="flex gap-1">
                     <Button
                       size="icon"
                       variant="outline"
-                      className="h-7 w-7"
+                      class="h-7 w-7"
                       aria-label={tCommon("previous")}
                       title={tCommon("previous")}
-                      onClick={() => fetchProductsPage(productsPage - 1)}
-                      disabled={productsPage <= 1 || isProductsLoading}
+                      onClick={() => pages.goTo(pages.page() - 1, null)}
+                      disabled={pages.page() <= 1 || isProductsLoading()}
                     >
-                      <ChevronLeft className="h-4 w-4" />
+                      <ChevronLeft class="h-4 w-4" />
                     </Button>
                     <Button
                       size="icon"
                       variant="outline"
-                      className="h-7 w-7"
+                      class="h-7 w-7"
                       aria-label={tCommon("next")}
                       title={tCommon("next")}
-                      onClick={() => fetchProductsPage(productsPage + 1)}
-                      disabled={productsPage >= productsTotalPages || isProductsLoading}
+                      onClick={() => pages.goTo(pages.page() + 1, productPage()?.nextCursor)}
+                      disabled={pages.page() >= productsTotalPages() || isProductsLoading()}
                     >
-                      <ChevronRight className="h-4 w-4" />
+                      <ChevronRight class="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
               </div>
-            )}
+            </Show>
 
-            {/* Selected Items */}
-            <div className="space-y-4 border rounded-lg p-4 bg-gray-50 dark:bg-gray-900/50">
-              <h3 className="font-semibold">{tProducts("selection.selected")}</h3>
-              <div className="h-[300px] overflow-y-auto space-y-2">
-                {selectedItems.length === 0 ? (
-                    <p className="text-gray-500 dark:text-gray-400 text-center py-8">{tProducts("selection.noItems")}</p>
-                  ) : (
-                    selectedItems.map((item, index) => (
-                      <div key={item.localKey ?? `${item.productId}-${index}`} className="flex items-center justify-between p-2 bg-white dark:bg-gray-800 rounded shadow-sm border dark:border-gray-700">
-                        <div className="flex-1">
-                          <p className="font-medium">{item.name}</p>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">
-                            {formatNumber(item.quantity, activeLocale)} x {formatCurrencyBRL(
-                              Number((item.unitPrice != null ? item.unitPrice : item.price) || 0),
-                              activeLocale,
-                            )}
+            <div class="space-y-4 border rounded-lg p-4 bg-gray-50 dark:bg-gray-900/50">
+              <h3 class="font-semibold">{tProducts("selection.selected")}</h3>
+              <div class="h-[300px] overflow-y-auto space-y-2">
+                <Show when={selectedItems().length > 0} fallback={<p class="text-gray-500 dark:text-gray-400 text-center py-8">{tProducts("selection.noItems")}</p>}>
+                  <For each={selectedItems()}>
+                    {(item) => (
+                      <div class="flex items-center justify-between p-2 bg-white dark:bg-gray-800 rounded shadow-sm border dark:border-gray-700">
+                        <div class="flex-1">
+                          <p class="font-medium">{item.name}</p>
+                          <p class="text-sm text-gray-500 dark:text-gray-400">
+                            {formatNumber(item.quantity, activeLocale())} x {formatCents(item.unitPriceCents, activeLocale())}
                           </p>
                         </div>
-                        <div className="flex items-center gap-2">
-                          {!readOnly && onChangeItemStatus && item.id != null && item.status && (
+                        <div class="flex items-center gap-2">
+                          <Show when={!props.readOnly && props.onChangeItemStatus && item.id != null && item.status}>
                             <StatusSelect
-                              value={item.status}
+                              value={item.status!}
                               ariaLabel={`${tProducts("selection.itemStatus")}: ${item.name}`}
-                              disabled={updatingItemStatusId === item.id || isLoading || isClosingOrder}
-                              onValueChange={(newStatus) => void handleChangeItemStatus(item.id as number | string, newStatus)}
+                              disabled={updatingItemStatusId() === item.id || isLoading() || isClosingOrder()}
+                              onValueChange={(newStatus) => void handleChangeItemStatus(item.id!, newStatus)}
                             />
-                          )}
-                          {!readOnly ? (
-                            <>
-                              <Button
-                                size="icon"
-                                variant="outline"
-                                className="h-6 w-6"
-                                aria-label={tProducts("selection.decreaseQuantity")}
-                                title={tProducts("selection.decreaseQuantity")}
-                                onClick={() => handleUpdateQuantity(item.localKey, item.productId, -1)}
-                              >
-                                <Minus className="h-3 w-3" />
-                              </Button>
-                              <span className="w-4 text-center">{formatNumber(item.quantity, activeLocale)}</span>
-                              <Button
-                                size="icon"
-                                variant="outline"
-                                className="h-6 w-6"
-                                aria-label={tProducts("selection.increaseQuantity")}
-                                title={tProducts("selection.increaseQuantity")}
-                                onClick={() => handleUpdateQuantity(item.localKey, item.productId, 1)}
-                              >
-                                <Plus className="h-3 w-3" />
-                              </Button>
-                              <Button
-                                size="icon"
-                                variant="ghost"
-                                className="h-6 w-6 text-red-500"
-                                aria-label={tProducts("selection.removeItem")}
-                                title={tProducts("selection.removeItem")}
-                                onClick={() => handleRemoveItem(item.localKey, item.productId)}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </>
-                          ) : (
-                            <span className="font-bold px-4">
-                              {formatCount(item.quantity, unitCountMessages, activeLocale)}
-                            </span>
-                          )}
+                          </Show>
+                          <Show
+                            when={!props.readOnly}
+                            fallback={<span class="font-bold px-4">{formatCount(item.quantity, unitCountMessages(), activeLocale())}</span>}
+                          >
+                            <Button
+                              size="icon"
+                              variant="outline"
+                              class="h-6 w-6"
+                              aria-label={tProducts("selection.decreaseQuantity")}
+                              title={tProducts("selection.decreaseQuantity")}
+                              onClick={() => handleUpdateQuantity(item.localKey, -1)}
+                            >
+                              <Minus class="h-3 w-3" />
+                            </Button>
+                            <span class="w-4 text-center">{formatNumber(item.quantity, activeLocale())}</span>
+                            <Button
+                              size="icon"
+                              variant="outline"
+                              class="h-6 w-6"
+                              aria-label={tProducts("selection.increaseQuantity")}
+                              title={tProducts("selection.increaseQuantity")}
+                              onClick={() => handleUpdateQuantity(item.localKey, 1)}
+                            >
+                              <Plus class="h-3 w-3" />
+                            </Button>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              class="h-6 w-6 text-red-500"
+                              aria-label={tProducts("selection.removeItem")}
+                              title={tProducts("selection.removeItem")}
+                              onClick={() => handleRemoveItem(item.localKey)}
+                            >
+                              <Trash2 class="h-4 w-4" />
+                            </Button>
+                          </Show>
                         </div>
                       </div>
-                    ))
-                  )}
-                {readOnly && additionalReadOnlyItems.map((item, index) => (
-                  <div key={`service-${index}`} className="flex items-center justify-between p-2 bg-white dark:bg-gray-800 rounded shadow-sm border dark:border-gray-700">
-                    <div className="flex-1"><p className="font-medium">{item.description}</p><p className="text-sm text-gray-500 dark:text-gray-400">{formatNumber(item.quantity, activeLocale)} x {formatCurrencyBRL(item.unitPrice, activeLocale)}</p></div>
-                    <span className="font-bold px-4">{formatCount(item.quantity, unitCountMessages, activeLocale)}</span>
-                  </div>
-                ))}
+                    )}
+                  </For>
+                </Show>
+                <Show when={props.readOnly}>
+                  <For each={props.additionalReadOnlyItems ?? []}>
+                    {(item) => (
+                      <div class="flex items-center justify-between p-2 bg-white dark:bg-gray-800 rounded shadow-sm border dark:border-gray-700">
+                        <div class="flex-1"><p class="font-medium">{item.description}</p><p class="text-sm text-gray-500 dark:text-gray-400">{formatNumber(item.quantity, activeLocale())} x {formatCents(item.unitPriceCents, activeLocale())}</p></div>
+                        <span class="font-bold px-4">{formatCount(item.quantity, unitCountMessages(), activeLocale())}</span>
+                      </div>
+                    )}
+                  </For>
+                </Show>
               </div>
-              <div className="pt-4 border-t flex justify-between items-center font-bold text-lg text-gray-900 dark:text-gray-100">
+              <div class="pt-4 border-t flex justify-between items-center font-bold text-lg text-gray-900 dark:text-gray-100">
                 <span>{tCommon("total")}:</span>
-                <span>{formatCurrencyBRL(total, activeLocale)}</span>
+                <span>{formatCents(totalCents(), activeLocale())}</span>
               </div>
             </div>
           </div>
         </div>
-        <DialogFooter className="flex justify-between sm:justify-between">
-          {isEditing && !readOnly && onCloseOrder && (
-            <div className="mr-auto">
-              <label className="mr-2 text-sm" htmlFor="payment-method">Método de pagamento</label>
-              <select id="payment-method" className="mr-2 rounded border bg-background px-2 py-2 text-sm" value={paymentMethod ?? ''} onChange={(event) => setPaymentMethod((event.target.value || null) as PaymentMethod | null)} disabled={isClosingOrder}>
-                <option value="">Não Informado</option><option value="CASH">Dinheiro</option><option value="PIX">Pix</option><option value="CREDIT_CARD">Crédito</option><option value="DEBIT_CARD">Débito</option><option value="ON_ACCOUNT">Fiado</option>
-              </select>
-              <Button
-                variant="outline"
-                onClick={async () => {
-                  if (!(await confirm(tOrders("confirm.close")))) return
-                  setIsClosingOrder(true)
-                  try {
-                    await onCloseOrder(paymentMethod)
-                    onClose()
-                  } catch (err) {
-                    console.error("Error closing order", err)
-                    toast.error(localizedError("closeOrder", err))
-                  } finally {
-                    setIsClosingOrder(false)
-                  }
-                }}
-                disabled={isLoading || isClosingOrder || updatingItemStatusId != null}
+        <DialogFooter class="flex justify-between sm:justify-between">
+          <Show when={props.isEditing && !props.readOnly && props.onCloseOrder}>
+            <div class="mr-auto">
+              <label class="mr-2 text-sm" for="payment-method">{tDeliveries("paymentMethod")}</label>
+              <select
+                id="payment-method"
+                class="mr-2 rounded border bg-background px-2 py-2 text-sm"
+                value={paymentMethod() ?? ""}
+                onChange={(event) => setPaymentMethod((event.currentTarget.value || null) as PaymentMethod | null)}
+                disabled={isClosingOrder()}
               >
-                {isClosingOrder ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                <option value="">{tProducts("selection.paymentNotInformed")}</option>
+                <For each={PAYMENT_METHODS}>{(method) => <option value={method}>{tDeliveries(`payment.${method}` as never)}</option>}</For>
+              </select>
+              <Button variant="outline" onClick={() => void handleCloseOrder()} disabled={isLoading() || isClosingOrder() || updatingItemStatusId() != null}>
+                <Show when={isClosingOrder()}><Loader2 class="mr-2 h-4 w-4 animate-spin" /></Show>
                 {tOrders("close")}
               </Button>
             </div>
-          )}
-          <div className="flex gap-2 ml-auto">
-            {readOnly && onCancelSale && (
-              <div className="mr-auto">
+          </Show>
+          <div class="flex gap-2 ml-auto">
+            <Show when={props.readOnly && props.onCancelSale}>
+              <div class="mr-auto">
                 <Button
                   variant="ghost"
-                  className="text-destructive hover:text-destructive"
-                  onClick={async () => {
-                    if (!(await confirm({
-                      description: tSales("confirm.cancel"),
-                      confirmLabel: tSales("cancel"),
-                      destructive: true,
-                    }))) return
-                    setIsCancellingSale(true)
-                    try {
-                      await onCancelSale()
-                      onClose()
-                    } catch (err) {
-                      console.error('Error cancelling sale', err)
-                      toast.error(localizedError("cancelSale", err))
-                    } finally {
-                      setIsCancellingSale(false)
-                    }
-                  }}
-                  disabled={isCancellingSale || isLoading || isClosingOrder}
+                  class="text-destructive hover:text-destructive"
+                  onClick={() => void handleCancelSale()}
+                  disabled={isCancellingSale() || isLoading() || isClosingOrder()}
                 >
-                  {isCancellingSale ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      {tSales("cancelling")}
-                    </>
-                  ) : (
-                    tSales("cancelButton")
-                  )}
+                  <Show when={isCancellingSale()} fallback={tSales("cancelButton")}>
+                    <Loader2 class="mr-2 h-4 w-4 animate-spin" />
+                    {tSales("cancelling")}
+                  </Show>
                 </Button>
               </div>
-            )}
-            <Button variant="outline" onClick={onClose} disabled={isLoading || isClosingOrder}>
-              {readOnly ? tCommon("close") : tCommon("cancel")}
+            </Show>
+            <Button variant="outline" onClick={() => props.onClose()} disabled={isLoading() || isClosingOrder()}>
+              {props.readOnly ? tCommon("close") : tCommon("cancel")}
             </Button>
-            {!readOnly && (
-              <Button onClick={handleConfirm} disabled={isLoading || isClosingOrder}>
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    {tCommon("saving")}
-                  </>
-                ) : (
-                  tCommon("confirm")
-                )}
+            <Show when={!props.readOnly}>
+              <Button onClick={() => void handleConfirm()} disabled={isLoading() || isClosingOrder()}>
+                <Show when={isLoading()} fallback={tCommon("confirm")}>
+                  <Loader2 class="mr-2 h-4 w-4 animate-spin" />
+                  {tCommon("saving")}
+                </Show>
               </Button>
-            )}
+            </Show>
           </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  );
+  )
 }

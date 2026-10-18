@@ -1,4 +1,4 @@
-import * as React from "react"
+import { splitProps, type JSX } from "solid-js"
 import { cva, type VariantProps } from "class-variance-authority"
 
 import { cn } from "@/lib/utils"
@@ -22,37 +22,22 @@ const alertVariants = cva(
 )
 
 export interface AlertProps
-  extends React.HTMLAttributes<HTMLDivElement>,
+  extends JSX.HTMLAttributes<HTMLDivElement>,
     VariantProps<typeof alertVariants> {}
 
-const Alert = React.forwardRef<HTMLDivElement, AlertProps>(
-  ({ className, variant, ...props }, ref) => (
-    <div
-      ref={ref}
-      role="alert"
-      className={cn(alertVariants({ variant, className }))}
-      {...props}
-    />
-  ),
-)
-Alert.displayName = "Alert"
+function Alert(props: AlertProps) {
+  const [local, others] = splitProps(props, ["class", "variant"])
+  return <div role="alert" class={cn(alertVariants({ variant: local.variant, className: local.class }))} {...others} />
+}
 
-const AlertTitle = React.forwardRef<HTMLHeadingElement, React.HTMLAttributes<HTMLHeadingElement>>(
-  ({ className, ...props }, ref) => (
-    <h5
-      ref={ref}
-      className={cn("mb-1 font-medium leading-none tracking-tight", className)}
-      {...props}
-    />
-  ),
-)
-AlertTitle.displayName = "AlertTitle"
+function AlertTitle(props: JSX.HTMLAttributes<HTMLHeadingElement>) {
+  const [local, others] = splitProps(props, ["class"])
+  return <h5 class={cn("mb-1 font-medium leading-none tracking-tight", local.class)} {...others} />
+}
 
-const AlertDescription = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLParagraphElement>>(
-  ({ className, ...props }, ref) => (
-    <p ref={ref} className={cn("text-sm [&_p]:leading-relaxed", className)} {...props} />
-  ),
-)
-AlertDescription.displayName = "AlertDescription"
+function AlertDescription(props: JSX.HTMLAttributes<HTMLParagraphElement>) {
+  const [local, others] = splitProps(props, ["class"])
+  return <p class={cn("text-sm [&_p]:leading-relaxed", local.class)} {...others} />
+}
 
 export { Alert, AlertDescription, AlertTitle, alertVariants }

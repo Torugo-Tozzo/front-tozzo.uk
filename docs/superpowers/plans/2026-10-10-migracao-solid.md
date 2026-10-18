@@ -1,6 +1,8 @@
 # Plano: front em SolidJS no Cloudflare Workers (mesmo visual)
 
 Data: 2026-10-10. Branch: `dev`. Regras de código: [`CONVENTIONS.md`](../../../CONVENTIONS.md) (índice em [`AGENTS.md`](../../../AGENTS.md)).
+
+**Nota S8 (2026-10-18):** implementação local do corte estrutural: o Solid passa de `web/` para a raiz. Os caminhos `web/` abaixo descrevem as fases históricas; para comandos e mapa atuais, consulte README/TESTING/ARCHITECTURE na raiz. Publicação ainda depende de pedido de commit/push e da troca coordenada do diretório de build no painel Cloudflare. A fase 10 da API é independente e não está sendo encerrada aqui.
 Plano da API (contrato `/v1` em Go): `api-tozzo.uk/docs/superpowers/plans/2026-10-10-migracao-go.md` e `api-tozzo.uk/docs/superpowers/plans/migracao-go/`.
 
 ## Regra principal
@@ -163,7 +165,7 @@ Junto com a fase 10 da API.
 
 1. ✅ (2026-10-15) O Worker `tozzo-web` passa a responder em `dev.tozzo.uk`.
 2. ✅ (2026-10-15, `b8da753`) O workflow `deploy.yml` (VM) para de publicar o front da `dev`. Na `main`, **nada muda**: a produção continua no React com o Bun.
-3. **Pendente, depois da S7** (o React da raiz é a referência das S4 a S7): num commit só na `dev`:
+3. **Implementado localmente em 2026-10-18; commit e publicação pendentes** (o React da raiz foi a referência das S4 a S7): num commit só na `dev`:
    - apagar o React da raiz (`src/`, `index.html`, `vite.config.ts`, `Dockerfile`, `nginx.conf` e os configs da raiz);
    - mover `web/*` para a raiz;
    - atualizar o README, o `AGENTS.md`, o `ARCHITECTURE.md` e o `CONVENTIONS.md` (tirar o React).
@@ -581,3 +583,27 @@ Revê a nota acima de que a API Bun e o GoTrue permaneciam: a pedido do usuário
 - Commit e push da S7 para `dev` autorizados pelo usuário em 2026-10-17. Publicação pelo Workers Builds deve ser conferida pelo SHA enviado. Essa autorização não fecha o checkout real nem as metas de desempenho. S8 continua separada.
 
 **Verificação para publicação (2026-10-17):** 500/500 unitários, **88/88 E2E na suíte completa**, TypeScript/build, gate de chunks e i18n aprovados novamente antes do commit/push solicitado. As limitações de cobrança real e desempenho acima permanecem registradas.
+
+### S8 — 2026-10-18 (corte estrutural local)
+
+**Escopo:** pedido do usuário para implementar a S8 após a S7. Trabalho na branch `chore/solid-root-s8`, worktree `.worktrees/s8`, baseada em `4743b51` (`origin/dev`). O checkout original estava três commits atrás e com alterações locais da S5; permaneceu intacto. Não foi feito commit, push, deploy, alteração do painel Cloudflare nem acesso à VM.
+
+**Implementado:**
+- Retirados o aplicativo React da raiz, dependências legadas, preload Bun/React, Dockerfile/nginx e configurações exclusivas do legado. Solid, assets, configurações Vite/TypeScript/Tailwind e `wrangler.jsonc` movidos de `web/` para a raiz.
+- E2E reunidos em `e2e/`, imports da massa/mocks e caminhos de snapshots corrigidos. Massa histórica e serializador legado permanecem exclusivamente como infraestrutura de regressão; não há app React executável na árvore.
+- Um único `package.json` e lockfile, com `@playwright/test` 1.63.0 antes fornecido pela raiz React. Os 13 testes de consistência dos serializadores passaram de `bun:test` para Vitest e entram na suíte padrão.
+- `scripts/visual-linux.sh` passa a montar e instalar somente na raiz, usando um volume Linux de dependências; scripts shell com LF. Scripts E2E/visual e instalação do navegador deixam de depender de `../node_modules`.
+- CI instala com lockfile congelado e verifica unitários, i18n, build/gate ECharts e E2E na raiz. A dev continua excluída do job SSH; removido o ramo morto de deploy na VM dev. A main não foi modificada.
+- README, AGENTS, arquitetura, convenções, testes, segurança e guias locais de agentes atualizados. `.env.example` usa a origem da API Go, sem prefixo `/v1` e sem GoTrue. Acompanhamento mobile recebeu registro de ausência de impacto: sem mudança de contrato, sync, autenticação ou código mobile.
+
+**Preservação e revisão:** comparação automatizada de 227 arquivos de código/assets com a S7, normalizando somente CRLF, sem diferenças; 1.126 arquivos de baseline comparados pelos bytes (incluindo SHA-256 dos objetos LFS), todos idênticos; CSP preservada. Revisão independente sem achados materiais. Mantido o `playwright-core` transitivo do axe já existente no lock Solid; o runner e seu core usam 1.63.0. Há whitespace final preexistente em `ChartsPage.tsx`, preservado no movimento para não alterar o código.
+
+**Validação inicial:** 500/500 unitários da S7 antes do corte; após o corte, 513/513 em 77 arquivos (incluindo os 13 de serializadores), instalação congelada, seis idiomas/16 namespaces, TypeScript/Vite e gate de isolamento ECharts aprovados. O aviso de tamanho do chunk ECharts já registrado na S7 permanece. Playwright lista 88 E2E e 582 casos visuais na raiz. Resultados completos de navegador registrados abaixo ao terminar.
+
+**Publicação pendente:** coordenar o push autorizado com a mudança do diretório de build no Workers Builds, de `web/` para a raiz. Build e deploy continuam `bun install --frozen-lockfile && bun run build` e `npx wrangler deploy`; variáveis de build preservadas. Conferir SHA publicado, entrada, login, rota profunda, assets e headers. Sem essa conferência, a S8 publicada não está encerrada. O corte local não fecha as fases 9/10 da API, smoke autenticado, cobrança real, aceite manual dos gráficos ou metas de desempenho pendentes.
+
+**Validação final S8:** E2E completo **88/88**, sem testes pulados (8,6 min). Visual na imagem oficial Playwright/Linux: **24/24** combinações de `/__ui` no Vite dev (47,8 s) e **554 aprovadas + quatro puladas** entre os 558 casos restantes no preview do build de produção (3,9 min). Total **578 aprovadas, quatro exclusões históricas de `mobile-menu` em desktop/tablet, zero falhas**. Mesmos PNGs, temas, tamanhos e tolerância 0,002. As tentativas parciais anteriores foram interrompidas por custo do servidor dev/volume Windows e não contam como aprovação; a rodada de aceite foi concluída integralmente nos dois grupos, com comandos em TESTING.md. Logs e artefatos em `test-results/s8/`, ignorados pelo Git.
+
+`analyze` e `size` executados na raiz: entrada/imports estáticos **62,3 KB gzip**, igual à S7. Lighthouse não repetido; não houve mudança no código/assets do aplicativo, e as metas anteriores continuam abertas. Sem smoke real de API/Stripe ou publicação nesta tarefa. Implementação local pronta, corte publicado ainda pendente.
+
+**Autorização de publicação (2026-10-18):** após informar que deixou vazio o diretório raiz do Worker no Cloudflare, o usuário pediu commit, push na dev e acompanhamento do resultado. Publicar esta S8 a partir da worktree, sem incluir as alterações do checkout original nem fazer merge da dev para main. As verificações locais acima continuam válidas: desde sua execução, houve apenas atualização de documentação. A confirmação pelo SHA enviado, checks GitHub/Workers e HTTP público será registrada após a publicação.

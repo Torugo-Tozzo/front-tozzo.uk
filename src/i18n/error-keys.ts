@@ -25,6 +25,9 @@ export type ErrorContext =
   | "deleteEmployee"
   | "deleteAccount"
   | "passwordReset"
+  | "emailVerification"
+  | "emailChange"
+  | "uploadImage"
 
 type ErrorKey =
   | "generic"
@@ -50,6 +53,13 @@ type ErrorKey =
   | "createEmployee"
   | "updateEmployee"
   | "deleteEmployee"
+  | "uploadImage"
+  | "uploadUnavailable"
+  | "uploadInvalid"
+  | "orderNotOpen"
+  | "orderDelivering"
+  | "deliveryNotStarted"
+  | "orderChanged"
 export type ErrorTranslation =
   | {
       namespace: "auth"
@@ -64,6 +74,9 @@ export type ErrorTranslation =
         | "invalidEmail"
         | "samePassword"
         | "resetPasswordFailed"
+        | "confirmationLinkExpired"
+        | "confirmEmailChangeInvalid"
+        | "emailChangeInUse"
     }
   | { namespace: "errors"; key: ErrorKey }
 
@@ -94,71 +107,87 @@ const fallbackByContext: Record<ErrorContext, ErrorTranslation> = {
   deleteEmployee: { namespace: "errors", key: "deleteEmployee" },
   deleteAccount: { namespace: "errors", key: "generic" },
   passwordReset: { namespace: "auth", key: "resetPasswordFailed" },
+  emailVerification: { namespace: "errors", key: "generic" },
+  emailChange: { namespace: "errors", key: "generic" },
+  uploadImage: { namespace: "errors", key: "uploadImage" },
 }
 
+// Keyed by the `code` of the /v1 problem+json (api-tozzo.uk
+// internal/platform/httpx/codes.go). The messages are the React app's.
 const errorKeyByContext: Partial<Record<ErrorContext, Record<string, ErrorTranslation>>> = {
   login: {
-    AUTH_INVALID_CREDENTIALS: { namespace: "auth", key: "loginFailure" },
-    AUTH_INTERNAL_ERROR: { namespace: "errors", key: "generic" },
-    invalid_credentials: { namespace: "auth", key: "invalidCredentials" },
-    validation_failed: { namespace: "auth", key: "invalidEmail" },
-    email_address_invalid: { namespace: "auth", key: "invalidEmail" },
-    email_not_confirmed: { namespace: "auth", key: "emailNotConfirmed" },
-    user_banned: { namespace: "auth", key: "loginFailure" },
-    over_request_rate_limit: { namespace: "auth", key: "authRateLimited" },
+    INVALID_CREDENTIALS: { namespace: "auth", key: "invalidCredentials" },
+    GOOGLE_TOKEN_INVALID: { namespace: "auth", key: "loginFailure" },
+    EMAIL_NOT_VERIFIED: { namespace: "auth", key: "emailNotConfirmed" },
+    VALIDATION_FAILED: { namespace: "auth", key: "invalidEmail" },
+    RATE_LIMITED: { namespace: "auth", key: "authRateLimited" },
+    INTERNAL_ERROR: { namespace: "errors", key: "generic" },
   },
   registration: {
-    AUTH_ACTIVE_LIMIT_REACHED: { namespace: "auth", key: "registerFailure" },
-    AUTH_EMAIL_ALREADY_EXISTS: { namespace: "auth", key: "emailAlreadyRegistered" },
-    AUTH_INVALID_INPUT: { namespace: "auth", key: "registerFailure" },
-    AUTH_PASSWORD_TOO_SHORT: { namespace: "auth", key: "registerFailure" },
-    AUTH_PENDING_LIMIT_REACHED: { namespace: "auth", key: "registerFailure" },
-    AUTH_TERMS_NOT_ACCEPTED: { namespace: "auth", key: "registerFailure" },
-    AUTH_INTERNAL_ERROR: { namespace: "errors", key: "generic" },
-    email_exists: { namespace: "auth", key: "emailAlreadyRegistered" },
-    user_already_exists: { namespace: "auth", key: "emailAlreadyRegistered" },
-    weak_password: { namespace: "auth", key: "weakPassword" },
-    signup_disabled: { namespace: "auth", key: "registerFailure" },
-    over_email_send_rate_limit: { namespace: "auth", key: "authRateLimited" },
-    over_request_rate_limit: { namespace: "auth", key: "authRateLimited" },
-    validation_failed: { namespace: "auth", key: "invalidEmail" },
-    email_address_invalid: { namespace: "auth", key: "invalidEmail" },
-    AUTH_RATE_LIMITED: { namespace: "auth", key: "authRateLimited" },
-    unexpected_failure: { namespace: "errors", key: "generic" },
+    EMAIL_IN_USE: { namespace: "auth", key: "emailAlreadyRegistered" },
+    PASSWORD_INVALID: { namespace: "auth", key: "weakPassword" },
+    TERMS_NOT_ACCEPTED: { namespace: "auth", key: "registerFailure" },
+    TOKEN_INVALID: { namespace: "auth", key: "registerFailure" },
+    // Any field may be the invalid one (name, trade name, key...), not only the email.
+    VALIDATION_FAILED: { namespace: "auth", key: "registerFailure" },
+    RATE_LIMITED: { namespace: "auth", key: "authRateLimited" },
+    INTERNAL_ERROR: { namespace: "errors", key: "generic" },
   },
   passwordReset: {
-    weak_password: { namespace: "auth", key: "weakPassword" },
-    same_password: { namespace: "auth", key: "samePassword" },
-    over_email_send_rate_limit: { namespace: "auth", key: "authRateLimited" },
-    over_request_rate_limit: { namespace: "auth", key: "authRateLimited" },
-    validation_failed: { namespace: "auth", key: "invalidEmail" },
-    email_address_invalid: { namespace: "auth", key: "invalidEmail" },
+    PASSWORD_INVALID: { namespace: "auth", key: "weakPassword" },
+    // 422 when the new password equals the current one (the React app's same_password).
+    PASSWORD_UNCHANGED: { namespace: "auth", key: "samePassword" },
+    VALIDATION_FAILED: { namespace: "auth", key: "invalidEmail" },
+    RATE_LIMITED: { namespace: "auth", key: "authRateLimited" },
+  },
+  emailVerification: {
+    TOKEN_INVALID: { namespace: "auth", key: "confirmationLinkExpired" },
+    VALIDATION_FAILED: { namespace: "auth", key: "confirmationLinkExpired" },
+    RATE_LIMITED: { namespace: "auth", key: "authRateLimited" },
+  },
+  emailChange: {
+    TOKEN_INVALID: { namespace: "auth", key: "confirmEmailChangeInvalid" },
+    VALIDATION_FAILED: { namespace: "auth", key: "confirmEmailChangeInvalid" },
+    EMAIL_IN_USE: { namespace: "auth", key: "emailChangeInUse" },
+    RATE_LIMITED: { namespace: "auth", key: "authRateLimited" },
   },
   payment: {
-    PAYMENT_CHECKOUT_CREATE_FAILED: { namespace: "errors", key: "payment" },
-    PAYMENT_INVALID_USER: { namespace: "errors", key: "payment" },
-    AUTH_INTERNAL_ERROR: { namespace: "errors", key: "generic" },
+    BILLING_CHECKOUT_FAILED: { namespace: "errors", key: "payment" },
+    BILLING_PLAN_INVALID: { namespace: "errors", key: "payment" },
+    BILLING_INTERVAL_INVALID: { namespace: "errors", key: "payment" },
+    BILLING_CUSTOMER_MISSING: { namespace: "errors", key: "payment" },
+    INTERNAL_ERROR: { namespace: "errors", key: "generic" },
   },
+  // The order changed under the screen (closed, or out for delivery): the
+  // /v1 says so by code, and the message says it too (S4, not in the React app).
   saveOrder: {
     ORDER_LIMIT_REACHED: { namespace: "errors", key: "saveOrder" },
     ORDER_NOT_FOUND: { namespace: "errors", key: "saveOrder" },
     PRODUCT_NOT_FOUND: { namespace: "errors", key: "saveOrder" },
+    ORDER_NOT_OPEN: { namespace: "errors", key: "orderNotOpen" },
+    ORDER_DELIVERING: { namespace: "errors", key: "orderDelivering" },
+    // The PUT carries expectedUpdatedAt: the order changed since the editor read it.
+    ORDER_CONFLICT: { namespace: "errors", key: "orderChanged" },
+    ORDER_VERSION_INVALID: { namespace: "errors", key: "saveOrder" },
   },
   deleteOrder: {
     ORDER_NOT_FOUND: { namespace: "errors", key: "deleteOrder" },
-    ORDER_NOT_OPEN: { namespace: "errors", key: "deleteOrder" },
+    ORDER_NOT_OPEN: { namespace: "errors", key: "orderNotOpen" },
+    ORDER_DELIVERING: { namespace: "errors", key: "orderDelivering" },
   },
   closeOrder: {
     ORDER_NOT_FOUND: { namespace: "errors", key: "closeOrder" },
-    ORDER_ALREADY_CLOSED: { namespace: "errors", key: "closeOrder" },
-    ORDER_CONFLICT: { namespace: "errors", key: "closeOrder" },
+    ORDER_ALREADY_CLOSED: { namespace: "errors", key: "orderNotOpen" },
+    ORDER_CONFLICT: { namespace: "errors", key: "orderNotOpen" },
+    DELIVERY_NOT_STARTED: { namespace: "errors", key: "deliveryNotStarted" },
   },
   changeOrderItemStatus: {
-    INVALID_ORDER_ITEM_STATUS: { namespace: "errors", key: "changeOrderItemStatus" },
-    ORDER_ITEM_STATUS_FORBIDDEN: { namespace: "errors", key: "changeOrderItemStatus" },
+    ORDER_ITEM_STATUS_INVALID: { namespace: "errors", key: "changeOrderItemStatus" },
     ORDER_ITEM_STATUS_REQUIRED: { namespace: "errors", key: "changeOrderItemStatus" },
     ORDER_ITEM_NOT_FOUND: { namespace: "errors", key: "changeOrderItemStatus" },
     ORDER_NOT_FOUND: { namespace: "errors", key: "changeOrderItemStatus" },
+    ORDER_DELIVERING: { namespace: "errors", key: "orderDelivering" },
+    ROLE_FORBIDDEN: { namespace: "errors", key: "changeOrderItemStatus" },
   },
   createSale: {
     ORDER_NOT_FOUND: { namespace: "errors", key: "createSale" },
@@ -173,9 +202,20 @@ const errorKeyByContext: Partial<Record<ErrorContext, Record<string, ErrorTransl
   createProduct: {
     PRODUCT_LIMIT_REACHED: { namespace: "errors", key: "productLimitReached" },
   },
+  uploadImage: {
+    // 503 while the environment has no R2 bucket configured.
+    NOT_READY: { namespace: "errors", key: "uploadUnavailable" },
+    UPLOAD_INVALID: { namespace: "errors", key: "uploadInvalid" },
+    UPLOAD_NOT_FOUND: { namespace: "errors", key: "uploadImage" },
+  },
 }
 
 export function getErrorTranslationKey(context: ErrorContext, code?: string): ErrorTranslation {
   const translation = code ? errorKeyByContext[context]?.[code] : undefined
   return translation ?? fallbackByContext[context]
+}
+
+/** Catalog errors retain the existing services namespace and messages. */
+export function getServiceErrorTranslationKey(context: 'loadServices' | 'saveService' | 'deleteService', code?: string): { namespace: 'services'; key: 'loadError' | 'saveError' | 'inUse' } {
+  return { namespace: 'services', key: context === 'loadServices' ? 'loadError' : context === 'deleteService' && code === 'SERVICE_IN_USE' ? 'inUse' : 'saveError' }
 }

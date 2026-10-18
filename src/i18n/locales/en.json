@@ -1,6 +1,7 @@
 {
   "common": {
     "appName": "Tozzo.uk",
+    "logoutFailed": "Could not sign out. Check your connection and try again.",
     "loading": "Loading...",
     "processing": "Processing...",
     "saving": "Saving...",
@@ -198,7 +199,15 @@
     "actions": {
       "label": "Actions"
     },
-    "saveChanges": "Save changes"
+    "saveChanges": "Save changes",
+    "payment": "Payment",
+    "dnd": {
+      "keyboardInstructions": "With the keyboard: Space picks up the card, the arrow keys choose the column, Space drops it and Esc cancels.",
+      "picked": "Card picked up.",
+      "over": "Column: {{column}}.",
+      "dropped": "Card moved.",
+      "cancelled": "Move canceled."
+    }
   },
   "auth": {
     "login": "Login",
@@ -241,7 +250,7 @@
     "confirmationLinkExpired": "The confirmation link has expired or was already used. Sign in with your email and password or request a new link.",
     "emailNotConfirmed": "Your email hasn't been confirmed yet. Click the link we sent or resend it below.",
     "emailAlreadyRegistered": "This email is already registered. Sign in or reset your password.",
-    "weakPassword": "Weak password. Use at least 6 characters.",
+    "weakPassword": "Weak password. Use at least 8 characters.",
     "authRateLimited": "Too many attempts in a row. Wait a minute and try again.",
     "verifyCredentials": "Check your credentials.",
     "verifyData": "Check your details.",
@@ -271,7 +280,13 @@
     "resetPasswordFailed": "Could not reset password.",
     "totpCode": "Authentication code",
     "confirmTotp": "Confirm",
-    "invalidTotpCode": "Invalid code."
+    "invalidTotpCode": "Invalid code.",
+    "verifyEmailChecking": "Confirming your email...",
+    "confirmEmailChangeTitle": "Confirm new email",
+    "confirmEmailChangeChecking": "Confirming your new email...",
+    "confirmEmailChangeSuccess": "Your email was changed. Use the new address the next time you sign in.",
+    "confirmEmailChangeInvalid": "This confirmation link has expired or was already used. Request the email change again.",
+    "emailChangeInUse": "This email is already in use by another account."
   },
   "navigation": {
     "dashboard": "Dashboard",
@@ -520,7 +535,8 @@
     "closingPeriod": "Period closing",
     "empty": "No sales found for this period.",
     "viewDetails": "View details",
-    "serviceLine": "service"
+    "serviceLine": "service",
+    "alreadyRegistered": "This sale had already been registered; the change was not saved."
   },
   "products": {
     "title": "Products",
@@ -565,7 +581,8 @@
       "decreaseQuantity": "Decrease quantity",
       "increaseQuantity": "Increase quantity",
       "removeItem": "Remove item",
-      "itemStatus": "Item status"
+      "itemStatus": "Item status",
+      "paymentNotInformed": "Not informed"
     },
     "confirm": {
       "delete": "Are you sure you want to delete this product?",
@@ -610,6 +627,12 @@
     "accessibility": {
       "activateType": "Activate type",
       "deactivateType": "Deactivate type"
+    },
+    "image": {
+      "label": "Image",
+      "uploading": "Uploading image...",
+      "uploaded": "Image updated.",
+      "preview": "Current product image"
     }
   },
   "employees": {
@@ -654,6 +677,7 @@
     "roleLabel": "Role"
   },
   "charts": {
+    "others": "Others",
     "title": "Reports",
     "pageTitle": "Reports — {{establishment}}",
     "productsSold": "Products sold",
@@ -701,6 +725,7 @@
     "sales": "Sales",
     "moreSales": "+{{count}} more...",
     "report": {
+      "unavailable": "Report exports are not available yet.",
       "generateExcel": "Generate Excel",
       "generatePdf": "Generate PDF",
       "filename": "report",
@@ -848,7 +873,8 @@
       "save": "Save information",
       "saving": "Saving...",
       "saved": "Establishment information updated.",
-      "saveError": "Could not save the information. Try again."
+      "saveError": "Could not save the information. Try again.",
+      "addressComplementPlaceholder": "Apt, suite, etc."
     },
     "businessPreferences": {
       "onboardingTitle": "What kind of business do you run?",
@@ -935,7 +961,8 @@
     "printSoon": "Printing (coming soon)",
     "receiptTitleOrder": "Order #{{id}}",
     "receiptTitleSale": "Sale #{{id}}",
-    "receiptTotal": "Total"
+    "receiptTotal": "Total",
+    "receiptPaymentMethod": "Payment method: {{method}}"
   },
   "status": {
     "inPreparation": "In preparation",
@@ -997,7 +1024,14 @@
       "create": "Error creating employee",
       "update": "Error updating employee",
       "delete": "Error deleting employee"
-    }
+    },
+    "uploadImage": "Could not upload the image.",
+    "uploadUnavailable": "Image upload is not available yet.",
+    "uploadInvalid": "Use a JPEG, PNG or WebP image up to 5 MB.",
+    "orderNotOpen": "This order has already been closed.",
+    "orderDelivering": "This order is out for delivery and cannot be changed.",
+    "deliveryNotStarted": "Start the delivery before closing the order.",
+    "orderChanged": "This order was changed elsewhere. Check the updated items and save again."
   },
   "catalog": {
     "burger": "Burger",
@@ -1108,6 +1142,17 @@
     "cancelOrder": "Cancel order",
     "reopen": "Reopen order",
     "history": "History",
+    "historyActions": {
+      "CREATE": "CREATE",
+      "QUOTE": "QUOTE",
+      "APPROVE": "APPROVE",
+      "START": "START",
+      "COMPLETE": "COMPLETE",
+      "CANCEL": "CANCEL",
+      "REOPEN": "REOPEN",
+      "SUPPLEMENTS": "SUPPLEMENTS",
+      "APPROVE_SUPPLEMENTS": "APPROVE_SUPPLEMENTS"
+    },
     "empty": "No estimates yet.",
     "emptyItems": "Add at least one product or service.",
     "loadError": "Could not load service orders.",

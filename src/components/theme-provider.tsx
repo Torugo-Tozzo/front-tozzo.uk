@@ -1,40 +1,34 @@
-import { createContext, useContext, useEffect, useState } from "react"
+import { createContext, createEffect, createSignal, useContext, type Accessor, type JSX } from "solid-js"
 
 type Theme = "dark" | "light" | "system"
 
 type ThemeProviderProps = {
-  children: React.ReactNode
+  children?: JSX.Element
   defaultTheme?: Theme
   storageKey?: string
 }
 
 type ThemeProviderState = {
-  theme: Theme
+  theme: Accessor<Theme>
   setTheme: (theme: Theme) => void
 }
 
-const initialState: ThemeProviderState = {
-  theme: "system",
-  setTheme: () => null,
-}
+const ThemeProviderContext = createContext<ThemeProviderState>()
 
-const ThemeProviderContext = createContext<ThemeProviderState>(initialState)
-
-export function ThemeProvider({
-  children,
-  defaultTheme = "system",
-  storageKey = "vite-ui-theme",
-}: ThemeProviderProps) {
-  const [theme, setTheme] = useState<Theme>(
-    () => (localStorage.getItem(storageKey) as Theme) || defaultTheme
+// Same storage key and "system" logic as the React app, so a user keeps their
+// theme across the two apps.
+export function ThemeProvider(props: ThemeProviderProps) {
+  const storageKey = props.storageKey ?? "vite-ui-theme"
+  const [theme, setThemeSignal] = createSignal<Theme>(
+    (localStorage.getItem(storageKey) as Theme) || (props.defaultTheme ?? "system")
   )
 
-  useEffect(() => {
+  createEffect(() => {
     const root = window.document.documentElement
 
     root.classList.remove("light", "dark")
 
-    if (theme === "system") {
+    if (theme() === "system") {
       const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
         .matches
         ? "dark"
@@ -44,20 +38,20 @@ export function ThemeProvider({
       return
     }
 
-    root.classList.add(theme)
-  }, [theme])
+    root.classList.add(theme())
+  })
 
-  const value = {
+  const value: ThemeProviderState = {
     theme,
-    setTheme: (theme: Theme) => {
-      localStorage.setItem(storageKey, theme)
-      setTheme(theme)
+    setTheme: (next: Theme) => {
+      localStorage.setItem(storageKey, next)
+      setThemeSignal(next)
     },
   }
 
   return (
     <ThemeProviderContext.Provider value={value}>
-      {children}
+      {props.children}
     </ThemeProviderContext.Provider>
   )
 }

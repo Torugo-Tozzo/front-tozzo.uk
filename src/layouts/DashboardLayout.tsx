@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback, useRef, Suspense } from "react"
-import { Link, Outlet, useLocation } from "react-router-dom"
+import { createEffect, createSignal, For, onCleanup, onMount, Show, Suspense, type JSX } from "solid-js"
+import { useLocation } from "@solidjs/router"
+import { useQuery, useQueryClient } from "@tanstack/solid-query"
 import {
   DollarSign,
   CalendarDays,
@@ -17,7 +18,8 @@ import {
   FileText,
   PanelLeftClose,
   PanelLeftOpen,
-} from "lucide-react"
+} from "lucide-solid"
+
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Navbar } from "@/components/Navbar"
@@ -25,61 +27,102 @@ import { Footer } from "@/components/Footer"
 import { LoadingOverlay } from "@/components/LoadingOverlay"
 import { useAuth } from "@/contexts/AuthContext"
 import { useConfirm } from "@/contexts/ConfirmContext"
-import { useTranslation } from "react-i18next"
-import api from "@/services/api"
-import { useRealtimeEvents } from "@/hooks/useRealtimeEvents"
+import { useTranslation } from "@/i18n/solid"
+import { api } from "@/api/client"
+import { unwrap } from "@/api/errors"
+import { loadedData } from "@/api/query"
+import { startRealtime } from "@/realtime"
 import { formatNumber } from "@/i18n/format"
-import { EstablishmentOnboardingModal } from "@/components/dashboard/EstablishmentOnboardingModal"
 import { resolveNavigationModules, type NavigationModule } from "@/domain/businessPreferences"
+import { lazyPage } from "@/lib/lazy-page"
+
+// Only a new owner ever sees it: kept out of the layout chunk.
+const EstablishmentOnboardingModal = lazyPage(() =>
+  import("@/components/dashboard/EstablishmentOnboardingModal").then((module) => ({ default: module.EstablishmentOnboardingModal })))
 
 const SIDEBAR_COLLAPSED_KEY = "sidebar-collapsed"
 const MOBILE_MENU_ANIMATION_MS = 200
+const COUNT_REFRESH_MS = 60_000
 
-export default function DashboardLayout() {
+type CountedHref = "/dashboard/orders" | "/dashboard/kitchen" | "/dashboard/deliveries" | "/dashboard/service-orders"
+
+// Sidebar badges: the `total` of a one-item page. The keys start with the
+// realtime keys (src/realtime.ts), so an event refreshes them.
+function useSidebarCounts(visible: () => NavigationModule[]) {
+  const count = (
+    key: string,
+    module: NavigationModule,
+    load: (signal: AbortSignal) => Promise<{ total: number }>,
+  ) => useQuery(() => ({
+    queryKey: [key, "sidebar-count"],
+    queryFn: async ({ signal }) => (await load(signal)).total,
+    enabled: visible().includes(module),
+    refetchInterval: COUNT_REFRESH_MS,
+  }))
+
+  const orders = count("orders", "ORDERS", async (signal) =>
+    unwrap(await api.GET("/v1/orders", { params: { query: { limit: 1 } }, signal })))
+  const kitchen = count("kitchen", "KITCHEN", async (signal) =>
+    unwrap(await api.GET("/v1/kitchen/orders", { params: { query: { limit: 1 } }, signal })))
+  const delivery = count("delivery", "DELIVERIES", async (signal) =>
+    unwrap(await api.GET("/v1/delivery/orders", { params: { query: { limit: 1 } }, signal })))
+  const services = count("service-orders", "SERVICE_ORDERS", async (signal) =>
+    unwrap(await api.GET("/v1/service-orders", { params: { query: { limit: 1, stage: "services", open: "true" } }, signal })))
+
+  return (href: CountedHref) => {
+    const query = { "/dashboard/orders": orders, "/dashboard/kitchen": kitchen, "/dashboard/deliveries": delivery, "/dashboard/service-orders": services }[href]
+    // loadedData: reading a pending query's data would suspend the whole
+    // layout (the page behind it shows its own skeleton meanwhile).
+    return loadedData(query) ?? 0
+  }
+}
+
+export default function DashboardLayout(props: { children?: JSX.Element }) {
   const location = useLocation()
   const { logout, user, refreshUserProfile } = useAuth()
-  const refreshUserProfileRef = useRef(refreshUserProfile)
-  refreshUserProfileRef.current = refreshUserProfile
   const confirm = useConfirm()
-  const { i18n, t: tCommon } = useTranslation("common")
+  const queryClient = useQueryClient()
+  const { t: tCommon, language } = useTranslation("common")
   const { t: tNavigation } = useTranslation("navigation")
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  // Fica montado durante a animacao de saida - sem isso o drawer some na
-  // hora ao fechar (isMobileMenuOpen vira false -> desmonta -> sem tempo
-  // de tocar o animate-out).
-  const [shouldRenderMobileMenu, setShouldRenderMobileMenu] = useState(false)
-  const [openOrdersCount, setOpenOrdersCount] = useState<number>(0)
-  const [kitchenOrdersCount, setKitchenOrdersCount] = useState<number>(0)
-  const [deliveryOrdersCount, setDeliveryOrdersCount] = useState<number>(0)
-  const [serviceOrdersCount, setServiceOrdersCount] = useState<number>(0)
-  const visibleModules = resolveNavigationModules(user?.role, user?.establishment)
-  const canSeeOrders = visibleModules.includes('ORDERS')
-  const canSeeKitchen = visibleModules.includes('KITCHEN')
-  const canSeeDeliveries = visibleModules.includes('DELIVERIES')
-  const canSeeServices = visibleModules.includes('SERVICE_ORDERS')
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = createSignal(false)
+  // Stays mounted during the exit animation, or the drawer would vanish at once.
+  const [shouldRenderMobileMenu, setShouldRenderMobileMenu] = createSignal(false)
+  const [isCollapsed, setIsCollapsed] = createSignal(window.localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === "true")
+  const visibleModules = () => resolveNavigationModules(user()?.role, user()?.establishment)
+  const countOf = useSidebarCounts(visibleModules)
+  const needsOnboarding = () => {
+    const current = user()
+    if (current?.role !== "OWNER") return false
+    const establishment = current.establishment
+    return establishment?.businessProfiles === undefined
+      ? establishment?.category == null
+      : establishment.businessProfiles.length === 0
+  }
 
-  useEffect(() => {
-    const refresh = () => { if (!document.hidden) void refreshUserProfileRef.current() }
-    window.addEventListener('focus', refresh)
+  onMount(() => {
+    const refresh = () => { if (!document.hidden) void refreshUserProfile() }
+    window.addEventListener("focus", refresh)
     const interval = window.setInterval(refresh, 60_000)
-    return () => { window.removeEventListener('focus', refresh); window.clearInterval(interval) }
-  }, [])
+    const stopRealtime = startRealtime(queryClient)
+    onCleanup(() => {
+      window.removeEventListener("focus", refresh)
+      window.clearInterval(interval)
+      stopRealtime()
+    })
+  })
 
-  useEffect(() => {
-    if (isMobileMenuOpen) {
+  createEffect(() => {
+    if (isMobileMenuOpen()) {
       setShouldRenderMobileMenu(true)
       return
     }
     const timer = setTimeout(() => setShouldRenderMobileMenu(false), MOBILE_MENU_ANIMATION_MS)
-    return () => clearTimeout(timer)
-  }, [isMobileMenuOpen])
-  const [isCollapsed, setIsCollapsed] = useState(
-    () => typeof window !== "undefined" && window.localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === "true"
-  )
+    onCleanup(() => clearTimeout(timer))
+  })
 
-  useEffect(() => {
-    window.localStorage.setItem(SIDEBAR_COLLAPSED_KEY, String(isCollapsed))
-  }, [isCollapsed])
+  createEffect(() => {
+    window.localStorage.setItem(SIDEBAR_COLLAPSED_KEY, String(isCollapsed()))
+  })
 
   const handleLogout = async () => {
     if (!(await confirm({
@@ -87,230 +130,170 @@ export default function DashboardLayout() {
       description: tCommon("logoutConfirmation.description"),
       confirmLabel: tCommon("logoutConfirmation.confirm"),
     }))) return
-    logout()
+    void logout()
   }
 
-  const navItems = [
-    { module: 'ORDERS', href: "/dashboard/orders", label: tNavigation("orders"), icon: ClipboardList },
-    { module: 'KITCHEN', href: "/dashboard/kitchen", label: tNavigation("kitchen"), icon: ChefHat },
-    { module: 'DELIVERIES', href: "/dashboard/deliveries", label: tNavigation("deliveries"), icon: Bike },
-    { module: 'SALES', href: "/dashboard/sales", label: tNavigation("sales"), icon: DollarSign },
-    { module: 'PRODUCTS', href: "/dashboard/products", label: tNavigation("products"), icon: ShoppingBag },
-    { module: 'SERVICES', href: "/dashboard/services", label: tNavigation("serviceCatalog"), icon: Wrench },
-    { module: 'ESTIMATES', href: "/dashboard/estimates", label: tNavigation("estimates"), icon: FileText },
-    { module: 'SERVICE_ORDERS', href: "/dashboard/service-orders", label: tNavigation("services"), icon: ClipboardList },
-    { module: 'EMPLOYEES', href: "/dashboard/employees", label: tNavigation("employees"), icon: Users },
-    { module: 'SCHEDULE', href: "/dashboard/schedule", label: tNavigation("schedule"), icon: CalendarDays },
-    { module: 'DEVICES', href: "/dashboard/devices", label: tNavigation("devices"), icon: Smartphone },
-    { module: 'REPORTS', href: "/dashboard/charts", label: tNavigation("reports"), icon: BarChart3 },
-    { module: 'SETTINGS', href: "/dashboard/settings", label: tNavigation("settings"), icon: Settings },
-  ].filter((item) => visibleModules.includes(item.module as NavigationModule))
+  const navItems = () => [
+    { module: "ORDERS", href: "/dashboard/orders", label: tNavigation("orders"), icon: ClipboardList },
+    { module: "KITCHEN", href: "/dashboard/kitchen", label: tNavigation("kitchen"), icon: ChefHat },
+    { module: "DELIVERIES", href: "/dashboard/deliveries", label: tNavigation("deliveries"), icon: Bike },
+    { module: "SALES", href: "/dashboard/sales", label: tNavigation("sales"), icon: DollarSign },
+    { module: "PRODUCTS", href: "/dashboard/products", label: tNavigation("products"), icon: ShoppingBag },
+    { module: "SERVICES", href: "/dashboard/services", label: tNavigation("serviceCatalog"), icon: Wrench },
+    { module: "ESTIMATES", href: "/dashboard/estimates", label: tNavigation("estimates"), icon: FileText },
+    { module: "SERVICE_ORDERS", href: "/dashboard/service-orders", label: tNavigation("services"), icon: ClipboardList },
+    { module: "EMPLOYEES", href: "/dashboard/employees", label: tNavigation("employees"), icon: Users },
+    { module: "SCHEDULE", href: "/dashboard/schedule", label: tNavigation("schedule"), icon: CalendarDays },
+    { module: "DEVICES", href: "/dashboard/devices", label: tNavigation("devices"), icon: Smartphone },
+    { module: "REPORTS", href: "/dashboard/charts", label: tNavigation("reports"), icon: BarChart3 },
+    { module: "SETTINGS", href: "/dashboard/settings", label: tNavigation("settings"), icon: Settings },
+  ].filter((item) => visibleModules().includes(item.module as NavigationModule))
 
-  // Logo/"Tozzo.uk" ja aparecem na Navbar (topo, compartilhada com o resto
-  // do site) - sidebar nao duplica mais isso, so nav + toggle de colapsar.
-  const NavContent = ({ collapsed = false, showToggle = false }: { collapsed?: boolean; showToggle?: boolean }) => (
+  const isCounted = (href: string): href is CountedHref =>
+    href === "/dashboard/orders" || href === "/dashboard/kitchen" || href === "/dashboard/deliveries" || href === "/dashboard/service-orders"
+
+  // Logo and "Tozzo.uk" are in the Navbar; the sidebar has the nav and the collapse toggle.
+  const NavContent = (navProps: { collapsed?: boolean; showToggle?: boolean }) => (
     <>
-      <nav aria-label={tNavigation("dashboard")} className="flex-1 space-y-4 overflow-y-auto overflow-x-hidden">
-        {navItems.map((item) => {
-          const Icon = item.icon
-          const isActive = location.pathname === item.href || location.pathname.startsWith(`${item.href}/`) || (item.href === "/dashboard/orders" && location.pathname === "/dashboard")
+      <nav aria-label={tNavigation("dashboard")} class="flex-1 space-y-4 overflow-y-auto overflow-x-hidden">
+        <For each={navItems()}>
+          {(item) => {
+            const isActive = () => location.pathname === item.href || location.pathname.startsWith(`${item.href}/`) || (item.href === "/dashboard/orders" && location.pathname === "/dashboard")
+            const Icon = item.icon
 
-          return (
-            <Link
-              key={item.href}
-              to={item.href}
-              onClick={() => setIsMobileMenuOpen(false)}
-              title={collapsed ? item.label : undefined}
-            >
-              <Button
-                variant="ghost"
-                aria-label={collapsed ? item.label : undefined}
-                className={cn(
-                  // hover:text-foreground trava a cor da letra no hover -
-                  // variant="ghost" ja vem com hover:text-accent-foreground,
-                  // que sem isso deixava o texto do item ativo (branco)
-                  // virando preto no hover, quase sumindo no fundo escuro.
-                  // Sem border-r: a aside ja tem border-r propria - com os
-                  // botoes colados na borda (sem padding lateral), a borda
-                  // direita do botao ficava quase em cima da da aside e as
-                  // duas linhas de 1px desalinhavam, parecendo mais grossa.
-                  // Cada item tem so border-b (uma linha, uniforme) - dar
-                  // border-t tambem pro ultimo item duplicava a linha entre
-                  // ele e o item anterior (o item de cima ja contribui com
-                  // o proprio border-b pro mesmo vao).
-                  "w-full gap-3 rounded-none border-b border-l border-foreground hover:text-foreground",
-                  isActive && "bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground",
-                  collapsed ? "justify-center px-0" : "justify-start"
-                )}
+            return (
+              <a
+                href={item.href}
+                onClick={() => setIsMobileMenuOpen(false)}
+                title={navProps.collapsed ? item.label : undefined}
               >
-                <div className={cn("flex items-center w-full", collapsed ? "justify-center" : "justify-between")}>
-                  <div className="flex items-center gap-3">
-                    <Icon className="h-5 w-5 shrink-0" />
-                    {!collapsed && item.label}
-                  </div>
-                  {!collapsed && (item.href === "/dashboard/orders" || item.href === "/dashboard/kitchen" || item.href === "/dashboard/deliveries" || item.href === "/dashboard/service-orders") && (
-                    <div className="ml-2">
-                      {/* invertido quando ativo (bg-primary ja e' preto/branco
-                          igual o fundo do item ativo - sumiria) */}
-                      <span className={cn(
-                        "inline-flex items-center justify-center text-xs font-medium rounded-full h-6 w-6",
-                        isActive ? "bg-background text-foreground" : "bg-primary text-primary-foreground"
-                      )}>
-                        {formatNumber(item.href === "/dashboard/service-orders" ? serviceOrdersCount : item.href === "/dashboard/kitchen" ? kitchenOrdersCount : item.href === "/dashboard/deliveries" ? deliveryOrdersCount : openOrdersCount, i18n.language)}
-                      </span>
-                    </div>
+                <Button
+                  variant="ghost"
+                  aria-label={navProps.collapsed ? item.label : undefined}
+                  class={cn(
+                    // hover:text-foreground keeps the active item's text from
+                    // turning black on hover. Only border-b per item: the aside
+                    // already has border-r, and border-t would double the lines.
+                    "w-full gap-3 rounded-none border-b border-l border-foreground hover:text-foreground",
+                    isActive() && "bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground",
+                    navProps.collapsed ? "justify-center px-0" : "justify-start"
                   )}
-                </div>
-              </Button>
-            </Link>
-          )
-        })}
+                >
+                  <div class={cn("flex items-center w-full", navProps.collapsed ? "justify-center" : "justify-between")}>
+                    <div class="flex items-center gap-3">
+                      <Icon class="h-5 w-5 shrink-0" />
+                      {!navProps.collapsed && item.label}
+                    </div>
+                    <Show when={!navProps.collapsed && isCounted(item.href)}>
+                      <div class="ml-2">
+                        {/* Inverted when active: bg-primary is the active item's own background. */}
+                        <span class={cn(
+                          "inline-flex items-center justify-center text-xs font-medium rounded-full h-6 w-6",
+                          isActive() ? "bg-background text-foreground" : "bg-primary text-primary-foreground"
+                        )}>
+                          {formatNumber(countOf(item.href as CountedHref), language())}
+                        </span>
+                      </div>
+                    </Show>
+                  </div>
+                </Button>
+              </a>
+            )
+          }}
+        </For>
       </nav>
 
-      <div className={cn("p-4 border-t shrink-0 flex gap-2", collapsed ? "flex-col" : "flex-row")}>
-        {showToggle && (
+      <div class={cn("p-4 border-t shrink-0 flex gap-2", navProps.collapsed ? "flex-col" : "flex-row")}>
+        <Show when={navProps.showToggle}>
           <Button
             variant="ghost"
             onClick={() => setIsCollapsed((v) => !v)}
-            className={cn("gap-3 border border-foreground text-muted-foreground hover:text-foreground shrink-0", collapsed ? "w-full justify-center px-0" : "px-3")}
-            title={collapsed ? tNavigation("expandMenu") : tNavigation("collapseMenu")}
-            aria-label={collapsed ? tNavigation("expandMenu") : tNavigation("collapseMenu")}
+            class={cn("gap-3 border border-foreground text-muted-foreground hover:text-foreground shrink-0", navProps.collapsed ? "w-full justify-center px-0" : "px-3")}
+            title={navProps.collapsed ? tNavigation("expandMenu") : tNavigation("collapseMenu")}
+            aria-label={navProps.collapsed ? tNavigation("expandMenu") : tNavigation("collapseMenu")}
           >
-            {collapsed ? <PanelLeftOpen className="h-5 w-5 shrink-0" /> : <PanelLeftClose className="h-5 w-5 shrink-0" />}
+            {navProps.collapsed ? <PanelLeftOpen class="h-5 w-5 shrink-0" /> : <PanelLeftClose class="h-5 w-5 shrink-0" />}
           </Button>
-        )}
+        </Show>
 
-        {!collapsed && (
+        <Show when={!navProps.collapsed}>
           <Button
             variant="ghost"
-            className="flex-1 gap-3 border border-foreground text-muted-foreground hover:text-destructive justify-start"
+            class="flex-1 gap-3 border border-foreground text-muted-foreground hover:text-destructive justify-start"
             onClick={handleLogout}
             aria-label={tNavigation("logout")}
           >
-            <LogOut className="h-5 w-5 shrink-0" />
+            <LogOut class="h-5 w-5 shrink-0" />
             {tNavigation("logout")}
           </Button>
-        )}
+        </Show>
       </div>
     </>
   )
 
-  const fetchCount = useCallback(async () => {
-    try {
-      const resp = await api.get('/pedidos', { params: { limit: 1 } })
-      const totalHeader = resp.headers['x-total-count']
-      const count = totalHeader ? parseInt(totalHeader, 10) : (Array.isArray(resp.data) ? resp.data.length : Array.isArray(resp.data?.orders) ? resp.data.orders.length : 0)
-      setOpenOrdersCount(count)
-    } catch (err) {
-      console.error('Error fetching open orders count', err)
-    }
-  }, [])
-
-  const fetchKitchenCount = useCallback(async () => {
-    try {
-      const response = await api.get('/cozinha/pedidos', { params: { page: 1, limit: 1 } })
-      setKitchenOrdersCount(Number(response.data?.total ?? 0))
-    } catch (err) {
-      console.error('Error fetching kitchen orders count', err)
-    }
-  }, [])
-
-  const fetchDeliveryCount = useCallback(async () => {
-    try {
-      const response = await api.get('/entregas/pedidos', { params: { page: 1, limit: 1 } })
-      setDeliveryOrdersCount(Number(response.data?.total ?? 0))
-    } catch (err) { console.error('Error fetching delivery count', err) }
-  }, [])
-
-  const fetchServiceCount = useCallback(async () => {
-    try {
-      const response = await api.get('/ordens-servico', { params: { page: 1, limit: 1, stage: 'services', open: true } })
-      setServiceOrdersCount(Number(response.headers['x-total-count'] ?? response.data.length))
-    } catch (err) { console.error('Error fetching service count', err) }
-  }, [])
-
-  useRealtimeEvents(['orders'], () => { if (canSeeOrders) void fetchCount(); if (canSeeKitchen) void fetchKitchenCount(); if (canSeeDeliveries) void fetchDeliveryCount() })
-  useRealtimeEvents(['service-orders'], () => { if (canSeeServices) void fetchServiceCount() })
-
-  useEffect(() => {
-    if (canSeeOrders) fetchCount()
-    if (canSeeKitchen) fetchKitchenCount()
-    if (canSeeDeliveries) fetchDeliveryCount()
-    if (canSeeServices) fetchServiceCount()
-    const iv = setInterval(() => {
-      if (canSeeOrders) void fetchCount()
-      if (canSeeKitchen) void fetchKitchenCount()
-      if (canSeeDeliveries) void fetchDeliveryCount()
-      if (canSeeServices) void fetchServiceCount()
-    }, 60000)
-    return () => clearInterval(iv)
-  }, [fetchCount, fetchKitchenCount, fetchDeliveryCount, fetchServiceCount, canSeeOrders, canSeeKitchen, canSeeDeliveries, canSeeServices])
-
   return (
-    <div className="min-h-screen flex flex-col">
+    <div class="min-h-screen flex flex-col">
       <Navbar onMenuClick={() => setIsMobileMenuOpen(true)} />
 
-      {user?.role === "OWNER" && (user.establishment?.businessProfiles === undefined
-        ? user.establishment?.category == null
-        : user.establishment.businessProfiles.length === 0) && (
-        <EstablishmentOnboardingModal
-          open
-          establishmentId={user.establishmentId ?? user.establishment?.id ?? null}
-          initialRevision={user.establishment?.preferencesRevision ?? 0}
-          onSaved={() => { void refreshUserProfile() }}
-        />
-      )}
+      {/* Owner whose establishment has no business profile yet (legacy: no category). */}
+      <Show when={needsOnboarding()}>
+        <Suspense>
+          <EstablishmentOnboardingModal
+            open
+            initialRevision={user()?.establishment?.preferencesRevision ?? 0}
+            onSaved={refreshUserProfile}
+          />
+        </Suspense>
+      </Show>
 
-      <div className="flex-1 flex bg-muted/20">
+      <div class="flex-1 flex bg-muted/20">
         {/* Desktop Sidebar */}
         <aside
-          className={cn(
+          class={cn(
             "bg-card border-r hidden md:flex flex-col shrink-0 sticky top-16 h-[calc(100vh-4rem)] transition-all duration-300",
-            isCollapsed ? "w-20" : "w-64"
+            isCollapsed() ? "w-20" : "w-64"
           )}
         >
-          <NavContent collapsed={isCollapsed} showToggle />
+          <NavContent collapsed={isCollapsed()} showToggle />
         </aside>
 
         {/* Mobile Sidebar Overlay */}
-        {shouldRenderMobileMenu && (
+        <Show when={shouldRenderMobileMenu()}>
           <div
-            className={cn(
+            class={cn(
               "fixed inset-0 z-[60] bg-background/80 backdrop-blur-sm md:hidden duration-200",
-              isMobileMenuOpen ? "animate-in fade-in-0" : "animate-out fade-out-0 fill-mode-forwards"
+              isMobileMenuOpen() ? "animate-in fade-in-0" : "animate-out fade-out-0 fill-mode-forwards"
             )}
           >
             <div
-              className={cn(
+              class={cn(
                 "fixed inset-y-0 left-0 w-3/4 max-w-xs bg-card border-r shadow-lg flex flex-col duration-200",
-                isMobileMenuOpen ? "animate-in slide-in-from-left" : "animate-out slide-out-to-left fill-mode-forwards"
+                isMobileMenuOpen() ? "animate-in slide-in-from-left" : "animate-out slide-out-to-left fill-mode-forwards"
               )}
             >
-               <div className="flex justify-end p-2 border-b shrink-0">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    aria-label={tNavigation("closeMenu")}
-                    title={tNavigation("closeMenu")}
-                  >
-                    <X className="h-5 w-5" />
-                  </Button>
-               </div>
-               <NavContent />
+              <div class="flex justify-end p-2 border-b shrink-0">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  aria-label={tNavigation("closeMenu")}
+                  title={tNavigation("closeMenu")}
+                >
+                  <X class="h-5 w-5" />
+                </Button>
+              </div>
+              <NavContent />
             </div>
-            <div className="flex-1" onClick={() => setIsMobileMenuOpen(false)} />
+            <div class="flex-1" onClick={() => setIsMobileMenuOpen(false)} />
           </div>
-        )}
+        </Show>
 
-        {/* Main Content Wrapper. min-h garante que o footer fica alinhado
-            com o fim da sidebar em telas curtas (main cresce pra preencher
-            o vazio via flex-1); em telas compridas o min-h so' e' o minimo,
-            cresce normalmente e o footer desce junto com o conteudo. */}
-        <div className="flex-1 flex flex-col w-full min-w-0 min-h-[calc(100vh-4rem)]">
-          <main className="flex-1 p-4 md:p-6">
+        {/* min-h keeps the footer level with the end of the sidebar on short
+            pages; on long pages it grows with the content. */}
+        <div class="flex-1 flex flex-col w-full min-w-0 min-h-[calc(100vh-4rem)]">
+          <main class="flex-1 p-4 md:p-6">
             <Suspense fallback={<LoadingOverlay />}>
-              <Outlet />
+              {props.children}
             </Suspense>
           </main>
 

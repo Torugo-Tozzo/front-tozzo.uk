@@ -1,59 +1,83 @@
-import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
-import { authClient } from '@/lib/authClient'
-import { MIN_PASSWORD_LENGTH } from '@/lib/authValidation'
-import { getErrorTranslationKey } from '@/i18n/error-keys'
-import { toast } from 'sonner'
-import { useTranslation } from 'react-i18next'
+import { createSignal, Show } from "solid-js"
+import { useNavigate, useSearchParams } from "@solidjs/router"
+import { createMutation } from "@tanstack/solid-query"
+import { toast } from "solid-sonner"
 
-type LinkState = 'checking' | 'ready' | 'invalid'
+import { resetPassword } from "@/api/auth"
+import { apiErrorOf } from "@/api/errors"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { useAuth } from "@/contexts/AuthContext"
+import { getErrorTranslationKey } from "@/i18n/error-keys"
+import { useTranslation } from "@/i18n/solid"
+import { MIN_PASSWORD_LENGTH } from "@/lib/authValidation"
+
+type LinkState = "ready" | "invalid"
 
 export default function ResetPasswordPage() {
-  const { t } = useTranslation('auth'); const { t: tErrors } = useTranslation('errors'); const navigate = useNavigate()
-  const [password, setPassword] = useState(''); const [confirmPassword, setConfirmPassword] = useState(''); const [isLoading, setIsLoading] = useState(false)
-  const [linkState, setLinkState] = useState<LinkState>('checking')
+  const { t } = useTranslation("auth")
+  const { t: tErrors } = useTranslation("errors")
+  const navigate = useNavigate()
+  const { clearSession } = useAuth()
+  const [searchParams] = useSearchParams()
+  // The email link is FRONTEND_URL/reset-password?token=…; without a token the
+  // page says the link is no longer valid, like the React one.
+  const token = typeof searchParams.token === "string" ? searchParams.token : ""
+  const [password, setPassword] = createSignal("")
+  const [confirmPassword, setConfirmPassword] = createSignal("")
+  const [linkState, setLinkState] = createSignal<LinkState>(token ? "ready" : "invalid")
+  const mutation = createMutation(() => ({
+    mutationFn: (newPassword: string) => resetPassword(token, newPassword),
+  }))
 
-  useEffect(() => {
-    // O link de recuperação chega com a sessão no hash (auth-js consome no init)
-    // ou com error_code (expirado/já usado). Sem sessão, updateUser falharia com
-    // um erro genérico — melhor dizer logo que o link não vale mais.
-    const hasHashError = new URLSearchParams(window.location.hash.replace(/^#/, '')).has('error_code')
-    let mounted = true
-    void authClient.getSession().then(({ data }) => {
-      if (!mounted) return
-      setLinkState(!hasHashError && data.session ? 'ready' : 'invalid')
-      if (hasHashError) window.history.replaceState(null, '', window.location.pathname)
-    })
-    return () => { mounted = false }
-  }, [])
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: SubmitEvent) => {
     e.preventDefault()
-    if (password !== confirmPassword) { toast.error(t('passwordsDontMatch')); return }
-    setIsLoading(true)
-    const { error } = await authClient.updateUser({ password })
-    setIsLoading(false)
-    if (error) {
-      const translation = getErrorTranslationKey('passwordReset', error.code)
-      toast.error(translation.namespace === 'auth' ? t(translation.key) : tErrors(translation.key))
+    if (password() !== confirmPassword()) { toast.error(t("passwordsDontMatch")); return }
+    try {
+      await mutation.mutateAsync(password())
+    } catch (error) {
+      const { code } = apiErrorOf(error)
+      // Expired or used: the API only checks it on submit.
+      if (code === "TOKEN_INVALID") { setLinkState("invalid"); return }
+      const translation = getErrorTranslationKey("passwordReset", code)
+      toast.error(translation.namespace === "auth" ? t(translation.key) : tErrors(translation.key))
       return
     }
-    toast.success(t('resetPasswordSuccess')); navigate('/login')
+    // The reset revokes every session of the user, this one included.
+    clearSession()
+    toast.success(t("resetPasswordSuccess"))
+    navigate("/login")
   }
 
-  return <div className="flex-1 flex items-center justify-center bg-muted/40 p-4 min-h-[calc(100vh-10rem)]"><Card className="w-full max-w-md"><CardHeader><CardTitle>{t('resetPasswordTitle')}</CardTitle></CardHeader>
-    {linkState === 'invalid'
-      ? <CardContent className="space-y-4"><p>{t('resetLinkInvalid')}</p><a href="/forgot-password" className="text-sm underline">{t('requestNewResetLink')}</a></CardContent>
-      : <form onSubmit={handleSubmit}><CardContent className="space-y-2">
-          <Label htmlFor="new-password">{t('newPassword')}</Label>
-          <Input id="new-password" type="password" required minLength={MIN_PASSWORD_LENGTH} aria-describedby="new-password-hint" value={password} onChange={(e) => setPassword(e.target.value)} />
-          <p id="new-password-hint" className="text-xs text-muted-foreground">{t('passwordHint', { min: MIN_PASSWORD_LENGTH })}</p>
-          <Label htmlFor="confirm-password">{t('confirmPassword')}</Label>
-          <Input id="confirm-password" type="password" required minLength={MIN_PASSWORD_LENGTH} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
-        </CardContent><CardFooter><Button className="w-full" type="submit" disabled={isLoading || linkState !== 'ready'}>{t('resetPassword')}</Button></CardFooter></form>}
-  </Card></div>
+  return (
+    <div class="flex-1 flex items-center justify-center bg-muted/40 p-4 min-h-[calc(100vh-10rem)]">
+      <Card class="w-full max-w-md">
+        <CardHeader><CardTitle>{t("resetPasswordTitle")}</CardTitle></CardHeader>
+        <Show
+          when={linkState() === "ready"}
+          fallback={
+            <CardContent class="space-y-4">
+              <p>{t("resetLinkInvalid")}</p>
+              <a href="/forgot-password" class="text-sm underline">{t("requestNewResetLink")}</a>
+            </CardContent>
+          }
+        >
+          <form onSubmit={handleSubmit}>
+            <CardContent class="space-y-2">
+              <Label for="new-password">{t("newPassword")}</Label>
+              <Input id="new-password" type="password" required minLength={MIN_PASSWORD_LENGTH} aria-describedby="new-password-hint" value={password()} onInput={(e) => setPassword(e.currentTarget.value)} />
+              <p id="new-password-hint" class="text-xs text-muted-foreground">{t("passwordHint", { min: MIN_PASSWORD_LENGTH })}</p>
+              <Label for="confirm-password">{t("confirmPassword")}</Label>
+              <Input id="confirm-password" type="password" required minLength={MIN_PASSWORD_LENGTH} value={confirmPassword()} onInput={(e) => setConfirmPassword(e.currentTarget.value)} />
+            </CardContent>
+            <CardFooter>
+              <Button class="w-full" type="submit" disabled={mutation.isPending}>{t("resetPassword")}</Button>
+            </CardFooter>
+          </form>
+        </Show>
+      </Card>
+    </div>
+  )
 }

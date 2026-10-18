@@ -1,5 +1,5 @@
-import { render, screen } from "@testing-library/react"
-import { describe, expect, test } from "bun:test"
+import { render, screen } from "@solidjs/testing-library"
+import { describe, expect, test } from "vitest"
 
 import { Alert, AlertDescription, AlertTitle } from "./alert"
 
@@ -18,19 +18,19 @@ describe("Alert", () => {
     ],
     ["destructive", ["border-destructive/50", "bg-destructive/10", "text-destructive"]],
   ] as const)("renders the %s variant as an alert", (variant, classes) => {
-    render(<Alert variant={variant}>Mensagem</Alert>)
+    render(() => <Alert variant={variant}>Mensagem</Alert>)
 
     const alert = screen.getByRole("alert")
     expect(alert).toBeInTheDocument()
     expect(alert).toHaveClass(...classes)
   })
 
-  test("merges a custom className with the selected variant", () => {
-    render(
-      <Alert variant="warning" className="custom-alert">
+  test("merges a custom class with the selected variant", () => {
+    render(() => (
+      <Alert variant="warning" class="custom-alert">
         Mensagem
-      </Alert>,
-    )
+      </Alert>
+    ))
 
     const alert = screen.getByRole("alert")
     expect(alert).toHaveClass("custom-alert")
@@ -38,12 +38,12 @@ describe("Alert", () => {
   })
 
   test("renders optional title and description subcomponents", () => {
-    render(
+    render(() => (
       <Alert>
         <AlertTitle>Título</AlertTitle>
         <AlertDescription>Corpo</AlertDescription>
-      </Alert>,
-    )
+      </Alert>
+    ))
 
     expect(screen.getByRole("heading", { name: "Título" })).toBeInTheDocument()
     expect(screen.getByText("Corpo")).toBeInTheDocument()

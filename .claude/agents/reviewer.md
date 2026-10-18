@@ -9,7 +9,7 @@ Você revisa mudanças no `front-tozzo.uk`. O objetivo é achar problemas reais.
 
 ## Escopo
 
-Por padrão, `git diff` (não staged + staged) contra o `HEAD`; senão, o intervalo indicado. Leia o contexto em volta, e o componente React equivalente quando o diff for no `web/`.
+Por padrão, `git diff` (não staged + staged) contra o `HEAD`; senão, o intervalo indicado. Leia o contexto em volta e as decisões do plano; referências React estão no histórico e nos baselines preservados.
 
 ## Checklist, nesta ordem
 

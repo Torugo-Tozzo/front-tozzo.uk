@@ -1,212 +1,146 @@
-import { Languages, Printer } from "lucide-react"
+import { createEffect, createSignal, For, Show } from "solid-js"
+import { useNavigate } from "@solidjs/router"
+import { createMutation, createQuery, useQueryClient } from "@tanstack/solid-query"
+import { loadedData, onQueryError } from "@/api/query"
+import { Languages, Printer } from "lucide-solid"
+import { toast } from "solid-sonner"
+
+import { apiErrorOf } from "@/api/errors"
+import {
+  deleteAccount,
+  establishmentKeys,
+  exportAccount,
+  getEstablishment,
+  updateEstablishment,
+  type EstablishmentView,
+  type UpdateEstablishmentRequest,
+} from "@/api/establishment"
+import { BusinessPreferencesPanel } from "@/components/dashboard/BusinessPreferencesPanel"
 import { ModeToggle } from "@/components/mode-toggle"
 import { Button } from "@/components/ui/button"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
-import { useTranslation } from "react-i18next"
-import { LOCALE_NATIVE_NAMES, normalizeLocale, SUPPORTED_LOCALES } from "@/i18n/locale"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
-import {
-  PAPER_WIDTH_PRESETS,
-  getStoredPaperWidth,
-  persistPaperWidth,
-  type PaperWidthPreset,
-} from "@/lib/printPreferences"
-import api from "@/services/api"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useAuth } from "@/contexts/AuthContext"
-import { toast } from "sonner"
-import { authClient } from "@/lib/authClient"
-import { useEffect, useState } from "react"
-import { useNavigate } from "react-router-dom"
-import type { EstablishmentPlan } from "@/domain/models"
-import { BusinessPreferencesPanel } from "@/components/dashboard/BusinessPreferencesPanel"
+import { PLAN_TIER_KEY } from "@/domain/categories"
+import { useErrorMessage } from "@/i18n/error-message"
+import { LOCALE_NATIVE_NAMES, normalizeLocale, SUPPORTED_LOCALES, type SupportedLocale } from "@/i18n/locale"
+import { useTranslation } from "@/i18n/solid"
+import { getStoredPaperWidth, PAPER_WIDTH_PRESETS, persistPaperWidth, type PaperWidthPreset } from "@/lib/printPreferences"
 
-type EstablishmentResponse = {
-  id: number | string | null
-  plan: EstablishmentPlan | null
-  printCountToday: number | null
-  reportCount: number | null
-  deviceCount: number | null
-  tradeName: string
-  phone: string
-  zipCode: string
-  addressStreet: string
-  addressNumber: string
-  addressComplement: string
-  addressNeighborhood: string
-  addressCity: string
-  addressState: string
-  cnpj: string
-}
+type EstablishmentField = Exclude<keyof UpdateEstablishmentRequest, "logoKey">
+type EstablishmentForm = Record<EstablishmentField, string>
 
-const ESTABLISHMENT_PLANS: readonly EstablishmentPlan[] = ['FREE', 'PAGO', 'PAGO_LEGADO', 'ENTERPRISE']
-
-function isEstablishmentPlan(value: unknown): value is EstablishmentPlan {
-  return typeof value === "string" && ESTABLISHMENT_PLANS.includes(value as EstablishmentPlan)
-}
-
-function readEstablishmentResponse(data: unknown, fallbackId: number | string | null): EstablishmentResponse {
-  const rawData = Array.isArray(data) ? data[0] : data
-  if (!rawData || typeof rawData !== "object") {
-    return { id: fallbackId, plan: null, printCountToday: null, reportCount: null, deviceCount: null, tradeName: "", phone: "", zipCode: "", addressStreet: "", addressNumber: "", addressComplement: "", addressNeighborhood: "", addressCity: "", addressState: "", cnpj: "" }
-  }
-
-  const rawEstablishment = rawData as Record<string, unknown>
-  const id = typeof rawEstablishment.id === "number" || typeof rawEstablishment.id === "string"
-    ? rawEstablishment.id
-    : fallbackId
-
-  const readString = (key: string) => typeof rawEstablishment[key] === "string" ? rawEstablishment[key] : ""
+function formFrom(view: EstablishmentView): EstablishmentForm {
   return {
-    id,
-    plan: isEstablishmentPlan(rawEstablishment.plan) ? rawEstablishment.plan : null,
-    printCountToday: typeof rawEstablishment.printCountToday === "number" ? rawEstablishment.printCountToday : null,
-    reportCount: typeof rawEstablishment.reportCount === "number" ? rawEstablishment.reportCount : null,
-    deviceCount: typeof rawEstablishment.deviceCount === "number" ? rawEstablishment.deviceCount : null,
-    tradeName: readString("tradeName"),
-    phone: readString("phone"),
-    zipCode: readString("zipCode"),
-    addressStreet: readString("addressStreet"),
-    addressNumber: readString("addressNumber"),
-    addressComplement: readString("addressComplement"),
-    addressNeighborhood: readString("addressNeighborhood"),
-    addressCity: readString("addressCity"),
-    addressState: readString("addressState"),
-    cnpj: readString("cnpj"),
+    tradeName: view.tradeName,
+    phone: view.phone ?? "",
+    zipCode: view.address.zipCode ?? "",
+    addressStreet: view.address.street ?? "",
+    addressNumber: view.address.number ?? "",
+    addressComplement: view.address.complement ?? "",
+    addressNeighborhood: view.address.neighborhood ?? "",
+    addressCity: view.address.city ?? "",
+    addressState: view.address.state ?? "",
+    cnpj: view.cnpj ?? "",
   }
 }
+
+const ESTABLISHMENT_FIELDS: EstablishmentField[] = [
+  "tradeName", "phone", "zipCode", "addressStreet", "addressNumber",
+  "addressComplement", "addressNeighborhood", "addressCity", "addressState", "cnpj",
+]
+
+// The /v1 answers 401 INVALID_PASSWORD (or 403 REAUTH_REQUIRED) when the password does not confirm the deletion.
+const WRONG_PASSWORD_CODES = new Set(["INVALID_PASSWORD", "REAUTH_REQUIRED"])
 
 export default function SettingsPage() {
-  const { user, logout, refreshUserProfile } = useAuth()
+  const { user, clearSession, refreshUserProfile } = useAuth()
   const navigate = useNavigate()
-  const { i18n, t } = useTranslation('settings')
-  const locale = normalizeLocale(i18n.language)
-  const localeLabel = t(`locales.${locale}` as never)
+  const queryClient = useQueryClient()
+  const { t, i18n, language } = useTranslation("settings")
+  const localizedError = useErrorMessage()
+  const locale = () => normalizeLocale(language())
+  const localeLabel = () => t(`locales.${locale()}` as never)
 
-  const handleLocaleChange = (value: string) => {
-    void i18n.changeLanguage(normalizeLocale(value))
-  }
+  const [paperWidth, setPaperWidth] = createSignal<PaperWidthPreset>(getStoredPaperWidth())
+  const isOwner = () => user()?.role === "OWNER"
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = createSignal(false)
+  const [deletePassword, setDeletePassword] = createSignal("")
+  const [form, setForm] = createSignal<EstablishmentForm | null>(null)
 
-  const [paperWidth, setPaperWidth] = useState<PaperWidthPreset>(() => getStoredPaperWidth())
-  const isOwner = user?.role === 'OWNER'
-  const canManageSecurity = user?.role === 'OWNER' || user?.role === 'MANAGER'
-  const fallbackEstablishmentId = user?.establishmentId ?? user?.establishment?.id ?? null
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
-  const [deletePassword, setDeletePassword] = useState("")
-  const [isDeleting, setIsDeleting] = useState(false)
-  const [planInfo, setPlanInfo] = useState<EstablishmentResponse | null>(null)
-  const [establishmentInfo, setEstablishmentInfo] = useState<EstablishmentResponse | null>(null)
-  const [isSavingEstablishmentInfo, setIsSavingEstablishmentInfo] = useState(false)
-  const [totpFactor, setTotpFactor] = useState<{ id: string; qrCode?: string } | null>(null)
-  const [totpCode, setTotpCode] = useState('')
-  const [isTotpLoading, setIsTotpLoading] = useState(false)
+  const establishment = createQuery(() => ({
+    queryKey: establishmentKeys.all,
+    queryFn: ({ signal }) => getEstablishment(signal),
+    enabled: !!user(),
+    refetchOnWindowFocus: false,
+  }))
+  createEffect(() => {
+    const view = loadedData(establishment)
+    if (view) setForm(formFrom(view))
+  })
+  onQueryError(establishment, (error) => console.error("Error fetching establishment info", error))
 
-  useEffect(() => {
-    if (!canManageSecurity) return
-    void authClient.mfa.listFactors().then(({ data }: any) => {
-      const factor = data?.totp?.find((item: any) => item.status === 'verified')
-      if (factor) setTotpFactor({ id: factor.id })
-    }).catch((error: unknown) => console.error('Error loading MFA factors', error))
-  }, [canManageSecurity])
-
-  const handleEnrollTotp = async () => {
-    setIsTotpLoading(true)
-    const { data, error } = await authClient.mfa.enroll({ factorType: 'totp' })
-    setIsTotpLoading(false)
-    if (error || !data) { toast.error(t('security.setupError')); return }
-    setTotpFactor({ id: data.id, qrCode: data.totp?.qr_code })
-  }
-
-  const handleVerifyTotp = async () => {
-    if (!totpFactor) return
-    setIsTotpLoading(true)
-    const { data: challenge, error: challengeError } = await authClient.mfa.challenge({ factorId: totpFactor.id })
-    const { error } = challengeError || !challenge ? { error: challengeError ?? new Error('MFA challenge failed') } : await authClient.mfa.verify({ factorId: totpFactor.id, challengeId: challenge.id, code: totpCode })
-    setIsTotpLoading(false)
-    if (error) { toast.error(t('security.setupError')); return }
-    setTotpFactor({ id: totpFactor.id }); setTotpCode(''); toast.success(t('security.enabled'))
-  }
-
-  const handleUnenrollTotp = async () => {
-    if (!totpFactor) return
-    setIsTotpLoading(true); const { error } = await authClient.mfa.unenroll({ factorId: totpFactor.id }); setIsTotpLoading(false)
-    if (error) { toast.error(t('security.disableError')); return }; setTotpFactor(null); toast.success(t('security.disabled'))
-  }
-
-  useEffect(() => {
-    let cancelled = false
-
-    const loadEstablishment = async () => {
-      try {
-        const response = await api.get('/estabelecimentos')
-        if (cancelled) return
-
-        const establishment = readEstablishmentResponse(response.data, fallbackEstablishmentId)
-        setPlanInfo(establishment)
-        setEstablishmentInfo(establishment)
-      } catch (error) {
-        if (!cancelled) {
-          console.error('Error fetching establishment info', error)
-        }
-      }
-    }
-
-    void loadEstablishment()
-    return () => {
-      cancelled = true
-    }
-  }, [fallbackEstablishmentId])
-
-  const handlePaperWidthChange = (value: string) => {
-    setPaperWidth(persistPaperWidth(value))
-  }
-
-  const handleEstablishmentInfoChange = (field: keyof Omit<EstablishmentResponse, 'id' | 'plan' | 'printCountToday' | 'reportCount' | 'deviceCount'>, value: string) => {
-    setEstablishmentInfo((current) => current ? { ...current, [field]: value } : current)
-  }
-
-  const handleSaveEstablishmentInfo = async () => {
-    if (!establishmentInfo) return
-
-    const { tradeName, phone, zipCode, addressStreet, addressNumber, addressComplement, addressNeighborhood, addressCity, addressState, cnpj } = establishmentInfo
-    setIsSavingEstablishmentInfo(true)
-    try {
-      await api.put('/estabelecimentos', { tradeName, phone, zipCode, addressStreet, addressNumber, addressComplement, addressNeighborhood, addressCity, addressState, cnpj })
-      toast.success(t('establishmentInfo.saved'))
-      // Nome do estabelecimento aparece na navbar (fora desta página) — precisa
-      // atualizar o AuthContext, não só o estado local do form.
+  const saveInfo = createMutation(() => ({
+    mutationFn: updateEstablishment,
+    onSuccess: async (view: EstablishmentView) => {
+      queryClient.setQueryData(establishmentKeys.all, view)
+      toast.success(t("establishmentInfo.saved"))
+      // The trade name is also in the navbar, which reads the session user.
       await refreshUserProfile()
-    } catch (error) {
-      console.error('Error updating establishment information', error)
-      toast.error(t('establishmentInfo.saveError'))
-    } finally {
-      setIsSavingEstablishmentInfo(false)
-    }
+    },
+    onError: (error) => {
+      console.error("Error updating establishment information", error)
+      toast.error(t("establishmentInfo.saveError"))
+    },
+  }))
+
+  const removeAccount = createMutation(() => ({
+    mutationFn: deleteAccount,
+    onSuccess: () => {
+      toast.success(t("dataPrivacy.deleteSuccess"))
+      setIsDeleteDialogOpen(false)
+      // The API already revoked every session of the establishment.
+      clearSession()
+      queryClient.clear()
+      navigate("/login", { replace: true })
+    },
+    onError: (error) => {
+      console.error("Delete account failed", error)
+      toast.error(WRONG_PASSWORD_CODES.has(apiErrorOf(error).code) ? t("dataPrivacy.deleteWrongPassword") : localizedError("deleteAccount", error))
+    },
+  }))
+
+  const handleLocaleChange = (value: string | null) => {
+    if (value) void i18n.changeLanguage(normalizeLocale(value))
+  }
+
+  const handlePaperWidthChange = (value: string | null) => {
+    if (value) setPaperWidth(persistPaperWidth(value))
+  }
+
+  const handleFieldChange = (field: EstablishmentField, value: string) => {
+    setForm((current) => current ? { ...current, [field]: value } : current)
+  }
+
+  const handleSaveEstablishmentInfo = () => {
+    const current = form()
+    if (!current || saveInfo.isPending) return
+    saveInfo.mutate({ ...current })
   }
 
   const handleExportData = async () => {
     try {
-      const response = await api.get("/auth/export-data")
-      const blob = new Blob([JSON.stringify(response.data, null, 2)], { type: "application/json" })
+      const data = await exportAccount()
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" })
+      const url = window.URL.createObjectURL(blob)
       const link = document.createElement("a")
-      link.href = window.URL.createObjectURL(blob)
+      link.href = url
       link.download = "tozzo-export.json"
       document.body.appendChild(link)
       link.click()
       link.remove()
+      window.URL.revokeObjectURL(url)
       toast.success(t("dataPrivacy.exportSuccess"))
     } catch (error) {
       console.error("Export failed", error)
@@ -214,71 +148,51 @@ export default function SettingsPage() {
     }
   }
 
-  const handleDeleteAccount = async () => {
-    setIsDeleting(true)
-    try {
-      await api.post("/auth/delete-account", { password: deletePassword })
-      toast.success(t("dataPrivacy.deleteSuccess"))
-      setIsDeleteDialogOpen(false)
-      logout()
-    } catch (error) {
-      console.error("Delete account failed", error)
-      toast.error(t("dataPrivacy.deleteWrongPassword"))
-    } finally {
-      setIsDeleting(false)
-    }
+  const closeDeleteDialog = () => {
+    setIsDeleteDialogOpen(false)
+    setDeletePassword("")
   }
 
-  const establishmentFields = [
-    { field: 'tradeName', label: t('establishmentInfo.tradeName') },
-    { field: 'phone', label: t('establishmentInfo.phone') },
-    { field: 'zipCode', label: t('establishmentInfo.zipCode') },
-    { field: 'addressStreet', label: t('establishmentInfo.addressStreet') },
-    { field: 'addressNumber', label: t('establishmentInfo.addressNumber') },
-    { field: 'addressComplement', label: t('establishmentInfo.addressComplement') },
-    { field: 'addressNeighborhood', label: t('establishmentInfo.addressNeighborhood') },
-    { field: 'addressCity', label: t('establishmentInfo.addressCity') },
-    { field: 'addressState', label: t('establishmentInfo.addressState') },
-    { field: 'cnpj', label: t('establishmentInfo.cnpj') },
-  ] as const
+  const isFree = (view: EstablishmentView) => view.plan === "FREE"
+  const fieldLabel = (field: EstablishmentField) => t(`establishmentInfo.${field}` as never)
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-3xl font-bold tracking-tight">{t('title')}</h1>
+    <div class="space-y-6">
+      <h1 class="text-3xl font-bold tracking-tight">{t("title")}</h1>
 
-      {user && <BusinessPreferencesPanel />}
-      
-      <div className="p-6 border rounded-lg bg-card">
-        <h2 className="text-xl font-semibold mb-4">{t('appearance')}</h2>
-        <div className="flex items-center justify-between">
-          <span className="text-muted-foreground">{t('system')}</span>
+      <Show when={user()}>
+        <BusinessPreferencesPanel />
+      </Show>
+
+      <div class="p-6 border rounded-lg bg-card">
+        <h2 class="text-xl font-semibold mb-4">{t("appearance")}</h2>
+        <div class="flex items-center justify-between">
+          <span class="text-muted-foreground">{t("system")}</span>
           <ModeToggle />
         </div>
       </div>
 
-      <div className="p-6 border rounded-lg bg-card space-y-3">
-        <h2 className="text-xl font-semibold flex items-center gap-2">
-          <Languages className="h-5 w-5" />
-          {t('language')}
+      <div class="p-6 border rounded-lg bg-card space-y-3">
+        <h2 class="text-xl font-semibold flex items-center gap-2">
+          <Languages class="h-5 w-5" />
+          {t("language")}
         </h2>
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <label htmlFor="locale-select" className="text-muted-foreground">
-            {t('currentLanguage')}
+        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <label for="locale-select" class="text-muted-foreground">
+            {t("currentLanguage")}
           </label>
-          <Select value={locale} onValueChange={handleLocaleChange}>
-            <SelectTrigger id="locale-select" aria-describedby="current-locale" className="w-[180px]">
-              <SelectValue />
+          <Select<string>
+            options={[...SUPPORTED_LOCALES]}
+            value={locale()}
+            onChange={handleLocaleChange}
+            // Each option shows the language's own name for itself, so a
+            // speaker recognizes it whatever the active UI language is.
+            itemComponent={(item) => <SelectItem item={item.item}>{LOCALE_NATIVE_NAMES[item.item.rawValue as SupportedLocale]}</SelectItem>}
+          >
+            <SelectTrigger id="locale-select" aria-label={t("currentLanguage")} aria-describedby="current-locale" class="w-[180px]">
+              <SelectValue<string>>{() => LOCALE_NATIVE_NAMES[locale()]}</SelectValue>
             </SelectTrigger>
-            <SelectContent>
-              {/* Each option shows the language's own name for itself (not
-                  translated into the active UI language) so a speaker of
-                  that language recognizes it at a glance in the picker. */}
-              {SUPPORTED_LOCALES.map((supportedLocale) => (
-                <SelectItem key={supportedLocale} value={supportedLocale}>
-                  {LOCALE_NATIVE_NAMES[supportedLocale]}
-                </SelectItem>
-              ))}
-            </SelectContent>
+            <SelectContent />
           </Select>
         </div>
         <p
@@ -286,133 +200,135 @@ export default function SettingsPage() {
           role="status"
           aria-live="polite"
           aria-atomic="true"
-          aria-label={t('localeIndicator', { locale: localeLabel })}
-          className="text-sm text-muted-foreground"
+          aria-label={t("localeIndicator", { locale: localeLabel() })}
+          class="text-sm text-muted-foreground"
         >
-          {t('localeIndicator', { locale: localeLabel })}
+          {t("localeIndicator", { locale: localeLabel() })}
         </p>
       </div>
 
-      <div className="p-6 border rounded-lg bg-card space-y-3">
-        <h2 className="text-xl font-semibold flex items-center gap-2">
-          <Printer className="h-5 w-5" />
-          {t('printing')}
+      <div class="p-6 border rounded-lg bg-card space-y-3">
+        <h2 class="text-xl font-semibold flex items-center gap-2">
+          <Printer class="h-5 w-5" />
+          {t("printing")}
         </h2>
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <label htmlFor="paper-width-select" className="text-muted-foreground">
-            {t('paperWidth')}
+        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <label for="paper-width-select" class="text-muted-foreground">
+            {t("paperWidth")}
           </label>
-          <Select value={paperWidth} onValueChange={handlePaperWidthChange}>
-            <SelectTrigger id="paper-width-select" className="w-[180px]">
-              <SelectValue />
+          <Select<string>
+            options={[...PAPER_WIDTH_PRESETS]}
+            value={paperWidth()}
+            onChange={handlePaperWidthChange}
+            itemComponent={(item) => <SelectItem item={item.item}>{item.item.rawValue === "a4" ? "A4" : item.item.rawValue}</SelectItem>}
+          >
+            <SelectTrigger id="paper-width-select" aria-label={t("paperWidth")} class="w-[180px]">
+              <SelectValue<string>>{() => paperWidth() === "a4" ? "A4" : paperWidth()}</SelectValue>
             </SelectTrigger>
-            <SelectContent>
-              {PAPER_WIDTH_PRESETS.map((preset) => (
-                <SelectItem key={preset} value={preset}>
-                  {preset === 'a4' ? 'A4' : preset}
-                </SelectItem>
-              ))}
-            </SelectContent>
+            <SelectContent />
           </Select>
         </div>
       </div>
 
-      {planInfo && (
-        <div className="p-6 border rounded-lg bg-card space-y-3">
-          <h2 className="text-xl font-semibold">{t('plan.title')}</h2>
-          <div className="flex items-center justify-between"><span className="text-muted-foreground">{t('plan.currentPlan')}</span><span className="font-medium">{t(`plan.tiers.${planInfo.plan ?? 'FREE'}` as never)}</span></div>
-          <div className="flex items-center justify-between"><span className="text-muted-foreground">{t('plan.printsToday')}</span><span className="font-medium">{planInfo.plan === 'FREE' || planInfo.plan === null ? `${planInfo.printCountToday ?? 0}/30` : t('plan.unlimited')}</span></div>
-          <div className="flex items-center justify-between"><span className="text-muted-foreground">{t('plan.reportsThisMonth')}</span><span className="font-medium">{planInfo.plan === 'FREE' || planInfo.plan === null ? `${planInfo.reportCount ?? 0}/5` : t('plan.unlimited')}</span></div>
-          <div className="flex items-center justify-between"><span className="text-muted-foreground">{t('plan.devices')}</span><span className="font-medium">{planInfo.deviceCount ?? 0}</span></div>
-          {isOwner && (planInfo.plan === 'FREE' || planInfo.plan === null) && <Button type="button" variant="outline" size="sm" onClick={() => navigate('/plan')}>{t('plan.upgradeButton')}</Button>}
-        </div>
-      )}
+      <Show when={loadedData(establishment)}>
+        {(view) => (
+          <div class="p-6 border rounded-lg bg-card space-y-3">
+            <h2 class="text-xl font-semibold">{t("plan.title")}</h2>
+            <div class="flex items-center justify-between"><span class="text-muted-foreground">{t("plan.currentPlan")}</span><span class="font-medium">{t(`plan.tiers.${PLAN_TIER_KEY[view().plan]}` as never)}</span></div>
+            <div class="flex items-center justify-between"><span class="text-muted-foreground">{t("plan.printsToday")}</span><span class="font-medium">{isFree(view()) ? `${view().usage.printsToday}/${view().limits.printsPerDay ?? ""}` : t("plan.unlimited")}</span></div>
+            <div class="flex items-center justify-between"><span class="text-muted-foreground">{t("plan.reportsThisMonth")}</span><span class="font-medium">{isFree(view()) ? `${view().usage.reportsThisMonth}/${view().limits.reportsPerMonth ?? ""}` : t("plan.unlimited")}</span></div>
+            <div class="flex items-center justify-between"><span class="text-muted-foreground">{t("plan.devices")}</span><span class="font-medium">{view().usage.devices}</span></div>
+            <Show when={isOwner() && isFree(view())}>
+              <Button type="button" variant="outline" size="sm" onClick={() => navigate("/plan")}>{t("plan.upgradeButton")}</Button>
+            </Show>
+          </div>
+        )}
+      </Show>
 
-      {isOwner && establishmentInfo && (
-        <section className="p-6 border rounded-lg bg-card space-y-4" aria-labelledby="establishment-info-title">
+      <Show when={isOwner() && form()}>
+        {(values) => (
+          <section class="p-6 border rounded-lg bg-card space-y-4" aria-labelledby="establishment-info-title">
+            <div>
+              <h2 id="establishment-info-title" class="text-xl font-semibold">{t("establishmentInfo.title")}</h2>
+              <p class="text-sm text-muted-foreground">{t("establishmentInfo.description")}</p>
+            </div>
+            <div class="grid gap-4 sm:grid-cols-2">
+              <For each={ESTABLISHMENT_FIELDS}>
+                {(field) => (
+                  <div class="space-y-2">
+                    <label for={`establishment-${field}`} class="text-sm text-muted-foreground">{fieldLabel(field)}</label>
+                    <Input
+                      id={`establishment-${field}`}
+                      value={values()[field]}
+                      maxLength={field === "addressState" ? 2 : undefined}
+                      placeholder={field === "addressComplement" ? t("establishmentInfo.addressComplementPlaceholder") : undefined}
+                      onInput={(event) => handleFieldChange(field, event.currentTarget.value)}
+                      disabled={saveInfo.isPending}
+                    />
+                  </div>
+                )}
+              </For>
+            </div>
+            <Button type="button" onClick={handleSaveEstablishmentInfo} disabled={saveInfo.isPending}>
+              {saveInfo.isPending ? t("establishmentInfo.saving") : t("establishmentInfo.save")}
+            </Button>
+          </section>
+        )}
+      </Show>
+
+      {/* 2FA is not part of the new app (user's decision, 2026-10-14): no Security card. */}
+
+      <Show when={isOwner()}>
+        <div class="space-y-4 border-t pt-4">
           <div>
-            <h2 id="establishment-info-title" className="text-xl font-semibold">{t('establishmentInfo.title')}</h2>
-            <p className="text-sm text-muted-foreground">{t('establishmentInfo.description')}</p>
+            <h3 class="font-semibold">{t("dataPrivacy.sectionTitle")}</h3>
+            <p class="text-sm text-muted-foreground">{t("dataPrivacy.sectionDescription")}</p>
           </div>
-          <div className="grid gap-4 sm:grid-cols-2">
-            {establishmentFields.map(({ field, label }) => (
-              <div key={field} className="space-y-2">
-                <label htmlFor={`establishment-${field}`} className="text-sm text-muted-foreground">{label}</label>
-                <Input
-                  id={`establishment-${field}`}
-                  value={establishmentInfo[field]}
-                  maxLength={field === 'addressState' ? 2 : undefined}
-                  placeholder={field === 'addressComplement' ? 'Apto, sala, etc.' : undefined}
-                  onChange={(event) => handleEstablishmentInfoChange(field, event.target.value)}
-                  disabled={isSavingEstablishmentInfo}
-                />
-              </div>
-            ))}
-          </div>
-          <Button type="button" onClick={handleSaveEstablishmentInfo} disabled={isSavingEstablishmentInfo}>
-            {isSavingEstablishmentInfo ? t('establishmentInfo.saving') : t('establishmentInfo.save')}
-          </Button>
-        </section>
-      )}
-
-      {canManageSecurity && (
-        <div className="p-6 border rounded-lg bg-card space-y-4">
-          <h2 className="text-xl font-semibold">{t('security.title')}</h2>
-          {!totpFactor ? <Button type="button" onClick={handleEnrollTotp} disabled={isTotpLoading}>{t('security.enable')}</Button> : totpFactor.qrCode ? <div className="space-y-3"><img src={totpFactor.qrCode} alt={t('security.qrCode')} className="h-48 w-48" /><label htmlFor="totp-code">{t('security.code')}</label><Input id="totp-code" value={totpCode} onChange={(e) => setTotpCode(e.target.value)} /><Button type="button" onClick={handleVerifyTotp} disabled={isTotpLoading}>{t('security.confirm')}</Button></div> : <Button type="button" variant="outline" onClick={handleUnenrollTotp} disabled={isTotpLoading}>{t('security.disable')}</Button>}
-        </div>
-      )}
-
-      {isOwner && (
-        <div className="space-y-4 border-t pt-4">
-          <div>
-            <h3 className="font-semibold">{t('dataPrivacy.sectionTitle')}</h3>
-            <p className="text-sm text-muted-foreground">{t('dataPrivacy.sectionDescription')}</p>
-          </div>
-          <div className="flex gap-3">
-            <Button type="button" variant="outline" onClick={handleExportData}>
-              {t('dataPrivacy.exportButton')}
+          <div class="flex gap-3">
+            <Button type="button" variant="outline" onClick={() => void handleExportData()}>
+              {t("dataPrivacy.exportButton")}
             </Button>
             <Button type="button" variant="destructive" onClick={() => setIsDeleteDialogOpen(true)}>
-              {t('dataPrivacy.deleteButton')}
+              {t("dataPrivacy.deleteButton")}
             </Button>
           </div>
         </div>
-      )}
+      </Show>
 
-      <Dialog open={isDeleteDialogOpen} onOpenChange={(open) => { if (!open) { setIsDeleteDialogOpen(false); setDeletePassword("") } }}>
+      <Dialog open={isDeleteDialogOpen()} onOpenChange={(open) => { if (!open) closeDeleteDialog() }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{t('dataPrivacy.deleteDialogTitle')}</DialogTitle>
-            <DialogDescription>{t('dataPrivacy.deleteDialogDescription')}</DialogDescription>
+            <DialogTitle>{t("dataPrivacy.deleteDialogTitle")}</DialogTitle>
+            <DialogDescription>{t("dataPrivacy.deleteDialogDescription")}</DialogDescription>
           </DialogHeader>
-          <div className="space-y-2">
-            <label htmlFor="delete-account-password" className="text-sm text-muted-foreground">
-              {t('dataPrivacy.deletePasswordLabel')}
+          <div class="space-y-2">
+            <label for="delete-account-password" class="text-sm text-muted-foreground">
+              {t("dataPrivacy.deletePasswordLabel")}
             </label>
             <Input
               id="delete-account-password"
               type="password"
-              value={deletePassword}
-              onChange={(event) => setDeletePassword(event.target.value)}
+              value={deletePassword()}
+              onInput={(event) => setDeletePassword(event.currentTarget.value)}
             />
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
-              {t('dataPrivacy.deleteCancelButton')}
+              {t("dataPrivacy.deleteCancelButton")}
             </Button>
             <Button
               variant="destructive"
-              disabled={deletePassword.length === 0 || isDeleting}
-              onClick={handleDeleteAccount}
+              disabled={deletePassword().length === 0 || removeAccount.isPending}
+              onClick={() => removeAccount.mutate(deletePassword())}
             >
-              {t('dataPrivacy.deleteConfirmButton')}
+              {t("dataPrivacy.deleteConfirmButton")}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      <div className="p-10 border-2 border-dashed rounded-lg flex items-center justify-center text-muted-foreground">
-        {t('moreComingSoon')}
+      <div class="p-10 border-2 border-dashed rounded-lg flex items-center justify-center text-muted-foreground">
+        {t("moreComingSoon")}
       </div>
     </div>
   )

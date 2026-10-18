@@ -2,3 +2,4 @@ e2e/visual/__screenshots__/**/*.png filter=lfs diff=lfs merge=lfs -text
 # Solid-only references are pushed from the cloud sessions, which cannot
 # upload to LFS (user ok 2026-10-14); ~4 KB each.
 e2e/visual/__screenshots__/solid/**/*.png -filter -diff -merge -text
+*.sh text eol=lf

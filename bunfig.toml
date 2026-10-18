@@ -1,4 +1,0 @@
-[test]
-preload = ["./src/test/register-dom.ts", "./src/test/setup.ts"]
-# web/ (Solid) has its own suite in Vitest.
-pathIgnorePatterns = ["web/**"]

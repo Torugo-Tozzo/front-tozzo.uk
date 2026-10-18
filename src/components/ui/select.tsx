@@ -1,158 +1,104 @@
-import * as React from "react"
-import * as SelectPrimitive from "@radix-ui/react-select"
-import { Check, ChevronDown, ChevronUp } from "lucide-react"
+import { splitProps, type ComponentProps, type JSX } from "solid-js"
+import { Select as SelectPrimitive } from "@kobalte/core/select"
+import { Check, ChevronDown } from "lucide-solid"
 
 import { cn } from "@/lib/utils"
 
-const Select = SelectPrimitive.Root
-
-const SelectGroup = SelectPrimitive.Group
+// Kobalte's Select takes the options up front and renders each one through
+// `itemComponent` (usually a <SelectItem item={props.item}>), instead of
+// Radix's <SelectItem> children. Radix's popper offset (translate-y-1 on
+// data-[side=bottom]) is the root's gutter; like Radix's popper, the list
+// starts at the trigger's left edge and is at least as wide (min-w on the
+// listbox), instead of Kobalte's centered, same-width default.
+function Select<Option, OptGroup = never>(props: ComponentProps<typeof SelectPrimitive<Option, OptGroup>>) {
+  return <SelectPrimitive<Option, OptGroup> gutter={4} placement="bottom-start" sameWidth={false} {...props} />
+}
 
 const SelectValue = SelectPrimitive.Value
 
-const SelectTrigger = React.forwardRef<
-  React.ElementRef<typeof SelectPrimitive.Trigger>,
-  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Trigger>
->(({ className, children, ...props }, ref) => (
-  <SelectPrimitive.Trigger
-    ref={ref}
-    className={cn(
-      "flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",
-      className
-    )}
-    {...props}
-  >
-    {children}
-    <SelectPrimitive.Icon asChild>
-      <ChevronDown className="h-4 w-4 opacity-50" />
-    </SelectPrimitive.Icon>
-  </SelectPrimitive.Trigger>
-))
-SelectTrigger.displayName = SelectPrimitive.Trigger.displayName
+const SelectHiddenSelect = SelectPrimitive.HiddenSelect
 
-const SelectScrollUpButton = React.forwardRef<
-  React.ElementRef<typeof SelectPrimitive.ScrollUpButton>,
-  React.ComponentPropsWithoutRef<typeof SelectPrimitive.ScrollUpButton>
->(({ className, ...props }, ref) => (
-  <SelectPrimitive.ScrollUpButton
-    ref={ref}
-    className={cn(
-      "flex cursor-default items-center justify-center py-1",
-      className
-    )}
-    {...props}
-  >
-    <ChevronUp className="h-4 w-4" />
-  </SelectPrimitive.ScrollUpButton>
-))
-SelectScrollUpButton.displayName = SelectPrimitive.ScrollUpButton.displayName
-
-const SelectScrollDownButton = React.forwardRef<
-  React.ElementRef<typeof SelectPrimitive.ScrollDownButton>,
-  React.ComponentPropsWithoutRef<typeof SelectPrimitive.ScrollDownButton>
->(({ className, ...props }, ref) => (
-  <SelectPrimitive.ScrollDownButton
-    ref={ref}
-    className={cn(
-      "flex cursor-default items-center justify-center py-1",
-      className
-    )}
-    {...props}
-  >
-    <ChevronDown className="h-4 w-4" />
-  </SelectPrimitive.ScrollDownButton>
-))
-SelectScrollDownButton.displayName =
-  SelectPrimitive.ScrollDownButton.displayName
-
-const SelectContent = React.forwardRef<
-  React.ElementRef<typeof SelectPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Content>
->(({ className, children, position = "popper", ...props }, ref) => (
-  <SelectPrimitive.Portal>
-    <SelectPrimitive.Content
-      ref={ref}
-      className={cn(
-        "relative z-50 max-h-96 min-w-[8rem] overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
-        position === "popper" &&
-          "data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1",
-        className
+function SelectTrigger(props: ComponentProps<typeof SelectPrimitive.Trigger<"button">>) {
+  const [local, others] = splitProps(props, ["class", "children"])
+  return (
+    <SelectPrimitive.Trigger
+      class={cn(
+        "flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",
+        local.class
       )}
-      position={position}
-      {...props}
+      {...others}
     >
-      <SelectScrollUpButton />
-      <SelectPrimitive.Viewport
-        className={cn(
-          "p-1",
-          position === "popper" &&
-            "h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)]"
+      {local.children}
+      <SelectPrimitive.Icon as={ChevronDown} class="h-4 w-4 opacity-50" />
+    </SelectPrimitive.Trigger>
+  )
+}
+
+// A modal Dialog hides everything outside it from assistive technology
+// (aria-hidden), and the select's portal is added outside it: marked as a top
+// layer, it stays visible, so the options of a select inside a dialog are
+// still announced (Radix does the same for its popper).
+const markTopLayer = (container: Element) => {
+  container.setAttribute("data-kb-top-layer", "")
+  container.setAttribute("data-react-aria-top-layer", "true")
+}
+
+function SelectContent(props: ComponentProps<typeof SelectPrimitive.Content<"div">>) {
+  const [local, others] = splitProps(props, ["class"])
+  return (
+    <SelectPrimitive.Portal ref={markTopLayer}>
+      <SelectPrimitive.Content
+        class={cn(
+          "relative z-50 max-h-96 min-w-[8rem] overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md data-[expanded]:animate-in data-[closed]:animate-out data-[closed]:fade-out-0 data-[expanded]:fade-in-0 data-[closed]:zoom-out-95 data-[expanded]:zoom-in-95",
+          local.class
         )}
+        {...others}
       >
-        {children}
-      </SelectPrimitive.Viewport>
-      <SelectScrollDownButton />
-    </SelectPrimitive.Content>
-  </SelectPrimitive.Portal>
-))
-SelectContent.displayName = SelectPrimitive.Content.displayName
+        <SelectPrimitive.Listbox class="p-1 w-full min-w-[var(--kb-popper-anchor-width)]" />
+      </SelectPrimitive.Content>
+    </SelectPrimitive.Portal>
+  )
+}
 
-const SelectLabel = React.forwardRef<
-  React.ElementRef<typeof SelectPrimitive.Label>,
-  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Label>
->(({ className, ...props }, ref) => (
-  <SelectPrimitive.Label
-    ref={ref}
-    className={cn("py-1.5 pl-8 pr-2 text-sm font-semibold", className)}
-    {...props}
-  />
-))
-SelectLabel.displayName = SelectPrimitive.Label.displayName
+function SelectLabel(props: JSX.HTMLAttributes<HTMLDivElement>) {
+  const [local, others] = splitProps(props, ["class"])
+  return <div class={cn("py-1.5 pl-8 pr-2 text-sm font-semibold", local.class)} {...others} />
+}
 
-const SelectItem = React.forwardRef<
-  React.ElementRef<typeof SelectPrimitive.Item>,
-  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Item>
->(({ className, children, ...props }, ref) => (
-  <SelectPrimitive.Item
-    ref={ref}
-    className={cn(
-      "relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
-      className
-    )}
-    {...props}
-  >
-    <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
-      <SelectPrimitive.ItemIndicator>
-        <Check className="h-4 w-4" />
-      </SelectPrimitive.ItemIndicator>
-    </span>
+// Radix's focus:bg-accent marks the highlighted option; Kobalte highlights with
+// data-[highlighted] (focus may stay on the listbox), so both are kept.
+function SelectItem(props: ComponentProps<typeof SelectPrimitive.Item<"li">>) {
+  const [local, others] = splitProps(props, ["class", "children"])
+  return (
+    <SelectPrimitive.Item
+      class={cn(
+        "relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none focus:bg-accent focus:text-accent-foreground data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+        local.class
+      )}
+      {...others}
+    >
+      <span class="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+        <SelectPrimitive.ItemIndicator>
+          <Check class="h-4 w-4" />
+        </SelectPrimitive.ItemIndicator>
+      </span>
+      <SelectPrimitive.ItemLabel>{local.children}</SelectPrimitive.ItemLabel>
+    </SelectPrimitive.Item>
+  )
+}
 
-    <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
-  </SelectPrimitive.Item>
-))
-SelectItem.displayName = SelectPrimitive.Item.displayName
-
-const SelectSeparator = React.forwardRef<
-  React.ElementRef<typeof SelectPrimitive.Separator>,
-  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Separator>
->(({ className, ...props }, ref) => (
-  <SelectPrimitive.Separator
-    ref={ref}
-    className={cn("-mx-1 my-1 h-px bg-muted", className)}
-    {...props}
-  />
-))
-SelectSeparator.displayName = SelectPrimitive.Separator.displayName
+function SelectSeparator(props: JSX.HTMLAttributes<HTMLDivElement>) {
+  const [local, others] = splitProps(props, ["class"])
+  return <div class={cn("-mx-1 my-1 h-px bg-muted", local.class)} {...others} />
+}
 
 export {
   Select,
-  SelectGroup,
   SelectValue,
+  SelectHiddenSelect,
   SelectTrigger,
   SelectContent,
   SelectLabel,
   SelectItem,
   SelectSeparator,
-  SelectScrollUpButton,
-  SelectScrollDownButton,
 }

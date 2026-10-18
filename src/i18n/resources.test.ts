@@ -1,4 +1,4 @@
-import { describe, expect, test } from 'bun:test'
+import { describe, expect, test } from 'vitest'
 import { resources, type I18nResource } from './resources'
 
 type Assert<T extends true> = T

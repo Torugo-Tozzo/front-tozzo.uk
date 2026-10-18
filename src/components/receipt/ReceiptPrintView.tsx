@@ -1,10 +1,14 @@
-import { formatCurrencyBRL } from '@/i18n/format'
-import type { PaperWidthPreset } from '@/lib/printPreferences'
+import { For, Show } from "solid-js"
 
+import { useTranslation } from "@/i18n/solid"
+import type { PaperWidthPreset } from "@/lib/printPreferences"
+import { formatCents } from "@/lib/money"
+
+/** A line of the receipt. Money in integer cents, like the /v1. */
 export interface ReceiptLineItem {
   name: string
   quantity: number
-  unitPrice: number
+  unitPriceCents: number
 }
 
 export interface ReceiptData {
@@ -12,7 +16,7 @@ export interface ReceiptData {
   customerName: string
   dateLabel: string
   items: ReceiptLineItem[]
-  total: number
+  totalCents: number
   totalLabel: string
   paymentLabel?: string
   locale?: string
@@ -23,30 +27,36 @@ interface ReceiptPrintViewProps {
   width: PaperWidthPreset
 }
 
-export function ReceiptPrintView({ data, width }: ReceiptPrintViewProps) {
+/** The printed receipt (orders and sales). Styled by the .receipt rules of index.css. */
+export function ReceiptPrintView(props: ReceiptPrintViewProps) {
+  const { t } = useTranslation("printer")
   return (
-    <div className={`receipt receipt--${width}`}>
-      <div className="receipt__brand">TOZZO BURGER</div>
-      <div className="receipt__title">{data.title}</div>
-      <div className="receipt__meta">{data.customerName}</div>
-      <div className="receipt__meta">{data.dateLabel}</div>
-      <hr className="receipt__rule" />
-      {data.items.map((item, index) => (
-        <div className="receipt__item" key={index}>
-          <span className="receipt__item-name">
-            {item.quantity}x {item.name}
-          </span>
-          <span className="receipt__item-price">
-            {formatCurrencyBRL(item.quantity * item.unitPrice, data.locale)}
-          </span>
-        </div>
-      ))}
-      <hr className="receipt__rule" />
-      <div className="receipt__total">
-        <span>{data.totalLabel}</span>
-        <span>{formatCurrencyBRL(data.total, data.locale)}</span>
+    <div class={`receipt receipt--${props.width}`}>
+      <div class="receipt__brand">TOZZO BURGER</div>
+      <div class="receipt__title">{props.data.title}</div>
+      <div class="receipt__meta">{props.data.customerName}</div>
+      <div class="receipt__meta">{props.data.dateLabel}</div>
+      <hr class="receipt__rule" />
+      <For each={props.data.items}>
+        {(item) => (
+          <div class="receipt__item">
+            <span class="receipt__item-name">
+              {item.quantity}x {item.name}
+            </span>
+            <span class="receipt__item-price">
+              {formatCents(item.quantity * item.unitPriceCents, props.data.locale)}
+            </span>
+          </div>
+        )}
+      </For>
+      <hr class="receipt__rule" />
+      <div class="receipt__total">
+        <span>{props.data.totalLabel}</span>
+        <span>{formatCents(props.data.totalCents, props.data.locale)}</span>
       </div>
-      {data.paymentLabel && <div className="receipt__meta">Forma de pagamento: {data.paymentLabel}</div>}
+      <Show when={props.data.paymentLabel}>
+        {(label) => <div class="receipt__meta">{t("receiptPaymentMethod", { method: label() })}</div>}
+      </Show>
     </div>
   )
 }

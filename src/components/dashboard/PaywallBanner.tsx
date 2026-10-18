@@ -1,36 +1,38 @@
-import { useNavigate } from "react-router-dom";
-import { useTranslation } from "react-i18next";
-import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
+import { Show } from "solid-js"
+import { useNavigate } from "@solidjs/router"
 
-export type PaywallCode = "PLAN_UPGRADE_REQUIRED" | "REPORT_QUOTA_EXCEEDED";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Button } from "@/components/ui/button"
+import { useTranslation } from "@/i18n/solid"
+
+export type PaywallCode = "PLAN_UPGRADE_REQUIRED" | "REPORT_QUOTA_EXCEEDED"
 
 interface PaywallBannerProps {
-  code: PaywallCode;
-  role?: string;
+  code: PaywallCode
+  role?: string
 }
 
-export function PaywallBanner({ code, role }: PaywallBannerProps) {
-  const { t: tErrors } = useTranslation("errors");
-  const navigate = useNavigate();
-  const isOwner = role === "OWNER";
-
-  const message = code === "PLAN_UPGRADE_REQUIRED"
-    ? tErrors("planUpgradeRequired")
-    : tErrors("reportQuotaExceeded");
+/**
+ * Shown in place of a screen the plan does not include (a 403
+ * PLAN_UPGRADE_REQUIRED; see isPlanUpgradeRequired()). The React app has the
+ * same banner but never reached it (plan S0).
+ */
+export function PaywallBanner(props: PaywallBannerProps) {
+  const { t: tErrors } = useTranslation("errors")
+  const navigate = useNavigate()
 
   return (
-    <Alert variant="warning" className="mb-4">
-      <AlertTitle>{message}</AlertTitle>
+    <Alert variant="warning" class="mb-4">
+      <AlertTitle>
+        {props.code === "PLAN_UPGRADE_REQUIRED" ? tErrors("planUpgradeRequired") : tErrors("reportQuotaExceeded")}
+      </AlertTitle>
       <AlertDescription>
-        {isOwner ? (
-          <Button type="button" variant="outline" size="sm" className="mt-3" onClick={() => navigate("/plan")}>
+        <Show when={props.role === "OWNER"} fallback={<span class="mt-2 block">{tErrors("askOwnerCta")}</span>}>
+          <Button type="button" variant="outline" size="sm" class="mt-3" onClick={() => navigate("/plan")}>
             {tErrors("upgradeCta")}
           </Button>
-        ) : (
-          <span className="mt-2 block">{tErrors("askOwnerCta")}</span>
-        )}
+        </Show>
       </AlertDescription>
     </Alert>
-  );
+  )
 }

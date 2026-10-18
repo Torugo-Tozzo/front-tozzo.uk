@@ -1,18 +1,13 @@
-import { useState } from "react"
+import { createSignal, Show } from "solid-js"
+import { ChevronDown, ChevronUp, Loader2, Plus, Search } from "lucide-solid"
+
+import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Button } from "@/components/ui/button"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import { Search, Loader2, Plus, ChevronDown, ChevronUp } from "lucide-react"
-import { maskCentsInput } from "@/lib/currency"
-import { useTranslation } from "react-i18next"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useTranslation } from "@/i18n/solid"
+import { centsFromInput, inputFromCents } from "@/lib/money"
 
 export interface DateRangeFilterProps {
   startDate: string
@@ -31,6 +26,7 @@ export interface TextFilterProps {
   placeholder?: string
 }
 
+/** The money inputs keep the React mask ("1250" → "12.50"); turn them into cents with centsFromInput. */
 export interface RangeFilterProps {
   min: string
   max: string
@@ -61,176 +57,176 @@ export interface FiltersBarProps {
   isLoading?: boolean
 }
 
-// Cada campo declara a propria largura (em vez de dividir o espaco em
-// colunas iguais) - assim campo estreito (hora, valor) nao deixa espaco
-// morto na propria celula nem empurra o resto pra uma linha nova. Mobile
-// continua empilhado (w-full) ate o breakpoint sm.
+// Each field declares its own width (instead of equal columns), so a narrow
+// field (time, amount) leaves no dead space and does not push the rest to a
+// new line. On mobile they stack (w-full) up to the sm breakpoint.
 const WIDTH_DATE = "w-full sm:w-[170px]"
 const WIDTH_TIME = "w-full sm:w-[130px]"
 const WIDTH_SELECT = "w-full sm:w-[190px]"
 const WIDTH_TEXT = "w-full sm:w-[220px]"
 const WIDTH_MONEY = "w-full sm:w-[140px]"
 
-export function FiltersBar({
-  dateRange,
-  status,
-  customerName,
-  createdBy,
-  totalRange,
-  primaryAction,
-  onFilter,
-  isLoading,
-}: FiltersBarProps) {
+/**
+ * The React money mask: digits only, read as cents, always two decimals. A
+ * field with no digits stays empty (React showed "0.00", which then filtered
+ * by a zero total), so clearing it removes the filter.
+ */
+const maskCentsInput = (value: string) => (/\d/.test(value) ? inputFromCents(centsFromInput(value)) : "")
+
+/** Filters of the orders and sales lists. They apply on "Search" (onFilter), not as they are typed. */
+export function FiltersBar(props: FiltersBarProps) {
   const { t: tCommon } = useTranslation("common")
   const { t: tCharts } = useTranslation("charts")
 
-  // Colapsado por padrao so importa no mobile (abaixo do breakpoint sm) -
-  // o botao de expandir/recolher tambem so aparece la (sm:hidden). Em
-  // telas maiores o painel fica sempre visivel via sm:block, ignorando
-  // esse estado.
-  const [isExpanded, setIsExpanded] = useState(false)
+  // Collapsed by default only matters on mobile (below sm): the toggle shows
+  // only there (sm:hidden), and larger screens always show the panel (sm:block).
+  const [isExpanded, setIsExpanded] = createSignal(false)
+
+  const statusLabel = (value: string) => props.status?.options.find((option) => option.value === value)?.label ?? ""
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0">
+      <CardHeader class="flex flex-row items-center justify-between space-y-0">
         <CardTitle>{tCommon("filters")}</CardTitle>
         <Button
           type="button"
           variant="ghost"
           size="icon"
-          className="sm:hidden"
-          onClick={() => setIsExpanded((v) => !v)}
-          aria-expanded={isExpanded}
-          aria-label={isExpanded ? tCommon("accessibility.collapseFilters") : tCommon("accessibility.expandFilters")}
+          class="sm:hidden"
+          onClick={() => setIsExpanded((value) => !value)}
+          aria-expanded={isExpanded()}
+          aria-label={isExpanded() ? tCommon("accessibility.collapseFilters") : tCommon("accessibility.expandFilters")}
         >
-          {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+          <Show when={isExpanded()} fallback={<ChevronDown class="h-4 w-4" />}>
+            <ChevronUp class="h-4 w-4" />
+          </Show>
         </Button>
       </CardHeader>
-      <CardContent className={isExpanded ? "block" : "hidden sm:block"}>
-        <div className="flex flex-wrap gap-4">
-          {dateRange && (
-            <>
-              <div className={`space-y-2 ${WIDTH_DATE}`}>
-                <Label htmlFor="filter-startDate">{tCharts("filters.startDate")}</Label>
-                <Input
-                  id="filter-startDate"
-                  type="date"
-                  value={dateRange.startDate}
-                  onChange={(e) => dateRange.onStartDateChange(e.target.value)}
-                  disabled={isLoading}
-                />
-              </div>
-              <div className={`space-y-2 ${WIDTH_TIME}`}>
-                <Label htmlFor="filter-startTime">{tCharts("filters.startTime")}</Label>
-                <Input
-                  id="filter-startTime"
-                  type="time"
-                  value={dateRange.startTime}
-                  onChange={(e) => dateRange.onStartTimeChange(e.target.value)}
-                  disabled={isLoading}
-                />
-              </div>
-              <div className={`space-y-2 ${WIDTH_DATE}`}>
-                <Label htmlFor="filter-endDate">{tCharts("filters.endDate")}</Label>
-                <Input
-                  id="filter-endDate"
-                  type="date"
-                  value={dateRange.endDate}
-                  onChange={(e) => dateRange.onEndDateChange(e.target.value)}
-                  disabled={isLoading}
-                />
-              </div>
-              <div className={`space-y-2 ${WIDTH_TIME}`}>
-                <Label htmlFor="filter-endTime">{tCharts("filters.endTime")}</Label>
-                <Input
-                  id="filter-endTime"
-                  type="time"
-                  value={dateRange.endTime}
-                  onChange={(e) => dateRange.onEndTimeChange(e.target.value)}
-                  disabled={isLoading}
-                />
-              </div>
-            </>
-          )}
+      <CardContent class={isExpanded() ? "block" : "hidden sm:block"}>
+        <div class="flex flex-wrap gap-4">
+          <Show when={props.dateRange}>
+            {(range) => (
+              <>
+                <div class={`space-y-2 ${WIDTH_DATE}`}>
+                  <Label for="filter-startDate">{tCharts("filters.startDate")}</Label>
+                  <Input id="filter-startDate" type="date" value={range().startDate} onInput={(e) => range().onStartDateChange(e.currentTarget.value)} disabled={props.isLoading} />
+                </div>
+                <div class={`space-y-2 ${WIDTH_TIME}`}>
+                  <Label for="filter-startTime">{tCharts("filters.startTime")}</Label>
+                  <Input id="filter-startTime" type="time" value={range().startTime} onInput={(e) => range().onStartTimeChange(e.currentTarget.value)} disabled={props.isLoading} />
+                </div>
+                <div class={`space-y-2 ${WIDTH_DATE}`}>
+                  <Label for="filter-endDate">{tCharts("filters.endDate")}</Label>
+                  <Input id="filter-endDate" type="date" value={range().endDate} onInput={(e) => range().onEndDateChange(e.currentTarget.value)} disabled={props.isLoading} />
+                </div>
+                <div class={`space-y-2 ${WIDTH_TIME}`}>
+                  <Label for="filter-endTime">{tCharts("filters.endTime")}</Label>
+                  <Input id="filter-endTime" type="time" value={range().endTime} onInput={(e) => range().onEndTimeChange(e.currentTarget.value)} disabled={props.isLoading} />
+                </div>
+              </>
+            )}
+          </Show>
 
-          {status && (
-            <div className={`space-y-2 ${WIDTH_SELECT}`}>
-              <Label htmlFor="filter-status">{tCommon("status")}</Label>
-              <Select value={status.value} onValueChange={status.onChange}>
-                <SelectTrigger id="filter-status">
-                  <SelectValue placeholder={status.placeholder ?? tCommon("status")} />
-                </SelectTrigger>
-                <SelectContent>
-                  {status.options.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
+          <Show when={props.status}>
+            {(status) => (
+              <div class={`space-y-2 ${WIDTH_SELECT}`}>
+                <Label for="filter-status">{tCommon("status")}</Label>
+                <Select<string>
+                  options={status().options.map((option) => option.value)}
+                  value={status().value}
+                  onChange={(value) => { if (value) status().onChange(value) }}
+                  placeholder={status().placeholder ?? tCommon("status")}
+                  itemComponent={(item) => <SelectItem item={item.item}>{statusLabel(item.item.rawValue)}</SelectItem>}
+                >
+                  <SelectTrigger id="filter-status" aria-label={tCommon("status")}>
+                    <SelectValue<string>>{(state) => statusLabel(state.selectedOption())}</SelectValue>
+                  </SelectTrigger>
+                  <SelectContent />
+                </Select>
+              </div>
+            )}
+          </Show>
 
-          {customerName && (
-            <div className={`space-y-2 ${WIDTH_TEXT}`}>
-              <Label htmlFor="filter-customerName">{tCommon("customer")}</Label>
-              <Input
-                id="filter-customerName"
-                placeholder={customerName.placeholder ?? tCommon("placeholders.customer")}
-                value={customerName.value}
-                onChange={(e) => customerName.onChange(e.target.value)}
-                disabled={isLoading}
-              />
-            </div>
-          )}
-
-          {createdBy && (
-            <div className={`space-y-2 ${WIDTH_TEXT}`}>
-              <Label htmlFor="filter-createdBy">{tCommon("createdBy")}</Label>
-              <Input
-                id="filter-createdBy"
-                placeholder={createdBy.placeholder ?? tCommon("placeholders.employee")}
-                value={createdBy.value}
-                onChange={(e) => createdBy.onChange(e.target.value)}
-                disabled={isLoading}
-              />
-            </div>
-          )}
-
-          {totalRange && (
-            <>
-              <div className={`space-y-2 ${WIDTH_MONEY}`}>
-                <Label htmlFor="filter-totalMin">{tCommon("minimumTotal")}</Label>
+          <Show when={props.customerName}>
+            {(customer) => (
+              <div class={`space-y-2 ${WIDTH_TEXT}`}>
+                <Label for="filter-customerName">{tCommon("customer")}</Label>
                 <Input
-                  id="filter-totalMin"
-                  inputMode="numeric"
-                  placeholder={tCommon("placeholders.amount")}
-                  value={totalRange.min}
-                  onChange={(e) => totalRange.onMinChange(maskCentsInput(e.target.value))}
-                  disabled={isLoading}
+                  id="filter-customerName"
+                  placeholder={customer().placeholder ?? tCommon("placeholders.customer")}
+                  value={customer().value}
+                  onInput={(e) => customer().onChange(e.currentTarget.value)}
+                  disabled={props.isLoading}
                 />
               </div>
-              <div className={`space-y-2 ${WIDTH_MONEY}`}>
-                <Label htmlFor="filter-totalMax">{tCommon("maximumTotal")}</Label>
+            )}
+          </Show>
+
+          <Show when={props.createdBy}>
+            {(createdBy) => (
+              <div class={`space-y-2 ${WIDTH_TEXT}`}>
+                <Label for="filter-createdBy">{tCommon("createdBy")}</Label>
                 <Input
-                  id="filter-totalMax"
-                  inputMode="numeric"
-                  placeholder={tCommon("placeholders.amount")}
-                  value={totalRange.max}
-                  onChange={(e) => totalRange.onMaxChange(maskCentsInput(e.target.value))}
-                  disabled={isLoading}
+                  id="filter-createdBy"
+                  placeholder={createdBy().placeholder ?? tCommon("placeholders.employee")}
+                  value={createdBy().value}
+                  onInput={(e) => createdBy().onChange(e.currentTarget.value)}
+                  disabled={props.isLoading}
                 />
               </div>
-            </>
-          )}
+            )}
+          </Show>
+
+          <Show when={props.totalRange}>
+            {(range) => (
+              <>
+                <div class={`space-y-2 ${WIDTH_MONEY}`}>
+                  <Label for="filter-totalMin">{tCommon("minimumTotal")}</Label>
+                  <Input
+                    id="filter-totalMin"
+                    inputMode="numeric"
+                    placeholder={tCommon("placeholders.amount")}
+                    value={range().min}
+                    onInput={(e) => {
+                      const masked = maskCentsInput(e.currentTarget.value)
+                      e.currentTarget.value = masked
+                      range().onMinChange(masked)
+                    }}
+                    disabled={props.isLoading}
+                  />
+                </div>
+                <div class={`space-y-2 ${WIDTH_MONEY}`}>
+                  <Label for="filter-totalMax">{tCommon("maximumTotal")}</Label>
+                  <Input
+                    id="filter-totalMax"
+                    inputMode="numeric"
+                    placeholder={tCommon("placeholders.amount")}
+                    value={range().max}
+                    onInput={(e) => {
+                      const masked = maskCentsInput(e.currentTarget.value)
+                      e.currentTarget.value = masked
+                      range().onMaxChange(masked)
+                    }}
+                    disabled={props.isLoading}
+                  />
+                </div>
+              </>
+            )}
+          </Show>
         </div>
-        <div className={`mt-4 flex flex-col sm:flex-row sm:items-center gap-4 ${primaryAction ? "sm:justify-between" : "sm:justify-end"}`}>
-          {primaryAction && (
-            <Button type="button" onClick={primaryAction.onClick} disabled={isLoading} className="w-full sm:w-auto">
-              <Plus className="mr-2 h-4 w-4" />
-              {primaryAction.label}
-            </Button>
-          )}
-          <Button onClick={onFilter} className="w-full sm:w-auto" disabled={isLoading}>
-            {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
+        <div class={`mt-4 flex flex-col sm:flex-row sm:items-center gap-4 ${props.primaryAction ? "sm:justify-between" : "sm:justify-end"}`}>
+          <Show when={props.primaryAction}>
+            {(action) => (
+              <Button type="button" onClick={() => action().onClick()} disabled={props.isLoading} class="w-full sm:w-auto">
+                <Plus class="mr-2 h-4 w-4" />
+                {action().label}
+              </Button>
+            )}
+          </Show>
+          <Button onClick={() => props.onFilter()} class="w-full sm:w-auto" disabled={props.isLoading}>
+            <Show when={props.isLoading} fallback={<Search class="mr-2 h-4 w-4" />}>
+              <Loader2 class="mr-2 h-4 w-4 animate-spin" />
+            </Show>
             {tCommon("search")}
           </Button>
         </div>

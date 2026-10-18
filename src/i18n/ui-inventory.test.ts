@@ -1,4 +1,9 @@
-import { describe, expect, test } from "bun:test"
+import { existsSync } from "node:fs"
+import { readFile } from "node:fs/promises"
+import path from "node:path"
+import { fileURLToPath } from "node:url"
+
+import { describe, expect, test } from "vitest"
 
 import { resources } from "./resources"
 
@@ -88,9 +93,9 @@ const requiredUiInventory: InventoryEntry[] = [
   { source: "src/components/ui/dialog.tsx:53", key: "common.accessibility.close" },
   { source: "src/components/ui/status-select.tsx", key: "status.inPreparation" },
   { source: "src/components/ui/status-select.tsx", key: "status.delivered" },
-  { source: "src/contexts/ConfirmContext.tsx:47", key: "common.confirmQuestion" },
-  { source: "src/contexts/ConfirmContext.tsx:51", key: "common.cancel" },
-  { source: "src/contexts/ConfirmContext.tsx:57", key: "common.yes" },
+  { source: "src/contexts/ConfirmDialog.tsx", key: "common.confirmQuestion" },
+  { source: "src/contexts/ConfirmDialog.tsx", key: "common.cancel" },
+  { source: "src/contexts/ConfirmDialog.tsx", key: "common.yes" },
   { source: "src/layouts/DashboardLayout.tsx:61", key: "common.logoutConfirmation.title" },
   { source: "src/layouts/DashboardLayout.tsx:62", key: "common.logoutConfirmation.description" },
   { source: "src/layouts/DashboardLayout.tsx:63", key: "common.logoutConfirmation.confirm" },
@@ -336,11 +341,11 @@ const requiredUiInventory: InventoryEntry[] = [
   { source: "src/pages/dashboard/ChartsPage.tsx:851", key: "charts.summary.dayRevenue" },
   { source: "src/pages/dashboard/ChartsPage.tsx:858", key: "charts.summary.peakHour" },
   { source: "src/pages/dashboard/ChartsPage.tsx:879", key: "charts.dayOf" },
-  { source: "src/pages/dashboard/ChartsPage.tsx:911", key: "charts.tooltip.sales" },
-  { source: "src/pages/dashboard/ChartsPage.tsx:912", key: "charts.tooltip.revenue" },
-  { source: "src/pages/dashboard/ChartsPage.tsx:915", key: "charts.tooltip.details" },
-  { source: "src/pages/dashboard/ChartsPage.tsx:926", key: "charts.tooltip.more" },
-  { source: "src/pages/dashboard/ChartsPage.tsx", key: "charts.tooltip.label" },
+  { source: "src/components/reports/report-chart-options.ts:911", key: "charts.tooltip.sales" },
+  { source: "src/components/reports/report-chart-options.ts:912", key: "charts.tooltip.revenue" },
+  { source: "src/components/reports/report-chart-options.ts:915", key: "charts.tooltip.details" },
+  { source: "src/components/reports/report-chart-options.ts:926", key: "charts.tooltip.more" },
+  { source: "src/components/reports/report-chart-options.ts", key: "charts.tooltip.label" },
   { source: "src/pages/dashboard/ChartsPage.tsx:933", key: "charts.empty.noSalesForDay" },
   { source: "src/pages/dashboard/ChartsPage.tsx:933", key: "charts.empty.selectPeriod" },
   { source: "src/pages/dashboard/ChartsPage.tsx:363", key: "charts.report.downloadFailed" },
@@ -436,9 +441,6 @@ const requiredUiInventory: InventoryEntry[] = [
 
 const firstBatchNamespaces = new Set(["common", "auth", "navigation", "settings", "status", "printer", "errors"])
 const firstBatchUiInventory = requiredUiInventory.filter(({ key }) => firstBatchNamespaces.has(key.split(".")[0]))
-const requiredSourceCoordinates = [
-  { source: "src/contexts/AuthContext.tsx:41", marker: "PENDING_PAYMENT" },
-]
 
 function hasResourceLeaf(resource: unknown, key: string): boolean {
   let current: unknown = resource
@@ -453,9 +455,15 @@ function sourceFile(source: string): string {
   return source.replace(/:\d+$/, "")
 }
 
-function sourceLine(source: string): number | undefined {
-  const match = source.match(/:(\d+)$/)
-  return match ? Number(match[1]) : undefined
+// The inventory is the React app's (sources and line numbers there). In web/
+// the usage check runs for the files already ported; the others join it in
+// the phase that ports them. Line numbers are not checked: they are React's.
+function webFile(filename: string): string {
+  return path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..", filename)
+}
+
+function isPorted(source: string): boolean {
+  return existsSync(webFile(sourceFile(source)))
 }
 
 function escapeRegExp(value: string): string {
@@ -488,6 +496,12 @@ function hasTranslationUsage(sourceText: string, key: string): boolean {
 }
 
 describe("current hardcoded UI inventory", () => {
+  test("the S1 shell files are already checked for usage", () => {
+    for (const file of ["src/components/Navbar.tsx", "src/components/Footer.tsx", "src/layouts/DashboardLayout.tsx", "src/contexts/ConfirmDialog.tsx", "src/components/ui/dialog.tsx"]) {
+      expect(isPorted(file), file).toBe(true)
+    }
+  })
+
   test("has a translated resource leaf for the first local inventory batch in every locale", () => {
     const missing = Object.entries(resources).flatMap(([locale, localeResource]) =>
       firstBatchUiInventory
@@ -512,11 +526,11 @@ describe("current hardcoded UI inventory", () => {
     const sourceTextCache = new Map<string, string>()
     const missingUsage: string[] = []
 
-    for (const { source, key } of requiredUiInventory) {
+    for (const { source, key } of requiredUiInventory.filter(({ source }) => isPorted(source))) {
       const filename = sourceFile(source)
       let sourceText = sourceTextCache.get(filename)
       if (!sourceText) {
-        sourceText = await Bun.file(new URL(`../../${filename}`, import.meta.url)).text()
+        sourceText = await readFile(webFile(filename), "utf8")
         sourceTextCache.set(filename, sourceText)
       }
 
@@ -526,40 +540,5 @@ describe("current hardcoded UI inventory", () => {
     }
 
     expect(missingUsage).toEqual([])
-  })
-
-  test("keeps inventoried coordinates and structured auth coverage anchored to source lines", async () => {
-    const sourceTextCache = new Map<string, string>()
-    const coordinateIssues: string[] = []
-    const readSource = async (filename: string) => {
-      const cached = sourceTextCache.get(filename)
-      if (cached !== undefined) return cached
-      const sourceText = await Bun.file(new URL(`../../${filename}`, import.meta.url)).text()
-      sourceTextCache.set(filename, sourceText)
-      return sourceText
-    }
-
-    for (const { source } of requiredUiInventory) {
-      const filename = sourceFile(source)
-      const line = sourceLine(source)
-      if (line === undefined) continue
-      const lines = (await readSource(filename)).split(/\r?\n/)
-      if (line < 1 || line > lines.length) coordinateIssues.push(`${source}: out of bounds`)
-    }
-
-    for (const { source, marker } of requiredSourceCoordinates) {
-      const filename = sourceFile(source)
-      const line = sourceLine(source)
-      const lines = (await readSource(filename)).split(/\r?\n/)
-      if (line === undefined || line < 1 || line > lines.length) {
-        coordinateIssues.push(`${source}: out of bounds`)
-        continue
-      }
-      if (!lines[line - 1].includes(marker)) {
-        coordinateIssues.push(`${source}: missing ${marker}`)
-      }
-    }
-
-    expect(coordinateIssues).toEqual([])
   })
 })

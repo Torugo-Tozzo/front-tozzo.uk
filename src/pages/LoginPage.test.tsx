@@ -1,464 +1,446 @@
-import { describe, it, expect, beforeEach, vi } from 'bun:test'
-import { act, render, screen, waitFor } from '@testing-library/react'
+import { createSignal } from 'solid-js'
+import { Route } from '@solidjs/router'
+import { screen, waitFor } from '@solidjs/testing-library'
 import userEvent from '@testing-library/user-event'
-import { MemoryRouter, Route, Routes } from 'react-router-dom'
-import { toast } from 'sonner'
-import { ThemeProvider } from '@/components/theme-provider'
-import { I18nProvider } from '@/i18n/provider'
+import { toast } from 'solid-sonner'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+
+import type { SessionBody } from '@/api/session'
 import { i18n } from '@/i18n/config'
-import api from '@/services/api'
-import { authClient } from '@/lib/authClient'
-import { replaceProperty } from '@/test/replace-property'
+import { resetGoogleIdentity } from '@/lib/google-identity'
+import { json, mockApi, problem } from '@/test/api'
+import { renderPage } from '@/test/page'
 import LoginPage from './LoginPage'
 
-const mockRefreshUserProfile = vi.fn()
 const mockUseAuth = vi.fn()
-
 vi.mock('@/contexts/AuthContext', () => ({
   useAuth: () => mockUseAuth(),
 }))
 
-function DashboardHome() { return <div>Dashboard home</div> }
-function PlanSelection() { return <div>Plan selection</div> }
+const me = (status: string) => ({
+  id: 'u1', name: 'Ana', email: 'ana@example.com', emailVerified: true, phone: null, locale: 'en', role: 'OWNER',
+  establishment: { id: 'e1', tradeName: 'Bar da Ana', status, plan: 'FREE', category: null, businessProfiles: null, visibleModules: null, preferencesRevision: 0 },
+})
+const session = (status = 'ACTIVE'): SessionBody =>
+  ({ accessToken: 'token-1', accessTokenExpiresAt: '2026-10-01T18:15:00Z', user: me(status) }) as SessionBody
 
-function renderPage(path = '/login') {
-  return render(
-    <MemoryRouter initialEntries={[path]}>
-      <I18nProvider>
-        <ThemeProvider>
-          <Routes>
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/dashboard" element={<DashboardHome />} />
-            <Route path="/plan" element={<PlanSelection />} />
-          </Routes>
-        </ThemeProvider>
-      </I18nProvider>
-    </MemoryRouter>,
-  )
+// A fake auth context whose session the page can open, like the real one.
+function fakeAuth() {
+  const [authenticated, setAuthenticated] = createSignal(false)
+  const [user, setUser] = createSignal<unknown>(null)
+  const establishSession = vi.fn((body: SessionBody) => {
+    setUser(body.user)
+    setAuthenticated(true)
+  })
+  mockUseAuth.mockReturnValue({
+    isAuthenticated: authenticated,
+    user,
+    isLoading: () => false,
+    establishSession,
+    refreshUserProfile: vi.fn(),
+    logout: vi.fn(),
+  })
+  return { establishSession }
 }
 
-describe('LoginPage register form', () => {
-  beforeEach(async () => {
-    mockRefreshUserProfile.mockReset()
-    mockUseAuth.mockReset()
-    mockUseAuth.mockReturnValue({
-      isAuthenticated: false,
-      user: null,
-      isLoading: false,
-      refreshUserProfile: mockRefreshUserProfile,
-      logout: vi.fn(),
-    })
-    await act(async () => {
-      await i18n.changeLanguage('en')
-    })
-  })
+function renderLogin(path = '/login') {
+  return renderPage(path, () => (
+    <>
+      <Route path="/login" component={() => <LoginPage />} />
+      <Route path="/register" component={() => <LoginPage initialTab="register" />} />
+      <Route path="/dashboard" component={() => <div>Dashboard home</div>} />
+      <Route path="/plan" component={() => <div>Plan selection</div>} />
+    </>
+  ))
+}
 
+const tab = (name: string) => screen.getByRole('tab', { name })
+
+async function fillRegisterForm(
+  user: ReturnType<typeof userEvent.setup>,
+  fields: { name?: string; establishment?: string; email?: string; password?: string; key?: string } = {},
+) {
+  await user.click(tab('Register'))
+  await user.type(screen.getByLabelText('Manager name'), fields.name ?? 'Ana')
+  await user.type(screen.getByLabelText('Establishment name'), fields.establishment ?? 'Bar da Ana')
+  await user.type(screen.getByLabelText('Email'), fields.email ?? 'ana@example.com')
+  await user.type(screen.getByLabelText('Password'), fields.password ?? 'senha1234')
+  if (fields.key !== undefined) {
+    await user.click(screen.getByRole('checkbox', { name: /free access/i }))
+    await user.type(screen.getByLabelText('Registration key'), fields.key)
+  }
+  await user.click(screen.getByRole('checkbox', { name: /I have read and accept/i }))
+  await user.click(screen.getByRole('button', { name: /Create/i }))
+}
+
+let auth: ReturnType<typeof fakeAuth>
+
+beforeEach(async () => {
+  mockUseAuth.mockReset()
+  auth = fakeAuth()
+  resetGoogleIdentity()
+  // GSI is always mocked (the real script never loads in tests). This one
+  // never draws its button, so the stand-in stays, as when GSI is blocked.
+  window.google = { accounts: { id: { initialize: vi.fn(), renderButton: vi.fn(), prompt: vi.fn() } } }
+  await i18n.changeLanguage('en')
+})
+
+afterEach(() => {
+  vi.unstubAllGlobals()
+  delete window.google
+})
+
+describe('LoginPage register form', () => {
   it('keeps the submit button disabled until the terms checkbox is checked', async () => {
     const user = userEvent.setup()
-    renderPage()
+    renderLogin()
 
-    await user.click(screen.getByRole('tab', { name: 'Register' }))
+    await user.click(tab('Register'))
     expect(screen.getByRole('button', { name: /Create/i })).toBeDisabled()
 
     await user.click(screen.getByRole('checkbox', { name: /I have read and accept/i }))
     expect(screen.getByRole('button', { name: /Create/i })).not.toBeDisabled()
   })
 
-  it('sends signup and complete-signup through auth-js and API', async () => {
+  it('links the privacy policy and the terms inside the checkbox label', async () => {
     const user = userEvent.setup()
-    const signUpMock = vi.fn().mockResolvedValue({ data: { session: { access_token: 'token' } }, error: null })
-    const restoreSignUp = replaceProperty(authClient, 'signUp', signUpMock as typeof authClient.signUp)
-    const postMock = vi.fn().mockResolvedValue({ data: {} })
-    const restore = replaceProperty(api, 'post', postMock as typeof api.post)
+    renderLogin()
+    await user.click(tab('Register'))
 
-    try {
-      renderPage()
-      await user.click(screen.getByRole('tab', { name: 'Register' }))
-
-      await user.type(screen.getByLabelText('Manager name'), 'Ana')
-      await user.type(screen.getByLabelText('Establishment name'), 'Bar da Ana')
-      await user.type(screen.getByLabelText('Email'), 'ana@example.com')
-      await user.type(screen.getByLabelText('Password'), 'senha123')
-      await user.click(screen.getByRole('checkbox', { name: /I have read and accept/i }))
-      await user.click(screen.getByRole('button', { name: /Create/i }))
-
-      expect(signUpMock).toHaveBeenCalledWith({
-        email: 'ana@example.com',
-        password: 'senha123',
-        options: {
-          emailRedirectTo: `${window.location.origin}/login`,
-          data: { name: 'Ana', tradeName: 'Bar da Ana', termsAccepted: true },
-        },
-      })
-      expect(postMock).toHaveBeenCalledWith('/auth/complete-signup', {
-        name: 'Ana',
-        termsAccepted: true,
-        tradeName: 'Bar da Ana',
-        registrationKey: '',
-      })
-    } finally {
-      restoreSignUp()
-      restore()
-    }
+    expect(screen.getByRole('link', { name: 'Privacy Policy' })).toHaveAttribute('href', '/privacidade')
+    expect(screen.getByRole('link', { name: 'Terms of Use' })).toHaveAttribute('href', '/termos')
   })
 
-  it('treats a signup awaiting email confirmation as successful without completing it', async () => {
+  it('signs up through POST /v1/auth/register and asks to confirm the email (the /v1 never opens a session here)', async () => {
     const user = userEvent.setup()
-    const signUpMock = vi.fn().mockResolvedValue({ data: { session: null, user: { identities: [{ id: '1' }] } }, error: null })
-    const restoreSignUp = replaceProperty(authClient, 'signUp', signUpMock as typeof authClient.signUp)
-    const postMock = vi.fn()
-    const restore = replaceProperty(api, 'post', postMock as typeof api.post)
+    const toastSuccess = vi.spyOn(toast, 'success').mockImplementation(() => '')
+    const api = mockApi(({ path }) => (path === '/v1/auth/register' ? json(202, {}) : undefined))
+    renderLogin()
 
-    try {
-      renderPage()
-      await user.click(screen.getByRole('tab', { name: 'Register' }))
-      await user.type(screen.getByLabelText('Manager name'), 'Ana')
-      await user.type(screen.getByLabelText('Establishment name'), 'Bar da Ana')
-      await user.type(screen.getByLabelText('Email'), 'ana@example.com')
-      await user.type(screen.getByLabelText('Password'), 'senha123')
-      await user.click(screen.getByRole('checkbox', { name: /I have read and accept/i }))
-      await user.click(screen.getByRole('button', { name: /Create/i }))
+    await fillRegisterForm(user)
 
-      expect(postMock).not.toHaveBeenCalled()
-      // Antes caía num navigate('/login') silencioso (já estava no /login) — o
-      // usuário clicava de novo e tomava 429 do GoTrue.
-      expect(await screen.findByText('Confirm your email')).toBeInTheDocument()
-      expect(screen.getByText(/We sent a confirmation link to ana@example\.com/)).toBeInTheDocument()
-      expect(screen.getByRole('tab', { name: 'Login' }).getAttribute('data-state')).toBe('active')
-      expect(screen.getByLabelText('Email')).toHaveValue('ana@example.com')
-      expect(screen.getByRole('button', { name: /Resend in \d+s/ })).toBeDisabled()
-    } finally {
-      restoreSignUp()
-      restore()
-    }
+    await waitFor(() => expect(api.to('/v1/auth/register')).toHaveLength(1))
+    expect(api.to('/v1/auth/register')[0].body).toEqual({
+      email: 'ana@example.com',
+      password: 'senha1234',
+      name: 'Ana',
+      tradeName: 'Bar da Ana',
+      termsAccepted: true,
+      locale: 'en',
+      client: 'web',
+    })
+    expect(await screen.findByText('Confirm your email')).toBeInTheDocument()
+    expect(screen.getByText(/We sent a confirmation link to ana@example\.com/)).toBeInTheDocument()
+    expect(toastSuccess).toHaveBeenCalledWith('Account created! We sent a confirmation link to ana@example.com.')
+    expect(tab('Login')).toHaveAttribute('aria-selected', 'true')
+    expect(screen.getByLabelText('Email')).toHaveValue('ana@example.com')
+    expect(screen.getByRole('button', { name: /Resend in \d+s/ })).toBeDisabled()
+    expect(auth.establishSession).not.toHaveBeenCalled()
   })
 
-  async function fillRegisterForm(
-    user: ReturnType<typeof userEvent.setup>,
-    fields: { name?: string; establishment?: string; email?: string; password?: string; key?: string } = {},
-  ) {
-    await user.click(screen.getByRole('tab', { name: 'Register' }))
-    await user.type(screen.getByLabelText('Manager name'), fields.name ?? 'Ana')
-    await user.type(screen.getByLabelText('Establishment name'), fields.establishment ?? 'Bar da Ana')
-    await user.type(screen.getByLabelText('Email'), fields.email ?? 'ana@example.com')
-    await user.type(screen.getByLabelText('Password'), fields.password ?? 'senha123')
-    if (fields.key !== undefined) {
-      await user.click(screen.getByRole('checkbox', { name: /free access/i }))
-      await user.type(screen.getByLabelText('Registration key'), fields.key)
-    }
-    await user.click(screen.getByRole('checkbox', { name: /I have read and accept/i }))
-    await user.click(screen.getByRole('button', { name: /Create/i }))
-  }
-
-  it('validates the registration key before signup and stores it in the metadata so it survives email confirmation', async () => {
+  it('validates the registration key before signing up and sends it with the account', async () => {
     const user = userEvent.setup()
-    const signUpMock = vi.fn().mockResolvedValue({ data: { session: null, user: { identities: [{ id: '1' }] } }, error: null })
-    const restoreSignUp = replaceProperty(authClient, 'signUp', signUpMock as typeof authClient.signUp)
-    const postMock = vi.fn().mockResolvedValue({ data: { valid: true } })
-    const restorePost = replaceProperty(api, 'post', postMock as typeof api.post)
+    const api = mockApi(({ path }) => {
+      if (path === '/v1/auth/registration-key/validate') return json(200, { valid: true })
+      if (path === '/v1/auth/register') return json(202, {})
+      return undefined
+    })
+    renderLogin()
 
-    try {
-      renderPage()
-      await fillRegisterForm(user, { key: ' chave-secreta ' })
+    await fillRegisterForm(user, { key: ' chave-secreta ' })
 
-      expect(postMock).toHaveBeenCalledWith('/auth/registration-key/validate', { registrationKey: 'chave-secreta' })
-      expect(signUpMock).toHaveBeenCalledWith(expect.objectContaining({
-        options: expect.objectContaining({
-          data: { name: 'Ana', tradeName: 'Bar da Ana', termsAccepted: true, registrationKey: 'chave-secreta' },
-        }),
-      }))
-    } finally {
-      restoreSignUp()
-      restorePost()
-    }
+    await waitFor(() => expect(api.to('/v1/auth/register')).toHaveLength(1))
+    expect(api.to('/v1/auth/registration-key/validate')[0].body).toEqual({ registrationKey: 'chave-secreta' })
+    expect(api.calls.map((call) => call.path)).toEqual(['/v1/auth/registration-key/validate', '/v1/auth/register'])
+    expect(api.to('/v1/auth/register')[0].body).toMatchObject({ registrationKey: 'chave-secreta', tradeName: 'Bar da Ana' })
   })
 
   it('blocks the signup when the registration key is wrong (it used to silently become a Free account)', async () => {
     const user = userEvent.setup()
-    const signUpMock = vi.fn()
-    const restoreSignUp = replaceProperty(authClient, 'signUp', signUpMock as typeof authClient.signUp)
-    const postMock = vi.fn().mockResolvedValue({ data: { valid: false } })
-    const restorePost = replaceProperty(api, 'post', postMock as typeof api.post)
     const toastError = vi.spyOn(toast, 'error').mockImplementation(() => '')
+    const api = mockApi(({ path }) => (path === '/v1/auth/registration-key/validate' ? json(200, { valid: false }) : undefined))
+    renderLogin()
 
-    try {
-      renderPage()
-      await fillRegisterForm(user, { key: 'chave-errada' })
+    await fillRegisterForm(user, { key: 'chave-errada' })
 
-      await waitFor(() => expect(toastError).toHaveBeenCalledWith(
-        'Invalid registration key. Check the key or uncheck the option to create a Free account.',
-      ))
-      expect(signUpMock).not.toHaveBeenCalled()
-      expect(screen.getByRole('tab', { name: 'Register' }).getAttribute('data-state')).toBe('active')
-    } finally {
-      restoreSignUp()
-      restorePost()
-      toastError.mockRestore()
-    }
-  })
-
-  it('tells the user the email already has an account when GoTrue answers a repeated signup (identities: [])', async () => {
-    // GoTrue responde 200 sem mandar email (anti-enumeração) — antes a tela
-    // dizia "Conta criada! Enviamos um link", e o email nunca chegava.
-    const user = userEvent.setup()
-    const signUpMock = vi.fn().mockResolvedValue({ data: { session: null, user: { id: 'fake', identities: [] } }, error: null })
-    const restoreSignUp = replaceProperty(authClient, 'signUp', signUpMock as typeof authClient.signUp)
-    const toastError = vi.spyOn(toast, 'error').mockImplementation(() => '')
-    const toastSuccess = vi.spyOn(toast, 'success').mockImplementation(() => '')
-
-    try {
-      renderPage()
-      await fillRegisterForm(user)
-
-      expect(await screen.findByText('This email already has an account')).toBeInTheDocument()
-      expect(screen.getByText(/There is already an account for ana@example\.com/)).toBeInTheDocument()
-      expect(screen.queryByText('Confirm your email')).not.toBeInTheDocument()
-      expect(toastSuccess).not.toHaveBeenCalled()
-      expect(toastError).toHaveBeenCalledWith('This email is already registered. Sign in or reset your password.')
-      expect(screen.getByRole('tab', { name: 'Login' }).getAttribute('data-state')).toBe('active')
-      expect(screen.getByLabelText('Email')).toHaveValue('ana@example.com')
-    } finally {
-      restoreSignUp()
-      toastError.mockRestore()
-      toastSuccess.mockRestore()
-    }
+    await waitFor(() => expect(toastError).toHaveBeenCalledWith(
+      'Invalid registration key. Check the key or uncheck the option to create a Free account.',
+    ))
+    expect(api.to('/v1/auth/register')).toHaveLength(0)
+    expect(tab('Register')).toHaveAttribute('aria-selected', 'true')
   })
 
   it('rejects whitespace-only required fields and normalizes the email', async () => {
     const user = userEvent.setup()
-    const signUpMock = vi.fn().mockResolvedValue({ data: { session: null, user: { identities: [{ id: '1' }] } }, error: null })
-    const restoreSignUp = replaceProperty(authClient, 'signUp', signUpMock as typeof authClient.signUp)
     const toastError = vi.spyOn(toast, 'error').mockImplementation(() => '')
+    const api = mockApi(({ path }) => (path === '/v1/auth/register' ? json(202, {}) : undefined))
+    renderLogin()
 
-    try {
-      renderPage()
-      await fillRegisterForm(user, { establishment: '   ' })
-      expect(toastError).toHaveBeenCalledWith('Fill in all required fields.')
-      expect(signUpMock).not.toHaveBeenCalled()
+    await fillRegisterForm(user, { establishment: '   ' })
+    expect(toastError).toHaveBeenCalledWith('Fill in all required fields.')
+    expect(api.calls).toHaveLength(0)
 
-      await user.clear(screen.getByLabelText('Establishment name'))
-      await user.type(screen.getByLabelText('Establishment name'), '  Bar da Ana  ')
-      await user.clear(screen.getByLabelText('Email'))
-      await user.type(screen.getByLabelText('Email'), '  Ana@Example.COM ')
-      await user.click(screen.getByRole('button', { name: /Create/i }))
+    await user.clear(screen.getByLabelText('Establishment name'))
+    await user.type(screen.getByLabelText('Establishment name'), '  Bar da Ana  ')
+    await user.clear(screen.getByLabelText('Email'))
+    await user.type(screen.getByLabelText('Email'), '  Ana@Example.COM ')
+    await user.click(screen.getByRole('button', { name: /Create/i }))
 
-      expect(signUpMock).toHaveBeenCalledWith(expect.objectContaining({
-        email: 'ana@example.com',
-        options: expect.objectContaining({ data: expect.objectContaining({ tradeName: 'Bar da Ana' }) }),
-      }))
-    } finally {
-      restoreSignUp()
-      toastError.mockRestore()
-    }
+    await waitFor(() => expect(api.to('/v1/auth/register')).toHaveLength(1))
+    expect(api.to('/v1/auth/register')[0].body).toMatchObject({ email: 'ana@example.com', tradeName: 'Bar da Ana' })
   })
 
-  it('shows a rate-limit message instead of the generic failure when GoTrue answers 429', async () => {
+  it('refuses a password shorter than the /v1 minimum (8) without calling the API', async () => {
     const user = userEvent.setup()
-    const signUpMock = vi.fn().mockResolvedValue({ data: { session: null, user: null }, error: { code: 'over_email_send_rate_limit' } })
-    const restoreSignUp = replaceProperty(authClient, 'signUp', signUpMock as typeof authClient.signUp)
+    const api = mockApi(() => undefined)
+    renderLogin()
+
+    await fillRegisterForm(user, { password: 'senha12' })
+
+    // The browser's minlength stops the submit; the handler checks it again.
+    expect(api.calls).toHaveLength(0)
+    expect(screen.getByLabelText('Password')).toHaveAttribute('minlength', '8')
+    expect(screen.getByText('At least 8 characters.')).toBeInTheDocument()
+  })
+
+  it('shows a rate-limit message instead of the generic failure on 429 RATE_LIMITED', async () => {
+    const user = userEvent.setup()
     const toastError = vi.spyOn(toast, 'error').mockImplementation(() => '')
+    mockApi(({ path }) => (path === '/v1/auth/register' ? problem(429, 'RATE_LIMITED') : undefined))
+    renderLogin()
 
-    try {
-      renderPage()
-      await user.click(screen.getByRole('tab', { name: 'Register' }))
-      await user.type(screen.getByLabelText('Manager name'), 'Ana')
-      await user.type(screen.getByLabelText('Establishment name'), 'Bar da Ana')
-      await user.type(screen.getByLabelText('Email'), 'ana@example.com')
-      await user.type(screen.getByLabelText('Password'), 'senha123')
-      await user.click(screen.getByRole('checkbox', { name: /I have read and accept/i }))
-      await user.click(screen.getByRole('button', { name: /Create/i }))
+    await fillRegisterForm(user)
 
-      await waitFor(() => expect(toastError).toHaveBeenCalledWith('Too many attempts in a row. Wait a minute and try again.'))
-    } finally {
-      restoreSignUp()
-      toastError.mockRestore()
-    }
+    await waitFor(() => expect(toastError).toHaveBeenCalledWith('Too many attempts in a row. Wait a minute and try again.'))
+  })
+
+  it('opens the registration tab when requested by the URL', () => {
+    renderLogin('/login?tab=register')
+
+    expect(tab('Register')).toHaveAttribute('aria-selected', 'true')
+    expect(screen.getByText('Create account')).toBeInTheDocument()
+  })
+
+  it('/register opens the same page on the registration tab', () => {
+    renderLogin('/register')
+
+    expect(tab('Register')).toHaveAttribute('aria-selected', 'true')
+    expect(screen.getByText('Create account')).toBeInTheDocument()
+  })
+})
+
+describe('LoginPage login form', () => {
+  it('signs in through POST /v1/auth/login with the cookie and goes to the dashboard', async () => {
+    const user = userEvent.setup()
+    const api = mockApi(({ path }) => (path === '/v1/auth/login' ? json(200, session('ACTIVE')) : undefined))
+    renderLogin()
+
+    await user.type(screen.getByLabelText('Email'), ' Ana@Example.com ')
+    await user.type(screen.getByLabelText('Password'), 'senha1234')
+    await user.click(screen.getByRole('button', { name: 'Sign in' }))
+
+    expect(await screen.findByText('Dashboard home')).toBeInTheDocument()
+    const [login] = api.to('/v1/auth/login')
+    expect(login.body).toEqual({ email: 'ana@example.com', password: 'senha1234', client: 'web' })
+    expect(login.credentials).toBe('include')
+    expect(auth.establishSession).toHaveBeenCalledWith(session('ACTIVE'))
+  })
+
+  it('sends an establishment that is not active to plan selection', async () => {
+    const user = userEvent.setup()
+    mockApi(({ path }) => (path === '/v1/auth/login' ? json(200, session('PENDING_PAYMENT')) : undefined))
+    renderLogin()
+
+    await user.type(screen.getByLabelText('Email'), 'ana@example.com')
+    await user.type(screen.getByLabelText('Password'), 'senha1234')
+    await user.click(screen.getByRole('button', { name: 'Sign in' }))
+
+    expect(await screen.findByText('Plan selection')).toBeInTheDocument()
+  })
+
+  it('explains wrong credentials and keeps the user on the form', async () => {
+    const user = userEvent.setup()
+    const toastError = vi.spyOn(toast, 'error').mockImplementation(() => '')
+    mockApi(({ path }) => (path === '/v1/auth/login' ? problem(401, 'INVALID_CREDENTIALS') : undefined))
+    renderLogin()
+
+    await user.type(screen.getByLabelText('Email'), 'ana@example.com')
+    await user.type(screen.getByLabelText('Password'), 'errada123')
+    await user.click(screen.getByRole('button', { name: 'Sign in' }))
+
+    await waitFor(() => expect(toastError).toHaveBeenCalledWith(
+      'Incorrect email or password. If you signed up with Google, use "Sign in with Google" — or set a password via "Forgot my password".',
+    ))
+    expect(auth.establishSession).not.toHaveBeenCalled()
+    expect(screen.getByRole('button', { name: 'Sign in' })).not.toBeDisabled()
+    expect(screen.getByLabelText('Password')).toHaveValue('errada123')
   })
 
   it('offers to resend the confirmation when login is blocked by an unconfirmed email', async () => {
     const user = userEvent.setup()
-    const signInMock = vi.fn().mockResolvedValue({ data: { session: null, user: null }, error: { code: 'email_not_confirmed' } })
-    const restoreSignIn = replaceProperty(authClient, 'signInWithPassword', signInMock as typeof authClient.signInWithPassword)
-    const resendMock = vi.fn().mockResolvedValue({ data: {}, error: null })
-    const restoreResend = replaceProperty(authClient, 'resend', resendMock as typeof authClient.resend)
     const toastError = vi.spyOn(toast, 'error').mockImplementation(() => '')
     const toastSuccess = vi.spyOn(toast, 'success').mockImplementation(() => '')
-
-    try {
-      renderPage()
-      await user.type(screen.getByLabelText('Email'), 'ana@example.com')
-      await user.type(screen.getByLabelText('Password'), 'senha123')
-      await user.click(screen.getByRole('button', { name: 'Sign in' }))
-
-      await waitFor(() => expect(toastError).toHaveBeenCalledWith(
-        "Your email hasn't been confirmed yet. Click the link we sent or resend it below.",
-      ))
-      expect(screen.getByText('Confirm your email')).toBeInTheDocument()
-      await user.click(screen.getByRole('button', { name: 'Resend confirmation email' }))
-
-      expect(resendMock).toHaveBeenCalledWith({
-        type: 'signup',
-        email: 'ana@example.com',
-        options: { emailRedirectTo: `${window.location.origin}/login` },
-      })
-      expect(toastSuccess).toHaveBeenCalledWith('We sent a new confirmation link to ana@example.com.')
-      expect(screen.getByRole('button', { name: /Resend in \d+s/ })).toBeDisabled()
-    } finally {
-      restoreSignIn()
-      restoreResend()
-      toastError.mockRestore()
-      toastSuccess.mockRestore()
-    }
-  })
-
-  it('opens the registration tab when requested by the URL', () => {
-    renderPage('/login?tab=register')
-
-    expect(screen.getByRole('tab', { name: 'Register' }).getAttribute('data-state')).toBe('active')
-    expect(screen.getByText('Create account')).toBeInTheDocument()
-  })
-
-  it('goes straight to the dashboard after registering without an invite key (Free plan is active on signup)', async () => {
-    // Regressão: handleRegister mandava explicitamente pra /plan sempre que
-    // não tinha registrationKey, mesmo com a conta já ACTIVE no plano Free
-    // (o backend nunca mais cria PENDING_PAYMENT sem chave — ver
-    // auth.controller.ts). Achado durante QA visual: usuário criou conta e
-    // caiu na tela de escolha de plano sem precisar.
-    const user = userEvent.setup()
-    const signUpMock = vi.fn().mockResolvedValue({ data: { session: { access_token: 'token' } }, error: null })
-    const restoreSignUp = replaceProperty(authClient, 'signUp', signUpMock as typeof authClient.signUp)
-    const postMock = vi.fn().mockResolvedValue({ data: {} })
-    const restore = replaceProperty(api, 'post', postMock as typeof api.post)
-    mockRefreshUserProfile.mockImplementation(async () => {
-      mockUseAuth.mockReturnValue({
-        isAuthenticated: true,
-        user: { establishment: { status: 'ACTIVE', plan: 'FREE' } },
-        isLoading: false,
-        refreshUserProfile: mockRefreshUserProfile,
-        logout: vi.fn(),
-      })
+    const api = mockApi(({ path }) => {
+      if (path === '/v1/auth/login') return problem(403, 'EMAIL_NOT_VERIFIED')
+      if (path === '/v1/auth/resend-verification') return json(202, {})
+      return undefined
     })
+    renderLogin()
 
-    try {
-      renderPage()
-      await user.click(screen.getByRole('tab', { name: 'Register' }))
-      await user.type(screen.getByLabelText('Manager name'), 'Ana')
-      await user.type(screen.getByLabelText('Establishment name'), 'Bar da Ana')
-      await user.type(screen.getByLabelText('Email'), 'ana@example.com')
-      await user.type(screen.getByLabelText('Password'), 'senha123')
-      await user.click(screen.getByRole('checkbox', { name: /I have read and accept/i }))
-      await user.click(screen.getByRole('button', { name: /Create/i }))
+    await user.type(screen.getByLabelText('Email'), 'ana@example.com')
+    await user.type(screen.getByLabelText('Password'), 'senha1234')
+    await user.click(screen.getByRole('button', { name: 'Sign in' }))
 
-      await waitFor(() => expect(screen.getByText('Dashboard home')).toBeInTheDocument())
-      expect(screen.queryByText('Plan selection')).not.toBeInTheDocument()
-    } finally {
-      restoreSignUp()
-      restore()
-    }
-  })
-})
+    await waitFor(() => expect(toastError).toHaveBeenCalledWith(
+      "Your email hasn't been confirmed yet. Click the link we sent or resend it below.",
+    ))
+    expect(screen.getByText('Confirm your email')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Resend confirmation email' }))
 
-describe('LoginPage login form — 2FA', () => {
-  beforeEach(async () => {
-    mockRefreshUserProfile.mockReset()
-    mockUseAuth.mockReset()
-    mockUseAuth.mockReturnValue({
-      isAuthenticated: false,
-      user: null,
-      isLoading: false,
-      refreshUserProfile: mockRefreshUserProfile,
-      logout: vi.fn(),
-    })
-    await act(async () => {
-      await i18n.changeLanguage('en')
-    })
+    await waitFor(() => expect(toastSuccess).toHaveBeenCalledWith('We sent a new confirmation link to ana@example.com.'))
+    expect(api.to('/v1/auth/resend-verification')[0].body).toEqual({ email: 'ana@example.com' })
+    expect(screen.getByRole('button', { name: /Resend in \d+s/ })).toBeDisabled()
   })
 
-  it('logs in directly when the account has no MFA factor (nextLevel stays aal1)', async () => {
+  it('links to the forgot password page', () => {
+    renderLogin()
+    expect(screen.getByRole('link', { name: 'Forgot my password' })).toHaveAttribute('href', '/forgot-password')
+  })
+
+  it('keeps the React button in place until GSI draws its own, and it opens the GSI prompt', async () => {
     const user = userEvent.setup()
-    const signInMock = vi.fn().mockResolvedValue({ data: { session: { access_token: 'tok' } }, error: null })
-    const restoreSignIn = replaceProperty(authClient, 'signInWithPassword', signInMock as typeof authClient.signInWithPassword)
-    const aalMock = vi.fn().mockResolvedValue({ data: { currentLevel: 'aal1', nextLevel: 'aal1' }, error: null })
-    const restoreAal = replaceProperty(authClient.mfa, 'getAuthenticatorAssuranceLevel', aalMock as typeof authClient.mfa.getAuthenticatorAssuranceLevel)
+    renderLogin()
 
-    try {
-      renderPage()
-      await user.type(screen.getByLabelText('Email'), 'ana@example.com')
-      await user.type(screen.getByLabelText('Password'), 'senha123')
-      await user.click(screen.getByRole('button', { name: 'Sign in' }))
+    await user.click(screen.getByRole('button', { name: 'Sign in with Google' }))
 
-      expect(signInMock).toHaveBeenCalledWith({ email: 'ana@example.com', password: 'senha123' })
-      expect(aalMock).toHaveBeenCalled()
-      expect(screen.queryByLabelText(/authentication code/i)).not.toBeInTheDocument()
-    } finally {
-      restoreSignIn()
-      restoreAal()
-    }
-  })
-
-  it('shows the TOTP prompt and challenges the factor when nextLevel requires aal2', async () => {
-    const user = userEvent.setup()
-    const signInMock = vi.fn().mockResolvedValue({ data: { session: { access_token: 'tok' } }, error: null })
-    const restoreSignIn = replaceProperty(authClient, 'signInWithPassword', signInMock as typeof authClient.signInWithPassword)
-    const aalMock = vi.fn().mockResolvedValue({ data: { currentLevel: 'aal1', nextLevel: 'aal2' }, error: null })
-    const restoreAal = replaceProperty(authClient.mfa, 'getAuthenticatorAssuranceLevel', aalMock as typeof authClient.mfa.getAuthenticatorAssuranceLevel)
-    const listFactorsMock = vi.fn().mockResolvedValue({ data: { totp: [{ id: 'factor-1' }] }, error: null })
-    const restoreListFactors = replaceProperty(authClient.mfa, 'listFactors', listFactorsMock as typeof authClient.mfa.listFactors)
-    const challengeMock = vi.fn().mockResolvedValue({ data: { id: 'challenge-1' }, error: null })
-    const restoreChallenge = replaceProperty(authClient.mfa, 'challenge', challengeMock as typeof authClient.mfa.challenge)
-    const verifyMock = vi.fn().mockResolvedValue({ data: {}, error: null })
-    const restoreVerify = replaceProperty(authClient.mfa, 'verify', verifyMock as typeof authClient.mfa.verify)
-
-    try {
-      renderPage()
-      await user.type(screen.getByLabelText('Email'), 'ana@example.com')
-      await user.type(screen.getByLabelText('Password'), 'senha123')
-      await user.click(screen.getByRole('button', { name: 'Sign in' }))
-
-      expect(challengeMock).toHaveBeenCalledWith({ factorId: 'factor-1' })
-      const codeInput = await screen.findByLabelText(/authentication code/i)
-
-      await user.type(codeInput, '654321')
-      await user.click(screen.getByRole('button', { name: /Confirm/i }))
-
-      expect(verifyMock).toHaveBeenCalledWith({ factorId: 'factor-1', challengeId: 'challenge-1', code: '654321' })
-    } finally {
-      restoreSignIn()
-      restoreAal()
-      restoreListFactors()
-      restoreChallenge()
-      restoreVerify()
-    }
+    expect(window.google!.accounts!.id!.prompt).toHaveBeenCalled()
   })
 })
 
 describe('LoginPage Google Sign-In', () => {
-  beforeEach(() => {
-    mockUseAuth.mockReset()
-    mockUseAuth.mockReturnValue({
-      isAuthenticated: false,
-      user: null,
-      isLoading: false,
-      refreshUserProfile: mockRefreshUserProfile,
-      logout: vi.fn(),
+  // GSI is mocked: the real script never loads in tests.
+  function mockGsi() {
+    let callback: ((response: { credential: string }) => void) | undefined
+    const gsi = {
+      initialize: vi.fn((config: { callback: (response: { credential: string }) => void }) => { callback = config.callback }),
+      renderButton: vi.fn((parent: HTMLElement) => {
+        const button = document.createElement('div')
+        button.setAttribute('role', 'button')
+        button.textContent = 'Google button'
+        parent.appendChild(button)
+      }),
+      prompt: vi.fn(),
+    }
+    window.google = { accounts: { id: gsi } }
+    return { gsi, signIn: (credential: string) => callback!({ credential }) }
+  }
+
+  it('renders the GSI button and signs in with the ID token through POST /v1/auth/google', async () => {
+    const { gsi, signIn } = mockGsi()
+    const api = mockApi(({ path }) => (path === '/v1/auth/google' ? json(200, session('ACTIVE')) : undefined))
+    renderLogin()
+
+    expect(await screen.findByText('Google button')).toBeInTheDocument()
+    expect(gsi.initialize).toHaveBeenCalledWith(expect.objectContaining({
+      client_id: '344765290986-k2pdrbu5g90hi2b2bpr84olbe3q8nrak.apps.googleusercontent.com',
+    }))
+    expect(gsi.renderButton).toHaveBeenCalledWith(expect.any(HTMLElement), expect.objectContaining({ text: 'signin_with', locale: 'en' }))
+    expect(document.querySelector('script[src*="accounts.google.com"]')).toBeNull()
+
+    signIn('google-id-token')
+
+    expect(await screen.findByText('Dashboard home')).toBeInTheDocument()
+    const [google] = api.to('/v1/auth/google')
+    expect(google.body).toEqual({ idToken: 'google-id-token', client: 'web', locale: 'en' })
+    expect(google.credentials).toBe('include')
+  })
+
+  it('on the register tab, sends the terms acceptance and the form data along with the ID token', async () => {
+    const user = userEvent.setup()
+    const { signIn } = mockGsi()
+    const api = mockApi(({ path }) => (path === '/v1/auth/google' ? json(201, session('ACTIVE')) : undefined))
+    renderLogin()
+
+    await user.click(tab('Register'))
+    await user.type(screen.getByLabelText('Establishment name'), 'Bar da Ana')
+    await user.click(screen.getByRole('checkbox', { name: /I have read and accept/i }))
+    await screen.findByText('Google button')
+    signIn('google-id-token')
+
+    await waitFor(() => expect(api.to('/v1/auth/google')).toHaveLength(1))
+    expect(api.to('/v1/auth/google')[0].body).toEqual({
+      idToken: 'google-id-token', client: 'web', locale: 'en', termsAccepted: true, tradeName: 'Bar da Ana',
     })
   })
 
-  it('sends the user back to /login after Google auth, not the bare index (GoTrue defaults to SITE_URL, which has no post-login redirect logic)', async () => {
+  it('shows the error when the API refuses the Google token', async () => {
+    const toastError = vi.spyOn(toast, 'error').mockImplementation(() => '')
+    const { signIn } = mockGsi()
+    mockApi(({ path }) => (path === '/v1/auth/google' ? problem(401, 'GOOGLE_TOKEN_INVALID') : undefined))
+    renderLogin()
+
+    await screen.findByText('Google button')
+    signIn('bad-token')
+
+    await waitFor(() => expect(toastError).toHaveBeenCalledWith('Login failed. Check your credentials.'))
+    expect(auth.establishSession).not.toHaveBeenCalled()
+  })
+
+  it('on the register tab, validates the registration key before sending it with the ID token', async () => {
     const user = userEvent.setup()
-    const signInWithOAuthMock = vi.fn().mockResolvedValue({ data: {}, error: null })
-    const restore = replaceProperty(authClient, 'signInWithOAuth', signInWithOAuthMock as typeof authClient.signInWithOAuth)
+    const { signIn } = mockGsi()
+    const api = mockApi(({ path }) => {
+      if (path === '/v1/auth/registration-key/validate') return json(200, { valid: true })
+      if (path === '/v1/auth/google') return json(201, session('ACTIVE'))
+      return undefined
+    })
+    renderLogin()
 
-    try {
-      renderPage()
-      await user.click(screen.getByRole('button', { name: /Sign in with Google/i }))
+    await user.click(tab('Register'))
+    await user.click(screen.getByRole('checkbox', { name: /free access/i }))
+    await user.type(screen.getByLabelText('Registration key'), ' chave-secreta ')
+    await screen.findByText('Google button')
+    signIn('google-id-token')
 
-      expect(signInWithOAuthMock).toHaveBeenCalledWith({
-        provider: 'google',
-        options: { redirectTo: expect.stringContaining('/login') },
-      })
-    } finally {
-      restore()
-    }
+    await waitFor(() => expect(api.to('/v1/auth/google')).toHaveLength(1))
+    expect(api.calls.map((call) => call.path)).toEqual(['/v1/auth/registration-key/validate', '/v1/auth/google'])
+    expect(api.to('/v1/auth/registration-key/validate')[0].body).toEqual({ registrationKey: 'chave-secreta' })
+    expect(api.to('/v1/auth/google')[0].body).toMatchObject({ registrationKey: 'chave-secreta' })
+  })
+
+  it('on the register tab, a wrong registration key stops the Google sign-up', async () => {
+    const user = userEvent.setup()
+    const toastError = vi.spyOn(toast, 'error').mockImplementation(() => '')
+    const { signIn } = mockGsi()
+    const api = mockApi(({ path }) => (path === '/v1/auth/registration-key/validate' ? json(200, { valid: false }) : undefined))
+    renderLogin()
+
+    await user.click(tab('Register'))
+    await user.click(screen.getByRole('checkbox', { name: /free access/i }))
+    await user.type(screen.getByLabelText('Registration key'), 'chave-errada')
+    await screen.findByText('Google button')
+    signIn('google-id-token')
+
+    await waitFor(() => expect(toastError).toHaveBeenCalledWith(
+      'Invalid registration key. Check the key or uncheck the option to create a Free account.',
+    ))
+    expect(api.to('/v1/auth/google')).toHaveLength(0)
+    expect(auth.establishSession).not.toHaveBeenCalled()
+  })
+
+  it('a second credential while the first is in flight does not post twice', async () => {
+    const { signIn } = mockGsi()
+    let answer!: (response: Response) => void
+    const api = mockApi(({ path }) => (path === '/v1/auth/google' ? new Promise<Response>((resolve) => { answer = resolve }) : undefined))
+    renderLogin()
+
+    await screen.findByText('Google button')
+    signIn('google-id-token')
+    await waitFor(() => expect(api.to('/v1/auth/google')).toHaveLength(1))
+    signIn('google-id-token')
+    answer(json(200, session('ACTIVE')))
+
+    expect(await screen.findByText('Dashboard home')).toBeInTheDocument()
+    expect(api.to('/v1/auth/google')).toHaveLength(1)
   })
 })

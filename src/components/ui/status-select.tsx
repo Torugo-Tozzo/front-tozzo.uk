@@ -1,38 +1,38 @@
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "./select"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./select"
 import { ORDER_ITEM_STATUS_OPTIONS, getStatusLabel, type OrderItemStatus } from "@/lib/status"
 import { cn } from "@/lib/utils"
-import { useTranslation } from "react-i18next"
+import { useTranslation } from "@/i18n/solid"
 
 interface StatusSelectProps {
   value: OrderItemStatus
   onValueChange: (value: OrderItemStatus) => void
   disabled?: boolean
-  className?: string
+  class?: string
   ariaLabel?: string
 }
 
-export function StatusSelect({ value, onValueChange, disabled, className, ariaLabel }: StatusSelectProps) {
-  const { i18n } = useTranslation()
+const OPTIONS = ORDER_ITEM_STATUS_OPTIONS.map((option) => option.value)
+
+export function StatusSelect(props: StatusSelectProps) {
+  const { language } = useTranslation()
 
   return (
-    <Select value={value === 'REQUESTED' ? 'IN_PREPARATION' : value} onValueChange={(v) => onValueChange(v as OrderItemStatus)} disabled={disabled}>
+    <Select<OrderItemStatus>
+      options={OPTIONS}
+      value={props.value === "REQUESTED" ? "IN_PREPARATION" : props.value}
+      onChange={(value) => { if (value) props.onValueChange(value) }}
+      disabled={props.disabled}
+      itemComponent={(item) => (
+        <SelectItem item={item.item}>{getStatusLabel(item.item.rawValue, language())}</SelectItem>
+      )}
+    >
       <SelectTrigger
-        aria-label={ariaLabel}
-        className={cn("w-[170px] bg-background text-foreground", className)}
+        aria-label={props.ariaLabel}
+        class={cn("w-[170px] bg-background text-foreground", props.class)}
       >
-        <SelectValue>{getStatusLabel(value, i18n.language)}</SelectValue>
+        <SelectValue<OrderItemStatus>>{() => getStatusLabel(props.value, language())}</SelectValue>
       </SelectTrigger>
-      <SelectContent>
-        {ORDER_ITEM_STATUS_OPTIONS.map((opt) => (
-          <SelectItem key={opt.value} value={opt.value}>{getStatusLabel(opt.value, i18n.language)}</SelectItem>
-        ))}
-      </SelectContent>
+      <SelectContent />
     </Select>
   )
 }

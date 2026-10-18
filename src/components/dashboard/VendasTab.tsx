@@ -1,30 +1,25 @@
-import { useState, useEffect, useRef, useCallback } from "react"
-import { useTranslation } from "react-i18next"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
+import { batch, createMemo, createSignal, For, Show } from "solid-js"
+import { createMutation, createQuery, keepPreviousData, useQueryClient } from "@tanstack/solid-query"
+import { Eye, Printer } from "lucide-solid"
+import { toast } from "solid-sonner"
+
+import { loadedData, onQueryError } from "@/api/query"
+import { cancelSale, createSale, listSales, saleKeys, type Sale, type SalePage, type SaleQuery } from "@/api/sales"
+import { FiltersBar } from "@/components/dashboard/FiltersBar"
+import { Pagination } from "@/components/Pagination"
+import { ProductSelectionModal, type ConfirmedItem, type PaymentMethod, type ProductSelectionModalProps } from "@/components/ProductSelectionModal"
+import { printReceipt } from "@/components/receipt/printReceipt"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { IconButton } from "@/components/ui/icon-button"
-import { printReceipt } from "@/components/receipt/printReceipt"
-import { FiltersBar } from "@/components/dashboard/FiltersBar"
-import { Printer, Eye, Loader2 } from "lucide-react"
-import api, { getErrorCode } from "@/services/api"
-import { parseListResponse } from "@/services/parseResponse"
-import { toast } from "sonner"
-import { useRealtimeEvents } from "@/hooks/useRealtimeEvents"
-import { useMinLoadingDuration } from "@/hooks/useMinLoadingDuration"
-import { ProductSelectionModal } from "@/components/ProductSelectionModal"
-import { Pagination } from "@/components/Pagination"
 import { Skeleton } from "@/components/ui/skeleton"
-import { formatCurrencyBRL, formatDateTime, formatNumber } from "@/i18n/format"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { useErrorMessage } from "@/i18n/error-message"
+import { formatDateTime, formatNumber } from "@/i18n/format"
 import { normalizeLocale } from "@/i18n/locale"
-import { getErrorTranslationKey, type ErrorContext } from "@/i18n/error-keys"
-import { paymentMethodLabels, type Sale, type SaleItem, type SaleServiceItem } from "@/domain/models"
+import { useTranslation } from "@/i18n/solid"
+import { createCursorPages, totalPagesOf } from "@/lib/cursor-pages"
+import { createMinLoading } from "@/lib/min-loading"
+import { centsFromInput, formatCents } from "@/lib/money"
 
 type SaleFilters = {
   customerName: string
@@ -35,426 +30,366 @@ type SaleFilters = {
   startTime: string
   endDate: string
   endTime: string
+  /** The end date or time was edited: until then the period is open-ended. */
+  endEdited: boolean
 }
 
-function isSalesEqual(a: Sale[], b: Sale[]) {
-  if (a.length !== b.length) return false
-  for (let i = 0; i < a.length; i++) {
-    const ai = a[i]
-    const bi = b[i]
-    if (ai.id !== bi.id) return false
-    if (ai.total !== bi.total) return false
-    if ((ai.soldAt || '') !== (bi.soldAt || '')) return false
-  }
-  return true
-}
+const sameFilters = (a: SaleFilters, b: SaleFilters) =>
+  (Object.keys(a) as (keyof SaleFilters)[]).every((key) => a[key] === b[key])
 
-function formatItemsSummary(sale: Sale, locale?: string, fallbackProduct?: string, serviceLabel?: string): string {
-  const products = (sale.items ?? []).map((item) => formatNumber(item.quantity, locale) + "x " + (item.product?.name ?? fallbackProduct))
-  const services = (sale.serviceItems ?? []).map((item) => formatNumber(item.quantity, locale) + "x " + item.description + (serviceLabel ? ` (${serviceLabel})` : ""))
-  return [...products, ...services].join(", ")
-}
+const pad = (value: number) => String(value).padStart(2, "0")
+const dateInput = (date: Date) => `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
+const timeInput = (date: Date) => `${pad(date.getHours())}:${pad(date.getMinutes())}`
 
-function buildSaleParams(page: number, limit: number, f: SaleFilters) {
-  const params: any = { page, limit }
-  if (f.customerName) params.customerName = f.customerName
-  if (f.createdBy) params.createdBy = f.createdBy
-  if (f.totalMin) params.totalMin = parseFloat(f.totalMin)
-  if (f.totalMax) params.totalMax = parseFloat(f.totalMax)
-  if (f.startDate && f.startTime) params.startAt = new Date(`${f.startDate}T${f.startTime}:00`).toISOString()
-  if (f.endDate && f.endTime) params.endAt = new Date(`${f.endDate}T${f.endTime}:59`).toISOString()
-  return params
-}
+// SSE (realtime.ts) is the main path; this slower refetch only covers a
+// connection that fails silently, like the React app's 60 s poll.
+const FALLBACK_REFETCH_MS = 60_000
 
+type InitialItems = NonNullable<ProductSelectionModalProps["initialItems"]>
+type ReadOnlyItems = NonNullable<ProductSelectionModalProps["additionalReadOnlyItems"]>
+
+/** The period's sales (React VendasTab): filters, list with the period closing, new sale, details with cancel, and print. */
 export function VendasTab() {
-  const { i18n } = useTranslation()
-  const { t: tAuth } = useTranslation("auth")
-  const { t: tCommon } = useTranslation("common")
-  const { t: tErrors } = useTranslation("errors")
-  const { t: tPrinter } = useTranslation("printer")
+  const { t: tCommon, language } = useTranslation("common")
   const { t: tSales } = useTranslation("sales")
-  const activeLocale = normalizeLocale(i18n.language)
-  const localizedError = (context: ErrorContext, error: unknown) => {
-    const translation = getErrorTranslationKey(context, getErrorCode(error))
-    return translation.namespace === "auth"
-      ? tAuth(translation.key)
-      : tErrors(translation.key)
-  }
-  const [sales, setSales] = useState<Sale[]>([])
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [page, setPage] = useState(1)
-  const [limit, setLimit] = useState(10)
-  const [totalPages, setTotalPages] = useState(0)
-  const [totalItems, setTotalItems] = useState(0)
-  const [hasMore, setHasMore] = useState(false)
+  const { t: tPrinter } = useTranslation("printer")
+  const { t: tDeliveries } = useTranslation("deliveries")
+  const localizedError = useErrorMessage()
+  const activeLocale = () => normalizeLocale(language())
+  const queryClient = useQueryClient()
+  const pages = createCursorPages(10)
 
-  const [currentSaleItems, setCurrentSaleItems] = useState<{ productId: number | string; quantity: number; unitPrice?: number; name?: string }[]>([])
-  const [currentSaleClient, setCurrentSaleClient] = useState("")
-  const [currentSaleDescription, setCurrentSaleDescription] = useState("")
-  const [currentSaleServiceItems, setCurrentSaleServiceItems] = useState<SaleServiceItem[]>([])
-  const [isReadOnlyModal, setIsReadOnlyModal] = useState(false)
-  const [currentSaleId, setCurrentSaleId] = useState<number | string | null>(null)
-
-  const [isLoading, setIsLoading] = useState(false)
-  const showSkeleton = useMinLoadingDuration(isLoading)
-  const [loadingSaleId, setLoadingSaleId] = useState<number | string | null>(null)
-
-  const [customerName, setCustomerName] = useState("")
-  const [createdBy, setCreatedBy] = useState("")
-  const [totalMin, setTotalMin] = useState("")
-  const [totalMax, setTotalMax] = useState("")
-
-  const formatDate = (d: Date) => {
-    const yyyy = d.getFullYear()
-    const mm = String(d.getMonth() + 1).padStart(2, '0')
-    const dd = String(d.getDate()).padStart(2, '0')
-    return `${yyyy}-${mm}-${dd}`
-  }
-
-  const formatTime = (d: Date) => {
-    const hh = String(d.getHours()).padStart(2, '0')
-    const min = String(d.getMinutes()).padStart(2, '0')
-    return `${hh}:${min}`
-  }
-
+  // The last 24 h by default, like the React app.
   const now = new Date()
   const ago24 = new Date(now.getTime() - 24 * 60 * 60 * 1000)
+  const [customerName, setCustomerName] = createSignal("")
+  const [createdBy, setCreatedBy] = createSignal("")
+  const [totalMin, setTotalMin] = createSignal("")
+  const [totalMax, setTotalMax] = createSignal("")
+  const [startDate, setStartDate] = createSignal(dateInput(ago24))
+  const [startTime, setStartTime] = createSignal(timeInput(ago24))
+  const [endDate, setEndDate] = createSignal(dateInput(now))
+  const [endTime, setEndTime] = createSignal(timeInput(now))
+  const [endEdited, setEndEdited] = createSignal(false)
+  const inputs = (): SaleFilters => ({
+    customerName: customerName(), createdBy: createdBy(), totalMin: totalMin(), totalMax: totalMax(),
+    startDate: startDate(), startTime: startTime(), endDate: endDate(), endTime: endTime(), endEdited: endEdited(),
+  })
+  // Filters apply on "Search" only; page and page size refetch at once.
+  const [applied, setApplied] = createSignal<SaleFilters>(inputs())
+  const [isSearching, setIsSearching] = createSignal(false)
 
-  const [startDate, setStartDate] = useState(formatDate(ago24))
-  const [startTime, setStartTime] = useState(formatTime(ago24))
-  const [endDate, setEndDate] = useState(formatDate(now))
-  const [endTime, setEndTime] = useState(formatTime(now))
-  const [periodTotal, setPeriodTotal] = useState(0)
-  const salesRef = useRef<Sale[]>([])
-  const filterRef = useRef<SaleFilters>({ customerName, createdBy, totalMin, totalMax, startDate, startTime, endDate, endTime })
+  const [isModalOpen, setIsModalOpen] = createSignal(false)
+  const [currentSale, setCurrentSale] = createSignal<Sale | null>(null)
+  // Client id of the sale being created (a retry after a lost answer gets the
+  // sale the first attempt created), and the body of that first attempt, to
+  // tell whether a retry changed it.
+  let draftSaleId = ""
+  let draftFirstBody: string | null = null
 
-  useEffect(() => {
-    filterRef.current = { customerName, createdBy, totalMin, totalMax, startDate, startTime, endDate, endTime }
-  }, [customerName, createdBy, totalMin, totalMax, startDate, startTime, endDate, endTime])
+  const listQuery = (): SaleQuery => {
+    const filters = applied()
+    return {
+      // An instant range, like the React app (start at :00, end at the last
+      // millisecond of the minute). The default end (the minute the page
+      // opened) is not sent: sales made since, here or through SSE, still show.
+      from: filters.startDate && filters.startTime ? new Date(`${filters.startDate}T${filters.startTime}:00`).toISOString() : undefined,
+      to: filters.endEdited && filters.endDate && filters.endTime ? new Date(`${filters.endDate}T${filters.endTime}:59.999`).toISOString() : undefined,
+      customerName: filters.customerName,
+      sellerName: filters.createdBy,
+      minTotalCents: filters.totalMin ? centsFromInput(filters.totalMin) : undefined,
+      maxTotalCents: filters.totalMax ? centsFromInput(filters.totalMax) : undefined,
+      cursor: pages.cursor(),
+      limit: pages.limit(),
+    }
+  }
 
-  const fetchSales = useCallback(async () => {
-    setIsLoading(true)
-    try {
-      const params = buildSaleParams(page, limit, {
-        customerName, createdBy, totalMin, totalMax, startDate, startTime, endDate, endTime,
-      })
+  const sales = createQuery(() => {
+    const query = listQuery()
+    return {
+      queryKey: [...saleKeys.all, "list", query],
+      queryFn: ({ signal }) => listSales(query, signal),
+      placeholderData: keepPreviousData,
+      refetchInterval: FALLBACK_REFETCH_MS,
+      // A refetch updates the rows in place (by id): no remount.
+      reconcile: "id",
+    }
+  })
 
-      const response = await api.get(`/vendas`, { params })
-      const { data, total } = parseListResponse<Sale>(response, 'sales')
-      const closing = Number(response.data.closing) || 0
+  // A failed background refetch keeps the rows and only logs, like the React
+  // poll; a failed load also warns.
+  onQueryError(sales, (error) => {
+    console.error("Error fetching sales", error)
+    if (sales.data === undefined) toast.error(localizedError("loadSales", error))
+  })
 
-      setSales(data)
-      salesRef.current = data
-      setTotalItems(total)
-      setPeriodTotal(closing)
+  const isLoading = () => sales.isPending || sales.isPlaceholderData || isSearching()
+  const showSkeleton = createMinLoading(isLoading)
+  // A failed load after a filter, page or search change keeps the last rows
+  // and summary on screen (React kept them), with the toast; the first load
+  // has nothing to keep.
+  const lastGood = createMemo<SalePage | undefined>((previous) => loadedData(sales) ?? previous)
+  const salePage = () => loadedData(sales) ?? (sales.isError ? lastGood() : undefined)
+  const saleRows = () => salePage()?.items ?? []
+  const totalItems = () => salePage()?.total ?? 0
+  // The period closing: the /v1 sums the whole filter (summary), not the page.
+  const periodTotalCents = () => salePage()?.summary.totalCents ?? 0
 
-      if (total > 0) {
-        setTotalPages(Math.ceil(total / limit))
-        setHasMore(page < Math.ceil(total / limit))
-      } else {
-        setTotalPages(0)
-        setHasMore(data.length === limit)
+  const invalidateSales = () => queryClient.invalidateQueries({ queryKey: saleKeys.all })
+
+  const create = createMutation(() => ({
+    mutationFn: async (input: { customerName: string; items: ConfirmedItem[] }) => {
+      const body = {
+        ...(input.customerName ? { customerName: input.customerName } : {}),
+        items: input.items.map(({ productId, quantity }) => ({ productId, quantity })),
       }
-    } catch (error) {
-      console.error("Error fetching sales", error)
-      toast.error(localizedError("loadSales", error))
-    } finally {
-      setIsLoading(false)
-    }
-  }, [page, limit, customerName, createdBy, totalMin, totalMax, startDate, startTime, endDate, endTime])
-
-  useEffect(() => {
-    fetchSales()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, limit])
-
-  const poll = useCallback(async () => {
-    try {
-      const f = filterRef.current
-      const params = buildSaleParams(page, limit, f)
-
-      const response = await api.get(`/vendas`, { params })
-      const { data, total } = parseListResponse<Sale>(response, 'sales')
-      const closing = Number(response.data.closing) || 0
-
-      const previous = salesRef.current || []
-      if (!isSalesEqual(previous, data)) {
-        setSales(data)
-        salesRef.current = data
-        setTotalItems(total)
-      setPeriodTotal(closing)
-
-        if (total > 0) {
-          setTotalPages(Math.ceil(total / limit))
-          setHasMore(page < Math.ceil(total / limit))
-        } else {
-          setTotalPages(0)
-          setHasMore(data.length === limit)
-        }
-      }
-    } catch (err) {
-      console.error('Error polling sales', err)
-    }
-  }, [page, limit])
-
-  useRealtimeEvents(['sales'], poll)
-
-  useEffect(() => {
-    let interval: number | null = null
-
-    const startPolling = () => {
-      if (interval != null) return
-      poll()
-      interval = window.setInterval(poll, 60000)
-    }
-
-    const stopPolling = () => {
-      if (interval != null) {
-        clearInterval(interval)
-        interval = null
-      }
-    }
-
-    const handleVisibilityChange = () => {
-      if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
-        startPolling()
-      } else {
-        stopPolling()
-      }
-    }
-
-    if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
-      startPolling()
-    }
-
-    document.addEventListener('visibilitychange', handleVisibilityChange)
-    window.addEventListener('focus', handleVisibilityChange)
-    window.addEventListener('blur', handleVisibilityChange)
-
-    return () => {
-      stopPolling()
-      document.removeEventListener('visibilitychange', handleVisibilityChange)
-      window.removeEventListener('focus', handleVisibilityChange)
-      window.removeEventListener('blur', handleVisibilityChange)
-    }
-  }, [poll])
-
-  const handleModalConfirm = async (customerName: string, items: { productId: number | string; quantity: number; unitPrice?: number }[]) => {
-    setIsLoading(true)
-    try {
-      await api.post("/vendas", { customerName, items })
-      await fetchSales()
+      const serialized = JSON.stringify(body)
+      if (draftFirstBody === null) draftFirstBody = serialized
+      const result = await createSale({ id: draftSaleId, ...body })
+      // A retry with an edited form whose first attempt had gone through: the
+      // API answers the sale already recorded (200), without the change. It
+      // stays as it is (user's decision, S4), and the user is told.
+      return { sale: result.sale, changeLost: !result.created && serialized !== draftFirstBody }
+    },
+    onSuccess: (result) => {
+      void invalidateSales()
       setIsModalOpen(false)
-    } catch (error) {
+      if (result.changeLost) toast.warning(tSales("alreadyRegistered"))
+    },
+    onError: (error) => {
       console.error("Error creating sale", error)
       toast.error(localizedError("createSale", error))
-    } finally {
-      setIsLoading(false)
-    }
-  }
+    },
+  }))
 
-  const handleInfoClick = async (sale: Sale) => {
-    setLoadingSaleId(sale.id)
-    try {
-      if (sale.items && Array.isArray(sale.items)) {
-        const items = sale.items.map((item: SaleItem) => ({
-          productId: item.productId ?? (item.product ? item.product.id : undefined),
-          quantity: Number(item.quantity) || 0,
-          name: item.product?.name,
-          unitPrice: item.unitPriceAtSale != null ? Number(item.unitPriceAtSale) : (item.product ? Number(item.product.price || 0) : undefined),
-        })).filter((item) => item.productId != null && item.productId !== '')
-        setCurrentSaleItems(items as { productId: number | string; quantity: number; unitPrice?: number; name?: string }[])
-      } else {
-        setCurrentSaleItems([])
-      }
-
-      setCurrentSaleServiceItems(sale.serviceItems ?? [])
-      setCurrentSaleDescription((sale.serviceItems ?? []).map((item) => `${formatNumber(item.quantity, activeLocale)}x ${item.description}`).join(', '))
-      setCurrentSaleClient(sale.customerName ?? '')
-      setCurrentSaleId(sale.id)
-      setIsReadOnlyModal(true)
-      setIsModalOpen(true)
-    } catch (error) {
-      console.error("Error fetching sale details", error)
-      toast.error(localizedError("saleDetails", error))
-    } finally {
-      setLoadingSaleId(null)
-    }
-  }
+  const cancel = createMutation(() => ({
+    mutationFn: cancelSale,
+    // The modal closes itself after this; the sale stays as the dialog's
+    // content through the exit animation (cleared when a new sale opens).
+    onSuccess: () => void invalidateSales(),
+    // ProductSelectionModal shows the toast.
+  }))
 
   const handleNewSaleClick = () => {
-    setCurrentSaleClient("")
-    setCurrentSaleDescription("")
-    setCurrentSaleServiceItems([])
-    setCurrentSaleItems([])
-    setIsReadOnlyModal(false)
-    setCurrentSaleId(null)
+    draftSaleId = crypto.randomUUID()
+    draftFirstBody = null
+    setCurrentSale(null)
     setIsModalOpen(true)
   }
 
-  const handleCancelSale = async (id: number | string) => {
+  const handleInfoClick = (sale: Sale) => {
+    setCurrentSale(sale)
+    setIsModalOpen(true)
+  }
+
+  const handleModalConfirm = async (name: string, items: ConfirmedItem[]) => {
+    // Rejects on failure: the modal keeps what was typed.
+    await create.mutateAsync({ customerName: name, items })
+  }
+
+  // "Search" always asks the API (React's fetchSales). A failure says so
+  // even with rows on screen (the background refetches only log).
+  const reloadList = async () => {
+    const key = [...saleKeys.all, "list", listQuery()]
+    setIsSearching(true)
     try {
-      await api.delete(`/vendas/${id}`)
-      await fetchSales()
-      setIsModalOpen(false)
-      setCurrentSaleId(null)
-    } catch (error) {
-      console.error('Error cancelling sale', error)
-      toast.error(localizedError("cancelSale", error))
+      // cancelRefetch false: joins the fetch the page change may have started.
+      await queryClient.refetchQueries({ queryKey: key, exact: true }, { cancelRefetch: false })
+      const state = queryClient.getQueryState(key)
+      if (state?.status === "error" && state.data !== undefined) toast.error(localizedError("loadSales", state.error))
+    } finally {
+      setIsSearching(false)
     }
   }
 
   const handleApplyFilters = () => {
-    setPage(1)
-    fetchSales()
+    const next = inputs()
+    if (sameFilters(next, applied())) {
+      // Same filters: back to page 1, asked again.
+      pages.reset()
+      void reloadList()
+      return
+    }
+    // One change: no request with the old filters' cursor in between.
+    batch(() => {
+      setApplied(next)
+      pages.reset()
+    })
   }
 
+  const paymentLabel = (method: PaymentMethod | null) => (method ? tDeliveries(`payment.${method}` as never) : tCommon("notInformed"))
+  const saleDate = (sale: Sale) => (sale.soldAt ? formatDateTime(sale.soldAt, activeLocale()) : tCommon("notInformed"))
+  const itemsSummary = (sale: Sale) => [
+    ...(sale.items ?? []).map((item) => `${formatNumber(item.quantity, activeLocale())}x ${item.description || tSales("fallback.product")}`),
+    ...(sale.serviceItems ?? []).map((item) => `${formatNumber(item.quantity, activeLocale())}x ${item.description} (${tSales("serviceLine")})`),
+  ].join(", ")
+
+  const currentItems = (): InitialItems => (currentSale()?.items ?? []).map((item) => ({
+    productId: item.productId,
+    quantity: item.quantity,
+    name: item.description,
+    unitPriceCents: item.unitPriceCents,
+  }))
+  const currentServiceItems = (): ReadOnlyItems => (currentSale()?.serviceItems ?? []).map((item) => ({
+    description: item.description,
+    quantity: item.quantity,
+    unitPriceCents: item.unitPriceCents,
+  }))
+  const currentDescription = () => (currentSale()?.serviceItems ?? [])
+    .map((item) => `${formatNumber(item.quantity, activeLocale())}x ${item.description}`).join(", ")
+
+  const handlePrint = (sale: Sale) =>
+    printReceipt({
+      title: tPrinter("receiptTitleSale", { id: sale.id }),
+      customerName: sale.customerName?.trim() || tCommon("notInformed"),
+      dateLabel: saleDate(sale),
+      items: [
+        ...(sale.items ?? []).map((item) => ({ name: item.description || tSales("fallback.product"), quantity: item.quantity, unitPriceCents: item.unitPriceCents })),
+        ...(sale.serviceItems ?? []).map((item) => ({ name: item.description, quantity: item.quantity, unitPriceCents: item.unitPriceCents })),
+      ],
+      totalCents: sale.totalCents,
+      totalLabel: tPrinter("receiptTotal"),
+      paymentLabel: paymentLabel(sale.paymentMethod),
+      locale: activeLocale(),
+    })
+
   return (
-    <div className="space-y-4">
+    <div class="space-y-4">
       <FiltersBar
         dateRange={{
-          startDate, startTime, endDate, endTime,
+          startDate: startDate(), startTime: startTime(), endDate: endDate(), endTime: endTime(),
           onStartDateChange: setStartDate,
           onStartTimeChange: setStartTime,
-          onEndDateChange: setEndDate,
-          onEndTimeChange: setEndTime,
+          onEndDateChange: (value) => { setEndDate(value); setEndEdited(true) },
+          onEndTimeChange: (value) => { setEndTime(value); setEndEdited(true) },
         }}
-        customerName={{ value: customerName, onChange: setCustomerName }}
-        createdBy={{ value: createdBy, onChange: setCreatedBy }}
-        totalRange={{ min: totalMin, max: totalMax, onMinChange: setTotalMin, onMaxChange: setTotalMax }}
+        customerName={{ value: customerName(), onChange: setCustomerName }}
+        createdBy={{ value: createdBy(), onChange: setCreatedBy }}
+        totalRange={{ min: totalMin(), max: totalMax(), onMinChange: setTotalMin, onMaxChange: setTotalMax }}
         primaryAction={{ label: tSales("new"), onClick: handleNewSaleClick }}
         onFilter={handleApplyFilters}
-        isLoading={isLoading}
+        isLoading={isLoading()}
       />
 
       <ProductSelectionModal
-        isOpen={isModalOpen}
-        onClose={() => { setIsModalOpen(false); setCurrentSaleId(null); setIsReadOnlyModal(false) }}
+        isOpen={isModalOpen()}
+        onClose={() => setIsModalOpen(false)}
         onConfirm={handleModalConfirm}
-        title={isReadOnlyModal ? tSales("details") : tSales("new")}
-        initialClientName={currentSaleClient}
-        description={currentSaleDescription || undefined}
-        initialItems={currentSaleItems}
-        additionalReadOnlyItems={currentSaleServiceItems.map((item) => ({ description: item.description, quantity: item.quantity, unitPrice: Number(item.unitPriceAtSale) }))}
+        title={currentSale() ? tSales("details") : tSales("new")}
+        initialClientName={currentSale()?.customerName ?? ""}
+        description={currentDescription() || undefined}
+        initialItems={currentItems()}
+        additionalReadOnlyItems={currentServiceItems()}
         mergeSameProducts
-        readOnly={isReadOnlyModal}
-        onCancelSale={isReadOnlyModal && currentSaleId ? async () => handleCancelSale(currentSaleId) : undefined}
+        readOnly={!!currentSale()}
+        onCancelSale={currentSale() ? async () => { await cancel.mutateAsync(currentSale()!.id) } : undefined}
       />
 
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
           <div>
             <CardTitle>{tSales("period")}</CardTitle>
-            <div className="text-sm text-muted-foreground mt-1">
-              {tSales("table.totalRecords", { count: formatNumber(totalItems, activeLocale) })}
+            <div class="text-sm text-muted-foreground mt-1">
+              {tSales("table.totalRecords", { count: formatNumber(totalItems(), activeLocale()) })}
             </div>
           </div>
-          <div className="flex flex-col items-end">
-            <span className="text-sm text-muted-foreground">{tSales("closingPeriod")}</span>
-            <span className="text-2xl font-bold text-green-600">
-              {formatCurrencyBRL(periodTotal, activeLocale)}
+          <div class="flex flex-col items-end">
+            <span class="text-sm text-muted-foreground">{tSales("closingPeriod")}</span>
+            <span class="text-2xl font-bold text-green-600">
+              {formatCents(periodTotalCents(), activeLocale())}
             </span>
           </div>
         </CardHeader>
         <CardContent>
-          <span className="sr-only" role="status">{showSkeleton ? tCommon("loading") : ""}</span>
+          <span class="sr-only" role="status">{showSkeleton() ? tCommon("loading") : ""}</span>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[50px] text-center">{tCommon("index")}</TableHead>
+                <TableHead class="w-[50px] text-center">{tCommon("index")}</TableHead>
                 <TableHead>{tCommon("customer")}</TableHead>
                 <TableHead>{tCommon("createdBy")}</TableHead>
                 <TableHead>{tCommon("date")}</TableHead>
-                <TableHead>Pagamento</TableHead>
-                <TableHead className="text-right">{tCommon("total")}</TableHead>
-                <TableHead className="text-right">{tCommon("actions.label")}</TableHead>
+                <TableHead>{tCommon("payment")}</TableHead>
+                <TableHead class="text-right">{tCommon("total")}</TableHead>
+                <TableHead class="text-right">{tCommon("actions.label")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {showSkeleton ? (
-                Array.from({ length: 5 }).map((_, i) => (
-                  <TableRow key={i} className="animate-in fade-in-0 duration-300">
-                    <TableCell><Skeleton className="h-4 w-8" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-[200px]" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-[100px]" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-[150px]" /></TableCell>
-                    <TableCell className="text-right justify-end flex"><Skeleton className="h-4 w-16" /></TableCell>
-                    <TableCell className="text-right justify-end flex gap-2">
-                      <Skeleton className="h-8 w-8" />
-                      <Skeleton className="h-8 w-8" />
-                    </TableCell>
-                  </TableRow>
-                ))
-              ) : sales.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
-                    {tSales("empty")}
-                  </TableCell>
-                </TableRow>
-              ) : (
-                sales.map((sale, index) => (
-                  <TableRow key={sale.id} className="animate-in fade-in-0 duration-300">
-                    <TableCell className="text-center">{formatNumber((page - 1) * limit + index + 1, activeLocale)}</TableCell>
-                    <TableCell>
-                      <div className="font-medium">{sale.customerName || tCommon("notInformed")}</div>
-                      {formatItemsSummary(sale, activeLocale, tSales("fallback.product"), tSales("serviceLine")) && (
-                        <div
-                          className="text-sm text-muted-foreground truncate max-w-[280px]"
-                          title={formatItemsSummary(sale, activeLocale, tSales("fallback.product"), tSales("serviceLine"))}
-                        >
-                          {formatItemsSummary(sale, activeLocale, tSales("fallback.product"), tSales("serviceLine"))}
-                        </div>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">{sale.seller?.name || tCommon("notInformed")}</TableCell>
-                    <TableCell>{sale.soldAt ? formatDateTime(sale.soldAt, activeLocale) : tCommon("notInformed")}</TableCell>
-                    <TableCell>{sale.paymentMethod ? paymentMethodLabels[sale.paymentMethod] : tCommon("notInformed")}</TableCell>
-                    <TableCell className="text-right">
-                      {formatCurrencyBRL(sale.total, activeLocale)}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <IconButton
-                          icon={<Printer className="h-4 w-4" />}
-                          label={tPrinter("printSale")}
-                          onClick={() =>
-                            printReceipt({
-                              title: tPrinter("receiptTitleSale", { id: sale.id }),
-                              customerName: sale.customerName?.trim() || tCommon("notInformed"),
-                              dateLabel: sale.soldAt ? formatDateTime(sale.soldAt, activeLocale) : tCommon("notInformed"),
-                              items: [...(sale.items ?? []).map((item) => ({
-                                name: item.product?.name ?? tSales("fallback.product"),
-                                quantity: item.quantity,
-                                unitPrice: item.unitPriceAtSale ?? item.product?.price ?? 0,
-                              })), ...(sale.serviceItems ?? []).map((item) => ({ name: item.description, quantity: item.quantity, unitPrice: item.unitPriceAtSale }))],
-                              total: sale.total,
-                              totalLabel: tPrinter("receiptTotal"),
-                              paymentLabel: sale.paymentMethod ? paymentMethodLabels[sale.paymentMethod] : tCommon("notInformed"),
-                              locale: activeLocale,
-                            })
-                          }
-                        />
-                        <IconButton
-                          icon={loadingSaleId === sale.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Eye className="h-4 w-4" />}
-                          label={tSales("viewDetails")}
-                          onClick={() => handleInfoClick(sale)}
-                          disabled={loadingSaleId === sale.id}
-                        />
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
+              <Show
+                when={!showSkeleton()}
+                fallback={
+                  <For each={[0, 1, 2, 3, 4]}>
+                    {() => (
+                      <TableRow class="animate-in fade-in-0 duration-300">
+                        <TableCell><Skeleton class="h-4 w-8" /></TableCell>
+                        <TableCell><Skeleton class="h-4 w-[200px]" /></TableCell>
+                        <TableCell><Skeleton class="h-4 w-[100px]" /></TableCell>
+                        <TableCell><Skeleton class="h-4 w-[150px]" /></TableCell>
+                        <TableCell class="text-right justify-end flex"><Skeleton class="h-4 w-16" /></TableCell>
+                        <TableCell class="text-right justify-end flex gap-2">
+                          <Skeleton class="h-8 w-8" />
+                          <Skeleton class="h-8 w-8" />
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </For>
+                }
+              >
+                <Show
+                  when={saleRows().length > 0}
+                  fallback={
+                    <TableRow>
+                      <TableCell colSpan={7} class="text-center text-muted-foreground py-8">
+                        {tSales("empty")}
+                      </TableCell>
+                    </TableRow>
+                  }
+                >
+                  <For each={saleRows()}>
+                    {(sale, index) => (
+                      <TableRow class="animate-in fade-in-0 duration-300">
+                        <TableCell class="text-center">{formatNumber((pages.page() - 1) * pages.limit() + index() + 1, activeLocale())}</TableCell>
+                        <TableCell>
+                          <div class="font-medium">{sale.customerName || tCommon("notInformed")}</div>
+                          <Show when={itemsSummary(sale)}>
+                            <div class="text-sm text-muted-foreground truncate max-w-[280px]" title={itemsSummary(sale)}>
+                              {itemsSummary(sale)}
+                            </div>
+                          </Show>
+                        </TableCell>
+                        <TableCell class="text-muted-foreground">{sale.seller?.name || tCommon("notInformed")}</TableCell>
+                        <TableCell>{saleDate(sale)}</TableCell>
+                        <TableCell>{paymentLabel(sale.paymentMethod)}</TableCell>
+                        <TableCell class="text-right">{formatCents(sale.totalCents, activeLocale())}</TableCell>
+                        <TableCell class="text-right">
+                          <div class="flex justify-end gap-2">
+                            <IconButton
+                              icon={<Printer class="h-4 w-4" />}
+                              label={tPrinter("printSale")}
+                              onClick={() => handlePrint(sale)}
+                            />
+                            <IconButton
+                              icon={<Eye class="h-4 w-4" />}
+                              label={tSales("viewDetails")}
+                              onClick={() => handleInfoClick(sale)}
+                            />
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </For>
+                </Show>
+              </Show>
             </TableBody>
           </Table>
           <Pagination
-            currentPage={page}
-            totalPages={totalPages}
-            hasMore={hasMore}
-            onPageChange={setPage}
-            pageSize={limit}
-            onPageSizeChange={(newLimit) => { setLimit(newLimit); setPage(1) }}
-            isLoading={isLoading}
+            currentPage={pages.page()}
+            totalPages={totalPagesOf(totalItems(), pages.limit())}
+            hasMore={!!salePage()?.nextCursor}
+            onPageChange={(target) => pages.goTo(target, salePage()?.nextCursor)}
+            pageSize={pages.limit()}
+            onPageSizeChange={pages.setLimit}
+            isLoading={isLoading()}
           />
         </CardContent>
       </Card>

@@ -1,103 +1,93 @@
-import React, { createContext, useContext, useEffect, useState } from 'react'
-import api from '../services/api'
-import { authClient } from '../lib/authClient'
-import type { Establishment, User } from '@/domain/models'
-import { fromLegacyWire, normalizeRole } from '@/lib/legacyWire'
+import { createContext, createSignal, onMount, useContext, type Accessor, type JSX } from 'solid-js'
 
-interface AuthContextType {
-  isAuthenticated: boolean
-  user: User | null
-  isLoading: boolean
+import { logout as revokeSession } from '@/api/auth'
+import { api, setSessionExpiredHandler } from '@/api/client'
+import { apiErrorOf, unwrap } from '@/api/errors'
+import { endSession, refreshSession, sessionUser, startSession, type SessionBody } from '@/api/session'
+import { toUser, type User } from '@/domain/user'
+import { useTranslation } from '@/i18n/solid'
+
+export interface AuthContextType {
+  isAuthenticated: Accessor<boolean>
+  user: Accessor<User | null>
+  isLoading: Accessor<boolean>
   logout: () => Promise<void>
   refreshUserProfile: () => Promise<void>
+  /** Login, sign-up confirmation and Google hand their session here. */
+  establishSession: (session: SessionBody) => void
+  /** Forgets the session here only (the API already revoked it, e.g. after a password reset). */
+  clearSession: () => void
 }
 
-const AuthContext = createContext<AuthContextType>({} as AuthContextType)
+const AuthContext = createContext<AuthContextType>()
 
-export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [user, setUser] = useState<User | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+const goToLogin = () => window.location.assign('/login')
 
-  const fetchProfile = async (): Promise<User> => {
-    const userResponse = await api.get('/usuarios/me', { skipAuthRedirect: true })
-    const authenticatedUser: User = {
-      id: userResponse.data.id,
-      name: userResponse.data.name || '',
-      email: userResponse.data.email || '',
-      role: normalizeRole(userResponse.data.role),
-      establishment: undefined,
-    }
-    if ((authenticatedUser.role === 'COOK' || authenticatedUser.role === 'DRIVER') && userResponse.data.establishment) {
-      authenticatedUser.establishment = fromLegacyWire<unknown>(userResponse.data.establishment) as Establishment
-      return authenticatedUser
-    }
-    try {
-      const response = await api.get('/estabelecimentos')
-      const raw = Array.isArray(response.data) ? response.data[0] : response.data
-      if (raw) authenticatedUser.establishment = fromLegacyWire<unknown>(raw, 'establishment') as Establishment
-    } catch (error: any) {
-      console.warn('Não foi possível buscar detalhes do estabelecimento', error)
-      if (error.response?.status === 402) authenticatedUser.establishment = { id: 0, tradeName: '', status: 'PENDING_PAYMENT' }
-    }
-    return authenticatedUser
-  }
+/**
+ * The session of the /v1: on boot, the refresh cookie gives back an access
+ * token (kept in memory) and the user. The auth pages (login, Google, email
+ * confirmation) open a session through establishSession().
+ */
+export function AuthProvider(props: { children?: JSX.Element }) {
+  const [isLoading, setIsLoading] = createSignal(true)
+  const [profile, setProfile] = createSignal<User | null>(null)
+  const user = () => profile() ?? (sessionUser() ? toUser(sessionUser()!) : null)
+  const isAuthenticated = () => sessionUser() !== null
+  const { t } = useTranslation('common')
+
+  setSessionExpiredHandler(() => {
+    setProfile(null)
+    goToLogin()
+  })
+
+  onMount(() => {
+    void refreshSession().finally(() => setIsLoading(false))
+  })
 
   const refreshUserProfile = async () => {
     try {
-      setUser(await fetchProfile())
-    } catch (error: any) {
-      if (error.response?.status !== 401) {
-        console.error('Error fetching user profile', error)
-        return
-      }
-      // Primeiro acesso autenticado pelo GoTrue (Google Sign-In ou 1o login após
-      // confirmação de email) ainda não tem Usuario local — completa o cadastro
-      // (idempotente) e tenta buscar o perfil de novo. Os dados do form de cadastro
-      // (nome, estabelecimento, chave) vão no user_metadata do token.
-      try {
-        await api.post('/auth/complete-signup', {})
-        setUser(await fetchProfile())
-      } catch (retryError) {
-        console.error('Error completing signup after 401', retryError)
-        await authClient.signOut()
-      }
+      setProfile(toUser(unwrap(await api.GET('/v1/me'))))
+    } catch (error) {
+      console.error('Error fetching user profile', error)
     }
   }
 
-  useEffect(() => {
-    let mounted = true
-    let authEvent = 0
-    const { data: { subscription } } = authClient.onAuthStateChange((_event: string, session: { access_token: string } | null) => {
-      if (!mounted) return
-      const currentEvent = ++authEvent
-      if (!session) {
-        setIsAuthenticated(false)
-        setUser(null)
-        setIsLoading(false)
-        return
-      }
-      setIsAuthenticated(true)
-      setIsLoading(true)
-      // O callback do GoTrue precisa terminar antes de consultar getSession no interceptor da API.
-      window.setTimeout(() => {
-        if (!mounted || currentEvent !== authEvent) return
-        void refreshUserProfile().finally(() => {
-          if (mounted && currentEvent === authEvent) setIsLoading(false)
-        })
-      }, 0)
-    })
-    return () => { mounted = false; authEvent += 1; subscription.unsubscribe() }
-  }, [])
-
-  const logout = async () => {
-    await authClient.signOut()
-    setIsAuthenticated(false)
-    setUser(null)
-    window.location.href = '/login'
+  const establishSession = (session: SessionBody) => {
+    setProfile(null)
+    startSession(session)
   }
 
-  return <AuthContext.Provider value={{ isAuthenticated, user, isLoading, logout, refreshUserProfile }}>{children}</AuthContext.Provider>
+  const clearSession = () => {
+    endSession()
+    setProfile(null)
+  }
+
+  const logout = async () => {
+    try {
+      await revokeSession()
+    } catch (error) {
+      // 401: the session was already gone. Anything else (5xx, network) left
+      // the refresh cookie alive, and a reload would sign the user back in.
+      if (apiErrorOf(error).status !== 401) {
+        const message = t('logoutFailed')
+        // solid-sonner stays out of the initial chunk.
+        void import('solid-sonner').then(({ toast }) => toast.error(message))
+        return
+      }
+    }
+    clearSession()
+    goToLogin()
+  }
+
+  return (
+    <AuthContext.Provider value={{ isAuthenticated, user, isLoading, logout, refreshUserProfile, establishSession, clearSession }}>
+      {props.children}
+    </AuthContext.Provider>
+  )
 }
 
-export const useAuth = () => useContext(AuthContext)
+export function useAuth(): AuthContextType {
+  const context = useContext(AuthContext)
+  if (!context) throw new Error('useAuth must be used within an AuthProvider')
+  return context
+}

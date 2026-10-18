@@ -1,26 +1,26 @@
-import * as React from "react"
+import { splitProps, type JSX } from "solid-js"
+
 import { Button, type ButtonProps } from "./button"
 import { cn } from "@/lib/utils"
 
-export interface IconButtonProps extends Omit<ButtonProps, 'size' | 'children'> {
-  icon: React.ReactNode
+export interface IconButtonProps extends Omit<ButtonProps, "size" | "children"> {
+  icon: JSX.Element
   label: string
 }
 
-export const IconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(
-  ({ icon, label, variant = "ghost", className, ...props }, ref) => (
+export function IconButton(props: IconButtonProps) {
+  const [local, others] = splitProps(props, ["icon", "label", "variant", "class"])
+  return (
     <Button
-      ref={ref}
       type="button"
-      variant={variant}
+      variant={local.variant ?? "ghost"}
       size="icon"
-      aria-label={label}
-      title={label}
-      className={cn("transition-transform hover:scale-110", className)}
-      {...props}
+      aria-label={local.label}
+      title={local.label}
+      class={cn("transition-transform hover:scale-110", local.class)}
+      {...others}
     >
-      {icon}
+      {local.icon}
     </Button>
   )
-)
-IconButton.displayName = "IconButton"
+}

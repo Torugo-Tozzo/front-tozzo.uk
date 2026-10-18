@@ -1,28 +1,29 @@
-import { describe, it, expect, vi, beforeEach } from 'bun:test'
-import { render, screen } from '@testing-library/react'
-import { MemoryRouter, Routes, Route } from 'react-router-dom'
-import { I18nProvider } from '@/i18n/provider'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { screen } from '@solidjs/testing-library'
+import { Route, type RouteSectionProps } from '@solidjs/router'
 import ProtectedRoute from './ProtectedRoute'
+import { renderAt } from '@/test/router'
 
 const mockUseAuth = vi.fn()
 vi.mock('@/contexts/AuthContext', () => ({
   useAuth: () => mockUseAuth(),
 }))
 
-function renderAt(path: string, allowPending = false) {
-  return render(
-    <I18nProvider>
-      <MemoryRouter initialEntries={[path]}>
-        <Routes>
-          <Route path="/login" element={<div>login page</div>} />
-          <Route path="/plan" element={<div>plan page</div>} />
-          <Route element={<ProtectedRoute allowPending={allowPending} />}>
-            <Route path="/dashboard" element={<div>dashboard content</div>} />
-          </Route>
-        </Routes>
-      </MemoryRouter>
-    </I18nProvider>
-  )
+function auth(state: { isAuthenticated: boolean; isLoading: boolean; user: unknown }) {
+  mockUseAuth.mockReturnValue({ isAuthenticated: () => state.isAuthenticated, isLoading: () => state.isLoading, user: () => state.user })
+}
+
+function renderRoutes(path: string, allowPending = false) {
+  return renderAt(path, () => (
+    <>
+      <Route path="/login" component={() => <div>login page</div>} />
+      <Route path="/plan" component={() => <div>plan page</div>} />
+      <Route path="/dashboard/kitchen" component={() => <div>kitchen page</div>} />
+      <Route component={(props: RouteSectionProps) => <ProtectedRoute allowPending={allowPending}>{props.children}</ProtectedRoute>}>
+        <Route path="/dashboard" component={() => <div>dashboard content</div>} />
+      </Route>
+    </>
+  ))
 }
 
 describe('ProtectedRoute', () => {
@@ -31,44 +32,38 @@ describe('ProtectedRoute', () => {
   })
 
   it('shows a loading state while auth is resolving', () => {
-    mockUseAuth.mockReturnValue({ isAuthenticated: false, isLoading: true, user: null })
-    const { container } = renderAt('/dashboard')
+    auth({ isAuthenticated: false, isLoading: true, user: null })
+    const { container } = renderRoutes('/dashboard')
     expect(container.querySelector('.animate-spin')).toBeTruthy()
   })
 
-  it('redirects to /login when not authenticated', () => {
-    mockUseAuth.mockReturnValue({ isAuthenticated: false, isLoading: false, user: null })
-    renderAt('/dashboard')
-    expect(screen.getByText('login page')).toBeInTheDocument()
+  it('redirects to /login when not authenticated', async () => {
+    auth({ isAuthenticated: false, isLoading: false, user: null })
+    renderRoutes('/dashboard')
+    expect(await screen.findByText('login page')).toBeInTheDocument()
   })
 
   it('renders the protected content when authenticated and establishment is ACTIVE', () => {
-    mockUseAuth.mockReturnValue({
-      isAuthenticated: true,
-      isLoading: false,
-      user: { establishment: { status: 'ACTIVE' } },
-    })
-    renderAt('/dashboard')
+    auth({ isAuthenticated: true, isLoading: false, user: { establishment: { status: 'ACTIVE' } } })
+    renderRoutes('/dashboard')
     expect(screen.getByText('dashboard content')).toBeInTheDocument()
   })
 
-  it('redirects to /plan when authenticated but establishment is not ACTIVE', () => {
-    mockUseAuth.mockReturnValue({
-      isAuthenticated: true,
-      isLoading: false,
-      user: { establishment: { status: 'PENDING_PAYMENT' } },
-    })
-    renderAt('/dashboard')
-    expect(screen.getByText('plan page')).toBeInTheDocument()
+  it('redirects to /plan when authenticated but establishment is not ACTIVE', async () => {
+    auth({ isAuthenticated: true, isLoading: false, user: { establishment: { status: 'PENDING_PAYMENT' } } })
+    renderRoutes('/dashboard')
+    expect(await screen.findByText('plan page')).toBeInTheDocument()
   })
 
   it('allows pending establishments through when allowPending is true', () => {
-    mockUseAuth.mockReturnValue({
-      isAuthenticated: true,
-      isLoading: false,
-      user: { establishment: { status: 'PENDING_PAYMENT' } },
-    })
-    renderAt('/dashboard', true)
+    auth({ isAuthenticated: true, isLoading: false, user: { establishment: { status: 'PENDING_PAYMENT' } } })
+    renderRoutes('/dashboard', true)
     expect(screen.getByText('dashboard content')).toBeInTheDocument()
+  })
+
+  it('sends a cook to the kitchen', async () => {
+    auth({ isAuthenticated: true, isLoading: false, user: { role: 'COOK', establishment: { status: 'ACTIVE' } } })
+    renderRoutes('/dashboard')
+    expect(await screen.findByText('kitchen page')).toBeInTheDocument()
   })
 })

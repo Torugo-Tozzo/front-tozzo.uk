@@ -1,6 +1,6 @@
 import i18n from './config'
 import { normalizeLocale, SUPPORTED_LOCALES, type SupportedLocale } from './locale'
-import { NAMESPACES } from './resources'
+import { NAMESPACES } from './namespaces'
 
 export type LabelLocale = SupportedLocale | string | undefined
 

@@ -2,64 +2,50 @@
 
 Front web do Tozzo, um SaaS de gestão para restaurantes e serviços. API: `../api-tozzo.uk`. Mobile: `../TozzoBurger`. Os três são repositórios Git independentes.
 
-O repo está **no meio de uma migração** de React para **SolidJS**, com o mesmo visual:
-- plano: [`docs/superpowers/plans/2026-10-10-migracao-solid.md`](docs/superpowers/plans/2026-10-10-migracao-solid.md);
-- plano da API: `../api-tozzo.uk/docs/superpowers/plans/2026-10-10-migracao-go.md`.
+## Aplicativo e branches
 
-## Dois apps, lado a lado até o corte (fase S8)
+- **`dev`:** SolidJS na raiz, SPA estática, somente `/v1` da API Go. Cloudflare Workers serve os assets (`tozzo-web`, `dev.tozzo.uk`); push publica pelo Workers Builds. Não há deploy SSH do front dev.
+- **`main`:** produção legada preservada. Migrar produção requer plano separado; nunca fazer merge da `dev` para a `main`.
 
-| | React (raiz) | Solid (`web/`) |
-|---|---|---|
-| Estado | **em produção e congelado**: só correção, e só se o usuário pedir | **alvo da migração**: shell, primitivas, cliente da API e tempo real prontos (S1); páginas por fase |
-| API | Bun (rotas antigas, `legacyWire`) + GoTrue | **só o `/v1` da API Go**, com auth própria |
-| Hospedagem | nginx na VM (`dev.tozzo.uk`, `tozzo.uk`) | **Cloudflare Workers**, só assets (`tozzo-web`, `app-dev.tozzo.uk`; `dev.tozzo.uk` no corte) |
-| Testes | `bun test` + Testing Library + happy-dom; Playwright | Vitest + `@solidjs/testing-library` + happy-dom; Playwright |
+O código React foi retirado da árvore da S8. O [plano da migração](docs/superpowers/plans/2026-10-10-migracao-solid.md) registra implementação e pendências; PNGs, massa canônica e adaptador legado de testes continuam como referência de regressão, sem aplicação React executável.
 
-Os dois nunca se misturam no mesmo app. O `web/` tem `package.json` próprio.
+## Mapa
 
-## Branches
-
-- `main`: React em produção. Recebe só correções.
-- `dev`: React da homologação e o `web/` em construção. Push na `dev` publica o React na VM pelo Actions; o Worker `tozzo-web` publica o `web/` (branch de produção = `dev`).
-
-## React (raiz) — mapa
-
-| Caminho | O que tem |
+| Caminho | Responsabilidade |
 |---|---|
 | `src/App.tsx` | rotas e páginas lazy |
-| `src/components/ProtectedRoute.tsx`, `src/contexts/AuthContext.tsx` | sessão e acesso |
-| `src/layouts/DashboardLayout.tsx` | navegação, badge e shell |
-| `src/pages/dashboard/`, `src/components/dashboard/` | páginas, pedidos e vendas |
-| `src/components/ui/` | primitivas (Radix + CVA), base do visual que o Solid copia |
-| `src/services/api.ts` | Axios, sessão GoTrue e conversão da fronteira HTTP |
-| `src/lib/legacyWire.ts` | conversão português/inglês; não duplicar nos componentes |
-| `src/domain/models.ts`, `src/domain/dtos.ts` | contratos tipados |
-| `src/hooks/useRealtimeEvents.ts` | uma EventSource compartilhada por aba |
-| `src/i18n/` | recursos, labels e formatação (6 idiomas) |
-| `src/components/receipt/` | impressão no navegador |
-| `e2e/` | Playwright: fluxos, e na fase S0 o baseline visual (`e2e/visual/`) |
+| `src/api/` | cliente openapi-fetch e operações do `/v1` |
+| `src/api/schema.d.ts` | tipos gerados, nunca editados à mão |
+| `src/contexts/AuthContext.tsx`, `src/components/ProtectedRoute.tsx` | sessão e guardas |
+| `src/layouts/` | shell público e dashboard |
+| `src/components/ui/` | primitivas Kobalte e variantes visuais |
+| `src/pages/dashboard/` | operação, cadastros, serviços, agenda e relatórios |
+| `src/components/reports/` | gráficos e exportação de relatórios |
+| `src/i18n/` | recursos, binding Solid e formatação |
+| `src/realtime.ts` | SSE compartilhado e invalidação |
+| `e2e/` | fluxos Playwright e fixtures `/v1` |
+| `e2e/visual/` | cenários, massa, mocks e referências visuais |
+| `scripts/` | i18n, isolamento de chunks, tamanho inicial e visual Linux |
+| `wrangler.jsonc`, `public/_headers` | assets, fallback SPA, cache, segurança e CSP |
 
-## Solid (`web/`) — arquitetura-alvo
+## Dados, sessão e interface
 
-Detalhes e bibliotecas no plano (seções "Mapa de bibliotecas" e "S1").
+- Vite, `vite-plugin-solid`, TypeScript estrito, alias `@/`, Tailwind 3.4. Tokens e layout preservam a referência visual aprovada.
+- `@solidjs/router` e `lazyPage()`: um chunk que dá 404 após deploy recarrega a página uma vez.
+- TanStack Solid Query e openapi-fetch; tipos gerados por `bun run api:types` do `/v1/openapi.yaml`.
+- Access token só em memória. Refresh por cookie em `POST /v1/auth/refresh`, com `credentials: 'include'`; um refresh single-flight após `401 INVALID_TOKEN`.
+- `src/realtime.ts` obtém ticket, abre EventSource, reconecta com backoff e ticket novo e invalida queries. Componentes não abrem conexões próprias.
+- Kobalte com classes e variantes preservadas; i18next com seis idiomas, cada idioma em chunk próprio. Erros traduzidos pelo `code` em `error-keys.ts`.
+- Dinheiro em centavos no contrato; conversões centralizadas em `src/lib/money.ts`.
+- ECharts modular isolado no chunk de relatórios; gate de imports transitivos no build. FullCalendar vanilla e locales no chunk da agenda.
 
-- **Base:**
-  - Vite e `vite-plugin-solid`, TypeScript estrito, alias `@/`;
-  - SPA estática, sem SSR;
-  - Tailwind 3.4 com **o mesmo** `tailwind.config.js` e `index.css` do React.
-- **Rotas:** `@solidjs/router` com `lazy()`. Um chunk que dá 404 depois de deploy recarrega a página uma vez.
-- **Dados:**
-  - `@tanstack/solid-query` mais `openapi-fetch`;
-  - tipos gerados do `/v1/openapi.yaml` em `web/src/api/schema.d.ts` (`bun run api:types`, nunca editar à mão);
-  - o middleware põe o access token e faz **um** refresh single-flight no `401 INVALID_TOKEN`.
-- **Sessão:** access token só em memória; refresh por cookie (`POST /v1/auth/refresh`, `credentials: 'include'`).
-- **Tempo real:** só `web/src/realtime.ts`. Ele pede um ticket, abre o `EventSource`, reconecta com backoff e um ticket novo, e o evento vira `invalidateQueries`.
-- **UI:** primitivas em `web/src/components/ui/` com as mesmas classes e variantes CVA do React, sobre o `@kobalte/core`. Os seletores de estado do Radix viram os do Kobalte, com o mesmo efeito visual.
-- **i18n:** o mesmo i18next e as mesmas chaves, com um binding Solid (`web/src/i18n/solid.ts`). Cada idioma é um chunk carregado quando fica ativo; o app renderiza depois disso. O `code` dos erros do `/v1` vira mensagem pelo `error-keys.ts`.
-- **Gráficos:** ECharts modular, só no chunk de relatórios. Tabelas com `@tanstack/solid-table` e virtualização acima de 200 linhas.
-- **Workers:** `web/wrangler.jsonc` (assets e fallback de SPA) e `web/public/_headers` com cache imutável de assets e headers de segurança e CSP (ver [SECURITY.md](SECURITY.md)).
+## Workers
 
-## Metas de desempenho (Solid)
+Workers serve somente `dist/`, sem SSR, com `not_found_handling: single-page-application`. Configuração de build na raiz; variáveis públicas entram no bundle. HTML revalidado, assets com hash e cache imutável. CSP e headers em [SECURITY.md](SECURITY.md).
+
+A publicação da S8 precisa da mudança do diretório de build de `web/` para a raiz no painel, coordenada com o push; até sua conferência, o corte publicado não está concluído.
+
+## Metas de desempenho
 
 | Métrica | Meta |
 |---|---|
@@ -67,3 +53,5 @@ Detalhes e bibliotecas no plano (seções "Mapa de bibliotecas" e "S1").
 | Shell do dashboard + `orders` | ≤ 120 KB gzip |
 | Lighthouse mobile em `/login` e `/dashboard/orders` | Performance ≥ 90 |
 | Lista de 1.000 vendas | 60 fps (virtualizada) |
+
+São metas de aceite, não resultados presumidos. A S7 registrou pendências na landing e no dashboard; o corte estrutural não as encerra. Veja as medidas e limites no registro do plano.

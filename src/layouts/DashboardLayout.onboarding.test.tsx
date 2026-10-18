@@ -1,51 +1,58 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "bun:test"
-import { render, screen } from "@testing-library/react"
-import { MemoryRouter } from "react-router-dom"
+import { Route } from '@solidjs/router'
+import { screen } from '@solidjs/testing-library'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { I18nProvider } from "@/i18n/provider"
-import { ThemeProvider } from "@/components/theme-provider"
-import { ConfirmProvider } from "@/contexts/ConfirmContext"
-import api from "@/services/api"
-import { replaceProperty } from "@/test/replace-property"
-import DashboardLayout from "./DashboardLayout"
+import { i18n } from '@/i18n/config'
+import { json, mockApi } from '@/test/api'
+import { resetAuthMocks, setMockUser } from '@/test/auth-mock'
+import { renderDashboard } from '@/test/dashboard'
+import DashboardLayout from './DashboardLayout'
 
-let mockUser: any
-const refreshUserProfile = vi.fn()
-
-vi.mock("@/contexts/AuthContext", () => ({
-  useAuth: () => ({ isAuthenticated: true, user: mockUser, logout: vi.fn(), refreshUserProfile }),
-}))
-vi.mock("@/hooks/useRealtimeEvents", () => ({ useRealtimeEvents: vi.fn() }))
-vi.mock("@/components/dashboard/EstablishmentOnboardingModal", () => ({
-  EstablishmentOnboardingModal: ({ open }: { open: boolean }) => open ? <div data-testid="establishment-onboarding" /> : null,
+vi.mock('@/contexts/AuthContext', () => import('@/test/auth-mock'))
+vi.mock('@/realtime', () => ({ startRealtime: vi.fn(() => () => {}) }))
+vi.mock('@/components/dashboard/EstablishmentOnboardingModal', () => ({
+  EstablishmentOnboardingModal: (props: { open: boolean }) => (props.open ? <div data-testid="establishment-onboarding" /> : null),
 }))
 
-function renderLayout() {
-  return render(<I18nProvider><ThemeProvider><ConfirmProvider><MemoryRouter><DashboardLayout /></MemoryRouter></ConfirmProvider></ThemeProvider></I18nProvider>)
-}
+const establishment = (patch: Record<string, unknown>) => ({ id: 'est-42', tradeName: 'Burger', status: 'ACTIVE', plan: 'PAID', category: null, preferencesRevision: 0, ...patch }) as never
+const renderLayout = () => renderDashboard('/dashboard/orders', () => <Route path="/dashboard/orders" component={DashboardLayout} />)
 
-describe("DashboardLayout establishment onboarding", () => {
-  let restoreGet: () => void
-
-  beforeEach(() => {
-    restoreGet = replaceProperty(api, "get", vi.fn().mockResolvedValue({ headers: {}, data: [] }) as typeof api.get)
-    mockUser = { role: "OWNER", establishmentId: 42, establishment: { id: 42, tradeName: "Burger", category: null } }
+describe('DashboardLayout establishment onboarding', () => {
+  beforeEach(async () => {
+    resetAuthMocks()
+    mockApi(() => json(200, { items: [], nextCursor: null, total: 0 }))
+    await i18n.changeLanguage('en')
   })
-  afterEach(() => restoreGet())
+  afterEach(() => { vi.unstubAllGlobals() })
 
-  it("opens only for an owner whose establishment has no category", () => {
+  it('opens for an owner whose establishment has no business profile', async () => {
+    setMockUser({ role: 'OWNER', establishment: establishment({ businessProfiles: [] }) })
     renderLayout()
-    expect(screen.getByTestId("establishment-onboarding")).toBeInTheDocument()
+    expect(await screen.findByTestId('establishment-onboarding')).toBeInTheDocument()
   })
 
-  it("does not open after category completion or for a non-owner", () => {
-    mockUser.establishment.category = "HAMBURGUERIA"
-    const { unmount } = renderLayout()
-    expect(screen.queryByTestId("establishment-onboarding")).not.toBeInTheDocument()
-
-    unmount()
-    mockUser = { role: "MANAGER", establishment: { id: 42, tradeName: "Burger", category: null } }
+  it('opens for an owner of a legacy establishment (no profiles) without a category', async () => {
+    setMockUser({ role: 'OWNER', establishment: establishment({}) })
     renderLayout()
-    expect(screen.queryByTestId("establishment-onboarding")).not.toBeInTheDocument()
+    expect(await screen.findByTestId('establishment-onboarding')).toBeInTheDocument()
+  })
+
+  it('does not open after the profiles are set, for a legacy category, or for a non-owner', async () => {
+    setMockUser({ role: 'OWNER', establishment: establishment({ businessProfiles: ['FOOD'] }) })
+    const first = renderLayout()
+    await screen.findByRole('navigation', { name: 'Dashboard' })
+    expect(screen.queryByTestId('establishment-onboarding')).toBeNull()
+    first.unmount()
+
+    setMockUser({ role: 'OWNER', establishment: establishment({ category: 'BURGER_SHOP' }) })
+    const second = renderLayout()
+    await screen.findByRole('navigation', { name: 'Dashboard' })
+    expect(screen.queryByTestId('establishment-onboarding')).toBeNull()
+    second.unmount()
+
+    setMockUser({ role: 'MANAGER', establishment: establishment({ businessProfiles: [] }) })
+    renderLayout()
+    await screen.findByRole('navigation', { name: 'Dashboard' })
+    expect(screen.queryByTestId('establishment-onboarding')).toBeNull()
   })
 })

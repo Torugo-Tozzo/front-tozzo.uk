@@ -1,4 +1,4 @@
-import { expect, test } from 'bun:test'
+import { expect, test } from 'vitest'
 import { getCalendarSlotRange, getVisibleShiftMembers, replaceBusinessHoursDay, toCalendarEvents, toCalendarShiftEvents, toFullCalendarBusinessHours } from './calendarEvents'
 
 test('weekly shift repeats through the selected final date', () => {

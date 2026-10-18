@@ -1,150 +1,56 @@
 # front-tozzo.uk
 
-Frontend da plataforma [Tozzo.uk](https://tozzo.uk) — sistema de gestão para restaurantes e bares.
+Front web do Tozzo. Na branch `dev`, usa **SolidJS**, consome somente o `/v1` da API Go e é servido como assets estáticos pelo **Cloudflare Workers** (`tozzo-web`, `dev.tozzo.uk`).
 
-Construído com React, TypeScript e Vite. Consome a API REST do [api-tozzo.uk](https://github.com/Torugo-Tozzo/api-tozzo.uk) (repositório privado).
-
-O plano da expansão para alimentação, loja e serviços fica no repositório privado da API, em `proximas-etapas/002-plataforma-multinicho/README.md`. A cada entrega web, registre o impacto ou a ausência de impacto no [acompanhamento mobile](../TozzoBurger/docs/pendencias-alinhamento-api-web.md).
-As práticas compartilhadas de implementação, revisão, testes e deploy ficam no [guia de desenvolvimento](../api-tozzo.uk/skills/tozzo-development/SKILL.md).
-
-## Funcionalidades
-
-- Gestão de pedidos em tempo real (SSE/polling)
-- Controle de produtos e cardápio digital
-- Gestão de funcionários
-- Histórico de vendas
-- Gráficos e dashboards (horários de pico, total de vendas)
-- Autenticação JWT com controle de rotas
-- Integração com Stripe para assinaturas
-- Suporte a tema claro/escuro
+O aplicativo está na raiz desde a S8; não existe instalação separada em `web/`. O React da produção permanece na `main`. Não faça merge da `dev` para a `main`: produção exige um plano próprio.
 
 ## Stack
 
-- **React 18** + **TypeScript**
-- **Vite** — bundler
-- **React Router v7** — roteamento com lazy loading
-- **Axios** — cliente HTTP
-- **Tailwind CSS** + **shadcn/ui** — estilização e componentes
-- **Recharts** — gráficos
-- **Docker** + **Nginx** — deploy em produção
-- **Bun** — gerenciador de pacotes
+SolidJS, TypeScript estrito, Vite, Tailwind CSS 3.4, Kobalte, TanStack Solid Query, openapi-fetch, i18next (seis idiomas), ECharts sob demanda e FullCalendar. Access token em memória e refresh por cookie; tempo real por SSE compartilhado.
 
-## Pré-requisitos
+## Desenvolvimento
 
-- [Node.js](https://nodejs.org/) 18+ ou [Bun](https://bun.sh/)
-- API do back-end rodando (ver variáveis de ambiente)
-
-## Como rodar localmente
-
-**1. Clone o repositório**
+Use Bun **1.4.2**, a versão das verificações Linux e do CI.
 
 ```bash
-git clone https://github.com/Torugo-Tozzo/front-tozzo.uk.git
-cd front-tozzo.uk
-```
-
-**2. Instale as dependências**
-
-```bash
-bun install
-# ou
-npm install
-```
-
-**3. Configure as variáveis de ambiente**
-
-Crie um arquivo `.env` na raiz do projeto:
-
-```env
-VITE_API_URL=/api
-```
-
-**4. Inicie o servidor de desenvolvimento**
-
-```bash
+bun install --frozen-lockfile
+cp .env.example .env
 bun run dev
-# ou
-npm run dev
 ```
 
-A aplicação estará disponível em `http://localhost:5173`.
-No desenvolvimento, o Vite encaminha `/api/*` para a API local na porta `3001`.
+Vite em `http://localhost:5175`. `VITE_API_URL` é a origem da API, por exemplo `https://dev-api.tozzo.uk`, sem `/v1`: o cliente acrescenta o prefixo. Não há proxy legado `/api` nem configuração GoTrue. Variáveis `VITE_*` são públicas e entram no build.
 
-## Scripts disponíveis
-
-| Comando | Descrição |
-|---|---|
-| `bun run dev` | Servidor de desenvolvimento |
-| `bun run build` | Build de produção (gera `dist/`) |
-| `bun run preview` | Visualiza o build localmente |
-| `bun run lint` | Linting com ESLint |
-| `bun run test` | Testes de lógica e componentes (Bun/Happy DOM) |
-| `bun run test:e2e` | Testes em Chromium no front local |
-| `bun run browse` | Navegação interativa pelo Playwright CLI |
-
-## Testes de navegador
-
-Cada nova feature deve incluir testes automatizados para seus fluxos principais. Quando o fluxo aparece no navegador, adicione ou atualize um teste em `e2e/` além dos testes de lógica/componentes pertinentes.
-
-Instale o Chromium usado pelo Playwright uma vez:
+## Verificações
 
 ```bash
+bun run test
+bun run i18n:check
+bun run build
 bun run browser:install
-```
-
-O teste de navegador inicia o Vite em `localhost:5173` quando necessário. Para executar o mesmo fluxo público em homologação, informe a URL do front:
-
-```bash
 bun run test:e2e
-E2E_BASE_URL=https://dev.tozzo.uk bun run test:e2e
+bun run test:visual:linux
 ```
 
-O teste autenticado faz login e visita os módulos disponíveis para a conta, conferindo as respostas das listagens e o estado das tabelas. Defina `E2E_EMAIL` e `E2E_PASSWORD` para executá-lo; sem ambas, ele é ignorado. Use uma conta exclusiva de testes. Para homologação, guarde as variáveis em `.env.e2e.local` (ignorado pelo Git) e execute:
+Vitest cobre componentes, lógica, scripts e consistência da massa canônica. Playwright cobre fluxos com mock `/v1`, acessibilidade e regressão visual. O visual Linux usa Docker com a imagem oficial Playwright; conserva as referências aprovadas em `e2e/visual/__screenshots__/`, sem regenerá-las. Veja [TESTING.md](TESTING.md).
 
-```bash
-bun --env-file=.env.e2e.local run test:e2e
-```
+Outros comandos: `bun run preview`, `bun run test:watch`, `bun run api:types`, `bun run analyze`, `bun run size` e `bun run browse`. O build verifica também que ECharts permanece fora dos imports estáticos da entrada, login e pedidos.
 
-Para explorar o localhost, inicie antes `bun run dev --host localhost --strictPort`. Use então o Playwright CLI. Ele mantém a sessão entre comandos e pode gerar snapshots, screenshots e rastros sem registrar esses arquivos no Git:
+## Publicação no Cloudflare
 
-```bash
-bun run browse open http://localhost:5173 --headed
-bun run browse snapshot
-bun run browse screenshot
-bun run browse close
+Push na `dev` aciona Workers Builds. Commit, push e deploy exigem pedido do usuário.
 
-bun run browse open https://dev.tozzo.uk --headed
-```
+- Worker: `tozzo-web`; branch: `dev`; diretório de build: **raiz do repositório** (antes `web/`).
+- Build: `bun install --frozen-lockfile && bun run build`.
+- Deploy: `npx wrangler deploy`; preview: `npx wrangler versions upload`.
+- Variáveis de build: `BUN_VERSION=1.4.2`, `VITE_API_URL=https://dev-api.tozzo.uk`.
+- `wrangler.jsonc`: assets em `./dist`, fallback SPA; headers/CSP em `public/_headers`.
 
-Os testes padrão de homologação não alteram dados. Testes autenticados que criem ou editem registros devem usar uma conta e um estabelecimento exclusivos para testes; não salve senhas nem estado de sessão no repositório.
+**Antes de publicar o corte**, coordenar a troca do diretório de build no painel com o push. Depois, conferir o SHA publicado, `/`, `/login`, uma rota profunda, assets e headers. A S8 não exige intervenção na VM; a limpeza da API é outra fase.
 
-## Deploy com Docker
+## Documentação
 
-```bash
-docker build --build-arg VITE_API_URL=https://sua-api.com -t front-tozzo .
-docker run -p 80:80 front-tozzo
-```
+[Arquitetura](ARCHITECTURE.md), [convenções](CONVENTIONS.md), [segurança](SECURITY.md), [testes](TESTING.md) e [instruções para agentes](AGENTS.md).
 
-O Dockerfile realiza o build em um estágio e serve os arquivos estáticos via Nginx no estágio de produção.
+[Plano e registro da migração](docs/superpowers/plans/2026-10-10-migracao-solid.md) e [execução S8](docs/superpowers/plans/2026-10-18-solid-s8.md).
 
-## Variáveis de ambiente
-
-| Variável | Descrição | Padrão |
-|---|---|---|
-| `VITE_API_URL` | URL base da API (`/api` no desenvolvimento; URL pública no build de produção) | `/api` no desenvolvimento |
-
-> Variáveis do Vite prefixadas com `VITE_` são embutidas no bundle durante o build. Não coloque segredos aqui.
-
-## Estrutura do projeto
-
-```
-src/
-├── components/       # Componentes reutilizáveis
-│   └── ui/           # Componentes base (shadcn/ui)
-├── contexts/         # Context API (autenticação)
-├── layouts/          # Layouts de página
-├── pages/            # Páginas da aplicação
-│   └── dashboard/    # Páginas do painel administrativo
-├── services/         # Cliente HTTP (Axios)
-└── lib/              # Utilitários
-```
+API: `../api-tozzo.uk`; mobile: `../TozzoBurger`; [guia compartilhado](../api-tozzo.uk/skills/tozzo-development/SKILL.md). Mudanças web registram impacto ou ausência de impacto no [acompanhamento mobile](../TozzoBurger/docs/pendencias-alinhamento-api-web.md). Planejamento privado permanece no repositório da API.

@@ -1,6 +1,7 @@
 {
   "common": {
     "appName": "Tozzo.uk",
+    "logoutFailed": "Impossible de se déconnecter. Vérifiez votre connexion et réessayez.",
     "loading": "Chargement...",
     "processing": "Traitement...",
     "saving": "Enregistrement...",
@@ -198,7 +199,15 @@
     "actions": {
       "label": "Actions"
     },
-    "saveChanges": "Enregistrer les modifications"
+    "saveChanges": "Enregistrer les modifications",
+    "payment": "Paiement",
+    "dnd": {
+      "keyboardInstructions": "Au clavier : Espace prend la carte, les flèches choisissent la colonne, Espace la dépose et Échap annule.",
+      "picked": "Carte sélectionnée.",
+      "over": "Colonne : {{column}}.",
+      "dropped": "Carte déplacée.",
+      "cancelled": "Déplacement annulé."
+    }
   },
   "auth": {
     "login": "Connexion",
@@ -241,7 +250,7 @@
     "confirmationLinkExpired": "Le lien de confirmation a expiré ou a déjà été utilisé. Connectez-vous avec votre e-mail et votre mot de passe ou demandez un nouveau lien.",
     "emailNotConfirmed": "Votre e-mail n'a pas encore été confirmé. Cliquez sur le lien envoyé ou renvoyez-le ci-dessous.",
     "emailAlreadyRegistered": "Cet e-mail est déjà enregistré. Connectez-vous ou réinitialisez votre mot de passe.",
-    "weakPassword": "Mot de passe trop faible. Utilisez au moins 6 caractères.",
+    "weakPassword": "Mot de passe trop faible. Utilisez au moins 8 caractères.",
     "authRateLimited": "Trop de tentatives d'affilée. Attendez une minute et réessayez.",
     "verifyCredentials": "Vérifiez vos identifiants.",
     "verifyData": "Vérifiez vos informations.",
@@ -271,7 +280,13 @@
     "resetPasswordFailed": "Impossible de réinitialiser le mot de passe.",
     "totpCode": "Code d'authentification",
     "confirmTotp": "Confirmer",
-    "invalidTotpCode": "Code invalide."
+    "invalidTotpCode": "Code invalide.",
+    "verifyEmailChecking": "Confirmation de votre e-mail...",
+    "confirmEmailChangeTitle": "Confirmer le nouvel e-mail",
+    "confirmEmailChangeChecking": "Confirmation de votre nouvel e-mail...",
+    "confirmEmailChangeSuccess": "Votre e-mail a été modifié. Utilisez la nouvelle adresse lors de votre prochaine connexion.",
+    "confirmEmailChangeInvalid": "Ce lien de confirmation a expiré ou a déjà été utilisé. Demandez à nouveau le changement d'e-mail.",
+    "emailChangeInUse": "Cet e-mail est déjà utilisé par un autre compte."
   },
   "navigation": {
     "dashboard": "Tableau de bord",
@@ -520,7 +535,8 @@
     "closingPeriod": "Clôture de la période",
     "empty": "Aucune vente trouvée pour cette période.",
     "viewDetails": "Voir les détails",
-    "serviceLine": "service"
+    "serviceLine": "service",
+    "alreadyRegistered": "Cette vente avait déjà été enregistrée ; la modification n’a pas été enregistrée."
   },
   "products": {
     "title": "Produits",
@@ -565,7 +581,8 @@
       "decreaseQuantity": "Diminuer la quantité",
       "increaseQuantity": "Augmenter la quantité",
       "removeItem": "Supprimer l’article",
-      "itemStatus": "Statut de l’article"
+      "itemStatus": "Statut de l’article",
+      "paymentNotInformed": "Non renseigné"
     },
     "confirm": {
       "delete": "Voulez-vous vraiment supprimer ce produit ?",
@@ -610,6 +627,12 @@
     "accessibility": {
       "activateType": "Activer le type",
       "deactivateType": "Désactiver le type"
+    },
+    "image": {
+      "label": "Image",
+      "uploading": "Envoi de l'image...",
+      "uploaded": "Image mise à jour.",
+      "preview": "Image actuelle du produit"
     }
   },
   "employees": {
@@ -654,6 +677,7 @@
     "roleLabel": "Rôle"
   },
   "charts": {
+    "others": "Autres",
     "title": "Rapports",
     "pageTitle": "Rapports — {{establishment}}",
     "productsSold": "Produits vendus",
@@ -701,6 +725,7 @@
     "sales": "Ventes",
     "moreSales": "+{{count}} de plus...",
     "report": {
+      "unavailable": "L’exportation des rapports n’est pas encore disponible.",
       "generateExcel": "Générer un fichier Excel",
       "generatePdf": "Générer un PDF",
       "filename": "rapport",
@@ -848,7 +873,8 @@
       "save": "Enregistrer les informations",
       "saving": "Enregistrement...",
       "saved": "Informations de l'établissement mises à jour.",
-      "saveError": "Impossible d'enregistrer les informations. Réessayez."
+      "saveError": "Impossible d'enregistrer les informations. Réessayez.",
+      "addressComplementPlaceholder": "Appt, bureau, etc."
     },
     "businessPreferences": {
       "onboardingTitle": "Quel type d'activité exercez-vous ?",
@@ -935,7 +961,8 @@
     "printSoon": "Impression (bientôt disponible)",
     "receiptTitleOrder": "Commande #{{id}}",
     "receiptTitleSale": "Vente #{{id}}",
-    "receiptTotal": "Total"
+    "receiptTotal": "Total",
+    "receiptPaymentMethod": "Moyen de paiement : {{method}}"
   },
   "status": {
     "inPreparation": "En préparation",
@@ -997,7 +1024,14 @@
       "create": "Erreur lors de la création de l'employé",
       "update": "Erreur lors de la mise à jour de l'employé",
       "delete": "Erreur lors de la suppression de l'employé"
-    }
+    },
+    "uploadImage": "Erreur lors de l'envoi de l'image.",
+    "uploadUnavailable": "L'envoi d'images n'est pas encore disponible.",
+    "uploadInvalid": "Utilisez une image JPEG, PNG ou WebP de 5 Mo maximum.",
+    "orderNotOpen": "Cette commande a déjà été clôturée.",
+    "orderDelivering": "Cette commande est en cours de livraison et ne peut pas être modifiée.",
+    "deliveryNotStarted": "Démarrez la livraison avant de clôturer la commande.",
+    "orderChanged": "Cette commande a été modifiée ailleurs. Vérifiez les articles à jour et enregistrez à nouveau."
   },
   "catalog": {
     "burger": "Hamburger",
@@ -1108,6 +1142,17 @@
     "cancelOrder": "Annuler l’ordre",
     "reopen": "Rouvrir l’ordre",
     "history": "Historique",
+    "historyActions": {
+      "CREATE": "CREATE",
+      "QUOTE": "QUOTE",
+      "APPROVE": "APPROVE",
+      "START": "START",
+      "COMPLETE": "COMPLETE",
+      "CANCEL": "CANCEL",
+      "REOPEN": "REOPEN",
+      "SUPPLEMENTS": "SUPPLEMENTS",
+      "APPROVE_SUPPLEMENTS": "APPROVE_SUPPLEMENTS"
+    },
     "empty": "Aucun devis pour le moment.",
     "emptyItems": "Ajoutez au moins un produit ou un service.",
     "loadError": "Impossible de charger les ordres de service.",

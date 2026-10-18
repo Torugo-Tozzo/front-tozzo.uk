@@ -1,11 +1,13 @@
 import { defineConfig, devices } from '@playwright/test'
 
-// Visual regression (plan S0). The React app in this repo records the baseline
-// under e2e/visual/__screenshots__/react/<platform>/; the Solid app (web/) compares
-// against the same files. Screenshots depend on the OS font rendering, so each
-// platform (win32, linux) has its own baseline.
-const target = process.env.VISUAL_TARGET ?? 'react'
-const baseURL = process.env.VISUAL_BASE_URL ?? 'http://localhost:5174'
+// Visual regression of the Solid app (plan S1+): every screenshot is compared
+// with the React baseline recorded in S0 (./e2e/visual/__screenshots__/react/
+// <platform>/). This config never writes there: updating the baseline needs the
+// user's "ok". The retired React app remains available in Git history.
+// The exception is the `solid-*` projects (screens React does not have), whose
+// reference lives in ./e2e/visual/__screenshots__/solid/<platform>/ and is
+// recorded only with `--project 'solid-*' --update-snapshots`, with the user's "ok".
+const baseURL = process.env.VISUAL_BASE_URL ?? 'http://localhost:5176'
 const startsLocalVite = !process.env.VISUAL_BASE_URL
 
 const sizes = [
@@ -22,14 +24,14 @@ export default defineConfig({
   reporter: 'list',
   fullyParallel: true,
   workers: process.env.VISUAL_WORKERS ? Number(process.env.VISUAL_WORKERS) : 4,
-  snapshotPathTemplate: `e2e/visual/__screenshots__/react/{platform}/{arg}--{projectName}{ext}`,
+  updateSnapshots: 'none',
+  snapshotPathTemplate: `./e2e/visual/__screenshots__/react/{platform}/{arg}--{projectName}{ext}`,
+  outputDir: './test-results/visual',
   expect: {
-    // Generous waits: a cold Vite compile under 4 workers can pass 5 s.
     timeout: 15_000,
     toHaveScreenshot: {
-      // React against its own baseline must be pixel-identical (determinism);
-      // the Solid port gets the tolerance agreed in the plan.
-      maxDiffPixelRatio: target === 'react' ? 0 : 0.002,
+      // Tolerance agreed in the plan for the Solid port.
+      maxDiffPixelRatio: 0.002,
       animations: 'disabled',
       caret: 'hide',
       scale: 'css',
@@ -43,27 +45,39 @@ export default defineConfig({
     screenshot: 'off',
   },
   projects: sizes.flatMap((size) =>
-    themes.map((theme) => ({
-      name: `${size.name}-${theme}`,
-      use: {
+    themes.flatMap((theme) => {
+      const use = {
         ...devices['Desktop Chrome'],
         viewport: size.viewport,
         isMobile: size.isMobile,
         hasTouch: size.isMobile,
         deviceScaleFactor: 1,
         colorScheme: theme,
-      },
-      metadata: { theme },
-    })),
+      }
+      return [
+        // Compared with the React baseline.
+        { name: `${size.name}-${theme}`, use, metadata: { theme }, testIgnore: '**/solid-only.visual.ts' },
+        // Screens with no React counterpart: their own reference, recorded from
+        // the Solid app with the user's "ok" (plan S2). Same file names as the
+        // React ones, in ./e2e/visual/__screenshots__/solid/<platform>/.
+        {
+          name: `solid-${size.name}-${theme}`,
+          use,
+          metadata: { theme },
+          testMatch: '**/solid-only.visual.ts',
+          snapshotPathTemplate: `./e2e/visual/__screenshots__/solid/{platform}/{arg}--${size.name}-${theme}{ext}`,
+        },
+      ]
+    }),
   ),
   webServer: startsLocalVite
     ? {
-        command: 'bun run dev --host localhost --port 5174 --strictPort',
-        url: `${baseURL}/login`,
+        command: 'bun run dev --host localhost --port 5176 --strictPort',
+        url: `${baseURL}/__ui`,
         reuseExistingServer: !process.env.CI,
         timeout: 120_000,
-        // Fake hosts: the mocks answer them, and nothing reaches a real server.
-        env: { VITE_API_URL: 'http://api.visual.test', VITE_AUTH_URL: 'http://auth.visual.test' },
+        // Fake host: the mocks answer it, and nothing reaches a real server.
+        env: { VITE_API_URL: 'http://api.visual.test' },
       }
     : undefined,
 })

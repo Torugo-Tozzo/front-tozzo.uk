@@ -12,7 +12,7 @@ A sessão principal planeja, decide e conversa com o usuário. O trabalho pesado
 | Rodar testes, build, `i18n:check` e Playwright; acompanhar CI; resumir logs longos | `test-runner` | Haiku |
 | Abrir páginas no navegador para inspecionar: snapshot, screenshot, console, rede, conferir um fluxo à mão | `browser-inspector` | Haiku |
 | Escrever ou corrigir specs Playwright (E2E, visual, acessibilidade, mocks com `page.route`) e depurar testes de navegador | `e2e-playwright` | Opus |
-| Escrever ou alterar código (componentes, páginas, `web/`), com escopo claro | `implementer` | Opus |
+| Escrever ou alterar código (componentes, páginas, `src/`), com escopo claro | `implementer` | Opus |
 | Revisar diff antes de commit ou push | `reviewer` | Opus |
 
 Regras:

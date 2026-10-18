@@ -1,29 +1,23 @@
-import { render, screen } from "@testing-library/react"
+import { render, screen } from "@solidjs/testing-library"
 import userEvent from "@testing-library/user-event"
-import { describe, expect, test, vi } from "bun:test"
+import { beforeEach, describe, expect, test, vi } from "vitest"
 
-import { I18nProvider } from "@/i18n/provider"
+import { I18nProvider } from "@/i18n/solid"
+import { i18n } from "@/i18n/config"
 import { PricingCards } from "./PricingCards"
 
-function renderCards(props: Partial<React.ComponentProps<typeof PricingCards>> = {}) {
-  const onSelectPago = vi.fn()
+function renderCards(props: Partial<import('solid-js').ComponentProps<typeof PricingCards>> = {}) {
+  const onSelectPaid = vi.fn()
   const onSelectEnterprise = vi.fn()
   const onSelectFree = vi.fn()
 
-  render(
-    <I18nProvider>
-      <PricingCards
-        onSelectFree={onSelectFree}
-        onSelectPago={onSelectPago}
-        onSelectEnterprise={onSelectEnterprise}
-        {...props}
-      />
-    </I18nProvider>,
-  )
+  const cardProps = { onSelectFree, onSelectPaid, onSelectEnterprise, ...props }
+  render(() => <I18nProvider><PricingCards {...cardProps} /></I18nProvider>)
 
-  return { onSelectFree, onSelectPago, onSelectEnterprise }
+  return { onSelectFree, onSelectPaid, onSelectEnterprise }
 }
 
+beforeEach(async () => { await i18n.changeLanguage('en') })
 describe("PricingCards", () => {
   test("renders the three tiers and monthly prices", () => {
     renderCards()
@@ -57,7 +51,7 @@ describe("PricingCards", () => {
     const callbacks = renderCards()
 
     await user.click(screen.getByRole("button", { name: /subscribe monthly/i }))
-    expect(callbacks.onSelectPago).toHaveBeenCalledWith("monthly")
+    expect(callbacks.onSelectPaid).toHaveBeenCalledWith("monthly")
 
     await user.click(screen.getByRole("button", { name: "Annual" }))
     expect(screen.getByText(/60[,.]91/)).toBeInTheDocument()
@@ -65,7 +59,7 @@ describe("PricingCards", () => {
     await user.click(screen.getByRole("button", { name: /subscribe annually/i }))
     await user.click(screen.getByRole("button", { name: /subscribe.*enterprise/i }))
 
-    expect(callbacks.onSelectPago).toHaveBeenLastCalledWith("annual")
+    expect(callbacks.onSelectPaid).toHaveBeenLastCalledWith("annual")
     expect(callbacks.onSelectEnterprise).toHaveBeenCalledTimes(1)
   })
 

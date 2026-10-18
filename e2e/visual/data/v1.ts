@@ -1,6 +1,6 @@
 // toV1(): the canonical dataset as the Go API serves it under /v1
 // (English, integer cents, keyset cursor pages `{items, nextCursor}`).
-// The Solid app (web/) is driven by this serializer in its visual and E2E tests.
+// The Solid app is driven by this serializer in its visual and E2E tests.
 import {
   canonical as defaultDataset,
   orderTotalCents,

@@ -1,20 +1,22 @@
-import { DollarSign } from "lucide-react"
-import { useAuth } from "@/contexts/AuthContext"
+import { DollarSign } from "lucide-solid"
+
 import { VendasTab } from "@/components/dashboard/VendasTab"
-import { useTranslation } from "react-i18next"
+import { useAuth } from "@/contexts/AuthContext"
+import { useTranslation } from "@/i18n/solid"
 
 export default function SalesPage() {
   const { user } = useAuth()
   const { t } = useTranslation("sales")
-  const title = user?.establishment?.tradeName
-    ? t("pageTitle", { establishment: user.establishment.tradeName })
-    : t("title")
+  const title = () => {
+    const tradeName = user()?.establishment?.tradeName
+    return tradeName ? t("pageTitle", { establishment: tradeName }) : t("title")
+  }
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-        <DollarSign className="h-8 w-8" />
-        {title}
+    <div class="space-y-6">
+      <h1 class="text-3xl font-bold tracking-tight flex items-center gap-2">
+        <DollarSign class="h-8 w-8" />
+        {title()}
       </h1>
 
       <VendasTab />

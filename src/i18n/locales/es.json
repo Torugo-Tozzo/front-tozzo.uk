@@ -1,6 +1,7 @@
 {
   "common": {
     "appName": "Tozzo.uk",
+    "logoutFailed": "No se pudo cerrar la sesión. Revisa tu conexión e inténtalo de nuevo.",
     "loading": "Cargando...",
     "processing": "Procesando...",
     "saving": "Guardando...",
@@ -198,7 +199,15 @@
     "actions": {
       "label": "Acciones"
     },
-    "saveChanges": "Guardar cambios"
+    "saveChanges": "Guardar cambios",
+    "payment": "Pago",
+    "dnd": {
+      "keyboardInstructions": "Con el teclado: Espacio toma la tarjeta, las flechas eligen la columna, Espacio la suelta y Esc cancela.",
+      "picked": "Tarjeta seleccionada.",
+      "over": "Columna: {{column}}.",
+      "dropped": "Tarjeta movida.",
+      "cancelled": "Movimiento cancelado."
+    }
   },
   "auth": {
     "login": "Iniciar sesión",
@@ -241,7 +250,7 @@
     "confirmationLinkExpired": "El enlace de confirmación expiró o ya fue usado. Inicia sesión con tu correo y contraseña o solicita un nuevo enlace.",
     "emailNotConfirmed": "Tu correo aún no ha sido confirmado. Haz clic en el enlace que enviamos o reenvíalo abajo.",
     "emailAlreadyRegistered": "Este correo ya está registrado. Inicia sesión o recupera tu contraseña.",
-    "weakPassword": "Contraseña débil. Usa al menos 6 caracteres.",
+    "weakPassword": "Contraseña débil. Usa al menos 8 caracteres.",
     "authRateLimited": "Demasiados intentos seguidos. Espera un minuto e inténtalo de nuevo.",
     "verifyCredentials": "Comprueba tus credenciales.",
     "verifyData": "Comprueba tus datos.",
@@ -271,7 +280,13 @@
     "resetPasswordFailed": "No se pudo restablecer la contraseña.",
     "totpCode": "Código de autenticación",
     "confirmTotp": "Confirmar",
-    "invalidTotpCode": "Código inválido."
+    "invalidTotpCode": "Código inválido.",
+    "verifyEmailChecking": "Confirmando tu correo...",
+    "confirmEmailChangeTitle": "Confirmar nuevo correo",
+    "confirmEmailChangeChecking": "Confirmando tu nuevo correo...",
+    "confirmEmailChangeSuccess": "Tu correo fue cambiado. Usa la nueva dirección la próxima vez que inicies sesión.",
+    "confirmEmailChangeInvalid": "Este enlace de confirmación expiró o ya fue usado. Solicita el cambio de correo de nuevo.",
+    "emailChangeInUse": "Este correo ya está en uso por otra cuenta."
   },
   "navigation": {
     "dashboard": "Panel",
@@ -520,7 +535,8 @@
     "closingPeriod": "Cierre del período",
     "empty": "No se encontraron ventas en el período.",
     "viewDetails": "Ver detalles",
-    "serviceLine": "servicio"
+    "serviceLine": "servicio",
+    "alreadyRegistered": "Esta venta ya había sido registrada; el cambio no se guardó."
   },
   "products": {
     "title": "Productos",
@@ -565,7 +581,8 @@
       "decreaseQuantity": "Disminuir cantidad",
       "increaseQuantity": "Aumentar cantidad",
       "removeItem": "Eliminar elemento",
-      "itemStatus": "Estado del artículo"
+      "itemStatus": "Estado del artículo",
+      "paymentNotInformed": "No informado"
     },
     "confirm": {
       "delete": "¿Seguro que deseas eliminar este producto?",
@@ -610,6 +627,12 @@
     "accessibility": {
       "activateType": "Activar tipo",
       "deactivateType": "Desactivar tipo"
+    },
+    "image": {
+      "label": "Imagen",
+      "uploading": "Subiendo imagen...",
+      "uploaded": "Imagen actualizada.",
+      "preview": "Imagen actual del producto"
     }
   },
   "employees": {
@@ -654,6 +677,7 @@
     "roleLabel": "Rol"
   },
   "charts": {
+    "others": "Otros",
     "title": "Informes",
     "pageTitle": "Informes — {{establishment}}",
     "productsSold": "Productos vendidos",
@@ -701,6 +725,7 @@
     "sales": "Ventas",
     "moreSales": "+{{count}} más...",
     "report": {
+      "unavailable": "La exportación de informes aún no está disponible.",
       "generateExcel": "Generar Excel",
       "generatePdf": "Generar PDF",
       "filename": "informe",
@@ -848,7 +873,8 @@
       "save": "Guardar información",
       "saving": "Guardando...",
       "saved": "Información del establecimiento actualizada.",
-      "saveError": "No se pudo guardar la información. Inténtalo de nuevo."
+      "saveError": "No se pudo guardar la información. Inténtalo de nuevo.",
+      "addressComplementPlaceholder": "Depto., oficina, etc."
     },
     "businessPreferences": {
       "onboardingTitle": "¿Qué tipo de negocio tienes?",
@@ -935,7 +961,8 @@
     "printSoon": "Impresión (próximamente)",
     "receiptTitleOrder": "Pedido #{{id}}",
     "receiptTitleSale": "Venta #{{id}}",
-    "receiptTotal": "Total"
+    "receiptTotal": "Total",
+    "receiptPaymentMethod": "Forma de pago: {{method}}"
   },
   "status": {
     "inPreparation": "En preparación",
@@ -997,7 +1024,14 @@
       "create": "Error al crear el empleado",
       "update": "Error al actualizar el empleado",
       "delete": "Error al eliminar el empleado"
-    }
+    },
+    "uploadImage": "Error al subir la imagen.",
+    "uploadUnavailable": "La subida de imágenes aún no está disponible.",
+    "uploadInvalid": "Usa una imagen JPEG, PNG o WebP de hasta 5 MB.",
+    "orderNotOpen": "Este pedido ya fue cerrado.",
+    "orderDelivering": "Este pedido salió para entrega y no se puede modificar.",
+    "deliveryNotStarted": "Inicia la entrega antes de cerrar el pedido.",
+    "orderChanged": "Este pedido fue modificado en otro lugar. Revisa los ítems actualizados y guarda de nuevo."
   },
   "catalog": {
     "burger": "Hamburguesa",
@@ -1108,6 +1142,17 @@
     "cancelOrder": "Cancelar orden",
     "reopen": "Reabrir orden",
     "history": "Historial",
+    "historyActions": {
+      "CREATE": "CREATE",
+      "QUOTE": "QUOTE",
+      "APPROVE": "APPROVE",
+      "START": "START",
+      "COMPLETE": "COMPLETE",
+      "CANCEL": "CANCEL",
+      "REOPEN": "REOPEN",
+      "SUPPLEMENTS": "SUPPLEMENTS",
+      "APPROVE_SUPPLEMENTS": "APPROVE_SUPPLEMENTS"
+    },
     "empty": "Todavía no hay presupuestos.",
     "emptyItems": "Añade al menos un producto o servicio.",
     "loadError": "No se pudieron cargar las órdenes.",

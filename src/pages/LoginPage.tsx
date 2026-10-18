@@ -1,8 +1,13 @@
-import { useState, useEffect } from "react"
-import { useNavigate, useSearchParams } from "react-router-dom"
+import { createEffect, createSignal, onCleanup, Show } from "solid-js"
+import { useNavigate, useSearchParams } from "@solidjs/router"
+import { createMutation } from "@tanstack/solid-query"
+import { toast } from "solid-sonner"
+
+import * as authApi from "@/api/auth"
+import { apiErrorOf } from "@/api/errors"
+import { GoogleSignInButton } from "@/components/GoogleSignInButton"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import {
   Card,
   CardContent,
@@ -11,123 +16,97 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import logo from "@/assets/images/logo.svg"
-import { GoogleIcon } from "@/components/icons/GoogleIcon"
-import api, { getErrorCode } from "@/services/api"
-import { authClient } from "@/lib/authClient"
-import { toast } from "sonner"
 import { useAuth } from "@/contexts/AuthContext"
-import { Trans, useTranslation } from "react-i18next"
 import { getErrorTranslationKey } from "@/i18n/error-keys"
+import { normalizeLocale } from "@/i18n/locale"
+import { useTranslation } from "@/i18n/solid"
+import { Trans } from "@/i18n/trans"
 import { MIN_PASSWORD_LENGTH, normalizeEmail } from "@/lib/authValidation"
+import { GOOGLE_CLIENT_ID } from "@/lib/google-identity"
 
-export default function LoginPage() {
+type Tab = "login" | "register"
+
+const RESEND_COOLDOWN_SECONDS = 60
+
+export default function LoginPage(props: { initialTab?: Tab }) {
   const navigate = useNavigate()
-  const { isAuthenticated, user, isLoading: isAuthLoading, refreshUserProfile } = useAuth()
-  const { t: tAuth } = useTranslation("auth")
+  const { isAuthenticated, user, isLoading: isAuthLoading, establishSession } = useAuth()
+  const { t: tAuth, language } = useTranslation("auth")
   const { t: tErrors } = useTranslation("errors")
-  const [isLoading, setIsLoading] = useState(false)
   const [searchParams] = useSearchParams()
-  const initialTab = searchParams.get("tab") === "register" ? "register" : "login"
-  const [activeTab, setActiveTab] = useState(initialTab)
+  const initialTab: Tab = props.initialTab ?? (searchParams.tab === "register" ? "register" : "login")
+  const [activeTab, setActiveTab] = createSignal<Tab>(initialTab)
 
   const translateError = (context: "login" | "registration", error: unknown) => {
-    const translation = getErrorTranslationKey(context, getErrorCode(error))
+    const translation = getErrorTranslationKey(context, apiErrorOf(error).code)
     return translation.namespace === "auth"
       ? tAuth(translation.key)
       : tErrors(translation.key)
   }
 
-  useEffect(() => {
-    // isAuthenticated liga antes do perfil (com establishment) terminar de
-    // carregar — tanto no login() quanto no restore de sessão, ver
-    // AuthContext.tsx. Sem esperar !isAuthLoading, esse efeito decidia com
-    // user ainda null (status undefined) e mandava pra /plan antes da conta
-    // recém-criada (ACTIVE, Free) terminar de carregar — achado durante QA
-    // visual: cadastro novo caindo na tela de escolha de plano.
-    if (isAuthenticated && !isAuthLoading) {
-      if (user?.establishment?.status === 'ACTIVE') {
-        navigate('/dashboard')
-      } else {
-        navigate('/plan')
-      }
+  // Signed in (here, by Google, or by a session restored on boot): an active
+  // establishment goes to the dashboard, any other status to plan selection.
+  // Waits for the boot refresh, so the decision uses the loaded establishment.
+  createEffect(() => {
+    if (isAuthenticated() && !isAuthLoading()) {
+      navigate(user()?.establishment?.status === "ACTIVE" ? "/dashboard" : "/plan", { replace: true })
     }
-  }, [isAuthenticated, isAuthLoading, user, navigate])
+  })
 
-  // Login States
-  const [loginEmail, setLoginEmail] = useState("")
-  const [loginPassword, setLoginPassword] = useState("")
+  // Login state
+  const [loginEmail, setLoginEmail] = createSignal("")
+  const [loginPassword, setLoginPassword] = createSignal("")
 
-  // Register States
-  const [registerName, setRegisterName] = useState("") // Nome do usuário (dono)
-  const [registerEstablishment, setRegisterEstablishment] = useState("") // Nome Fantasia
-  const [registerEmail, setRegisterEmail] = useState("")
-  const [registerPassword, setRegisterPassword] = useState("")
-  const [registrationKey, setRegistrationKey] = useState("")
-  const [hasKey, setHasKey] = useState(false)
-  const [termsAccepted, setTermsAccepted] = useState(false)
-  const [mfaChallenge, setMfaChallenge] = useState<{ factorId: string; challengeId: string } | null>(null)
-  const [mfaCode, setMfaCode] = useState('')
-  // Email aguardando confirmação (cadastro recém-feito ou login barrado por
-  // email_not_confirmed) — mostra o aviso com opção de reenviar o link.
-  const [pendingConfirmationEmail, setPendingConfirmationEmail] = useState<string | null>(null)
-  // Cadastro com email que já tem conta: o GoTrue responde 200 sem enviar nada
-  // (anti-enumeração), então o aviso tem que vir daqui.
-  const [existingAccountEmail, setExistingAccountEmail] = useState<string | null>(null)
-  const [resendCooldown, setResendCooldown] = useState(0)
+  // Register state
+  const [registerName, setRegisterName] = createSignal("") // owner's name
+  const [registerEstablishment, setRegisterEstablishment] = createSignal("") // trade name
+  const [registerEmail, setRegisterEmail] = createSignal("")
+  const [registerPassword, setRegisterPassword] = createSignal("")
+  const [registrationKey, setRegistrationKey] = createSignal("")
+  const [hasKey, setHasKey] = createSignal(false)
+  const [termsAccepted, setTermsAccepted] = createSignal(false)
+  // Email waiting for confirmation (sign-up just sent, or login refused with
+  // EMAIL_NOT_VERIFIED): shows the notice with the resend option.
+  const [pendingConfirmationEmail, setPendingConfirmationEmail] = createSignal<string | null>(null)
+  const [resendCooldown, setResendCooldown] = createSignal(0)
 
-  // Link de confirmação e OAuth voltam pro /login (ver emailRedirectTo/redirectTo).
-  const authRedirectUrl = `${window.location.origin}/login`
+  let cooldownTimer: ReturnType<typeof setInterval> | undefined
+  const startCooldown = () => {
+    setResendCooldown(RESEND_COOLDOWN_SECONDS)
+    clearInterval(cooldownTimer)
+    cooldownTimer = setInterval(() => {
+      setResendCooldown((seconds) => {
+        if (seconds <= 1) clearInterval(cooldownTimer)
+        return Math.max(0, seconds - 1)
+      })
+    }, 1000)
+  }
+  onCleanup(() => clearInterval(cooldownTimer))
 
-  useEffect(() => {
-    if (resendCooldown <= 0) return
-    const timer = setTimeout(() => setResendCooldown((seconds) => seconds - 1), 1000)
-    return () => clearTimeout(timer)
-  }, [resendCooldown])
+  const loginMutation = createMutation(() => ({
+    mutationFn: (input: { email: string; password: string }) => authApi.login(input.email, input.password),
+  }))
+  const keyMutation = createMutation(() => ({ mutationFn: authApi.validateRegistrationKey }))
+  const registerMutation = createMutation(() => ({ mutationFn: authApi.register }))
+  const resendMutation = createMutation(() => ({ mutationFn: authApi.resendVerification }))
+  const googleMutation = createMutation(() => ({ mutationFn: authApi.googleSignIn }))
 
-  useEffect(() => {
-    // GoTrue devolve erros do link de confirmação no hash (ex: link expirado ou já usado).
-    const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""))
-    const errorCode = hash.get("error_code")
-    if (!errorCode) return
-    setActiveTab("login")
-    toast.error(tAuth(errorCode === "otp_expired" ? "confirmationLinkExpired" : "loginFailure"))
-    window.history.replaceState(null, "", window.location.pathname + window.location.search)
-  }, [tAuth])
+  const isLoading = () =>
+    loginMutation.isPending || keyMutation.isPending || registerMutation.isPending ||
+    resendMutation.isPending || googleMutation.isPending
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleLogin = async (e: SubmitEvent) => {
     e.preventDefault()
-    setIsLoading(true)
+    const email = normalizeEmail(loginEmail())
     try {
-      const { error } = await authClient.signInWithPassword({ email: normalizeEmail(loginEmail), password: loginPassword })
-      if (error) {
-        if (error.code === "email_not_confirmed") setPendingConfirmationEmail(normalizeEmail(loginEmail))
-        toast.error(translateError("login", { response: { data: { code: error.code } } }))
-        return
-      }
-
-      // auth-js não devolve um "código de erro de MFA" no signIn — a senha já autentica numa
-      // sessão AAL1 normal. Pra saber se falta o desafio TOTP, é preciso perguntar o AAL depois.
-      const { data: aal } = await authClient.mfa.getAuthenticatorAssuranceLevel()
-      if (aal && aal.nextLevel === 'aal2' && aal.currentLevel !== 'aal2') {
-        const { data: factors } = await authClient.mfa.listFactors()
-        const factorId = factors?.totp?.[0]?.id
-        if (factorId) {
-          const { data: challenge } = await authClient.mfa.challenge({ factorId })
-          if (challenge) setMfaChallenge({ factorId, challengeId: challenge.id })
-        }
-        return
-      }
-
-      navigate("/dashboard")
-    } catch (error: any) {
-      console.error("Login failed", error)
-      
+      establishSession(await loginMutation.mutateAsync({ email, password: loginPassword() }))
+    } catch (error) {
+      if (apiErrorOf(error).code === "EMAIL_NOT_VERIFIED") setPendingConfirmationEmail(email)
       toast.error(translateError("login", error))
-    } finally {
-      setIsLoading(false)
     }
   }
 
@@ -137,178 +116,131 @@ export default function LoginPage() {
     setActiveTab("login")
   }
 
-  const handleRegister = async (e: React.FormEvent) => {
+  const handleRegister = async (e: SubmitEvent) => {
     e.preventDefault()
-    const email = normalizeEmail(registerEmail)
-    const name = registerName.trim()
-    const tradeName = registerEstablishment.trim()
-    const key = hasKey ? registrationKey.trim() : ""
-    // `required` do HTML aceita só espaços.
-    if (!name || !tradeName || (hasKey && !key)) {
+    const email = normalizeEmail(registerEmail())
+    const name = registerName().trim()
+    const tradeName = registerEstablishment().trim()
+    const key = hasKey() ? registrationKey().trim() : ""
+    // HTML `required` accepts whitespace only.
+    if (!name || !tradeName || (hasKey() && !key)) {
       toast.error(tAuth("requiredFieldsMissing"))
       return
     }
-    if (registerPassword.length < MIN_PASSWORD_LENGTH) {
+    if (registerPassword().length < MIN_PASSWORD_LENGTH) {
       toast.error(tAuth("weakPassword"))
       return
     }
-    setIsLoading(true)
     try {
-      // Valida a chave ANTES de criar a conta: depois do signUp não tem volta, e
-      // chave errada virava conta FREE sem aviso.
-      if (key) {
-        const { data: keyCheck } = await api.post("/auth/registration-key/validate", { registrationKey: key })
-        if (!keyCheck?.valid) {
-          toast.error(tAuth("invalidRegistrationKey"))
-          return
-        }
+      // Checks the key BEFORE creating the account: a wrong key used to become
+      // a Free account without a warning.
+      if (key && !(await keyMutation.mutateAsync(key))) {
+        toast.error(tAuth("invalidRegistrationKey"))
+        return
       }
-
-      const { data, error } = await authClient.signUp({
+      await registerMutation.mutateAsync({
         email,
-        password: registerPassword,
-        options: {
-          emailRedirectTo: authRedirectUrl,
-          // Com confirmação de email o complete-signup só roda no 1o login (sem o
-          // form) — o backend lê esses dados do user_metadata do token.
-          data: {
-            name,
-            tradeName,
-            termsAccepted,
-            ...(key ? { registrationKey: key } : {}),
-          },
-        },
-      })
-      if (error) {
-        toast.error(translateError("registration", { response: { data: { code: error?.code } } }))
-        return
-      }
-      // Email já cadastrado e confirmado (senha ou Google): o GoTrue devolve um
-      // usuário "falso" com identities vazio, sem sessão e sem mandar email.
-      if (data.user && data.user.identities?.length === 0) {
-        setPendingConfirmationEmail(null)
-        setExistingAccountEmail(email)
-        goToLogin(email)
-        toast.error(tAuth("emailAlreadyRegistered"))
-        return
-      }
-      // Com a confirmação de e-mail habilitada, o GoTrue cria o usuário sem sessão.
-      // A finalização depende de uma sessão autenticada e só deve ocorrer após a confirmação.
-      if (!data.session) {
-        setExistingAccountEmail(null)
-        setPendingConfirmationEmail(email)
-        setResendCooldown(60)
-        goToLogin(email)
-        toast.success(tAuth("confirmEmailSent", { email }))
-        return
-      }
-      await api.post("/auth/complete-signup", {
+        password: registerPassword(),
         name,
-        termsAccepted,
         tradeName,
-        registrationKey: key,
+        termsAccepted: termsAccepted(),
+        locale: normalizeLocale(language()),
+        ...(key ? { registrationKey: key } : {}),
       })
-      // Sem navigate() explícito aqui: o useEffect de isAuthenticated/user
-      // acima já decide certo entre /dashboard e /plan a partir do status
-      // real do estabelecimento (Free ativa direto, sem exigir pagamento) —
-      // só precisa atualizar o user com o establishment recém-criado.
-      await refreshUserProfile()
+      // The /v1 answers 202 whether or not the email exists (it never says):
+      // a new or unconfirmed account gets the link, a confirmed one a notice.
+      setPendingConfirmationEmail(email)
+      startCooldown()
+      goToLogin(email)
+      toast.success(tAuth("confirmEmailSent", { email }))
     } catch (error) {
-      console.error("Registration failed", error)
+      console.error("Registration failed", apiErrorOf(error).code)
       toast.error(translateError("registration", error))
-    } finally {
-      setIsLoading(false)
     }
   }
 
   const handleResendConfirmation = async () => {
-    if (!pendingConfirmationEmail || resendCooldown > 0) return
-    setIsLoading(true)
+    const email = pendingConfirmationEmail()
+    if (!email || resendCooldown() > 0) return
     try {
-      const { error } = await authClient.resend({
-        type: "signup",
-        email: pendingConfirmationEmail,
-        options: { emailRedirectTo: authRedirectUrl },
-      })
-      if (error) {
-        toast.error(translateError("registration", { response: { data: { code: error.code } } }))
-        return
-      }
-      setResendCooldown(60)
-      toast.success(tAuth("confirmEmailResent", { email: pendingConfirmationEmail }))
-    } finally {
-      setIsLoading(false)
+      await resendMutation.mutateAsync(email)
+      startCooldown()
+      toast.success(tAuth("confirmEmailResent", { email }))
+    } catch (error) {
+      toast.error(translateError("registration", error))
     }
   }
 
-  const handleGoogleSignIn = async () => {
-    // GoTrue sem redirectTo explícito volta pro SITE_URL puro ("/", a Landing) — só
-    // /login tem a lógica de redirect pós-auth (dashboard vs /plan). Achado em QA:
-    // 1o login com Google caía na Landing autenticado, sem navegar pra lugar nenhum.
-    await authClient.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: authRedirectUrl },
-    })
+  // Google: the ID token goes to the API, which signs in or creates the
+  // account. On the register tab, what the form already has goes along (it
+  // only applies when the account is new).
+  const handleGoogleCredential = async (idToken: string) => {
+    if (googleMutation.isPending || keyMutation.isPending) return
+    const key = hasKey() ? registrationKey().trim() : ""
+    const tradeName = registerEstablishment().trim()
+    const signUp = activeTab() === "register"
+    // Without the terms the account is still created, like the React app.
+    try {
+      // Same rule as the form: a wrong key must not become a Free account.
+      if (signUp && key && !(await keyMutation.mutateAsync(key))) {
+        toast.error(tAuth("invalidRegistrationKey"))
+        return
+      }
+      establishSession(await googleMutation.mutateAsync({
+        idToken,
+        locale: normalizeLocale(language()),
+        ...(signUp && termsAccepted() ? { termsAccepted: true } : {}),
+        ...(signUp && tradeName ? { tradeName } : {}),
+        ...(signUp && key ? { registrationKey: key } : {}),
+      }))
+    } catch (error) {
+      toast.error(translateError("login", error))
+    }
   }
 
-  const handleMfaVerify = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!mfaChallenge) return
-    setIsLoading(true)
-    const { error } = await authClient.mfa.verify({ ...mfaChallenge, code: mfaCode })
-    setIsLoading(false)
-    if (error) { toast.error(tAuth('invalidTotpCode')); return }
-    navigate('/dashboard')
-  }
+  const googleUnavailable = () => toast.error(tAuth("loginFailure"))
 
   return (
-    <div className="flex-1 flex items-center justify-center bg-muted/40 p-4 min-h-[calc(100vh-10rem)]">
-      <div className="w-full max-w-md space-y-6">
-        <div className="flex flex-col items-center space-y-2 text-center">
-          <div className="flex items-center gap-2 font-bold text-2xl">
-            <img src={logo} alt="Tozzo.uk" className="h-16 w-16 object-contain" />
+    <div class="flex-1 flex items-center justify-center bg-muted/40 p-4 min-h-[calc(100vh-10rem)]">
+      <div class="w-full max-w-md space-y-6">
+        <div class="flex flex-col items-center space-y-2 text-center">
+          <div class="flex items-center gap-2 font-bold text-2xl">
+            <img src={logo} alt="Tozzo.uk" class="h-16 w-16 object-contain" />
             <span>Tozzo.uk</span>
           </div>
-          <p className="text-muted-foreground">
+          <p class="text-muted-foreground">
             {tAuth("subtitle")}
           </p>
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
+        <Tabs value={activeTab()} onChange={(value) => setActiveTab(value as Tab)} class="w-full">
+          <TabsList class="grid w-full grid-cols-2">
             <TabsTrigger value="login">{tAuth("login")}</TabsTrigger>
             <TabsTrigger value="register">{tAuth("register")}</TabsTrigger>
           </TabsList>
-          
+
           <TabsContent value="login">
-            {existingAccountEmail && (
-              <Alert className="mb-4">
-                <AlertTitle>{tAuth("existingAccountTitle")}</AlertTitle>
-                <AlertDescription className="space-y-2">
-                  <span className="block">{tAuth("existingAccountDescription", { email: existingAccountEmail })}</span>
-                  <a href="/forgot-password" className="underline block">{tAuth("forgotPasswordLink")}</a>
-                </AlertDescription>
-              </Alert>
-            )}
-            {pendingConfirmationEmail && (
-              <Alert className="mb-4">
-                <AlertTitle>{tAuth("confirmEmailTitle")}</AlertTitle>
-                <AlertDescription className="space-y-3">
-                  <span className="block">{tAuth("confirmEmailDescription", { email: pendingConfirmationEmail })}</span>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    disabled={isLoading || resendCooldown > 0}
-                    onClick={() => void handleResendConfirmation()}
-                  >
-                    {resendCooldown > 0
-                      ? tAuth("resendConfirmationIn", { seconds: resendCooldown })
-                      : tAuth("resendConfirmation")}
-                  </Button>
-                </AlertDescription>
-              </Alert>
-            )}
+            <Show when={pendingConfirmationEmail()}>
+              {(email) => (
+                <Alert class="mb-4">
+                  <AlertTitle>{tAuth("confirmEmailTitle")}</AlertTitle>
+                  <AlertDescription class="space-y-3">
+                    <span class="block">{tAuth("confirmEmailDescription", { email: email() })}</span>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      disabled={isLoading() || resendCooldown() > 0}
+                      onClick={() => void handleResendConfirmation()}
+                    >
+                      {resendCooldown() > 0
+                        ? tAuth("resendConfirmationIn", { seconds: resendCooldown() })
+                        : tAuth("resendConfirmation")}
+                    </Button>
+                  </AlertDescription>
+                </Alert>
+              )}
+            </Show>
             <Card>
               <CardHeader>
                 <CardTitle>{tAuth("login")}</CardTitle>
@@ -317,49 +249,44 @@ export default function LoginPage() {
                 </CardDescription>
               </CardHeader>
               <form onSubmit={handleLogin}>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="email">{tAuth("email")}</Label>
-                    <Input 
-                      id="email" 
-                      type="email" 
+                <CardContent class="space-y-4">
+                  <div class="space-y-2">
+                    <Label for="email">{tAuth("email")}</Label>
+                    <Input
+                      id="email"
+                      type="email"
                       placeholder={tAuth("emailPlaceholder")}
-                      required 
-                      value={loginEmail}
-                      onChange={(e) => setLoginEmail(e.target.value)}
+                      required
+                      value={loginEmail()}
+                      onInput={(e) => setLoginEmail(e.currentTarget.value)}
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="password">{tAuth("password")}</Label>
-                    <Input 
-                      id="password" 
-                      type="password" 
-                      required 
-                      value={loginPassword}
-                      onChange={(e) => setLoginPassword(e.target.value)}
+                  <div class="space-y-2">
+                    <Label for="password">{tAuth("password")}</Label>
+                    <Input
+                      id="password"
+                      type="password"
+                      required
+                      value={loginPassword()}
+                      onInput={(e) => setLoginPassword(e.currentTarget.value)}
                     />
                   </div>
                 </CardContent>
                 <CardFooter>
-                  <Button className="w-full" type="submit" disabled={isLoading}>
-                    {isLoading ? tAuth("entering") : tAuth("enter")}
+                  <Button class="w-full" type="submit" disabled={isLoading()}>
+                    {isLoading() ? tAuth("entering") : tAuth("enter")}
                   </Button>
                 </CardFooter>
               </form>
-              <div className="px-6 pb-6 space-y-4">
-                <Button type="button" variant="outline" className="w-full" onClick={() => void handleGoogleSignIn()}><GoogleIcon className="h-4 w-4 mr-2" />{tAuth('continueWithGoogle')}</Button>
-                <a href="/forgot-password" className="text-sm text-muted-foreground underline block text-center">
+              <div class="px-6 pb-6 space-y-4">
+                <GoogleSignInButton onCredential={(idToken) => void handleGoogleCredential(idToken)} onError={googleUnavailable} />
+                <a href="/forgot-password" class="text-sm text-muted-foreground underline block text-center">
                   {tAuth("forgotPasswordLink")}
                 </a>
               </div>
-              {mfaChallenge && <form onSubmit={handleMfaVerify} className="border-t p-6 space-y-4">
-                <Label htmlFor="mfa-code">{tAuth('totpCode')}</Label>
-                <Input id="mfa-code" value={mfaCode} onChange={(e) => setMfaCode(e.target.value)} required inputMode="numeric" />
-                <Button className="w-full" type="submit" disabled={isLoading}>{tAuth('confirmTotp')}</Button>
-              </form>}
             </Card>
           </TabsContent>
-          
+
           <TabsContent value="register">
             <Card>
               <CardHeader>
@@ -369,109 +296,112 @@ export default function LoginPage() {
                 </CardDescription>
               </CardHeader>
               <form onSubmit={handleRegister}>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="register-name">{tAuth("responsibleName")}</Label>
-                    <Input 
-                      id="register-name" 
+                <CardContent class="space-y-4">
+                  <div class="space-y-2">
+                    <Label for="register-name">{tAuth("responsibleName")}</Label>
+                    <Input
+                      id="register-name"
                       placeholder={tAuth("responsiblePlaceholder")}
-                      required 
-                      value={registerName}
-                      onChange={(e) => setRegisterName(e.target.value)}
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="establishment-name">{tAuth("establishmentName")}</Label>
-                    <Input 
-                      id="establishment-name" 
-                      placeholder={tAuth("establishmentPlaceholder")}
-                      required 
-                      value={registerEstablishment}
-                      onChange={(e) => setRegisterEstablishment(e.target.value)}
+                      required
+                      value={registerName()}
+                      onInput={(e) => setRegisterName(e.currentTarget.value)}
                     />
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="register-email">{tAuth("email")}</Label>
-                    <Input 
-                      id="register-email" 
-                      type="email" 
-                      placeholder={tAuth("emailPlaceholder")}
-                      required 
-                      value={registerEmail}
-                      onChange={(e) => setRegisterEmail(e.target.value)}
+                  <div class="space-y-2">
+                    <Label for="establishment-name">{tAuth("establishmentName")}</Label>
+                    <Input
+                      id="establishment-name"
+                      placeholder={tAuth("establishmentPlaceholder")}
+                      required
+                      value={registerEstablishment()}
+                      onInput={(e) => setRegisterEstablishment(e.currentTarget.value)}
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="register-password">{tAuth("password")}</Label>
-                    <Input 
-                      id="register-password" 
-                      type="password" 
-                      required 
+
+                  <div class="space-y-2">
+                    <Label for="register-email">{tAuth("email")}</Label>
+                    <Input
+                      id="register-email"
+                      type="email"
+                      placeholder={tAuth("emailPlaceholder")}
+                      required
+                      value={registerEmail()}
+                      onInput={(e) => setRegisterEmail(e.currentTarget.value)}
+                    />
+                  </div>
+                  <div class="space-y-2">
+                    <Label for="register-password">{tAuth("password")}</Label>
+                    <Input
+                      id="register-password"
+                      type="password"
+                      required
                       minLength={MIN_PASSWORD_LENGTH}
                       aria-describedby="register-password-hint"
-                      value={registerPassword}
-                      onChange={(e) => setRegisterPassword(e.target.value)}
+                      value={registerPassword()}
+                      onInput={(e) => setRegisterPassword(e.currentTarget.value)}
                     />
-                    <p id="register-password-hint" className="text-xs text-muted-foreground">{tAuth("passwordHint", { min: MIN_PASSWORD_LENGTH })}</p>
+                    <p id="register-password-hint" class="text-xs text-muted-foreground">{tAuth("passwordHint", { min: MIN_PASSWORD_LENGTH })}</p>
                   </div>
 
-                  <div className="flex items-center space-x-2 py-2">
+                  <div class="flex items-center space-x-2 py-2">
                     <input
                       type="checkbox"
                       id="has-key"
-                      checked={hasKey}
-                      onChange={(e) => setHasKey(e.target.checked)}
-                      className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                      checked={hasKey()}
+                      onChange={(e) => setHasKey(e.currentTarget.checked)}
+                      class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
                     />
-                    <Label htmlFor="has-key" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                    <Label for="has-key" class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                       {tAuth("freeAccessLabel")}
                     </Label>
                   </div>
 
-                  <div className="flex items-start space-x-2 py-2">
+                  <div class="flex items-start space-x-2 py-2">
                     <input
                       type="checkbox"
                       id="terms-accepted"
-                      checked={termsAccepted}
-                      onChange={(e) => setTermsAccepted(e.target.checked)}
-                      className="h-4 w-4 mt-0.5 rounded border-gray-300 text-primary focus:ring-primary"
+                      checked={termsAccepted()}
+                      onChange={(e) => setTermsAccepted(e.currentTarget.checked)}
+                      class="h-4 w-4 mt-0.5 rounded border-gray-300 text-primary focus:ring-primary"
                     />
-                    <Label htmlFor="terms-accepted" className="text-sm font-normal leading-snug">
+                    <Label for="terms-accepted" class="text-sm font-normal leading-snug">
                       <Trans
-                        i18nKey="termsCheckboxLabel"
-                        ns="auth"
+                        text={tAuth("termsCheckboxLabel")}
                         components={{
-                          privacyLink: <a href="/privacidade" target="_blank" rel="noreferrer" className="underline" />,
-                          termsLink: <a href="/termos" target="_blank" rel="noreferrer" className="underline" />,
+                          privacyLink: (text) => <a href="/privacidade" target="_blank" rel="noopener noreferrer" class="underline">{text}</a>,
+                          termsLink: (text) => <a href="/termos" target="_blank" rel="noopener noreferrer" class="underline">{text}</a>,
                         }}
                       />
                     </Label>
                   </div>
 
-                  {hasKey && (
-                    <div className="space-y-2">
-                      <Label htmlFor="registration-key">{tAuth("registrationKey")}</Label>
-                      <Input 
-                        id="registration-key" 
+                  <Show when={hasKey()}>
+                    <div class="space-y-2">
+                      <Label for="registration-key">{tAuth("registrationKey")}</Label>
+                      <Input
+                        id="registration-key"
                         placeholder={tAuth("registrationKeyPlaceholder")}
-                        required={hasKey}
-                        value={registrationKey}
-                        onChange={(e) => setRegistrationKey(e.target.value)}
+                        required
+                        value={registrationKey()}
+                        onInput={(e) => setRegistrationKey(e.currentTarget.value)}
                       />
                     </div>
-                  )}
+                  </Show>
                 </CardContent>
                 <CardFooter>
-                  <Button className="w-full" type="submit" disabled={isLoading || !termsAccepted}>
-                    {isLoading
+                  <Button class="w-full" type="submit" disabled={isLoading() || !termsAccepted()}>
+                    {isLoading()
                       ? tAuth("createAccountLoading")
-                      : (hasKey ? tAuth("createAccount") : tAuth("createAndSubscribe"))}
+                      : (hasKey() ? tAuth("createAccount") : tAuth("createAndSubscribe"))}
                   </Button>
                 </CardFooter>
               </form>
-              <div className="px-6 pb-6"><Button type="button" variant="outline" className="w-full" onClick={() => void handleGoogleSignIn()}><GoogleIcon className="h-4 w-4 mr-2" />{tAuth('continueWithGoogle')}</Button></div>
+              <Show when={GOOGLE_CLIENT_ID}>
+                <div class="px-6 pb-6">
+                  <GoogleSignInButton onCredential={(idToken) => void handleGoogleCredential(idToken)} onError={googleUnavailable} />
+                </div>
+              </Show>
             </Card>
           </TabsContent>
         </Tabs>

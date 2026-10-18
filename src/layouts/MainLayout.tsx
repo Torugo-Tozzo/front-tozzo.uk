@@ -1,16 +1,16 @@
-import { Suspense } from "react"
-import { Outlet } from "react-router-dom"
+import { Suspense, type JSX } from "solid-js"
+
 import { Navbar } from "@/components/Navbar"
 import { Footer } from "@/components/Footer"
 import { LoadingOverlay } from "@/components/LoadingOverlay"
 
-export default function MainLayout() {
+export default function MainLayout(props: { children?: JSX.Element }) {
   return (
-    <div className="min-h-screen flex flex-col">
+    <div class="min-h-screen flex flex-col">
       <Navbar />
-      <main className="flex-1">
+      <main class="flex-1">
         <Suspense fallback={<LoadingOverlay />}>
-          <Outlet />
+          {props.children}
         </Suspense>
       </main>
       <Footer />

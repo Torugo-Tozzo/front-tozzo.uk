@@ -1,8 +1,8 @@
-import { Button } from "@/components/ui/button"
-import { Link, useNavigate } from "react-router-dom"
-import { UtensilsCrossed, ChefHat, Beer, Wifi, BarChart3, History, Rocket, Smartphone } from "lucide-react"
+import { Button, buttonVariants } from "@/components/ui/button"
+import { A, useNavigate } from "@solidjs/router"
+import { UtensilsCrossed, ChefHat, Beer, Wifi, BarChart3, History, Rocket, Smartphone } from "lucide-solid"
 import { useAuth } from "@/contexts/AuthContext"
-import { useTranslation } from "react-i18next"
+import { useTranslation } from "@/i18n/solid"
 import { PricingCards } from "@/components/PricingCards"
 
 export default function LandingPage() {
@@ -11,8 +11,8 @@ export default function LandingPage() {
   const { t } = useTranslation("common")
 
   const handleSubscribe = (_interval: 'monthly' | 'annual') => {
-    if (isAuthenticated) {
-      if (user?.establishment?.status === 'ACTIVE') {
+    if (isAuthenticated()) {
+      if (user()?.establishment?.status === 'ACTIVE') {
         navigate('/dashboard')
       } else {
         navigate('/plan')
@@ -32,34 +32,32 @@ export default function LandingPage() {
   return (
     <>
       {/* Hero Section */}
-      <section className="relative py-20 md:py-32 overflow-hidden">
-          <div className="absolute inset-0 z-0">
-            <img 
-              src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=2070&auto=format&fit=crop" 
+      <section class="relative py-20 md:py-32 overflow-hidden">
+          <div class="absolute inset-0 z-0">
+            <img fetchpriority="high" decoding="async"
+              src="/images/landing/01.jpg"
               alt={t("landing.heroImageAlt")}
-              className="w-full h-full object-cover"
+              class="w-full h-full object-cover"
             />
-            <div className="absolute inset-0 bg-white/75 dark:bg-background/75 backdrop-blur-[2px]"></div>
+            <div class="absolute inset-0 bg-white/75 dark:bg-background/75 backdrop-blur-[2px]"></div>
           </div>
 
-          <div className="container relative z-10 mx-auto px-4 text-center">
-            <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-6">
-              {t("landing.heroTitle")} <br className="hidden md:block" />
-              <span className="text-primary">{t("landing.heroHighlight")}</span>
+          <div class="container relative z-10 mx-auto px-4 text-center">
+            <h1 class="text-4xl md:text-6xl font-bold tracking-tight mb-6">
+              {t("landing.heroTitle")} <br class="hidden md:block" />
+              <span class="text-primary">{t("landing.heroHighlight")}</span>
             </h1>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-10">
+            <p class="text-xl text-muted-foreground max-w-2xl mx-auto mb-10">
               {t("landing.heroDescription")}
             </p>
-            <div className="flex justify-center gap-4">
-              <Link to="/login">
-                <Button size="lg" className="h-12 px-8 text-lg">
+            <div class="flex justify-center gap-4">
+              <A href="/login" class={buttonVariants({ size: "lg", className: "h-12 px-8 text-lg" })}>
                   {t("landing.startUsing")}
-                </Button>
-              </Link>
-              <Button 
-                size="lg" 
-                variant="outline" 
-                className="h-12 px-8 text-lg bg-background/50 backdrop-blur-sm"
+                </A>
+              <Button
+                size="lg"
+                variant="outline"
+                class="h-12 px-8 text-lg bg-background/50 backdrop-blur-sm"
                 onClick={scrollToPricing}
               >
                 {t("landing.viewPlans")}
@@ -69,164 +67,164 @@ export default function LandingPage() {
         </section>
 
         {/* Features Sections */}
-        <section className="py-20 space-y-32">
-          <div className="container mx-auto px-4">
+        <section class="py-20 space-y-32">
+          <div class="container mx-auto px-4">
             {/* Feature 1: Gestão de Cozinha */}
-            <div className="flex flex-col md:flex-row items-center gap-12">
-              <div className="flex-1 space-y-6">
-                <div className="inline-flex items-center justify-center p-4 bg-primary/10 rounded-2xl">
-                  <ChefHat className="h-10 w-10 text-primary" />
+            <div class="flex flex-col md:flex-row items-center gap-12">
+              <div class="flex-1 space-y-6">
+                <div class="inline-flex items-center justify-center p-4 bg-primary/10 rounded-2xl">
+                  <ChefHat class="h-10 w-10 text-primary" />
                 </div>
-                <h3 className="text-3xl md:text-4xl font-bold">{t("landing.features.kitchen.title")}</h3>
-                <p className="text-xl text-muted-foreground leading-relaxed">
+                <h3 class="text-3xl md:text-4xl font-bold">{t("landing.features.kitchen.title")}</h3>
+                <p class="text-xl text-muted-foreground leading-relaxed">
                   {t("landing.features.kitchen.description")}
                 </p>
               </div>
-              <div className="flex-1">
-                <img 
-                  src="https://images.unsplash.com/photo-1577106263724-2c8e03bfe9cf?q=80&w=2070&auto=format&fit=crop" 
+              <div class="flex-1">
+                <img loading="lazy" decoding="async"
+                  src="/images/landing/02.jpg"
                   alt={t("landing.features.kitchen.imageAlt")}
-                  className="rounded-2xl shadow-2xl w-full object-cover h-[400px] hover:scale-105 transition-transform duration-500"
+                  class="rounded-2xl shadow-2xl w-full object-cover h-[400px] hover:scale-105 transition-transform duration-500"
                 />
               </div>
             </div>
 
             {/* Feature 2: Controle de Bar */}
-            <div className="flex flex-col md:flex-row-reverse items-center gap-12">
-              <div className="flex-1 space-y-6">
-                <div className="inline-flex items-center justify-center p-4 bg-primary/10 rounded-2xl">
-                  <Beer className="h-10 w-10 text-primary" />
+            <div class="flex flex-col md:flex-row-reverse items-center gap-12">
+              <div class="flex-1 space-y-6">
+                <div class="inline-flex items-center justify-center p-4 bg-primary/10 rounded-2xl">
+                  <Beer class="h-10 w-10 text-primary" />
                 </div>
-                <h3 className="text-3xl md:text-4xl font-bold">{t("landing.features.bar.title")}</h3>
-                <p className="text-xl text-muted-foreground leading-relaxed">
+                <h3 class="text-3xl md:text-4xl font-bold">{t("landing.features.bar.title")}</h3>
+                <p class="text-xl text-muted-foreground leading-relaxed">
                   {t("landing.features.bar.description")}
                 </p>
               </div>
-              <div className="flex-1">
-                <img 
-                  src="https://images.unsplash.com/photo-1470337458703-46ad1756a187?q=80&w=2069&auto=format&fit=crop" 
+              <div class="flex-1">
+                <img loading="lazy" decoding="async"
+                  src="/images/landing/03.jpg"
                   alt={t("landing.features.bar.imageAlt")}
-                  className="rounded-2xl shadow-2xl w-full object-cover h-[400px] hover:scale-105 transition-transform duration-500"
+                  class="rounded-2xl shadow-2xl w-full object-cover h-[400px] hover:scale-105 transition-transform duration-500"
                 />
               </div>
             </div>
 
             {/* Feature 3: Cardápio Digital */}
-            <div className="flex flex-col md:flex-row items-center gap-12">
-              <div className="flex-1 space-y-6">
-                <div className="inline-flex items-center justify-center p-4 bg-primary/10 rounded-2xl">
-                  <UtensilsCrossed className="h-10 w-10 text-primary" />
+            <div class="flex flex-col md:flex-row items-center gap-12">
+              <div class="flex-1 space-y-6">
+                <div class="inline-flex items-center justify-center p-4 bg-primary/10 rounded-2xl">
+                  <UtensilsCrossed class="h-10 w-10 text-primary" />
                 </div>
-                <h3 className="text-3xl md:text-4xl font-bold">{t("landing.features.menu.title")}</h3>
-                <p className="text-xl text-muted-foreground leading-relaxed">
+                <h3 class="text-3xl md:text-4xl font-bold">{t("landing.features.menu.title")}</h3>
+                <p class="text-xl text-muted-foreground leading-relaxed">
                   {t("landing.features.menu.description")}
                 </p>
               </div>
-              <div className="flex-1">
-                <img 
-                  src="https://images.unsplash.com/photo-1559339352-11d035aa65de?q=80&w=1974&auto=format&fit=crop" 
+              <div class="flex-1">
+                <img loading="lazy" decoding="async"
+                  src="/images/landing/04.jpg"
                   alt={t("landing.features.menu.imageAlt")}
-                  className="rounded-2xl shadow-2xl w-full object-cover h-[400px] hover:scale-105 transition-transform duration-500"
+                  class="rounded-2xl shadow-2xl w-full object-cover h-[400px] hover:scale-105 transition-transform duration-500"
                 />
               </div>
             </div>
 
             {/* Feature 4: Pedidos Conectados */}
-            <div className="flex flex-col md:flex-row-reverse items-center gap-12">
-              <div className="flex-1 space-y-6">
-                <div className="inline-flex items-center justify-center p-4 bg-primary/10 rounded-2xl">
-                  <Wifi className="h-10 w-10 text-primary" />
+            <div class="flex flex-col md:flex-row-reverse items-center gap-12">
+              <div class="flex-1 space-y-6">
+                <div class="inline-flex items-center justify-center p-4 bg-primary/10 rounded-2xl">
+                  <Wifi class="h-10 w-10 text-primary" />
                 </div>
-                <h3 className="text-3xl md:text-4xl font-bold">{t("landing.features.orders.title")}</h3>
-                <p className="text-xl text-muted-foreground leading-relaxed">
+                <h3 class="text-3xl md:text-4xl font-bold">{t("landing.features.orders.title")}</h3>
+                <p class="text-xl text-muted-foreground leading-relaxed">
                   {t("landing.features.orders.description")}
                 </p>
               </div>
-              <div className="flex-1">
-                <img 
-                  src="https://images.unsplash.com/photo-1556740738-b6a63e27c4df?q=80&w=2070&auto=format&fit=crop" 
+              <div class="flex-1">
+                <img loading="lazy" decoding="async"
+                  src="/images/landing/05.jpg"
                   alt={t("landing.features.orders.imageAlt")}
-                  className="rounded-2xl shadow-2xl w-full object-cover h-[400px] hover:scale-105 transition-transform duration-500"
+                  class="rounded-2xl shadow-2xl w-full object-cover h-[400px] hover:scale-105 transition-transform duration-500"
                 />
               </div>
             </div>
 
             {/* Feature 5: Dashboards Intuitivos */}
-            <div className="flex flex-col md:flex-row items-center gap-12">
-              <div className="flex-1 space-y-6">
-                <div className="inline-flex items-center justify-center p-4 bg-primary/10 rounded-2xl">
-                  <BarChart3 className="h-10 w-10 text-primary" />
+            <div class="flex flex-col md:flex-row items-center gap-12">
+              <div class="flex-1 space-y-6">
+                <div class="inline-flex items-center justify-center p-4 bg-primary/10 rounded-2xl">
+                  <BarChart3 class="h-10 w-10 text-primary" />
                 </div>
-                <h3 className="text-3xl md:text-4xl font-bold">{t("landing.features.dashboard.title")}</h3>
-                <p className="text-xl text-muted-foreground leading-relaxed">
+                <h3 class="text-3xl md:text-4xl font-bold">{t("landing.features.dashboard.title")}</h3>
+                <p class="text-xl text-muted-foreground leading-relaxed">
                   {t("landing.features.dashboard.description")}
                 </p>
               </div>
-              <div className="flex-1">
-                <img 
-                  src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=2070&auto=format&fit=crop" 
+              <div class="flex-1">
+                <img loading="lazy" decoding="async"
+                  src="/images/landing/06.jpg"
                   alt={t("landing.features.dashboard.imageAlt")}
-                  className="rounded-2xl shadow-2xl w-full object-cover h-[400px] hover:scale-105 transition-transform duration-500"
+                  class="rounded-2xl shadow-2xl w-full object-cover h-[400px] hover:scale-105 transition-transform duration-500"
                 />
               </div>
             </div>
 
             {/* Feature 6: Histórico Completo */}
-            <div className="flex flex-col md:flex-row-reverse items-center gap-12">
-              <div className="flex-1 space-y-6">
-                <div className="inline-flex items-center justify-center p-4 bg-primary/10 rounded-2xl">
-                  <History className="h-10 w-10 text-primary" />
+            <div class="flex flex-col md:flex-row-reverse items-center gap-12">
+              <div class="flex-1 space-y-6">
+                <div class="inline-flex items-center justify-center p-4 bg-primary/10 rounded-2xl">
+                  <History class="h-10 w-10 text-primary" />
                 </div>
-                <h3 className="text-3xl md:text-4xl font-bold">{t("landing.features.history.title")}</h3>
-                <p className="text-xl text-muted-foreground leading-relaxed">
+                <h3 class="text-3xl md:text-4xl font-bold">{t("landing.features.history.title")}</h3>
+                <p class="text-xl text-muted-foreground leading-relaxed">
                   {t("landing.features.history.description")}
                 </p>
               </div>
-              <div className="flex-1">
-                <img 
-                  src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?q=80&w=2070&auto=format&fit=crop" 
+              <div class="flex-1">
+                <img loading="lazy" decoding="async"
+                  src="/images/landing/07.jpg"
                   alt={t("landing.features.history.imageAlt")}
-                  className="rounded-2xl shadow-2xl w-full object-cover h-[400px] hover:scale-105 transition-transform duration-500"
+                  class="rounded-2xl shadow-2xl w-full object-cover h-[400px] hover:scale-105 transition-transform duration-500"
                 />
               </div>
             </div>
 
             {/* Feature 7: Gestão Inovadora */}
-            <div className="flex flex-col md:flex-row items-center gap-12">
-              <div className="flex-1 space-y-6">
-                <div className="inline-flex items-center justify-center p-4 bg-primary/10 rounded-2xl">
-                  <Rocket className="h-10 w-10 text-primary" />
+            <div class="flex flex-col md:flex-row items-center gap-12">
+              <div class="flex-1 space-y-6">
+                <div class="inline-flex items-center justify-center p-4 bg-primary/10 rounded-2xl">
+                  <Rocket class="h-10 w-10 text-primary" />
                 </div>
-                <h3 className="text-3xl md:text-4xl font-bold">{t("landing.features.innovation.title")}</h3>
-                <p className="text-xl text-muted-foreground leading-relaxed">
+                <h3 class="text-3xl md:text-4xl font-bold">{t("landing.features.innovation.title")}</h3>
+                <p class="text-xl text-muted-foreground leading-relaxed">
                   {t("landing.features.innovation.description")}
                 </p>
               </div>
-              <div className="flex-1">
-                <img 
-                  src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=2070&auto=format&fit=crop" 
+              <div class="flex-1">
+                <img loading="lazy" decoding="async"
+                  src="/images/landing/08.jpg"
                   alt={t("landing.features.innovation.imageAlt")}
-                  className="rounded-2xl shadow-2xl w-full object-cover h-[400px] hover:scale-105 transition-transform duration-500"
+                  class="rounded-2xl shadow-2xl w-full object-cover h-[400px] hover:scale-105 transition-transform duration-500"
                 />
               </div>
             </div>
 
             {/* Feature 8: Apps Integrados */}
-            <div className="flex flex-col md:flex-row-reverse items-center gap-12">
-              <div className="flex-1 space-y-6">
-                <div className="inline-flex items-center justify-center p-4 bg-primary/10 rounded-2xl">
-                  <Smartphone className="h-10 w-10 text-primary" />
+            <div class="flex flex-col md:flex-row-reverse items-center gap-12">
+              <div class="flex-1 space-y-6">
+                <div class="inline-flex items-center justify-center p-4 bg-primary/10 rounded-2xl">
+                  <Smartphone class="h-10 w-10 text-primary" />
                 </div>
-                <h3 className="text-3xl md:text-4xl font-bold">{t("landing.features.apps.title")}</h3>
-                <p className="text-xl text-muted-foreground leading-relaxed">
+                <h3 class="text-3xl md:text-4xl font-bold">{t("landing.features.apps.title")}</h3>
+                <p class="text-xl text-muted-foreground leading-relaxed">
                   {t("landing.features.apps.description")}
                 </p>
               </div>
-              <div className="flex-1">
-                <img 
-                  src="https://images.unsplash.com/photo-1556742031-c6961e8560b0?q=80&w=2070&auto=format&fit=crop" 
+              <div class="flex-1">
+                <img loading="lazy" decoding="async"
+                  src="/images/landing/09.jpg"
                   alt={t("landing.features.apps.imageAlt")}
-                  className="rounded-2xl shadow-2xl w-full object-cover h-[400px] hover:scale-105 transition-transform duration-500"
+                  class="rounded-2xl shadow-2xl w-full object-cover h-[400px] hover:scale-105 transition-transform duration-500"
                 />
               </div>
             </div>
@@ -234,18 +232,18 @@ export default function LandingPage() {
         </section>
 
         {/* Pricing Section */}
-        <section id="pricing" className="py-20 bg-muted/50">
-          <div className="container mx-auto px-4">
-            <div className="text-center mb-16">
-              <h2 className="text-3xl font-bold tracking-tight mb-4">{t("plans.title")}</h2>
-              <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+        <section id="pricing" class="py-20 bg-muted/50">
+          <div class="container mx-auto px-4">
+            <div class="text-center mb-16">
+              <h2 class="text-3xl font-bold tracking-tight mb-4">{t("plans.title")}</h2>
+              <p class="text-muted-foreground text-lg max-w-2xl mx-auto">
                 {t("plans.description")}
               </p>
             </div>
 
             <PricingCards
-              currentPlan={isAuthenticated ? user?.establishment?.plan : null}
-              onSelectPago={handleSubscribe}
+              currentPlan={isAuthenticated() ? user()?.establishment?.plan : null}
+              onSelectPaid={handleSubscribe}
               onSelectEnterprise={() => handleSubscribe('monthly')}
             />
           </div>

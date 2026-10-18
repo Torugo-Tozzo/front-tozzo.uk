@@ -3,11 +3,10 @@
 ## Autorização e sessão
 
 - **A segurança fica na API.** Esconder botão ou menu não autoriza nada. Toda rota protegida do front tem guarda (`ProtectedRoute` e `BusinessModuleRoute`), e a API valida de novo.
-- **Solid:**
+- **Solid (raiz):**
   - access token **só em memória** (nunca em `localStorage` ou `sessionStorage`);
   - refresh por cookie `HttpOnly` em `POST /v1/auth/refresh` com `credentials: 'include'`;
   - um único refresh por vez (single-flight); se falhar, vai para o login.
-- **React (legado):** a sessão é do GoTrue (`src/services/api.ts`). Não mude o armazenamento sem pedido.
 - Nada de token, senha ou dado pessoal em `console.log`, mensagem de erro, URL ou analytics. O ticket do SSE vai na URL por desenho, mas é de uso único e curto.
 
 ## Segredos e credenciais
@@ -24,7 +23,7 @@
 
 ## Headers e CSP (Solid no Cloudflare Workers)
 
-`web/public/_headers` (texto completo no plano, seção "Cloudflare Workers"):
+`public/_headers` (texto completo no plano, seção "Cloudflare Workers"):
 - `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin` e HSTS;
 - **CSP** restrita: `default-src 'self'`, scripts só do próprio site e do Google Identity, `connect-src` só para a API (`https://dev-api.tozzo.uk`), o Google e o `PUT` pré-assinado do R2 (`https://*.r2.cloudflarestorage.com`), imagens do host público do R2 (`https://media-dev.tozzo.uk`);
 - nada de `eval` ou de script inline. Liberar uma origem nova na CSP exige motivo e o "ok" do usuário.
@@ -44,4 +43,4 @@ Previews (`*-tozzo-web.<conta>.workers.dev`) só chamam a API se a origem estive
 
 ## Publicação
 
-Push na `dev` publica (React na VM; `web/` no Worker `tozzo-web`): só com pedido do usuário. Nunca force push nem merge de `dev` para `main`.
+Push na `dev` publica pelo Workers Builds (Solid na raiz, Worker `tozzo-web`): só com pedido do usuário. Nunca force push nem merge de `dev` para `main`.

@@ -1,33 +1,65 @@
-import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
-import { authClient } from '@/lib/authClient'
-import { normalizeEmail } from '@/lib/authValidation'
-import { getErrorTranslationKey } from '@/i18n/error-keys'
-import { useTranslation } from 'react-i18next'
-import { toast } from 'sonner'
+import { createSignal, Show } from "solid-js"
+import { createMutation } from "@tanstack/solid-query"
+import { toast } from "solid-sonner"
+
+import { forgotPassword } from "@/api/auth"
+import { apiErrorOf } from "@/api/errors"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { getErrorTranslationKey } from "@/i18n/error-keys"
+import { useTranslation } from "@/i18n/solid"
+import { normalizeEmail } from "@/lib/authValidation"
 
 export default function ForgotPasswordPage() {
-  const { t } = useTranslation('auth')
-  const { t: tErrors } = useTranslation('errors')
-  const [email, setEmail] = useState('')
-  const [sentTo, setSentTo] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault(); setIsLoading(true)
-    const normalized = normalizeEmail(email)
-    const { error } = await authClient.resetPasswordForEmail(normalized, { redirectTo: `${window.location.origin}/reset-password` })
-    setIsLoading(false)
-    if (error) {
-      const translation = getErrorTranslationKey('passwordReset', error.code)
-      toast.error(translation.namespace === 'auth' ? t(translation.key) : tErrors(translation.key))
-      return
+  const { t } = useTranslation("auth")
+  const { t: tErrors } = useTranslation("errors")
+  const [email, setEmail] = createSignal("")
+  const [sentTo, setSentTo] = createSignal<string | null>(null)
+  const mutation = createMutation(() => ({ mutationFn: forgotPassword }))
+
+  const handleSubmit = async (e: SubmitEvent) => {
+    e.preventDefault()
+    const normalized = normalizeEmail(email())
+    try {
+      await mutation.mutateAsync(normalized)
+      // The /v1 answers 202 for any email (no account enumeration), so the
+      // message cannot say that the account exists.
+      setSentTo(normalized)
+    } catch (error) {
+      const translation = getErrorTranslationKey("passwordReset", apiErrorOf(error).code)
+      toast.error(translation.namespace === "auth" ? t(translation.key) : tErrors(translation.key))
     }
-    // O GoTrue responde sucesso mesmo pra email sem conta (anti-enumeração) —
-    // a mensagem não pode afirmar que a conta existe.
-    setSentTo(normalized)
   }
-  return <div className="flex-1 flex items-center justify-center bg-muted/40 p-4 min-h-[calc(100vh-10rem)]"><Card className="w-full max-w-md"><CardHeader><CardTitle>{t('forgotPasswordTitle')}</CardTitle></CardHeader>{sentTo ? <CardContent className="space-y-4"><p>{t('forgotPasswordEmailSent', { email: sentTo })}</p><a href="/login" className="text-sm underline">{t('backToLogin')}</a></CardContent> : <form onSubmit={handleSubmit}><CardContent className="space-y-2"><Label htmlFor="forgot-email">{t('email')}</Label><Input id="forgot-email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} /><p className="text-xs text-muted-foreground">{t('forgotPasswordHint')}</p></CardContent><CardFooter><Button className="w-full" type="submit" disabled={isLoading}>{t('sendResetLink')}</Button></CardFooter></form>}</Card></div>
+
+  return (
+    <div class="flex-1 flex items-center justify-center bg-muted/40 p-4 min-h-[calc(100vh-10rem)]">
+      <Card class="w-full max-w-md">
+        <CardHeader><CardTitle>{t("forgotPasswordTitle")}</CardTitle></CardHeader>
+        <Show
+          when={sentTo()}
+          fallback={
+            <form onSubmit={handleSubmit}>
+              <CardContent class="space-y-2">
+                <Label for="forgot-email">{t("email")}</Label>
+                <Input id="forgot-email" type="email" required value={email()} onInput={(e) => setEmail(e.currentTarget.value)} />
+                <p class="text-xs text-muted-foreground">{t("forgotPasswordHint")}</p>
+              </CardContent>
+              <CardFooter>
+                <Button class="w-full" type="submit" disabled={mutation.isPending}>{t("sendResetLink")}</Button>
+              </CardFooter>
+            </form>
+          }
+        >
+          {(address) => (
+            <CardContent class="space-y-4">
+              <p>{t("forgotPasswordEmailSent", { email: address() })}</p>
+              <a href="/login" class="text-sm underline">{t("backToLogin")}</a>
+            </CardContent>
+          )}
+        </Show>
+      </Card>
+    </div>
+  )
 }

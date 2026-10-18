@@ -1,6 +1,7 @@
 {
   "common": {
     "appName": "Tozzo.uk",
+    "logoutFailed": "साइन आउट नहीं हो सका। अपना कनेक्शन जांचें और फिर से कोशिश करें।",
     "loading": "लोड हो रहा है...",
     "processing": "प्रक्रिया जारी है...",
     "saving": "सहेजा जा रहा है...",
@@ -198,7 +199,15 @@
     "actions": {
       "label": "कार्रवाइयाँ"
     },
-    "saveChanges": "परिवर्तन सहेजें"
+    "saveChanges": "परिवर्तन सहेजें",
+    "payment": "भुगतान",
+    "dnd": {
+      "keyboardInstructions": "कीबोर्ड से: स्पेस से कार्ड उठाएँ, तीर कुंजियों से कॉलम चुनें, स्पेस से छोड़ें और Esc से रद्द करें।",
+      "picked": "कार्ड चुना गया।",
+      "over": "कॉलम: {{column}}।",
+      "dropped": "कार्ड ले जाया गया।",
+      "cancelled": "ले जाना रद्द किया गया।"
+    }
   },
   "auth": {
     "login": "लॉग इन",
@@ -241,7 +250,7 @@
     "confirmationLinkExpired": "पुष्टि लिंक की समय-सीमा समाप्त हो गई है या पहले ही उपयोग हो चुका है। ईमेल और पासवर्ड से साइन इन करें या नया लिंक माँगें।",
     "emailNotConfirmed": "आपका ईमेल अभी तक पुष्टि नहीं हुआ है। भेजे गए लिंक पर क्लिक करें या नीचे फिर से भेजें।",
     "emailAlreadyRegistered": "यह ईमेल पहले से पंजीकृत है। साइन इन करें या पासवर्ड रीसेट करें।",
-    "weakPassword": "कमज़ोर पासवर्ड। कम से कम 6 अक्षर उपयोग करें।",
+    "weakPassword": "कमज़ोर पासवर्ड। कम से कम 8 अक्षर उपयोग करें।",
     "authRateLimited": "लगातार बहुत अधिक प्रयास। एक मिनट रुकें और फिर से कोशिश करें।",
     "verifyCredentials": "अपनी जानकारी जाँचें।",
     "verifyData": "अपना डेटा जाँचें।",
@@ -271,7 +280,13 @@
     "resetPasswordFailed": "पासवर्ड रीसेट नहीं हो सका।",
     "totpCode": "प्रमाणीकरण कोड",
     "confirmTotp": "पुष्टि करें",
-    "invalidTotpCode": "अमान्य कोड।"
+    "invalidTotpCode": "अमान्य कोड।",
+    "verifyEmailChecking": "आपका ईमेल पुष्टि किया जा रहा है...",
+    "confirmEmailChangeTitle": "नया ईमेल पुष्टि करें",
+    "confirmEmailChangeChecking": "आपका नया ईमेल पुष्टि किया जा रहा है...",
+    "confirmEmailChangeSuccess": "आपका ईमेल बदल दिया गया है। अगली बार साइन इन करते समय नया पता उपयोग करें।",
+    "confirmEmailChangeInvalid": "यह पुष्टि लिंक समाप्त हो गया है या पहले ही उपयोग हो चुका है। ईमेल बदलने का अनुरोध फिर से करें।",
+    "emailChangeInUse": "यह ईमेल पहले से किसी अन्य खाते द्वारा उपयोग में है।"
   },
   "navigation": {
     "dashboard": "डैशबोर्ड",
@@ -520,7 +535,8 @@
     "closingPeriod": "अवधि का समापन",
     "empty": "इस अवधि में कोई बिक्री नहीं मिली।",
     "viewDetails": "विवरण देखें",
-    "serviceLine": "सेवा"
+    "serviceLine": "सेवा",
+    "alreadyRegistered": "यह बिक्री पहले ही दर्ज हो चुकी थी; बदलाव सहेजा नहीं गया।"
   },
   "products": {
     "title": "उत्पाद",
@@ -565,7 +581,8 @@
       "decreaseQuantity": "मात्रा घटाएँ",
       "increaseQuantity": "मात्रा बढ़ाएँ",
       "removeItem": "आइटम हटाएँ",
-      "itemStatus": "आइटम की स्थिति"
+      "itemStatus": "आइटम की स्थिति",
+      "paymentNotInformed": "सूचित नहीं"
     },
     "confirm": {
       "delete": "क्या आप वाकई इस उत्पाद को हटाना चाहते हैं?",
@@ -610,6 +627,12 @@
     "accessibility": {
       "activateType": "प्रकार सक्रिय करें",
       "deactivateType": "प्रकार निष्क्रिय करें"
+    },
+    "image": {
+      "label": "छवि",
+      "uploading": "छवि अपलोड हो रही है...",
+      "uploaded": "छवि अपडेट हो गई।",
+      "preview": "उत्पाद की वर्तमान छवि"
     }
   },
   "employees": {
@@ -654,6 +677,7 @@
     "roleLabel": "भूमिका"
   },
   "charts": {
+    "others": "अन्य",
     "title": "रिपोर्ट",
     "pageTitle": "रिपोर्ट — {{establishment}}",
     "productsSold": "बेचे गए उत्पाद",
@@ -701,6 +725,7 @@
     "sales": "बिक्री",
     "moreSales": "+{{count}} और...",
     "report": {
+      "unavailable": "रिपोर्ट निर्यात अभी उपलब्ध नहीं है।",
       "generateExcel": "Excel बनाएँ",
       "generatePdf": "PDF बनाएँ",
       "filename": "रिपोर्ट",
@@ -848,7 +873,8 @@
       "save": "जानकारी सहेजें",
       "saving": "सहेजा जा रहा है...",
       "saved": "प्रतिष्ठान की जानकारी अपडेट हो गई।",
-      "saveError": "जानकारी सहेजी नहीं जा सकी। पुनः प्रयास करें।"
+      "saveError": "जानकारी सहेजी नहीं जा सकी। पुनः प्रयास करें।",
+      "addressComplementPlaceholder": "अपार्टमेंट, सुइट आदि"
     },
     "businessPreferences": {
       "onboardingTitle": "आपका व्यवसाय किस प्रकार का है?",
@@ -935,7 +961,8 @@
     "printSoon": "प्रिंट (जल्द उपलब्ध)",
     "receiptTitleOrder": "ऑर्डर #{{id}}",
     "receiptTitleSale": "बिक्री #{{id}}",
-    "receiptTotal": "कुल"
+    "receiptTotal": "कुल",
+    "receiptPaymentMethod": "भुगतान का तरीका: {{method}}"
   },
   "status": {
     "inPreparation": "तैयारी में",
@@ -997,7 +1024,14 @@
       "create": "कर्मचारी बनाने में त्रुटि।",
       "update": "कर्मचारी अपडेट करने में त्रुटि।",
       "delete": "कर्मचारी हटाने में त्रुटि।"
-    }
+    },
+    "uploadImage": "छवि अपलोड नहीं हो सकी।",
+    "uploadUnavailable": "छवि अपलोड अभी उपलब्ध नहीं है।",
+    "uploadInvalid": "5 MB तक की JPEG, PNG या WebP छवि का उपयोग करें।",
+    "orderNotOpen": "यह ऑर्डर पहले ही बंद हो चुका है।",
+    "orderDelivering": "यह ऑर्डर डिलीवरी के लिए निकल चुका है और बदला नहीं जा सकता।",
+    "deliveryNotStarted": "ऑर्डर बंद करने से पहले डिलीवरी शुरू करें।",
+    "orderChanged": "यह ऑर्डर कहीं और बदला गया है। अपडेट किए गए आइटम देखें और फिर से सहेजें।"
   },
   "catalog": {
     "burger": "बर्गर",
@@ -1108,6 +1142,17 @@
     "cancelOrder": "आदेश रद्द करें",
     "reopen": "आदेश फिर खोलें",
     "history": "इतिहास",
+    "historyActions": {
+      "CREATE": "CREATE",
+      "QUOTE": "QUOTE",
+      "APPROVE": "APPROVE",
+      "START": "START",
+      "COMPLETE": "COMPLETE",
+      "CANCEL": "CANCEL",
+      "REOPEN": "REOPEN",
+      "SUPPLEMENTS": "SUPPLEMENTS",
+      "APPROVE_SUPPLEMENTS": "APPROVE_SUPPLEMENTS"
+    },
     "empty": "अभी कोई अनुमान नहीं है।",
     "emptyItems": "कम से कम एक उत्पाद या सेवा जोड़ें।",
     "loadError": "सेवा आदेश लोड नहीं हो सके।",

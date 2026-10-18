@@ -6,28 +6,8 @@ import fr from './locales/fr.json'
 import zh from './locales/zh.json'
 import hi from './locales/hi.json'
 
-export const NAMESPACES = [
-  'common',
-  'auth',
-  'navigation',
-  'orders',
-  'kitchen',
-  'deliveries',
-  'calendar',
-  'sales',
-  'products',
-  'services',
-  'estimates',
-  'employees',
-  'charts',
-  'settings',
-  'sync',
-  'printer',
-  'status',
-  'errors',
-  'catalog',
-  'legal',
-] as const
+export { NAMESPACES } from './namespaces'
+import { NAMESPACES } from './namespaces'
 
 export type I18nResource = {
   [key: string]: string | I18nResource
